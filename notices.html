@@ -1,40 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Notice Board — BMC Portal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="portal.css" rel="stylesheet" />
   <style>
-    :root{--sb:#0f172a;--pr:#ef4444;--bg:#f0f4f8;}
-    body{background:var(--bg);font-family:'Segoe UI',sans-serif;margin:0;}
-    .sidebar{width:255px;background:var(--sb);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:1050;transition:.3s;}
-    .sb-brand{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
-    .sb-brand .icon{background:var(--pr);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
-    .sb-brand .txt h6{color:#fff;font-size:14px;font-weight:700;margin:0;}
-    .sb-brand .txt small{color:rgba(255,255,255,.5);font-size:10px;}
-    .sb-nav{padding:10px 0;}
-    .sb-section{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:12px 20px 6px;}
-    .sb-nav a{display:flex;align-items:center;gap:10px;padding:11px 20px;color:rgba(255,255,255,.65);text-decoration:none;font-size:13.5px;transition:.18s;}
-    .sb-nav a:hover,.sb-nav a.active{background:rgba(255,255,255,.09);color:#fff;}
-    .sb-nav a.active{border-left:3px solid var(--pr);}
-    .sb-nav a i{width:18px;text-align:center;}
-    .sb-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
-    .sb-user .av{width:36px;height:36px;border-radius:50%;background:var(--pr);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
-    .sb-user .info h6{color:#fff;font-size:12.5px;margin:0;}
-    .sb-user .info small{color:rgba(255,255,255,.4);font-size:10.5px;}
-    .main{margin-left:255px;min-height:100vh;}
-    .topbar{background:#fff;padding:14px 24px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-    .topbar .toggle{display:none;background:none;border:none;font-size:20px;color:#475569;cursor:pointer;}
-    .content{padding:24px;}
-    .sec-card{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:24px;overflow:hidden;}
-    .sec-head{padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
-    .sec-head h5{font-size:15px;font-weight:700;margin:0;color:#1e293b;}
-    .notice-card{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:16px;overflow:hidden;border-left:5px solid #ef4444;transition:.2s;}
-    .notice-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.12);}
-    .notice-card.urgent{border-color:#ef4444;}
-    .notice-card.info{border-color:#1565c0;}
+    .sb-link.active{border-color:#ef4444;} .sb-logo{background:#ef4444;} .sb-av{background:#1d4ed8;}
+    .notice-card{background:#fff;border-radius:14px;box-shadow:var(--shadow-sm);margin-bottom:16px;overflow:hidden;border-left:5px solid #ef4444;transition:.2s;}
+    .notice-card:hover{box-shadow:var(--shadow);}
+    .notice-card.info{border-color:#1d4ed8;}
     .notice-card.green{border-color:#059669;}
     .notice-card.orange{border-color:#d97706;}
     .notice-card.purple{border-color:#7c3aed;}
@@ -42,51 +18,44 @@
     .nc-head{padding:16px 20px;display:flex;align-items:flex-start;gap:14px;}
     .nc-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
     .nc-body{padding:0 20px 16px;}
-    .nc-foot{padding:10px 20px 14px;background:#f8fafc;border-top:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+    .nc-foot{padding:10px 20px 14px;background:#f8fafc;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
     .pin-badge{background:#fef9c3;color:#854d0e;border-radius:6px;padding:2px 10px;font-size:11px;font-weight:700;}
-    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1040;}
-    @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.overlay.show{display:block}.main{margin-left:0}.topbar .toggle{display:block}}
   </style>
 </head>
 <body>
-<div class="overlay" id="overlay" onclick="closeSb()"></div>
-<div class="sidebar" id="sidebar">
-  <div class="sb-brand">
-    <div class="icon"><i class="fas fa-bullhorn"></i></div>
-    <div class="txt"><h6>BMC Portal</h6><small>Notice Board</small></div>
-  </div>
-  <div class="sb-nav">
-    <div class="sb-section">Navigation</div>
-    <a href="student-dashboard.html"><i class="fas fa-user-graduate"></i> Student Portal</a>
-    <a href="teacher-dashboard.html"><i class="fas fa-chalkboard-teacher"></i> Teacher Portal</a>
-    <a href="admin-dashboard.html"><i class="fas fa-shield-alt"></i> Admin Panel</a>
-    <a href="finance-dashboard.html"><i class="fas fa-coins"></i> Finance Portal</a>
+<div class="overlay" id="ov" onclick="closeSb()"></div>
+<div class="sidebar" id="sb">
+  <div class="sb-brand"><div class="sb-logo"><i class="fas fa-bullhorn"></i></div><div class="sb-title"><h6>BMC Portal</h6><small>Notice Board</small></div></div>
+  <div class="sb-menu">
+    <div class="sb-section">Portals</div>
+    <a class="sb-link" href="student-dashboard.html"><i class="fas fa-user-graduate"></i> Student Portal</a>
+    <a class="sb-link" href="teacher-dashboard.html"><i class="fas fa-chalkboard-teacher"></i> Teacher Portal</a>
+    <a class="sb-link" href="admin-dashboard.html"><i class="fas fa-shield-alt"></i> Admin Panel</a>
+    <a class="sb-link" href="finance-dashboard.html"><i class="fas fa-coins"></i> Finance Portal</a>
     <div class="sb-section">Quick Links</div>
-    <a href="notices.html" class="active"><i class="fas fa-bullhorn"></i> Notice Board</a>
-    <a href="student-results.html"><i class="fas fa-chart-bar"></i> Results</a>
-    <a href="student-attendance.html"><i class="fas fa-calendar-check"></i> Attendance</a>
-    <a href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <a class="sb-link active" href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
+    <a class="sb-link" href="student-results.html"><i class="fas fa-chart-bar"></i> Results</a>
+    <a class="sb-link" href="student-attendance.html"><i class="fas fa-calendar-check"></i> Attendance</a>
+    <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
   </div>
-  <div class="sb-user">
-    <div class="av"><i class="fas fa-user"></i></div>
-    <div class="info"><h6>Ahmed Ali</h6><small>Student · 12-A</small></div>
-  </div>
+  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user"></i></div><div class="sb-foot-info"><h6>Ahmed Ali</h6><small>Student · 12-A</small></div></div>
 </div>
 
 <div class="main">
   <div class="topbar">
-    <button class="toggle" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
-    <span style="font-size:16px;font-weight:700;color:#1e293b"><i class="fas fa-bullhorn me-2 text-danger"></i>Notice Board</span>
-    <div class="d-flex align-items-center gap-2">
-      <span class="badge bg-danger">3 Unread</span>
-      <img src="https://ui-avatars.com/api/?name=Ahmed+Ali&background=1565c0&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
+    <div class="topbar-left">
+      <button class="toggle-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <span class="topbar-title"><i class="fas fa-bullhorn text-danger"></i> Notice Board</span>
+    </div>
+    <div class="topbar-right">
+      <span class="badge bg-danger" style="font-size:12px">3 Unread</span>
+      <img src="https://ui-avatars.com/api/?name=Ahmed+Ali&background=1d4ed8&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
     </div>
   </div>
 
   <div class="content">
-    <!-- Filters -->
     <div class="d-flex gap-2 flex-wrap mb-4">
-      <button class="btn btn-sm btn-danger active-filter" onclick="filter('all',this)">All Notices</button>
+      <button class="btn btn-sm btn-danger" onclick="filter('all',this)">All Notices</button>
       <button class="btn btn-sm btn-outline-secondary" onclick="filter('exam',this)">Exams</button>
       <button class="btn btn-sm btn-outline-secondary" onclick="filter('holiday',this)">Holidays</button>
       <button class="btn btn-sm btn-outline-secondary" onclick="filter('general',this)">General</button>
@@ -94,8 +63,7 @@
       <div class="ms-auto"><input type="text" class="form-control form-control-sm" placeholder="Search notices..." oninput="searchNotices(this.value)" style="max-width:200px" /></div>
     </div>
 
-    <!-- Pinned -->
-    <div class="notice-card urgent unread" data-cat="exam">
+    <div class="notice-card unread" data-cat="exam">
       <div class="nc-head">
         <div class="nc-icon" style="background:#fef2f2;color:#ef4444"><i class="fas fa-exclamation-triangle"></i></div>
         <div style="flex:1">
@@ -103,48 +71,42 @@
             <span class="pin-badge"><i class="fas fa-thumbtack me-1"></i>Pinned</span>
             <span class="badge bg-danger">Urgent</span>
             <span class="badge bg-secondary">All Students</span>
-            <span class="badge bg-warning text-dark fw-normal" style="font-size:11px">Unread</span>
+            <span class="badge bg-warning text-dark" style="font-size:11px">Unread</span>
           </div>
           <h6 class="fw-bold mb-0" style="font-size:15px">Final Examination Schedule — June 2026</h6>
         </div>
         <div style="font-size:11px;color:#94a3b8;white-space:nowrap">19 May 2026</div>
       </div>
-      <div class="nc-body">
-        <p style="font-size:13.5px;color:#475569;margin:0">The Final Examination for Term 2 (2025–26) will commence from <strong>10 June 2026</strong>. All students must report 30 minutes before the exam. Please download the complete date sheet below. Roll number slips will be distributed by class teachers this week.</p>
-      </div>
+      <div class="nc-body"><p style="font-size:13.5px;color:#475569;margin:0">The Final Examination for Term 2 (2025–26) will commence from <strong>10 June 2026</strong>. All students must report 30 minutes before the exam. Please download the complete date sheet below. Roll number slips will be distributed by class teachers this week.</p></div>
       <div class="nc-foot">
         <div class="d-flex gap-2 flex-wrap">
-          <button class="btn btn-sm btn-danger"><i class="fas fa-download me-1"></i>Download Date Sheet (PDF)</button>
+          <button class="btn btn-sm btn-danger" onclick="alert('Downloading PDF...')"><i class="fas fa-download me-1"></i>Download Date Sheet</button>
           <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-share me-1"></i>Share</button>
         </div>
         <div style="font-size:12px;color:#94a3b8">Posted by: Principal's Office &nbsp;·&nbsp; Expires: 10 Jun 2026</div>
       </div>
     </div>
 
-    <!-- PTM -->
     <div class="notice-card info unread" data-cat="general">
       <div class="nc-head">
-        <div class="nc-icon" style="background:#eff6ff;color:#1565c0"><i class="fas fa-users"></i></div>
+        <div class="nc-icon" style="background:#eff6ff;color:#1d4ed8"><i class="fas fa-users"></i></div>
         <div style="flex:1">
           <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
             <span class="badge bg-primary">PTM</span>
-            <span class="badge bg-secondary">All Parents</span>
-            <span class="badge bg-warning text-dark fw-normal" style="font-size:11px">Unread</span>
+            <span class="badge bg-secondary">All</span>
+            <span class="badge bg-warning text-dark" style="font-size:11px">Unread</span>
           </div>
           <h6 class="fw-bold mb-0" style="font-size:15px">Parent-Teacher Meeting — 27 May 2026</h6>
         </div>
         <div style="font-size:11px;color:#94a3b8;white-space:nowrap">18 May 2026</div>
       </div>
-      <div class="nc-body">
-        <p style="font-size:13.5px;color:#475569;margin:0">Parent-Teacher Meeting (PTM) is scheduled for <strong>Wednesday, 27 May 2026</strong> from <strong>09:00 AM – 01:00 PM</strong>. Parents/guardians are requested to meet their respective class teachers to discuss Mid-Term results and student progress. Attendance is highly encouraged.</p>
-      </div>
+      <div class="nc-body"><p style="font-size:13.5px;color:#475569;margin:0">Parent-Teacher Meeting (PTM) is scheduled for <strong>Wednesday, 27 May 2026</strong> from <strong>09:00 AM – 01:00 PM</strong>. Parents/guardians are requested to meet their respective class teachers to discuss Mid-Term results and student progress.</p></div>
       <div class="nc-foot">
-        <div style="font-size:12px;color:#475569"><i class="fas fa-map-marker-alt me-1"></i>Venue: Main Hall &nbsp;·&nbsp; <i class="fas fa-clock me-1"></i>09:00 AM – 01:00 PM</div>
+        <div style="font-size:12px;color:#475569"><i class="fas fa-map-marker-alt me-1"></i>Main Hall &nbsp;·&nbsp; <i class="fas fa-clock me-1"></i>09:00 AM – 01:00 PM</div>
         <div style="font-size:12px;color:#94a3b8">Posted by: Administration</div>
       </div>
     </div>
 
-    <!-- Eid Holiday -->
     <div class="notice-card green unread" data-cat="holiday">
       <div class="nc-head">
         <div class="nc-icon" style="background:#f0fdf4;color:#059669"><i class="fas fa-star-and-crescent"></i></div>
@@ -152,22 +114,19 @@
           <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
             <span class="badge bg-success">Holiday</span>
             <span class="badge bg-secondary">All Staff &amp; Students</span>
-            <span class="badge bg-warning text-dark fw-normal" style="font-size:11px">Unread</span>
+            <span class="badge bg-warning text-dark" style="font-size:11px">Unread</span>
           </div>
           <h6 class="fw-bold mb-0" style="font-size:15px">Eid-ul-Adha Holidays — 30 May to 3 June 2026</h6>
         </div>
         <div style="font-size:11px;color:#94a3b8;white-space:nowrap">17 May 2026</div>
       </div>
-      <div class="nc-body">
-        <p style="font-size:13.5px;color:#475569;margin:0">Bahria Model College will remain <strong>closed from 30 May (Friday) to 3 June 2026 (Tuesday)</strong> on account of Eid-ul-Adha. College will resume on <strong>4 June 2026 (Wednesday)</strong>. Eid Mubarak to all students, parents, and staff from the management!</p>
-      </div>
+      <div class="nc-body"><p style="font-size:13.5px;color:#475569;margin:0">Bahria Model College will remain <strong>closed from 30 May to 3 June 2026</strong> on account of Eid-ul-Adha. College will resume on <strong>4 June 2026</strong>. Eid Mubarak to all students, parents, and staff from the management!</p></div>
       <div class="nc-foot">
-        <div style="font-size:12px;color:#059669;font-weight:600">College reopens: 4 June 2026</div>
+        <div style="font-size:12px;color:#059669;font-weight:600"><i class="fas fa-check-circle me-1"></i>College reopens: 4 June 2026</div>
         <div style="font-size:12px;color:#94a3b8">Posted by: Principal's Office</div>
       </div>
     </div>
 
-    <!-- Sports Day -->
     <div class="notice-card orange" data-cat="general">
       <div class="nc-head">
         <div class="nc-icon" style="background:#fffbeb;color:#d97706"><i class="fas fa-trophy"></i></div>
@@ -180,19 +139,16 @@
         </div>
         <div style="font-size:11px;color:#94a3b8;white-space:nowrap">15 May 2026</div>
       </div>
-      <div class="nc-body">
-        <p style="font-size:13.5px;color:#475569;margin:0">Annual Sports Day will be held on <strong>7 June 2026</strong> at the college grounds. Students interested in participating must register with their House In-Charge by <strong>28 May 2026</strong>. Events include Athletics, Cricket, Football, Table Tennis, and Badminton.</p>
-      </div>
+      <div class="nc-body"><p style="font-size:13.5px;color:#475569;margin:0">Annual Sports Day will be held on <strong>7 June 2026</strong> at the college grounds. Students interested in participating must register with their House In-Charge by <strong>28 May 2026</strong>. Events include Athletics, Cricket, Football, Table Tennis, and Badminton.</p></div>
       <div class="nc-foot">
         <div class="d-flex gap-2">
-          <button class="btn btn-sm btn-warning text-white">Register for Events</button>
-          <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-download me-1"></i>Schedule PDF</button>
+          <button class="btn btn-sm btn-warning text-white" onclick="alert('Registration open!')">Register for Events</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="alert('Downloading schedule...')"><i class="fas fa-download me-1"></i>Schedule PDF</button>
         </div>
         <div style="font-size:12px;color:#94a3b8">Posted by: Sports Department</div>
       </div>
     </div>
 
-    <!-- Library -->
     <div class="notice-card purple" data-cat="general">
       <div class="nc-head">
         <div class="nc-icon" style="background:#fdf4ff;color:#7c3aed"><i class="fas fa-book"></i></div>
@@ -205,9 +161,7 @@
         </div>
         <div style="font-size:11px;color:#94a3b8;white-space:nowrap">13 May 2026</div>
       </div>
-      <div class="nc-body">
-        <p style="font-size:13.5px;color:#475569;margin:0">The library has received new textbooks and reference materials for Class 11 and 12. Students can borrow up to 2 books for 14 days. Please visit the library during break time or after school hours. <strong>Library card is required.</strong></p>
-      </div>
+      <div class="nc-body"><p style="font-size:13.5px;color:#475569;margin:0">The library has received new textbooks and reference materials for Class 11 and 12. Students can borrow up to 2 books for 14 days. Please visit the library during break time or after school hours. <strong>Library card is required.</strong></p></div>
       <div class="nc-foot">
         <div style="font-size:12px;color:#475569"><i class="fas fa-clock me-1"></i>Library Hours: 07:00 AM – 03:00 PM</div>
         <div style="font-size:12px;color:#94a3b8">Posted by: Library Department</div>
@@ -222,20 +176,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
-  function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
-  function filter(cat, btn){
-    document.querySelectorAll('.notice-card').forEach(c=>{
-      c.style.display=(cat==='all'||c.dataset.cat===cat)?'':'none';
-    });
-    document.querySelectorAll('.d-flex .btn').forEach(b=>b.classList.remove('btn-danger','btn-success','btn-primary','btn-warning'));
-    btn.classList.add('btn-danger');
-  }
-  function searchNotices(q){
-    document.querySelectorAll('.notice-card').forEach(c=>{
-      c.style.display=c.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
-    });
-  }
+  function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
+  function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
+  function filter(cat,btn){document.querySelectorAll('.notice-card').forEach(c=>{c.style.display=(cat==='all'||c.dataset.cat===cat)?'':'none';});}
+  function searchNotices(q){document.querySelectorAll('.notice-card').forEach(c=>{c.style.display=c.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';});}
 </script>
 </body>
 </html>

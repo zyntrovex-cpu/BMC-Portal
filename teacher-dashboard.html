@@ -1,171 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Teacher Portal — BMC Portal</title>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Dashboard — BMC Portal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="portal.css" rel="stylesheet" />
   <style>
-    :root{--sb:#0f172a;--pr:#059669;--bg:#f0f4f8;}
-    body{background:var(--bg);font-family:'Segoe UI',sans-serif;margin:0;}
-    .sidebar{width:255px;background:var(--sb);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:1050;transition:.3s;}
-    .sb-brand{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
-    .sb-brand .icon{background:var(--pr);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
-    .sb-brand .txt h6{color:#fff;font-size:14px;font-weight:700;margin:0;}
-    .sb-brand .txt small{color:rgba(255,255,255,.5);font-size:10px;}
-    .sb-nav{padding:10px 0;}
-    .sb-section{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:12px 20px 6px;}
-    .sb-nav a{display:flex;align-items:center;gap:10px;padding:11px 20px;color:rgba(255,255,255,.65);text-decoration:none;font-size:13.5px;transition:.18s;}
-    .sb-nav a:hover,.sb-nav a.active{background:rgba(255,255,255,.09);color:#fff;}
-    .sb-nav a.active{border-left:3px solid var(--pr);}
-    .sb-nav a i{width:18px;text-align:center;}
-    .sb-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
-    .sb-user .av{width:36px;height:36px;border-radius:50%;background:var(--pr);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
-    .sb-user .info h6{color:#fff;font-size:12.5px;margin:0;}
-    .sb-user .info small{color:rgba(255,255,255,.4);font-size:10.5px;}
-    .main{margin-left:255px;min-height:100vh;}
-    .topbar{background:#fff;padding:14px 24px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-    .topbar .toggle{display:none;background:none;border:none;font-size:20px;color:#475569;cursor:pointer;}
-    .content{padding:24px;}
-    .stat-card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
-    .stat-card .icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px;}
-    .stat-card h3{font-size:26px;font-weight:700;margin:0;}
-    .stat-card p{font-size:12px;color:#64748b;margin:4px 0 0;}
-    .sec-card{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:24px;overflow:hidden;}
-    .sec-head{padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;}
-    .sec-head h5{font-size:15px;font-weight:700;margin:0;color:#1e293b;}
-    table thead{background:#f8fafc;}
-    table thead th{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;border:none;}
-    table td{font-size:13.5px;vertical-align:middle;}
-    .att-toggle button{width:38px;height:28px;border-radius:6px;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;font-size:12px;font-weight:700;}
+    .sb-link.active{border-color:#059669;} .sb-logo{background:#059669;} .sb-av{background:#059669;}
+    .schedule-row{display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid #f1f5f9;}
+    .schedule-row:last-child{border:none;}
+    .time-pill{background:#f0fdf4;color:#059669;border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap;}
+    .att-toggle button{width:38px;height:28px;border-radius:6px;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;font-size:12px;font-weight:700;transition:.15s;}
     .att-toggle button.p{background:#dcfce7;border-color:#059669;color:#166534;}
     .att-toggle button.a{background:#fee2e2;border-color:#ef4444;color:#991b1b;}
     .att-toggle button.l{background:#fef9c3;border-color:#d97706;color:#854d0e;}
-    .schedule-row{display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid #f1f5f9;}
-    .schedule-row:last-child{border:none;}
-    .time-pill{background:#eff6ff;color:#1565c0;border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap;}
-    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1040;}
-    @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.overlay.show{display:block}.main{margin-left:0}.topbar .toggle{display:block}}
   </style>
 </head>
 <body>
-<div class="overlay" id="overlay" onclick="closeSb()"></div>
-<div class="sidebar" id="sidebar">
-  <div class="sb-brand">
-    <div class="icon"><i class="fas fa-chalkboard-teacher"></i></div>
-    <div class="txt"><h6>BMC Portal</h6><small>Teacher Portal</small></div>
-  </div>
-  <div class="sb-nav">
+<div class="overlay" id="ov" onclick="closeSb()"></div>
+<div class="sidebar" id="sb">
+  <div class="sb-brand"><div class="sb-logo"><i class="fas fa-chalkboard-teacher"></i></div><div class="sb-title"><h6>BMC Portal</h6><small>Teacher Portal</small></div></div>
+  <div class="sb-menu">
     <div class="sb-section">Main Menu</div>
-    <a href="teacher-dashboard.html" class="active"><i class="fas fa-home"></i> Dashboard</a>
-    <a href="teacher-marks.html"><i class="fas fa-pen"></i> Enter Marks</a>
-    <a href="teacher-attendance.html"><i class="fas fa-calendar-check"></i> Mark Attendance</a>
-    <a href="teacher-assignments.html"><i class="fas fa-tasks"></i> Assignments</a>
-    <a href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
-    <a href="teacher-timetable.html"><i class="fas fa-clock"></i> My Timetable</a>
+    <a class="sb-link active" href="teacher-dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+    <a class="sb-link" href="teacher-marks.html"><i class="fas fa-pen"></i> Enter Marks</a>
+    <a class="sb-link" href="teacher-attendance.html"><i class="fas fa-calendar-check"></i> Mark Attendance</a>
+    <a class="sb-link" href="teacher-assignments.html"><i class="fas fa-tasks"></i> Assignments</a>
+    <a class="sb-link" href="teacher-timetable.html"><i class="fas fa-clock"></i> My Timetable</a>
+    <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
     <div class="sb-section">Account</div>
-    <a href="teacher-profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
-    <a href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <a class="sb-link" href="teacher-profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
+    <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
   </div>
-  <div class="sb-user">
-    <div class="av"><i class="fas fa-user"></i></div>
-    <div class="info"><h6>Dr. Sarah Khan</h6><small>Sr. Lecturer · Physics</small></div>
-  </div>
+  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user"></i></div><div class="sb-foot-info"><h6>Dr. Sarah Khan</h6><small>Sr. Lecturer · Physics</small></div></div>
 </div>
 
 <div class="main">
   <div class="topbar">
-    <button class="toggle" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
-    <span style="font-size:16px;font-weight:700;color:#1e293b"><i class="fas fa-home me-2" style="color:#059669"></i>Teacher Dashboard</span>
-    <div class="d-flex align-items-center gap-3">
+    <div class="topbar-left">
+      <button class="toggle-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <span class="topbar-title"><i class="fas fa-home" style="color:#059669"></i> Teacher Dashboard</span>
+    </div>
+    <div class="topbar-right">
       <div style="text-align:right;font-size:12px;color:#64748b">Wed, 21 May 2026<br><b style="color:#ef4444">3 classes today</b></div>
       <img src="https://ui-avatars.com/api/?name=Sarah+Khan&background=059669&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
     </div>
   </div>
 
   <div class="content">
-    <!-- Banner -->
     <div class="alert mb-4" style="background:linear-gradient(135deg,#064e3b,#059669);color:#fff;border:none;border-radius:14px;padding:20px 24px;">
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
-          <h5 class="mb-1 fw-bold">Good Morning, Dr. Sarah! 👋</h5>
+          <h5 class="mb-1 fw-bold">Good Morning, Dr. Sarah!</h5>
           <small style="opacity:.85">You have 3 classes today and 2 pending attendance entries.</small>
         </div>
         <a href="teacher-marks.html" class="btn btn-light btn-sm fw-semibold">Enter Marks</a>
       </div>
     </div>
 
-    <!-- Stats -->
     <div class="row g-3 mb-4">
       <div class="col-6 col-lg-3">
         <div class="stat-card">
-          <div class="icon" style="background:#f0fdf4"><i class="fas fa-calendar-day" style="color:#059669"></i></div>
-          <h3 style="color:#059669">3</h3><p>Classes Today</p>
+          <div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-calendar-day" style="color:#059669"></i></div>
+          <div class="stat-val" style="color:#059669">3</div><div class="stat-lbl">Classes Today</div>
         </div>
       </div>
       <div class="col-6 col-lg-3">
         <div class="stat-card">
-          <div class="icon" style="background:#eff6ff"><i class="fas fa-users" style="color:#1565c0"></i></div>
-          <h3 style="color:#1565c0">87</h3><p>Total Students</p>
+          <div class="stat-icon" style="background:#eff6ff"><i class="fas fa-users" style="color:#1d4ed8"></i></div>
+          <div class="stat-val" style="color:#1d4ed8">87</div><div class="stat-lbl">Total Students</div>
         </div>
       </div>
       <div class="col-6 col-lg-3">
         <div class="stat-card">
-          <div class="icon" style="background:#fffbeb"><i class="fas fa-pen" style="color:#d97706"></i></div>
-          <h3 style="color:#d97706">2</h3><p>Marks Pending</p>
+          <div class="stat-icon" style="background:#fffbeb"><i class="fas fa-pen" style="color:#d97706"></i></div>
+          <div class="stat-val" style="color:#d97706">2</div><div class="stat-lbl">Marks Pending</div>
         </div>
       </div>
       <div class="col-6 col-lg-3">
         <div class="stat-card">
-          <div class="icon" style="background:#fef2f2"><i class="fas fa-tasks" style="color:#ef4444"></i></div>
-          <h3 style="color:#ef4444">3</h3><p>Active Assignments</p>
+          <div class="stat-icon" style="background:#fef2f2"><i class="fas fa-tasks" style="color:#ef4444"></i></div>
+          <div class="stat-val" style="color:#ef4444">3</div><div class="stat-lbl">Active Assignments</div>
         </div>
       </div>
     </div>
 
     <div class="row g-3">
       <div class="col-lg-5">
-        <!-- Today's Schedule -->
         <div class="sec-card">
-          <div class="sec-head">
-            <h5><i class="fas fa-calendar-day me-2" style="color:#059669"></i>Today's Schedule</h5>
-          </div>
+          <div class="sec-head"><h5><i class="fas fa-calendar-day me-2" style="color:#059669"></i>Today's Schedule</h5></div>
           <div class="schedule-row">
             <div class="time-pill">07:30 – 08:15</div>
-            <div>
-              <div class="fw-semibold" style="font-size:14px">Physics — Class 12-A</div>
-              <div style="font-size:12px;color:#64748b"><i class="fas fa-door-open me-1"></i>Lab-A &nbsp;·&nbsp; 29 Students</div>
-            </div>
-            <span class="badge bg-success ms-auto">Active</span>
+            <div class="flex-grow-1"><div class="fw-semibold" style="font-size:14px">Physics — Class 12-A</div><div style="font-size:12px;color:#64748b"><i class="fas fa-door-open me-1"></i>Lab-A · 29 Students</div></div>
+            <span class="badge bg-success">Active</span>
           </div>
           <div class="schedule-row">
             <div class="time-pill">09:00 – 09:45</div>
-            <div>
-              <div class="fw-semibold" style="font-size:14px">Physics — Class 11-B</div>
-              <div style="font-size:12px;color:#64748b"><i class="fas fa-door-open me-1"></i>Lab-A &nbsp;·&nbsp; 31 Students</div>
-            </div>
-            <span class="badge bg-secondary ms-auto">Upcoming</span>
+            <div class="flex-grow-1"><div class="fw-semibold" style="font-size:14px">Physics — Class 11-B</div><div style="font-size:12px;color:#64748b"><i class="fas fa-door-open me-1"></i>Lab-A · 31 Students</div></div>
+            <span class="badge bg-secondary">Upcoming</span>
           </div>
           <div class="schedule-row">
             <div class="time-pill">11:00 – 11:45</div>
-            <div>
-              <div class="fw-semibold" style="font-size:14px">Physics — Class 12-B</div>
-              <div style="font-size:12px;color:#64748b"><i class="fas fa-door-open me-1"></i>Room 208 &nbsp;·&nbsp; 27 Students</div>
-            </div>
-            <span class="badge bg-secondary ms-auto">Upcoming</span>
+            <div class="flex-grow-1"><div class="fw-semibold" style="font-size:14px">Physics — Class 12-B</div><div style="font-size:12px;color:#64748b"><i class="fas fa-door-open me-1"></i>Room 208 · 27 Students</div></div>
+            <span class="badge bg-secondary">Upcoming</span>
           </div>
         </div>
 
-        <!-- Pending Actions -->
         <div class="sec-card">
           <div class="sec-head"><h5><i class="fas fa-exclamation-circle me-2 text-warning"></i>Pending Actions</h5></div>
           <div class="p-3">
             <div class="d-flex align-items-center justify-content-between p-3 rounded mb-2" style="background:#fffbeb;border:1px solid #fde68a">
               <div><div class="fw-semibold" style="font-size:13px">Quiz 3 Marks — Class 11-A</div><small class="text-muted">Deadline: 22 May 2026</small></div>
-              <a href="teacher-marks.html" class="btn btn-sm btn-warning">Enter</a>
+              <a href="teacher-marks.html" class="btn btn-sm btn-warning text-white">Enter</a>
             </div>
-            <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background:#fff8f8;border:1px solid #fecaca">
+            <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background:#fef2f2;border:1px solid #fecaca">
               <div><div class="fw-semibold" style="font-size:13px">Attendance 20 May — Class 12-B</div><small class="text-muted">Yesterday's entry missing</small></div>
               <a href="teacher-attendance.html" class="btn btn-sm btn-danger">Mark</a>
             </div>
@@ -174,18 +123,17 @@
       </div>
 
       <div class="col-lg-7">
-        <!-- Quick Attendance -->
         <div class="sec-card">
           <div class="sec-head">
-            <h5><i class="fas fa-calendar-check me-2" style="color:#059669"></i>Quick Attendance — Class 12-A (Today)</h5>
+            <h5><i class="fas fa-calendar-check me-2" style="color:#059669"></i>Quick Attendance — Class 12-A</h5>
             <div class="d-flex gap-2">
               <button class="btn btn-sm btn-outline-success" onclick="markAll('p')">All Present</button>
               <button class="btn btn-sm btn-outline-danger" onclick="markAll('a')">All Absent</button>
             </div>
           </div>
           <div class="table-responsive">
-            <table class="table mb-0">
-              <thead><tr><th class="ps-4">#</th><th>Student Name</th><th>Roll No</th><th>Attendance</th></tr></thead>
+            <table class="data-table">
+              <thead><tr><th class="ps-4">#</th><th>Student Name</th><th>Roll No</th><th>Status</th></tr></thead>
               <tbody id="attTable">
                 <tr><td class="ps-4">1</td><td>Ahmed Ali</td><td>101</td><td><div class="att-toggle d-flex gap-1"><button class="p" onclick="setAtt(this,'p')">P</button><button onclick="setAtt(this,'a')">A</button><button onclick="setAtt(this,'l')">L</button></div></td></tr>
                 <tr><td class="ps-4">2</td><td>Bilal Ahmed</td><td>102</td><td><div class="att-toggle d-flex gap-1"><button class="p" onclick="setAtt(this,'p')">P</button><button onclick="setAtt(this,'a')">A</button><button onclick="setAtt(this,'l')">L</button></div></td></tr>
@@ -197,42 +145,29 @@
               </tbody>
             </table>
           </div>
-          <div class="p-3 d-flex justify-content-between align-items-center border-top">
+          <div class="p-3 d-flex justify-content-between align-items-center border-top" style="background:#f8fafc">
             <small class="text-muted">Showing 7 of 29 students</small>
-            <button class="btn btn-success btn-sm" onclick="alert('Attendance saved successfully!')"><i class="fas fa-save me-1"></i>Save Attendance</button>
+            <button class="btn btn-success btn-sm" onclick="alert('Attendance saved!')"><i class="fas fa-save me-1"></i>Save Attendance</button>
           </div>
         </div>
 
-        <!-- Marks Entry Preview -->
         <div class="sec-card">
           <div class="sec-head">
             <h5><i class="fas fa-pen me-2 text-warning"></i>Marks Entry — Quiz 3 · Class 12-A</h5>
             <a href="teacher-marks.html" class="btn btn-sm btn-outline-warning">Full View</a>
           </div>
           <div class="table-responsive">
-            <table class="table mb-0">
+            <table class="data-table">
               <thead><tr><th class="ps-4">Student</th><th>Roll</th><th>Quiz 3 (/10)</th><th>Assignment (/10)</th></tr></thead>
               <tbody>
-                <tr><td class="ps-4">Ahmed Ali</td><td>101</td>
-                  <td><input type="number" class="form-control form-control-sm" style="width:70px" value="8.5" min="0" max="10" /></td>
-                  <td><input type="number" class="form-control form-control-sm" style="width:70px" value="9" min="0" max="10" /></td>
-                </tr>
-                <tr><td class="ps-4">Bilal Ahmed</td><td>102</td>
-                  <td><input type="number" class="form-control form-control-sm" style="width:70px" value="7" min="0" max="10" /></td>
-                  <td><input type="number" class="form-control form-control-sm" style="width:70px" value="8" min="0" max="10" /></td>
-                </tr>
-                <tr><td class="ps-4">Fatima Noor</td><td>103</td>
-                  <td><input type="number" class="form-control form-control-sm" style="width:70px" value="9" min="0" max="10" /></td>
-                  <td><input type="number" class="form-control form-control-sm" style="width:70px" value="10" min="0" max="10" /></td>
-                </tr>
-                <tr><td class="ps-4">Hassan Raza</td><td>104</td>
-                  <td><input type="number" class="form-control form-control-sm" style="width:70px" placeholder="—" min="0" max="10" /></td>
-                  <td><input type="number" class="form-control form-control-sm" style="width:70px" placeholder="—" min="0" max="10" /></td>
-                </tr>
+                <tr><td class="ps-4">Ahmed Ali</td><td>101</td><td><input type="number" class="form-control form-control-sm" style="width:70px" value="8.5" min="0" max="10" /></td><td><input type="number" class="form-control form-control-sm" style="width:70px" value="9" min="0" max="10" /></td></tr>
+                <tr><td class="ps-4">Bilal Ahmed</td><td>102</td><td><input type="number" class="form-control form-control-sm" style="width:70px" value="7" min="0" max="10" /></td><td><input type="number" class="form-control form-control-sm" style="width:70px" value="8" min="0" max="10" /></td></tr>
+                <tr><td class="ps-4">Fatima Noor</td><td>103</td><td><input type="number" class="form-control form-control-sm" style="width:70px" value="9" min="0" max="10" /></td><td><input type="number" class="form-control form-control-sm" style="width:70px" value="10" min="0" max="10" /></td></tr>
+                <tr><td class="ps-4">Hassan Raza</td><td>104</td><td><input type="number" class="form-control form-control-sm" style="width:70px" placeholder="—" min="0" max="10" /></td><td><input type="number" class="form-control form-control-sm" style="width:70px" placeholder="—" min="0" max="10" /></td></tr>
               </tbody>
             </table>
           </div>
-          <div class="p-3 d-flex justify-content-end border-top">
+          <div class="p-3 d-flex justify-content-end border-top" style="background:#f8fafc">
             <button class="btn btn-warning btn-sm text-white" onclick="alert('Marks saved!')"><i class="fas fa-save me-1"></i>Save Marks</button>
           </div>
         </div>
@@ -243,21 +178,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
-  function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
-  function setAtt(btn, type){
-    const grp = btn.closest('.att-toggle');
-    grp.querySelectorAll('button').forEach(b => b.className='');
-    btn.className = type;
-  }
-  function markAll(type){
-    document.querySelectorAll('.att-toggle').forEach(grp=>{
-      grp.querySelectorAll('button').forEach(b=>{
-        b.className='';
-        if((type==='p'&&b.textContent==='P')||(type==='a'&&b.textContent==='A')) b.className=type;
-      });
-    });
-  }
+  function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
+  function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
+  function setAtt(btn,type){const g=btn.closest('.att-toggle');g.querySelectorAll('button').forEach(b=>b.className='');btn.className=type;}
+  function markAll(type){document.querySelectorAll('.att-toggle').forEach(g=>{g.querySelectorAll('button').forEach(b=>{b.className='';if((type==='p'&&b.textContent==='P')||(type==='a'&&b.textContent==='A'))b.className=type;});});}
 </script>
 </body>
 </html>

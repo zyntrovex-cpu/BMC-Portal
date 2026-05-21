@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Attendance Reports — BMC Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="portal.css" rel="stylesheet" />
+  <style>
+    .sb-link.active{border-color:#7c3aed;} .sb-logo{background:#7c3aed;} .sb-av{background:#7c3aed;}
+    .att-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+    .att-row .lbl{width:80px;font-size:12.5px;color:var(--t2);flex-shrink:0;}
+    .att-row .bar-wrap{flex:1;height:9px;background:var(--border);border-radius:20px;overflow:hidden;}
+    .att-row .bar-fill{height:100%;border-radius:20px;}
+    .att-row .pct{width:36px;text-align:right;font-size:12px;font-weight:700;}
+  </style>
+</head>
+<body>
+<div class="overlay" id="ov" onclick="closeSb()"></div>
+<div class="sidebar" id="sb">
+  <div class="sb-brand"><div class="sb-logo"><i class="fas fa-shield-alt"></i></div><div class="sb-title"><h6>BMC Portal</h6><small>Admin Panel</small></div></div>
+  <div class="sb-menu">
+    <div class="sb-section">Main Menu</div>
+    <a class="sb-link" href="admin-dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a class="sb-link" href="admin-users.html"><i class="fas fa-users"></i> User Management</a>
+    <a class="sb-link" href="admin-classes.html"><i class="fas fa-school"></i> Classes &amp; Subjects</a>
+    <a class="sb-link" href="admin-results.html"><i class="fas fa-chart-bar"></i> Results Management</a>
+    <a class="sb-link active" href="admin-attendance.html"><i class="fas fa-calendar-check"></i> Attendance Reports</a>
+    <a class="sb-link" href="admin-analytics.html"><i class="fas fa-chart-line"></i> Analytics</a>
+    <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
+    <a class="sb-link" href="finance-dashboard.html"><i class="fas fa-coins"></i> Finance Portal</a>
+    <div class="sb-section">System</div>
+    <a class="sb-link" href="admin-settings.html"><i class="fas fa-cog"></i> Settings</a>
+    <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user-shield"></i></div><div class="sb-foot-info"><h6>Mr. Tariq Mehmood</h6><small>System Administrator</small></div></div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="toggle-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <span class="topbar-title"><i class="fas fa-calendar-check" style="color:#7c3aed"></i> Attendance Reports</span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-sm btn-outline-secondary me-1"><i class="fas fa-file-excel me-1"></i>Export</button>
+      <button class="btn btn-sm btn-primary"><i class="fas fa-print me-1"></i>Print Report</button>
+      <img src="https://ui-avatars.com/api/?name=Tariq+Mehmood&background=7c3aed&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-user-check" style="color:#059669"></i></div><div class="stat-val" style="color:#059669">731</div><div class="stat-lbl">Present Today</div><div class="stat-trend" style="color:#059669"><i class="fas fa-arrow-up"></i> 87%</div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fef2f2"><i class="fas fa-user-times" style="color:#ef4444"></i></div><div class="stat-val" style="color:#ef4444">111</div><div class="stat-lbl">Absent Today</div><div class="stat-trend" style="color:#ef4444"><i class="fas fa-arrow-up"></i> 13%</div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fffbeb"><i class="fas fa-exclamation-triangle" style="color:#d97706"></i></div><div class="stat-val" style="color:#d97706">23</div><div class="stat-lbl">Defaulters (&lt;75%)</div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fdf4ff"><i class="fas fa-percentage" style="color:#7c3aed"></i></div><div class="stat-val" style="color:#7c3aed">86.2%</div><div class="stat-lbl">Monthly Average</div></div></div>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="sec-card">
+      <div class="sec-head"><h5><i class="fas fa-filter me-2 text-primary"></i>Filter Attendance Report</h5></div>
+      <div class="p-4">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:12px">From Date</label><input type="date" class="form-control form-control-sm" value="2026-05-01" /></div>
+          <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:12px">To Date</label><input type="date" class="form-control form-control-sm" value="2026-05-21" /></div>
+          <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:12px">Class</label><select class="form-select form-select-sm"><option>All Classes</option><option>Class 12-A</option><option>Class 11-A</option></select></div>
+          <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:12px">Subject</label><select class="form-select form-select-sm"><option>All Subjects</option><option>Physics</option><option>Chemistry</option></select></div>
+          <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:12px">Show Only</label><select class="form-select form-select-sm"><option>All Students</option><option>Defaulters Only</option><option>Below 80%</option></select></div>
+          <div class="col-md-2"><button class="btn btn-primary btn-sm w-100">Generate Report</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <!-- Attendance Table -->
+      <div class="col-lg-8">
+        <div class="sec-card">
+          <div class="sec-head">
+            <h5><i class="fas fa-table me-2" style="color:#7c3aed"></i>Class-wise Attendance Summary — May 2026</h5>
+            <span class="badge" style="background:#fdf4ff;color:#7c3aed">842 Students</span>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead><tr><th class="ps-4">Class</th><th>Section</th><th>Total</th><th>Present</th><th>Absent</th><th>Avg %</th><th>Defaulters</th><th class="pe-4">Report</th></tr></thead>
+              <tbody>
+                <tr><td class="ps-4 fw-semibold">Class 12</td><td>A</td><td>29</td><td class="text-success fw-bold">26</td><td class="text-danger">3</td><td><span class="fw-bold text-success">89%</span></td><td>1</td><td class="pe-4"><button class="btn btn-xs btn-outline-primary" style="font-size:11px;padding:2px 8px">View</button></td></tr>
+                <tr><td class="ps-4 fw-semibold">Class 12</td><td>B</td><td>27</td><td class="text-success fw-bold">23</td><td class="text-danger">4</td><td><span class="fw-bold" style="color:#d97706">85%</span></td><td>2</td><td class="pe-4"><button class="btn btn-xs btn-outline-primary" style="font-size:11px;padding:2px 8px">View</button></td></tr>
+                <tr><td class="ps-4 fw-semibold">Class 11</td><td>A</td><td>30</td><td class="text-success fw-bold">26</td><td class="text-danger">4</td><td><span class="fw-bold text-success">86%</span></td><td>3</td><td class="pe-4"><button class="btn btn-xs btn-outline-primary" style="font-size:11px;padding:2px 8px">View</button></td></tr>
+                <tr><td class="ps-4 fw-semibold">Class 11</td><td>B</td><td>31</td><td class="text-success fw-bold">25</td><td class="text-danger">6</td><td><span class="fw-bold" style="color:#d97706">80%</span></td><td>4</td><td class="pe-4"><button class="btn btn-xs btn-outline-primary" style="font-size:11px;padding:2px 8px">View</button></td></tr>
+                <tr><td class="ps-4 fw-semibold">Class 10</td><td>A</td><td>33</td><td class="text-success fw-bold">27</td><td class="text-danger">6</td><td><span class="fw-bold" style="color:#d97706">81%</span></td><td>5</td><td class="pe-4"><button class="btn btn-xs btn-outline-primary" style="font-size:11px;padding:2px 8px">View</button></td></tr>
+                <tr><td class="ps-4 fw-semibold">Class 10</td><td>B</td><td>34</td><td class="text-success fw-bold">27</td><td class="text-danger">7</td><td><span class="fw-bold" style="color:#d97706">79%</span></td><td>6</td><td class="pe-4"><button class="btn btn-xs btn-outline-primary" style="font-size:11px;padding:2px 8px">View</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Defaulters Table -->
+        <div class="sec-card">
+          <div class="sec-head">
+            <h5><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Attendance Defaulters — Below 75%</h5>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-outline-warning" onclick="alert('Reminder emails sent!')"><i class="fas fa-envelope me-1"></i>Notify All</button>
+              <span class="badge bg-warning text-dark">23 Students</span>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead><tr><th class="ps-4">Student</th><th>Class</th><th>Subject</th><th>Att %</th><th>Contact</th><th class="pe-4">Action</th></tr></thead>
+              <tbody>
+                <tr><td class="ps-4 fw-semibold">Hassan Raza</td><td>12-A</td><td>Mathematics</td><td class="fw-bold text-danger">72%</td><td>0301-2345678</td><td class="pe-4"><button class="btn btn-xs btn-warning text-white" style="font-size:11px;padding:2px 8px" onclick="alert('Notified!')">Notify</button></td></tr>
+                <tr><td class="ps-4 fw-semibold">Iqra Shah</td><td>12-A</td><td>Physics</td><td class="fw-bold text-danger">71%</td><td>0302-3456789</td><td class="pe-4"><button class="btn btn-xs btn-warning text-white" style="font-size:11px;padding:2px 8px" onclick="alert('Notified!')">Notify</button></td></tr>
+                <tr><td class="ps-4 fw-semibold">Saad Qureshi</td><td>11-B</td><td>Chemistry</td><td class="fw-bold text-danger">68%</td><td>0303-4567890</td><td class="pe-4"><button class="btn btn-xs btn-warning text-white" style="font-size:11px;padding:2px 8px" onclick="alert('Notified!')">Notify</button></td></tr>
+                <tr><td class="ps-4 fw-semibold">Amna Zahid</td><td>10-C</td><td>English</td><td class="fw-bold text-danger">65%</td><td>0304-5678901</td><td class="pe-4"><button class="btn btn-xs btn-danger" style="font-size:11px;padding:2px 8px" onclick="alert('Warning issued!')">Warn</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="col-lg-4">
+        <div class="sec-card mb-3">
+          <div class="sec-head"><h5><i class="fas fa-chart-bar me-2 text-primary"></i>Class-wise Avg %</h5></div>
+          <div class="p-4">
+            <div class="att-row"><span class="lbl">Class 12-A</span><div class="bar-wrap"><div class="bar-fill" style="width:89%;background:#059669"></div></div><span class="pct" style="color:#059669">89%</span></div>
+            <div class="att-row"><span class="lbl">Class 12-B</span><div class="bar-wrap"><div class="bar-fill" style="width:85%;background:#059669"></div></div><span class="pct" style="color:#059669">85%</span></div>
+            <div class="att-row"><span class="lbl">Class 11-A</span><div class="bar-wrap"><div class="bar-fill" style="width:86%;background:#059669"></div></div><span class="pct" style="color:#059669">86%</span></div>
+            <div class="att-row"><span class="lbl">Class 11-B</span><div class="bar-wrap"><div class="bar-fill" style="width:80%;background:#d97706"></div></div><span class="pct" style="color:#d97706">80%</span></div>
+            <div class="att-row"><span class="lbl">Class 10-A</span><div class="bar-wrap"><div class="bar-fill" style="width:81%;background:#d97706"></div></div><span class="pct" style="color:#d97706">81%</span></div>
+            <div class="att-row"><span class="lbl">Class 10-B</span><div class="bar-wrap"><div class="bar-fill" style="width:79%;background:#d97706"></div></div><span class="pct" style="color:#d97706">79%</span></div>
+            <div class="att-row"><span class="lbl">Class 9-A</span><div class="bar-wrap"><div class="bar-fill" style="width:76%;background:#ef4444"></div></div><span class="pct" style="color:#ef4444">76%</span></div>
+            <div class="att-row"><span class="lbl">Class 8-A</span><div class="bar-wrap"><div class="bar-fill" style="width:74%;background:#ef4444"></div></div><span class="pct" style="color:#ef4444">74%</span></div>
+          </div>
+        </div>
+        <div class="sec-card">
+          <div class="sec-head"><h5><i class="fas fa-download me-2 text-primary"></i>Quick Reports</h5></div>
+          <div class="p-3 d-flex flex-column gap-2">
+            <button class="btn btn-outline-primary btn-sm text-start" onclick="alert('Generating...')"><i class="fas fa-file-pdf me-2"></i>Daily Attendance Report — Today</button>
+            <button class="btn btn-outline-primary btn-sm text-start" onclick="alert('Generating...')"><i class="fas fa-file-excel me-2"></i>Monthly Summary — May 2026</button>
+            <button class="btn btn-outline-danger btn-sm text-start" onclick="alert('Generating...')"><i class="fas fa-exclamation-triangle me-2"></i>Defaulter List PDF</button>
+            <button class="btn btn-outline-secondary btn-sm text-start" onclick="alert('Generating...')"><i class="fas fa-calendar me-2"></i>Term Attendance Report</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
+  function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
+</script>
+</body>
+</html>

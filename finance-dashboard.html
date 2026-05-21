@@ -1,85 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Finance Portal — BMC Portal</title>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finance Dashboard — BMC Portal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="portal.css" rel="stylesheet" />
   <style>
-    :root{--sb:#0f172a;--pr:#d97706;--bg:#f0f4f8;}
-    body{background:var(--bg);font-family:'Segoe UI',sans-serif;margin:0;}
-    .sidebar{width:255px;background:var(--sb);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:1050;transition:.3s;}
-    .sb-brand{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
-    .sb-brand .icon{background:var(--pr);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
-    .sb-brand .txt h6{color:#fff;font-size:14px;font-weight:700;margin:0;}
-    .sb-brand .txt small{color:rgba(255,255,255,.5);font-size:10px;}
-    .sb-nav{padding:10px 0;}
-    .sb-section{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:12px 20px 6px;}
-    .sb-nav a{display:flex;align-items:center;gap:10px;padding:11px 20px;color:rgba(255,255,255,.65);text-decoration:none;font-size:13.5px;transition:.18s;}
-    .sb-nav a:hover,.sb-nav a.active{background:rgba(255,255,255,.09);color:#fff;}
-    .sb-nav a.active{border-left:3px solid var(--pr);}
-    .sb-nav a i{width:18px;text-align:center;}
-    .sb-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
-    .sb-user .av{width:36px;height:36px;border-radius:50%;background:var(--pr);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
-    .sb-user .info h6{color:#fff;font-size:12.5px;margin:0;}
-    .sb-user .info small{color:rgba(255,255,255,.4);font-size:10.5px;}
-    .main{margin-left:255px;min-height:100vh;}
-    .topbar{background:#fff;padding:14px 24px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-    .topbar .toggle{display:none;background:none;border:none;font-size:20px;color:#475569;cursor:pointer;}
-    .content{padding:24px;}
-    .stat-card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
-    .stat-card .icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px;}
-    .stat-card h3{font-size:22px;font-weight:700;margin:0;}
-    .stat-card p{font-size:12px;color:#64748b;margin:4px 0 0;}
-    .sec-card{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:24px;overflow:hidden;}
-    .sec-head{padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
-    .sec-head h5{font-size:15px;font-weight:700;margin:0;color:#1e293b;}
-    table thead{background:#f8fafc;}
-    table thead th{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;border:none;}
-    table td{font-size:13.5px;vertical-align:middle;}
-    .progress-fee{height:8px;border-radius:20px;overflow:hidden;background:#e2e8f0;}
-    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1040;}
-    @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.overlay.show{display:block}.main{margin-left:0}.topbar .toggle{display:block}}
+    .sb-link.active{border-color:#d97706;} .sb-logo{background:#d97706;} .sb-av{background:#d97706;}
   </style>
 </head>
 <body>
-<div class="overlay" id="overlay" onclick="closeSb()"></div>
-<div class="sidebar" id="sidebar">
-  <div class="sb-brand">
-    <div class="icon"><i class="fas fa-coins"></i></div>
-    <div class="txt"><h6>BMC Portal</h6><small>Finance Portal</small></div>
-  </div>
-  <div class="sb-nav">
+<div class="overlay" id="ov" onclick="closeSb()"></div>
+<div class="sidebar" id="sb">
+  <div class="sb-brand"><div class="sb-logo"><i class="fas fa-coins"></i></div><div class="sb-title"><h6>BMC Portal</h6><small>Finance Portal</small></div></div>
+  <div class="sb-menu">
     <div class="sb-section">Finance</div>
-    <a href="finance-dashboard.html" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-    <a href="finance-records.html"><i class="fas fa-file-invoice-dollar"></i> Fee Records</a>
-    <a href="finance-defaulters.html"><i class="fas fa-exclamation-triangle"></i> Defaulter List</a>
-    <a href="finance-reports.html"><i class="fas fa-chart-bar"></i> Reports</a>
+    <a class="sb-link active" href="finance-dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a class="sb-link" href="finance-records.html"><i class="fas fa-file-invoice-dollar"></i> Fee Records</a>
+    <a class="sb-link" href="finance-defaulters.html"><i class="fas fa-exclamation-triangle"></i> Defaulter List</a>
+    <a class="sb-link" href="finance-reports.html"><i class="fas fa-chart-bar"></i> Reports</a>
     <div class="sb-section">Navigation</div>
-    <a href="admin-dashboard.html"><i class="fas fa-shield-alt"></i> Admin Panel</a>
-    <a href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
-    <a href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <a class="sb-link" href="admin-dashboard.html"><i class="fas fa-shield-alt"></i> Admin Panel</a>
+    <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
+    <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
   </div>
-  <div class="sb-user">
-    <div class="av"><i class="fas fa-user"></i></div>
-    <div class="info"><h6>Ms. Ayesha Rizvi</h6><small>Finance Officer</small></div>
-  </div>
+  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user"></i></div><div class="sb-foot-info"><h6>Ms. Ayesha Rizvi</h6><small>Finance Officer</small></div></div>
 </div>
 
 <div class="main">
   <div class="topbar">
-    <button class="toggle" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
-    <span style="font-size:16px;font-weight:700;color:#1e293b"><i class="fas fa-coins me-2" style="color:#d97706"></i>Finance Dashboard</span>
-    <div class="d-flex align-items-center gap-2">
+    <div class="topbar-left">
+      <button class="toggle-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <span class="topbar-title"><i class="fas fa-coins" style="color:#d97706"></i> Finance Dashboard</span>
+    </div>
+    <div class="topbar-right">
       <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-download me-1"></i>Export</button>
       <img src="https://ui-avatars.com/api/?name=Ayesha+Rizvi&background=d97706&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
     </div>
   </div>
 
   <div class="content">
-    <!-- Banner -->
     <div class="alert mb-4" style="background:linear-gradient(135deg,#78350f,#d97706);color:#fff;border:none;border-radius:14px;padding:20px 24px;">
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
@@ -93,113 +55,49 @@
       </div>
     </div>
 
-    <!-- Stats -->
     <div class="row g-3 mb-4">
-      <div class="col-6 col-lg-3">
-        <div class="stat-card">
-          <div class="icon" style="background:#f0fdf4"><i class="fas fa-check-circle" style="color:#059669"></i></div>
-          <h3 style="color:#059669">₨ 42.3L</h3>
-          <p>Total Collected (May)</p>
-          <div style="font-size:11px;color:#059669;margin-top:6px"><i class="fas fa-arrow-up me-1"></i>+8% vs last month</div>
-        </div>
-      </div>
-      <div class="col-6 col-lg-3">
-        <div class="stat-card">
-          <div class="icon" style="background:#fef2f2"><i class="fas fa-exclamation-circle" style="color:#ef4444"></i></div>
-          <h3 style="color:#ef4444">₨ 8.7L</h3>
-          <p>Outstanding Balance</p>
-          <div style="font-size:11px;color:#ef4444;margin-top:6px">From 89 students</div>
-        </div>
-      </div>
-      <div class="col-6 col-lg-3">
-        <div class="stat-card">
-          <div class="icon" style="background:#fffbeb"><i class="fas fa-user-times" style="color:#d97706"></i></div>
-          <h3 style="color:#d97706">89</h3>
-          <p>Fee Defaulters</p>
-          <div style="font-size:11px;color:#d97706;margin-top:6px">Fee not paid this term</div>
-        </div>
-      </div>
-      <div class="col-6 col-lg-3">
-        <div class="stat-card">
-          <div class="icon" style="background:#eff6ff"><i class="fas fa-users" style="color:#1565c0"></i></div>
-          <h3 style="color:#1565c0">753</h3>
-          <p>Fee Paid Students</p>
-          <div style="font-size:11px;color:#059669;margin-top:6px">89% collection rate</div>
-        </div>
-      </div>
+      <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-check-circle" style="color:#059669"></i></div><div class="stat-val" style="color:#059669">₨42.3L</div><div class="stat-lbl">Total Collected (May)</div><div class="stat-trend" style="color:#059669"><i class="fas fa-arrow-up"></i> +8% vs last month</div></div></div>
+      <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon" style="background:#fef2f2"><i class="fas fa-exclamation-circle" style="color:#ef4444"></i></div><div class="stat-val" style="color:#ef4444">₨8.7L</div><div class="stat-lbl">Outstanding Balance</div><div class="stat-trend" style="color:#ef4444">From 89 students</div></div></div>
+      <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon" style="background:#fffbeb"><i class="fas fa-user-times" style="color:#d97706"></i></div><div class="stat-val" style="color:#d97706">89</div><div class="stat-lbl">Fee Defaulters</div><div class="stat-trend" style="color:#d97706">Fee not paid this term</div></div></div>
+      <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon" style="background:#eff6ff"><i class="fas fa-users" style="color:#1d4ed8"></i></div><div class="stat-val" style="color:#1d4ed8">753</div><div class="stat-lbl">Fee Paid Students</div><div class="stat-trend" style="color:#059669">89% collection rate</div></div></div>
     </div>
 
-    <!-- Collection Progress -->
     <div class="sec-card mb-4">
-      <div class="sec-head"><h5><i class="fas fa-chart-bar me-2" style="color:#d97706"></i>Collection Progress by Class</h5></div>
+      <div class="sec-head"><h5><i class="fas fa-chart-bar me-2" style="color:#d97706"></i>Collection Progress by Class — May 2026</h5></div>
       <div class="p-4">
         <div class="row g-4">
-          <div class="col-md-8">
-            <canvas id="barChart" height="120"></canvas>
-          </div>
+          <div class="col-md-8"><canvas id="barChart" height="120"></canvas></div>
           <div class="col-md-4">
-            <div class="mb-3">
-              <div class="d-flex justify-content-between mb-1">
-                <span style="font-size:13px;font-weight:600">Class 12 (6 sections)</span>
-                <span style="font-size:13px;color:#059669;font-weight:700">94%</span>
-              </div>
-              <div class="progress-fee"><div style="width:94%;height:100%;background:#059669;border-radius:20px"></div></div>
-            </div>
-            <div class="mb-3">
-              <div class="d-flex justify-content-between mb-1">
-                <span style="font-size:13px;font-weight:600">Class 11 (5 sections)</span>
-                <span style="font-size:13px;color:#059669;font-weight:700">88%</span>
-              </div>
-              <div class="progress-fee"><div style="width:88%;height:100%;background:#1565c0;border-radius:20px"></div></div>
-            </div>
-            <div class="mb-3">
-              <div class="d-flex justify-content-between mb-1">
-                <span style="font-size:13px;font-weight:600">Class 10 (5 sections)</span>
-                <span style="font-size:13px;color:#d97706;font-weight:700">82%</span>
-              </div>
-              <div class="progress-fee"><div style="width:82%;height:100%;background:#d97706;border-radius:20px"></div></div>
-            </div>
-            <div class="mb-3">
-              <div class="d-flex justify-content-between mb-1">
-                <span style="font-size:13px;font-weight:600">Class 9 (6 sections)</span>
-                <span style="font-size:13px;color:#d97706;font-weight:700">79%</span>
-              </div>
-              <div class="progress-fee"><div style="width:79%;height:100%;background:#ea580c;border-radius:20px"></div></div>
-            </div>
-            <div class="mb-3">
-              <div class="d-flex justify-content-between mb-1">
-                <span style="font-size:13px;font-weight:600">Class 8 (6 sections)</span>
-                <span style="font-size:13px;color:#ef4444;font-weight:700">73%</span>
-              </div>
-              <div class="progress-fee"><div style="width:73%;height:100%;background:#ef4444;border-radius:20px"></div></div>
-            </div>
+            <div class="mb-3"><div class="d-flex justify-content-between mb-1"><span style="font-size:13px;font-weight:600">Class 12 (6 sections)</span><span style="font-size:13px;color:#059669;font-weight:700">94%</span></div><div class="att-bar-wrap"><div class="att-bar-fill" style="width:94%;background:#059669"></div></div></div>
+            <div class="mb-3"><div class="d-flex justify-content-between mb-1"><span style="font-size:13px;font-weight:600">Class 11 (5 sections)</span><span style="font-size:13px;color:#1d4ed8;font-weight:700">88%</span></div><div class="att-bar-wrap"><div class="att-bar-fill" style="width:88%;background:#1d4ed8"></div></div></div>
+            <div class="mb-3"><div class="d-flex justify-content-between mb-1"><span style="font-size:13px;font-weight:600">Class 10 (5 sections)</span><span style="font-size:13px;color:#d97706;font-weight:700">82%</span></div><div class="att-bar-wrap"><div class="att-bar-fill" style="width:82%;background:#d97706"></div></div></div>
+            <div class="mb-3"><div class="d-flex justify-content-between mb-1"><span style="font-size:13px;font-weight:600">Class 9 (6 sections)</span><span style="font-size:13px;color:#ea580c;font-weight:700">79%</span></div><div class="att-bar-wrap"><div class="att-bar-fill" style="width:79%;background:#ea580c"></div></div></div>
+            <div class="mb-3"><div class="d-flex justify-content-between mb-1"><span style="font-size:13px;font-weight:600">Class 8 (6 sections)</span><span style="font-size:13px;color:#ef4444;font-weight:700">73%</span></div><div class="att-bar-wrap"><div class="att-bar-fill" style="width:73%;background:#ef4444"></div></div></div>
           </div>
         </div>
       </div>
     </div>
 
     <div class="row g-3">
-      <!-- Defaulter List -->
       <div class="col-lg-7">
         <div class="sec-card">
           <div class="sec-head">
             <h5><i class="fas fa-exclamation-triangle me-2 text-danger"></i>Defaulter List — May 2026</h5>
             <div class="d-flex gap-2">
-              <button class="btn btn-sm btn-outline-danger"><i class="fas fa-envelope me-1"></i>Notify All</button>
-              <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-pdf me-1"></i>Export PDF</button>
+              <button class="btn btn-sm btn-outline-danger" onclick="alert('Reminder emails sent!')"><i class="fas fa-envelope me-1"></i>Notify All</button>
+              <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-pdf me-1"></i>Export</button>
             </div>
           </div>
           <div class="table-responsive">
-            <table class="table mb-0">
+            <table class="data-table">
               <thead><tr><th class="ps-4">#</th><th>Student</th><th>Class</th><th>Fee Due</th><th>Months</th><th class="pe-4">Action</th></tr></thead>
               <tbody>
-                <tr><td class="ps-4">1</td><td class="fw-semibold">Hassan Raza</td><td>12-A</td><td class="fw-bold text-danger">₨ 24,000</td><td><span class="badge bg-danger">2 months</span></td><td class="pe-4"><button class="btn btn-xs" style="font-size:11px;padding:2px 8px;background:#fffbeb;border:1px solid #d97706;color:#92400e;border-radius:6px" onclick="alert('Reminder sent!')">Remind</button></td></tr>
-                <tr><td class="ps-4">2</td><td class="fw-semibold">Saad Qureshi</td><td>11-B</td><td class="fw-bold text-danger">₨ 12,000</td><td><span class="badge bg-warning text-dark">1 month</span></td><td class="pe-4"><button class="btn btn-xs" style="font-size:11px;padding:2px 8px;background:#fffbeb;border:1px solid #d97706;color:#92400e;border-radius:6px" onclick="alert('Reminder sent!')">Remind</button></td></tr>
-                <tr><td class="ps-4">3</td><td class="fw-semibold">Amna Zahid</td><td>10-C</td><td class="fw-bold text-danger">₨ 36,000</td><td><span class="badge bg-danger">3 months</span></td><td class="pe-4"><button class="btn btn-xs" style="font-size:11px;padding:2px 8px;background:#fffbeb;border:1px solid #d97706;color:#92400e;border-radius:6px" onclick="alert('Reminder sent!')">Remind</button></td></tr>
-                <tr><td class="ps-4">4</td><td class="fw-semibold">Faisal Mehmood</td><td>9-A</td><td class="fw-bold text-danger">₨ 12,000</td><td><span class="badge bg-warning text-dark">1 month</span></td><td class="pe-4"><button class="btn btn-xs" style="font-size:11px;padding:2px 8px;background:#fffbeb;border:1px solid #d97706;color:#92400e;border-radius:6px" onclick="alert('Reminder sent!')">Remind</button></td></tr>
-                <tr><td class="ps-4">5</td><td class="fw-semibold">Rabia Malik</td><td>12-B</td><td class="fw-bold text-danger">₨ 24,000</td><td><span class="badge bg-danger">2 months</span></td><td class="pe-4"><button class="btn btn-xs" style="font-size:11px;padding:2px 8px;background:#fffbeb;border:1px solid #d97706;color:#92400e;border-radius:6px" onclick="alert('Reminder sent!')">Remind</button></td></tr>
-                <tr><td class="ps-4">6</td><td class="fw-semibold">Usman Khan</td><td>8-D</td><td class="fw-bold text-danger">₨ 8,000</td><td><span class="badge bg-warning text-dark">1 month</span></td><td class="pe-4"><button class="btn btn-xs" style="font-size:11px;padding:2px 8px;background:#fffbeb;border:1px solid #d97706;color:#92400e;border-radius:6px" onclick="alert('Reminder sent!')">Remind</button></td></tr>
-                <tr><td class="ps-4">7</td><td class="fw-semibold">Zainab Tariq</td><td>11-A</td><td class="fw-bold text-danger">₨ 12,000</td><td><span class="badge bg-warning text-dark">1 month</span></td><td class="pe-4"><button class="btn btn-xs" style="font-size:11px;padding:2px 8px;background:#fffbeb;border:1px solid #d97706;color:#92400e;border-radius:6px" onclick="alert('Reminder sent!')">Remind</button></td></tr>
+                <tr><td class="ps-4">1</td><td class="fw-semibold">Hassan Raza</td><td>12-A</td><td class="fw-bold text-danger">₨24,000</td><td><span class="badge bg-danger">2 months</span></td><td class="pe-4"><button class="btn btn-xs btn-outline-warning" style="font-size:11px;padding:2px 8px" onclick="alert('Reminder sent!')">Remind</button></td></tr>
+                <tr><td class="ps-4">2</td><td class="fw-semibold">Saad Qureshi</td><td>11-B</td><td class="fw-bold text-danger">₨12,000</td><td><span class="badge bg-warning text-dark">1 month</span></td><td class="pe-4"><button class="btn btn-xs btn-outline-warning" style="font-size:11px;padding:2px 8px" onclick="alert('Reminder sent!')">Remind</button></td></tr>
+                <tr><td class="ps-4">3</td><td class="fw-semibold">Amna Zahid</td><td>10-C</td><td class="fw-bold text-danger">₨36,000</td><td><span class="badge bg-danger">3 months</span></td><td class="pe-4"><button class="btn btn-xs btn-outline-danger" style="font-size:11px;padding:2px 8px" onclick="alert('Final notice sent!')">Notice</button></td></tr>
+                <tr><td class="ps-4">4</td><td class="fw-semibold">Faisal Mehmood</td><td>9-A</td><td class="fw-bold text-danger">₨12,000</td><td><span class="badge bg-warning text-dark">1 month</span></td><td class="pe-4"><button class="btn btn-xs btn-outline-warning" style="font-size:11px;padding:2px 8px" onclick="alert('Reminder sent!')">Remind</button></td></tr>
+                <tr><td class="ps-4">5</td><td class="fw-semibold">Rabia Malik</td><td>12-B</td><td class="fw-bold text-danger">₨24,000</td><td><span class="badge bg-danger">2 months</span></td><td class="pe-4"><button class="btn btn-xs btn-outline-warning" style="font-size:11px;padding:2px 8px" onclick="alert('Reminder sent!')">Remind</button></td></tr>
+                <tr><td class="ps-4">6</td><td class="fw-semibold">Zainab Tariq</td><td>11-A</td><td class="fw-bold text-danger">₨30,000</td><td><span class="badge bg-danger">3 months</span></td><td class="pe-4"><button class="btn btn-xs btn-outline-danger" style="font-size:11px;padding:2px 8px" onclick="alert('Final notice sent!')">Notice</button></td></tr>
               </tbody>
             </table>
           </div>
@@ -208,45 +106,30 @@
           </div>
         </div>
       </div>
-
-      <!-- Fee Records & Quick Entry -->
       <div class="col-lg-5">
-        <div class="sec-card mb-4">
-          <div class="sec-head"><h5><i class="fas fa-receipt me-2" style="color:#059669"></i>Recent Fee Payments</h5></div>
+        <div class="sec-card mb-3">
+          <div class="sec-head"><h5><i class="fas fa-receipt me-2" style="color:#059669"></i>Recent Fee Payments</h5><a href="finance-records.html" class="btn btn-sm btn-outline-success">All Records</a></div>
           <div class="table-responsive">
-            <table class="table mb-0">
+            <table class="data-table">
               <thead><tr><th class="ps-4">Student</th><th>Class</th><th>Amount</th><th class="pe-4">Date</th></tr></thead>
               <tbody>
-                <tr><td class="ps-4 fw-semibold">Ahmed Ali</td><td>12-A</td><td class="text-success fw-bold">₨ 12,000</td><td class="pe-4 text-muted" style="font-size:12px">20 May</td></tr>
-                <tr><td class="ps-4 fw-semibold">Fatima Noor</td><td>12-A</td><td class="text-success fw-bold">₨ 12,000</td><td class="pe-4 text-muted" style="font-size:12px">19 May</td></tr>
-                <tr><td class="ps-4 fw-semibold">Bilal Ahmed</td><td>11-B</td><td class="text-success fw-bold">₨ 10,000</td><td class="pe-4 text-muted" style="font-size:12px">18 May</td></tr>
-                <tr><td class="ps-4 fw-semibold">Kiran Baig</td><td>10-C</td><td class="text-success fw-bold">₨ 9,500</td><td class="pe-4 text-muted" style="font-size:12px">18 May</td></tr>
-                <tr><td class="ps-4 fw-semibold">Iqra Shah</td><td>12-A</td><td class="text-success fw-bold">₨ 12,000</td><td class="pe-4 text-muted" style="font-size:12px">17 May</td></tr>
+                <tr><td class="ps-4 fw-semibold">Ahmed Ali</td><td>12-A</td><td class="text-success fw-bold">₨12,000</td><td class="pe-4 text-muted" style="font-size:12px">20 May</td></tr>
+                <tr><td class="ps-4 fw-semibold">Fatima Noor</td><td>12-A</td><td class="text-success fw-bold">₨12,000</td><td class="pe-4 text-muted" style="font-size:12px">19 May</td></tr>
+                <tr><td class="ps-4 fw-semibold">Bilal Ahmed</td><td>11-B</td><td class="text-success fw-bold">₨10,000</td><td class="pe-4 text-muted" style="font-size:12px">18 May</td></tr>
+                <tr><td class="ps-4 fw-semibold">Kiran Baig</td><td>10-C</td><td class="text-success fw-bold">₨9,500</td><td class="pe-4 text-muted" style="font-size:12px">18 May</td></tr>
+                <tr><td class="ps-4 fw-semibold">Iqra Shah</td><td>12-A</td><td class="text-success fw-bold">₨12,000</td><td class="pe-4 text-muted" style="font-size:12px">17 May</td></tr>
               </tbody>
             </table>
           </div>
         </div>
-
         <div class="sec-card">
           <div class="sec-head"><h5><i class="fas fa-plus-circle me-2" style="color:#059669"></i>Record Fee Payment</h5></div>
           <div class="p-4">
-            <div class="mb-3">
-              <label class="form-label fw-semibold" style="font-size:12px">Student Roll No</label>
-              <input class="form-control form-control-sm" placeholder="Enter roll number" />
-            </div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold" style="font-size:12px">Fee Month</label>
-              <select class="form-select form-select-sm"><option>May 2026</option><option>April 2026</option><option>March 2026</option></select>
-            </div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold" style="font-size:12px">Amount Paid (PKR)</label>
-              <input type="number" class="form-control form-control-sm" placeholder="₨ 0" />
-            </div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold" style="font-size:12px">Payment Mode</label>
-              <select class="form-select form-select-sm"><option>Cash</option><option>Bank Transfer</option><option>Online</option></select>
-            </div>
-            <button class="btn btn-success btn-sm w-100" onclick="alert('Payment recorded successfully!')"><i class="fas fa-check me-1"></i>Record Payment</button>
+            <div class="mb-3"><label class="form-label fw-semibold" style="font-size:12px">Student Roll No</label><input class="form-control form-control-sm" placeholder="Enter roll number" /></div>
+            <div class="mb-3"><label class="form-label fw-semibold" style="font-size:12px">Fee Month</label><select class="form-select form-select-sm"><option>May 2026</option><option>April 2026</option><option>March 2026</option></select></div>
+            <div class="mb-3"><label class="form-label fw-semibold" style="font-size:12px">Amount Paid (PKR)</label><input type="number" class="form-control form-control-sm" placeholder="₨ 0" /></div>
+            <div class="mb-3"><label class="form-label fw-semibold" style="font-size:12px">Payment Mode</label><select class="form-select form-select-sm"><option>Cash</option><option>Bank Transfer</option><option>Online</option><option>Cheque</option></select></div>
+            <button class="btn btn-success btn-sm w-100" onclick="alert('Payment recorded!')"><i class="fas fa-check me-1"></i>Record Payment</button>
           </div>
         </div>
       </div>
@@ -256,20 +139,12 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
-  function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
-
-  new Chart(document.getElementById('barChart'),{
-    type:'bar',
-    data:{
-      labels:['Jan','Feb','Mar','Apr','May'],
-      datasets:[
-        {label:'Collected (Lakhs)',data:[38,41,39,44,42.3],backgroundColor:'rgba(5,150,105,.8)',borderRadius:6},
-        {label:'Target (Lakhs)',data:[45,45,45,45,51],backgroundColor:'rgba(21,101,192,.2)',borderRadius:6}
-      ]
-    },
-    options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{ticks:{callback:v=>'₨'+v+'L'}}}}
-  });
+  function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
+  function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
+  new Chart(document.getElementById('barChart'),{type:'bar',data:{labels:['Jan','Feb','Mar','Apr','May'],datasets:[
+    {label:'Collected (Lakhs)',data:[38,41,39,44,42.3],backgroundColor:'rgba(5,150,105,.8)',borderRadius:6},
+    {label:'Target (Lakhs)',data:[51,51,51,51,51],backgroundColor:'rgba(21,101,192,.15)',borderRadius:6}
+  ]},options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{ticks:{callback:v=>'₨'+v+'L'}}}}});
 </script>
 </body>
 </html>

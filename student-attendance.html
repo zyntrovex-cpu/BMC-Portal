@@ -6,31 +6,9 @@
   <title>Attendance — BMC Portal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="portal.css" rel="stylesheet" />
   <style>
-    :root{--sb:#0f172a;--pr:#1565c0;--bg:#f0f4f8;}
-    body{background:var(--bg);font-family:'Segoe UI',sans-serif;margin:0;}
-    .sidebar{width:255px;background:var(--sb);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:1050;transition:.3s;}
-    .sb-brand{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
-    .sb-brand .icon{background:var(--pr);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
-    .sb-brand .txt h6{color:#fff;font-size:14px;font-weight:700;margin:0;}
-    .sb-brand .txt small{color:rgba(255,255,255,.5);font-size:10px;}
-    .sb-nav{padding:10px 0;}
-    .sb-section{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:12px 20px 6px;}
-    .sb-nav a{display:flex;align-items:center;gap:10px;padding:11px 20px;color:rgba(255,255,255,.65);text-decoration:none;font-size:13.5px;transition:.18s;}
-    .sb-nav a:hover,.sb-nav a.active{background:rgba(255,255,255,.09);color:#fff;}
-    .sb-nav a.active{border-left:3px solid var(--pr);}
-    .sb-nav a i{width:18px;text-align:center;}
-    .sb-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
-    .sb-user .av{width:36px;height:36px;border-radius:50%;background:var(--pr);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
-    .sb-user .info h6{color:#fff;font-size:12.5px;margin:0;}
-    .sb-user .info small{color:rgba(255,255,255,.4);font-size:10.5px;}
-    .main{margin-left:255px;min-height:100vh;}
-    .topbar{background:#fff;padding:14px 24px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-    .topbar .toggle{display:none;background:none;border:none;font-size:20px;color:#475569;cursor:pointer;}
-    .content{padding:24px;}
-    .sec-card{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:24px;overflow:hidden;}
-    .sec-head{padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;}
-    .sec-head h5{font-size:15px;font-weight:700;margin:0;color:#1e293b;}
+    .sb-link.active{border-color:#1d4ed8;} .sb-logo{background:#1d4ed8;} .sb-av{background:#1d4ed8;}
     .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;}
     .cal-hdr{font-size:11px;font-weight:700;color:#64748b;padding:4px;}
     .cal-day{padding:8px 4px;border-radius:8px;font-size:12.5px;font-weight:600;}
@@ -39,40 +17,36 @@
     .cal-day.l{background:#fef9c3;color:#854d0e;}
     .cal-day.hol{background:#f1f5f9;color:#94a3b8;}
     .cal-day.na{opacity:.3;}
-    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1040;}
-    @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.overlay.show{display:block}.main{margin-left:0}.topbar .toggle{display:block}}
   </style>
 </head>
 <body>
-<div class="overlay" id="overlay" onclick="closeSb()"></div>
-<div class="sidebar" id="sidebar">
-  <div class="sb-brand">
-    <div class="icon"><i class="fas fa-university"></i></div>
-    <div class="txt"><h6>BMC Portal</h6><small>Bahria Model College</small></div>
-  </div>
-  <div class="sb-nav">
+<div class="overlay" id="ov" onclick="closeSb()"></div>
+<div class="sidebar" id="sb">
+  <div class="sb-brand"><div class="sb-logo"><i class="fas fa-user-graduate"></i></div><div class="sb-title"><h6>BMC Portal</h6><small>Student Portal</small></div></div>
+  <div class="sb-menu">
     <div class="sb-section">Main Menu</div>
-    <a href="student-dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
-    <a href="student-results.html"><i class="fas fa-chart-bar"></i> My Results</a>
-    <a href="student-attendance.html" class="active"><i class="fas fa-calendar-check"></i> Attendance</a>
-    <a href="student-timetable.html"><i class="fas fa-clock"></i> Timetable</a>
-    <a href="student-assignments.html"><i class="fas fa-book-open"></i> Assignments</a>
-    <a href="notices.html"><i class="fas fa-bullhorn"></i> Notices</a>
+    <a class="sb-link" href="student-dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+    <a class="sb-link" href="student-results.html"><i class="fas fa-chart-bar"></i> My Results</a>
+    <a class="sb-link active" href="student-attendance.html"><i class="fas fa-calendar-check"></i> Attendance</a>
+    <a class="sb-link" href="student-timetable.html"><i class="fas fa-clock"></i> Timetable</a>
+    <a class="sb-link" href="student-assignments.html"><i class="fas fa-book-open"></i> Assignments</a>
+    <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notices</a>
     <div class="sb-section">Account</div>
-    <a href="student-profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
-    <a href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <a class="sb-link" href="student-profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
+    <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
   </div>
-  <div class="sb-user">
-    <div class="av"><i class="fas fa-user"></i></div>
-    <div class="info"><h6>Ahmed Ali</h6><small>Roll No. 101 · 12-A</small></div>
-  </div>
+  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user"></i></div><div class="sb-foot-info"><h6>Ahmed Ali</h6><small>Roll 101 · Class 12-A</small></div></div>
 </div>
 
 <div class="main">
   <div class="topbar">
-    <button class="toggle" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
-    <span style="font-size:16px;font-weight:700;color:#1e293b"><i class="fas fa-calendar-check me-2 text-success"></i>Attendance</span>
-    <div><img src="https://ui-avatars.com/api/?name=Ahmed+Ali&background=1565c0&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" /></div>
+    <div class="topbar-left">
+      <button class="toggle-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <span class="topbar-title"><i class="fas fa-calendar-check me-2 text-success"></i>Attendance</span>
+    </div>
+    <div class="topbar-right">
+      <img src="https://ui-avatars.com/api/?name=Ahmed+Ali&background=1565c0&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
+    </div>
   </div>
 
   <div class="content">
@@ -203,8 +177,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
-  function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+  function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
+  function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
 </script>
 </body>
 </html>

@@ -1,88 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Portal — BMC Portal</title>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — BMC Portal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="portal.css" rel="stylesheet" />
   <style>
-    :root{--sb:#0f172a;--pr:#7c3aed;--bg:#f0f4f8;}
-    body{background:var(--bg);font-family:'Segoe UI',sans-serif;margin:0;}
-    .sidebar{width:255px;background:var(--sb);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:1050;transition:.3s;}
-    .sb-brand{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
-    .sb-brand .icon{background:var(--pr);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
-    .sb-brand .txt h6{color:#fff;font-size:14px;font-weight:700;margin:0;}
-    .sb-brand .txt small{color:rgba(255,255,255,.5);font-size:10px;}
-    .sb-nav{padding:10px 0;}
-    .sb-section{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:12px 20px 6px;}
-    .sb-nav a{display:flex;align-items:center;gap:10px;padding:11px 20px;color:rgba(255,255,255,.65);text-decoration:none;font-size:13.5px;transition:.18s;}
-    .sb-nav a:hover,.sb-nav a.active{background:rgba(255,255,255,.09);color:#fff;}
-    .sb-nav a.active{border-left:3px solid var(--pr);}
-    .sb-nav a i{width:18px;text-align:center;}
-    .sb-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
-    .sb-user .av{width:36px;height:36px;border-radius:50%;background:var(--pr);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
-    .sb-user .info h6{color:#fff;font-size:12.5px;margin:0;}
-    .sb-user .info small{color:rgba(255,255,255,.4);font-size:10.5px;}
-    .main{margin-left:255px;min-height:100vh;}
-    .topbar{background:#fff;padding:14px 24px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-    .topbar .toggle{display:none;background:none;border:none;font-size:20px;color:#475569;cursor:pointer;}
-    .content{padding:24px;}
-    .stat-card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
-    .stat-card .icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px;}
-    .stat-card h3{font-size:26px;font-weight:700;margin:0;}
-    .stat-card p{font-size:12px;color:#64748b;margin:4px 0 0;}
-    .stat-card .trend{font-size:11px;margin-top:6px;}
-    .sec-card{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:24px;overflow:hidden;}
-    .sec-head{padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;}
-    .sec-head h5{font-size:15px;font-weight:700;margin:0;color:#1e293b;}
-    table thead{background:#f8fafc;}
-    table thead th{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;border:none;}
-    table td{font-size:13.5px;vertical-align:middle;}
-    .act-item{display:flex;align-items:flex-start;gap:12px;padding:12px 20px;border-bottom:1px solid #f1f5f9;}
-    .act-item:last-child{border:none;}
-    .act-dot{width:10px;height:10px;border-radius:50%;margin-top:5px;flex-shrink:0;}
-    .qa-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:18px 12px;text-decoration:none;color:#1e293b;transition:.2s;text-align:center;}
+    .sb-link.active{border-color:#7c3aed;} .sb-logo{background:#7c3aed;} .sb-av{background:#7c3aed;}
+    .qa-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8fafc;border:1.5px solid var(--border);border-radius:12px;padding:18px 12px;text-decoration:none;color:var(--t1);transition:.2s;text-align:center;}
     .qa-btn:hover{border-color:#7c3aed;background:#fdf4ff;color:#7c3aed;}
     .qa-btn i{font-size:22px;margin-bottom:8px;}
     .qa-btn span{font-size:12px;font-weight:600;}
-    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1040;}
-    @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.overlay.show{display:block}.main{margin-left:0}.topbar .toggle{display:block}}
+    .act-item{display:flex;align-items:flex-start;gap:12px;padding:12px 20px;border-bottom:1px solid #f1f5f9;}
+    .act-item:last-child{border:none;}
+    .act-dot{width:10px;height:10px;border-radius:50%;margin-top:5px;flex-shrink:0;}
   </style>
 </head>
 <body>
-<div class="overlay" id="overlay" onclick="closeSb()"></div>
-<div class="sidebar" id="sidebar">
-  <div class="sb-brand">
-    <div class="icon"><i class="fas fa-shield-alt"></i></div>
-    <div class="txt"><h6>BMC Portal</h6><small>Admin Panel</small></div>
-  </div>
-  <div class="sb-nav">
+<div class="overlay" id="ov" onclick="closeSb()"></div>
+<div class="sidebar" id="sb">
+  <div class="sb-brand"><div class="sb-logo"><i class="fas fa-shield-alt"></i></div><div class="sb-title"><h6>BMC Portal</h6><small>Admin Panel</small></div></div>
+  <div class="sb-menu">
     <div class="sb-section">Main Menu</div>
-    <a href="admin-dashboard.html" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-    <a href="admin-users.html"><i class="fas fa-users"></i> User Management</a>
-    <a href="admin-classes.html"><i class="fas fa-school"></i> Classes &amp; Subjects</a>
-    <a href="admin-results.html"><i class="fas fa-chart-bar"></i> Results Management</a>
-    <a href="admin-attendance.html"><i class="fas fa-calendar-check"></i> Attendance Reports</a>
-    <a href="admin-analytics.html"><i class="fas fa-chart-line"></i> Analytics</a>
-    <a href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
-    <a href="finance-dashboard.html"><i class="fas fa-coins"></i> Finance Portal</a>
+    <a class="sb-link active" href="admin-dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a class="sb-link" href="admin-users.html"><i class="fas fa-users"></i> User Management</a>
+    <a class="sb-link" href="admin-classes.html"><i class="fas fa-school"></i> Classes &amp; Subjects</a>
+    <a class="sb-link" href="admin-results.html"><i class="fas fa-chart-bar"></i> Results Management</a>
+    <a class="sb-link" href="admin-attendance.html"><i class="fas fa-calendar-check"></i> Attendance Reports</a>
+    <a class="sb-link" href="admin-analytics.html"><i class="fas fa-chart-line"></i> Analytics</a>
+    <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
+    <a class="sb-link" href="finance-dashboard.html"><i class="fas fa-coins"></i> Finance Portal</a>
     <div class="sb-section">System</div>
-    <a href="admin-settings.html"><i class="fas fa-cog"></i> Settings</a>
-    <a href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <a class="sb-link" href="admin-settings.html"><i class="fas fa-cog"></i> Settings</a>
+    <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
   </div>
-  <div class="sb-user">
-    <div class="av"><i class="fas fa-user-shield"></i></div>
-    <div class="info"><h6>Mr. Tariq Mehmood</h6><small>System Administrator</small></div>
-  </div>
+  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user-shield"></i></div><div class="sb-foot-info"><h6>Mr. Tariq Mehmood</h6><small>System Administrator</small></div></div>
 </div>
 
 <div class="main">
   <div class="topbar">
-    <button class="toggle" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
-    <span style="font-size:16px;font-weight:700;color:#1e293b"><i class="fas fa-tachometer-alt me-2" style="color:#7c3aed"></i>Admin Dashboard</span>
-    <div class="d-flex align-items-center gap-3">
+    <div class="topbar-left">
+      <button class="toggle-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <span class="topbar-title"><i class="fas fa-tachometer-alt" style="color:#7c3aed"></i> Admin Dashboard</span>
+    </div>
+    <div class="topbar-right">
       <div class="position-relative" style="cursor:pointer">
         <i class="fas fa-bell" style="font-size:18px;color:#475569"></i>
         <span style="background:#ef4444;color:#fff;border-radius:50%;width:17px;height:17px;font-size:10px;display:flex;align-items:center;justify-content:center;position:absolute;top:-6px;right:-6px">5</span>
@@ -92,7 +55,6 @@
   </div>
 
   <div class="content">
-    <!-- Banner -->
     <div class="alert mb-4" style="background:linear-gradient(135deg,#2e1065,#7c3aed);color:#fff;border:none;border-radius:14px;padding:20px 24px;">
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
@@ -106,142 +68,67 @@
       </div>
     </div>
 
-    <!-- Stats Row 1 -->
     <div class="row g-3 mb-3">
-      <div class="col-6 col-lg-3">
-        <div class="stat-card">
-          <div class="icon" style="background:#eff6ff"><i class="fas fa-user-graduate" style="color:#1565c0"></i></div>
-          <h3 style="color:#1565c0">842</h3>
-          <p>Total Students</p>
-          <div class="trend" style="color:#059669"><i class="fas fa-arrow-up me-1"></i>+12 this month</div>
-        </div>
-      </div>
-      <div class="col-6 col-lg-3">
-        <div class="stat-card">
-          <div class="icon" style="background:#f0fdf4"><i class="fas fa-chalkboard-teacher" style="color:#059669"></i></div>
-          <h3 style="color:#059669">47</h3>
-          <p>Teaching Staff</p>
-          <div class="trend" style="color:#059669"><i class="fas fa-check me-1"></i>All active</div>
-        </div>
-      </div>
-      <div class="col-6 col-lg-3">
-        <div class="stat-card">
-          <div class="icon" style="background:#fdf4ff"><i class="fas fa-school" style="color:#7c3aed"></i></div>
-          <h3 style="color:#7c3aed">28</h3>
-          <p>Active Classes</p>
-          <div class="trend" style="color:#64748b">6 levels · A–E sections</div>
-        </div>
-      </div>
-      <div class="col-6 col-lg-3">
-        <div class="stat-card">
-          <div class="icon" style="background:#f0fdf4"><i class="fas fa-user-check" style="color:#059669"></i></div>
-          <h3 style="color:#059669">731</h3>
-          <p>Present Today</p>
-          <div class="trend" style="color:#059669">87% attendance rate</div>
-        </div>
-      </div>
+      <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon" style="background:#eff6ff"><i class="fas fa-user-graduate" style="color:#1d4ed8"></i></div><div class="stat-val" style="color:#1d4ed8">842</div><div class="stat-lbl">Total Students</div><div class="stat-trend" style="color:#059669"><i class="fas fa-arrow-up"></i> +12 this month</div></div></div>
+      <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-chalkboard-teacher" style="color:#059669"></i></div><div class="stat-val" style="color:#059669">47</div><div class="stat-lbl">Teaching Staff</div><div class="stat-trend" style="color:#059669"><i class="fas fa-check"></i> All active</div></div></div>
+      <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon" style="background:#fdf4ff"><i class="fas fa-school" style="color:#7c3aed"></i></div><div class="stat-val" style="color:#7c3aed">28</div><div class="stat-lbl">Active Classes</div><div class="stat-trend" style="color:#64748b">6 levels · A–E sections</div></div></div>
+      <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-user-check" style="color:#059669"></i></div><div class="stat-val" style="color:#059669">731</div><div class="stat-lbl">Present Today</div><div class="stat-trend" style="color:#059669">87% attendance rate</div></div></div>
     </div>
-
-    <!-- Stats Row 2 -->
     <div class="row g-3 mb-4">
-      <div class="col-6 col-lg-3">
-        <div class="stat-card">
-          <div class="icon" style="background:#fef2f2"><i class="fas fa-user-times" style="color:#ef4444"></i></div>
-          <h3 style="color:#ef4444">111</h3>
-          <p>Absent Today</p>
-          <div class="trend" style="color:#ef4444">13% absence rate</div>
-        </div>
-      </div>
-      <div class="col-6 col-lg-3">
-        <div class="stat-card">
-          <div class="icon" style="background:#fffbeb"><i class="fas fa-exclamation-triangle" style="color:#d97706"></i></div>
-          <h3 style="color:#d97706">23</h3>
-          <p>Attendance Defaulters</p>
-          <div class="trend" style="color:#d97706">Below 75% threshold</div>
-        </div>
-      </div>
-      <div class="col-6 col-lg-3">
-        <div class="stat-card">
-          <div class="icon" style="background:#fdf4ff"><i class="fas fa-pen" style="color:#7c3aed"></i></div>
-          <h3 style="color:#7c3aed">8</h3>
-          <p>Pending Marks Approval</p>
-          <div class="trend" style="color:#7c3aed">Awaiting review</div>
-        </div>
-      </div>
-      <div class="col-6 col-lg-3">
-        <div class="stat-card">
-          <div class="icon" style="background:#eff6ff"><i class="fas fa-tasks" style="color:#1565c0"></i></div>
-          <h3 style="color:#1565c0">34</h3>
-          <p>Active Assignments</p>
-          <div class="trend" style="color:#64748b">Across all classes</div>
-        </div>
-      </div>
+      <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon" style="background:#fef2f2"><i class="fas fa-user-times" style="color:#ef4444"></i></div><div class="stat-val" style="color:#ef4444">111</div><div class="stat-lbl">Absent Today</div><div class="stat-trend" style="color:#ef4444">13% absence rate</div></div></div>
+      <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon" style="background:#fffbeb"><i class="fas fa-exclamation-triangle" style="color:#d97706"></i></div><div class="stat-val" style="color:#d97706">23</div><div class="stat-lbl">Att. Defaulters</div><div class="stat-trend" style="color:#d97706">Below 75% threshold</div></div></div>
+      <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon" style="background:#fdf4ff"><i class="fas fa-pen" style="color:#7c3aed"></i></div><div class="stat-val" style="color:#7c3aed">8</div><div class="stat-lbl">Marks Pending</div><div class="stat-trend" style="color:#7c3aed">Awaiting review</div></div></div>
+      <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon" style="background:#eff6ff"><i class="fas fa-tasks" style="color:#1d4ed8"></i></div><div class="stat-val" style="color:#1d4ed8">34</div><div class="stat-lbl">Active Assignments</div><div class="stat-trend" style="color:#64748b">Across all classes</div></div></div>
     </div>
 
     <div class="row g-3">
-      <!-- Analytics Charts -->
       <div class="col-lg-8">
-        <div class="sec-card mb-4">
+        <div class="sec-card mb-3">
           <div class="sec-head">
             <h5><i class="fas fa-chart-line me-2" style="color:#7c3aed"></i>Monthly Attendance Trend — 2026</h5>
             <select class="form-select form-select-sm" style="width:auto"><option>All Classes</option><option>Class 12</option><option>Class 11</option></select>
           </div>
           <div class="p-4"><canvas id="lineChart" height="100"></canvas></div>
         </div>
-
-        <!-- Pending Approvals -->
         <div class="sec-card">
-          <div class="sec-head">
-            <h5><i class="fas fa-clipboard-check me-2 text-warning"></i>Pending Approvals</h5>
-            <span class="badge bg-warning text-dark">8 items</span>
-          </div>
+          <div class="sec-head"><h5><i class="fas fa-clipboard-check me-2 text-warning"></i>Pending Approvals</h5><span class="badge bg-warning text-dark">8 items</span></div>
           <div class="table-responsive">
-            <table class="table mb-0">
+            <table class="data-table">
               <thead><tr><th class="ps-4">Type</th><th>Teacher</th><th>Class</th><th>Subject</th><th>Submitted</th><th class="pe-4">Action</th></tr></thead>
               <tbody>
-                <tr><td class="ps-4"><span class="badge bg-primary">Marks</span></td><td>Dr. Sarah Khan</td><td>12-A</td><td>Physics</td><td>20 May</td>
-                  <td class="pe-4 d-flex gap-1"><button class="btn btn-xs btn-success" style="padding:2px 10px;font-size:12px" onclick="alert('Approved!')">Approve</button><button class="btn btn-xs btn-outline-danger" style="padding:2px 10px;font-size:12px">Reject</button></td></tr>
-                <tr><td class="ps-4"><span class="badge bg-primary">Marks</span></td><td>Mr. Hasan Ali</td><td>11-B</td><td>Math</td><td>20 May</td>
-                  <td class="pe-4 d-flex gap-1"><button class="btn btn-xs btn-success" style="padding:2px 10px;font-size:12px" onclick="alert('Approved!')">Approve</button><button class="btn btn-xs btn-outline-danger" style="padding:2px 10px;font-size:12px">Reject</button></td></tr>
-                <tr><td class="ps-4"><span class="badge bg-warning text-dark">Leave</span></td><td>Ms. Nadia Raza</td><td>—</td><td>English</td><td>19 May</td>
-                  <td class="pe-4 d-flex gap-1"><button class="btn btn-xs btn-success" style="padding:2px 10px;font-size:12px" onclick="alert('Leave approved!')">Approve</button><button class="btn btn-xs btn-outline-danger" style="padding:2px 10px;font-size:12px">Reject</button></td></tr>
-                <tr><td class="ps-4"><span class="badge bg-info">Result</span></td><td>Dr. Amina Siddiqui</td><td>12-B</td><td>Chemistry</td><td>18 May</td>
-                  <td class="pe-4 d-flex gap-1"><button class="btn btn-xs btn-success" style="padding:2px 10px;font-size:12px" onclick="alert('Result published!')">Publish</button><button class="btn btn-xs btn-outline-secondary" style="padding:2px 10px;font-size:12px">Review</button></td></tr>
+                <tr><td class="ps-4"><span class="badge bg-primary">Marks</span></td><td>Dr. Sarah Khan</td><td>12-A</td><td>Physics</td><td>20 May</td><td class="pe-4"><div class="d-flex gap-1"><button class="btn btn-xs btn-success" style="padding:2px 10px;font-size:12px" onclick="alert('Approved!')">Approve</button><button class="btn btn-xs btn-outline-danger" style="padding:2px 10px;font-size:12px">Reject</button></div></td></tr>
+                <tr><td class="ps-4"><span class="badge bg-primary">Marks</span></td><td>Mr. Hasan Ali</td><td>11-B</td><td>Math</td><td>20 May</td><td class="pe-4"><div class="d-flex gap-1"><button class="btn btn-xs btn-success" style="padding:2px 10px;font-size:12px" onclick="alert('Approved!')">Approve</button><button class="btn btn-xs btn-outline-danger" style="padding:2px 10px;font-size:12px">Reject</button></div></td></tr>
+                <tr><td class="ps-4"><span class="badge bg-warning text-dark">Leave</span></td><td>Ms. Nadia Raza</td><td>—</td><td>English</td><td>19 May</td><td class="pe-4"><div class="d-flex gap-1"><button class="btn btn-xs btn-success" style="padding:2px 10px;font-size:12px" onclick="alert('Approved!')">Approve</button><button class="btn btn-xs btn-outline-danger" style="padding:2px 10px;font-size:12px">Reject</button></div></td></tr>
+                <tr><td class="ps-4"><span class="badge bg-info">Result</span></td><td>Dr. Amina Siddiqui</td><td>12-B</td><td>Chemistry</td><td>18 May</td><td class="pe-4"><div class="d-flex gap-1"><button class="btn btn-xs btn-success" style="padding:2px 10px;font-size:12px" onclick="alert('Published!')">Publish</button><button class="btn btn-xs btn-outline-secondary" style="padding:2px 10px;font-size:12px">Review</button></div></td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- Right column -->
       <div class="col-lg-4">
-        <!-- Attendance Donut -->
-        <div class="sec-card mb-4">
+        <div class="sec-card mb-3">
           <div class="sec-head"><h5><i class="fas fa-chart-pie me-2" style="color:#7c3aed"></i>Today's Attendance</h5></div>
           <div class="p-4"><canvas id="donutChart" height="160"></canvas></div>
-          <div class="px-4 pb-4 d-flex justify-content-center gap-3 flex-wrap">
+          <div class="px-4 pb-3 d-flex justify-content-center gap-4">
             <div class="text-center"><div style="width:12px;height:12px;background:#059669;border-radius:50%;margin:0 auto 4px"></div><div style="font-size:11px;color:#64748b">Present 87%</div></div>
             <div class="text-center"><div style="width:12px;height:12px;background:#ef4444;border-radius:50%;margin:0 auto 4px"></div><div style="font-size:11px;color:#64748b">Absent 13%</div></div>
           </div>
         </div>
-
-        <!-- Quick Actions -->
-        <div class="sec-card mb-4">
+        <div class="sec-card mb-3">
           <div class="sec-head"><h5><i class="fas fa-bolt me-2 text-warning"></i>Quick Actions</h5></div>
           <div class="p-3 row g-2">
-            <div class="col-6"><a href="admin-users.html" class="qa-btn"><i class="fas fa-user-plus" style="color:#1565c0"></i><span>Add User</span></a></div>
+            <div class="col-6"><a href="admin-users.html" class="qa-btn"><i class="fas fa-user-plus" style="color:#1d4ed8"></i><span>Add User</span></a></div>
             <div class="col-6"><a href="notices.html" class="qa-btn"><i class="fas fa-bullhorn" style="color:#ef4444"></i><span>Post Notice</span></a></div>
             <div class="col-6"><a href="admin-results.html" class="qa-btn"><i class="fas fa-chart-bar" style="color:#7c3aed"></i><span>View Results</span></a></div>
             <div class="col-6"><a href="admin-analytics.html" class="qa-btn"><i class="fas fa-file-export" style="color:#059669"></i><span>Export Report</span></a></div>
           </div>
         </div>
-
-        <!-- Recent Activity -->
         <div class="sec-card">
           <div class="sec-head"><h5><i class="fas fa-history me-2 text-primary"></i>Recent Activity</h5></div>
           <div>
             <div class="act-item"><div class="act-dot" style="background:#059669"></div><div><div style="font-size:13px">Dr. Sarah submitted Physics marks (12-A)</div><small class="text-muted">2 hours ago</small></div></div>
-            <div class="act-item"><div class="act-dot" style="background:#1565c0"></div><div><div style="font-size:13px">New student registered: Zara Iqbal (11-C)</div><small class="text-muted">3 hours ago</small></div></div>
+            <div class="act-item"><div class="act-dot" style="background:#1d4ed8"></div><div><div style="font-size:13px">New student registered: Zara Iqbal (11-C)</div><small class="text-muted">3 hours ago</small></div></div>
             <div class="act-item"><div class="act-dot" style="background:#ef4444"></div><div><div style="font-size:13px">Attendance defaulter alert: 3 students</div><small class="text-muted">5 hours ago</small></div></div>
             <div class="act-item"><div class="act-dot" style="background:#d97706"></div><div><div style="font-size:13px">Notice posted: Final Exam Schedule</div><small class="text-muted">Yesterday</small></div></div>
             <div class="act-item"><div class="act-dot" style="background:#7c3aed"></div><div><div style="font-size:13px">Mid-Term results approved (Class 12-A)</div><small class="text-muted">Yesterday</small></div></div>
@@ -250,14 +137,10 @@
       </div>
     </div>
 
-    <!-- Recent Users -->
-    <div class="sec-card">
-      <div class="sec-head">
-        <h5><i class="fas fa-users me-2" style="color:#1565c0"></i>Recent Registrations</h5>
-        <a href="admin-users.html" class="btn btn-sm btn-outline-primary">Manage All Users</a>
-      </div>
+    <div class="sec-card mt-1">
+      <div class="sec-head"><h5><i class="fas fa-users me-2" style="color:#1d4ed8"></i>Recent Registrations</h5><a href="admin-users.html" class="btn btn-sm btn-outline-primary">Manage All Users</a></div>
       <div class="table-responsive">
-        <table class="table mb-0">
+        <table class="data-table">
           <thead><tr><th class="ps-4">Name</th><th>Role</th><th>Class/Dept</th><th>Joined</th><th>Status</th><th class="pe-4">Actions</th></tr></thead>
           <tbody>
             <tr><td class="ps-4 fw-semibold">Zara Iqbal</td><td><span class="badge bg-primary">Student</span></td><td>11-C</td><td>21 May 2026</td><td><span class="badge bg-success">Active</span></td><td class="pe-4"><button class="btn btn-sm btn-outline-primary" style="font-size:11px">View</button></td></tr>
@@ -273,31 +156,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
-  function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
-
-  // Line Chart
-  new Chart(document.getElementById('lineChart'), {
-    type:'line',
-    data:{
-      labels:['Jan','Feb','Mar','Apr','May','Jun'],
-      datasets:[
-        {label:'Attendance %',data:[85,82,88,84,87,null],borderColor:'#059669',backgroundColor:'rgba(5,150,105,.08)',tension:.4,fill:true,pointBackgroundColor:'#059669'},
-        {label:'Class Average %',data:[78,76,80,79,84,null],borderColor:'#1565c0',backgroundColor:'rgba(21,101,192,.06)',tension:.4,fill:true,pointBackgroundColor:'#1565c0'}
-      ]
-    },
-    options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{min:60,max:100,ticks:{callback:v=>v+'%'}}}}
-  });
-
-  // Donut Chart
-  new Chart(document.getElementById('donutChart'), {
-    type:'doughnut',
-    data:{
-      labels:['Present','Absent'],
-      datasets:[{data:[731,111],backgroundColor:['#059669','#ef4444'],borderWidth:0,hoverOffset:4}]
-    },
-    options:{cutout:'70%',plugins:{legend:{display:false}}}
-  });
+  function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
+  function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
+  new Chart(document.getElementById('lineChart'),{type:'line',data:{labels:['Jan','Feb','Mar','Apr','May','Jun'],datasets:[
+    {label:'Attendance %',data:[85,82,88,84,87,null],borderColor:'#059669',backgroundColor:'rgba(5,150,105,.08)',tension:.4,fill:true,pointBackgroundColor:'#059669'},
+    {label:'Class Average %',data:[78,76,80,79,84,null],borderColor:'#1d4ed8',backgroundColor:'rgba(29,78,216,.06)',tension:.4,fill:true,pointBackgroundColor:'#1d4ed8'}
+  ]},options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{min:60,max:100,ticks:{callback:v=>v+'%'}}}}});
+  new Chart(document.getElementById('donutChart'),{type:'doughnut',data:{labels:['Present','Absent'],datasets:[{data:[731,111],backgroundColor:['#059669','#ef4444'],borderWidth:0,hoverOffset:4}]},options:{cutout:'70%',plugins:{legend:{display:false}}}});
 </script>
 </body>
 </html>
