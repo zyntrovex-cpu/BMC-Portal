@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mark Attendance — BMC Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    :root{--sb:#0f172a;--pr:#059669;--bg:#f0f4f8;}
+    body{background:var(--bg);font-family:'Segoe UI',sans-serif;margin:0;}
+    .sidebar{width:255px;background:var(--sb);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:1050;transition:.3s;}
+    .sb-brand{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+    .sb-brand .icon{background:var(--pr);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+    .sb-brand .txt h6{color:#fff;font-size:14px;font-weight:700;margin:0;}
+    .sb-brand .txt small{color:rgba(255,255,255,.5);font-size:10px;}
+    .sb-nav{padding:10px 0;}
+    .sb-section{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:12px 20px 6px;}
+    .sb-nav a{display:flex;align-items:center;gap:10px;padding:11px 20px;color:rgba(255,255,255,.65);text-decoration:none;font-size:13.5px;transition:.18s;}
+    .sb-nav a:hover,.sb-nav a.active{background:rgba(255,255,255,.09);color:#fff;}
+    .sb-nav a.active{border-left:3px solid var(--pr);}
+    .sb-nav a i{width:18px;text-align:center;}
+    .sb-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+    .sb-user .av{width:36px;height:36px;border-radius:50%;background:var(--pr);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+    .sb-user .info h6{color:#fff;font-size:12.5px;margin:0;}
+    .sb-user .info small{color:rgba(255,255,255,.4);font-size:10.5px;}
+    .main{margin-left:255px;min-height:100vh;}
+    .topbar{background:#fff;padding:14px 24px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+    .topbar .toggle{display:none;background:none;border:none;font-size:20px;color:#475569;cursor:pointer;}
+    .content{padding:24px;}
+    .sec-card{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:24px;overflow:hidden;}
+    .sec-head{padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+    .sec-head h5{font-size:15px;font-weight:700;margin:0;color:#1e293b;}
+    table thead{background:#f8fafc;}
+    table thead th{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;border:none;}
+    table td{font-size:13.5px;vertical-align:middle;}
+    .att-btn-grp button{width:36px;height:30px;border-radius:6px;border:1.5px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:11.5px;font-weight:700;margin-right:3px;transition:.15s;}
+    .att-btn-grp button:hover{opacity:.85;}
+    .att-btn-grp button.p{background:#dcfce7;border-color:#059669;color:#166534;}
+    .att-btn-grp button.a{background:#fee2e2;border-color:#ef4444;color:#991b1b;}
+    .att-btn-grp button.l{background:#fef9c3;border-color:#d97706;color:#854d0e;}
+    .att-btn-grp button.hd{background:#e0f2fe;border-color:#0284c7;color:#075985;}
+    .summary-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;}
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1040;}
+    @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.overlay.show{display:block}.main{margin-left:0}.topbar .toggle{display:block}}
+  </style>
+</head>
+<body>
+<div class="overlay" id="overlay" onclick="closeSb()"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="icon"><i class="fas fa-chalkboard-teacher"></i></div>
+    <div class="txt"><h6>BMC Portal</h6><small>Teacher Portal</small></div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Main Menu</div>
+    <a href="teacher-dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="teacher-marks.html"><i class="fas fa-pen"></i> Enter Marks</a>
+    <a href="teacher-attendance.html" class="active"><i class="fas fa-calendar-check"></i> Mark Attendance</a>
+    <a href="teacher-assignments.html"><i class="fas fa-tasks"></i> Assignments</a>
+    <a href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
+    <a href="teacher-timetable.html"><i class="fas fa-clock"></i> My Timetable</a>
+    <div class="sb-section">Account</div>
+    <a href="teacher-profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
+    <a href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+  <div class="sb-user">
+    <div class="av"><i class="fas fa-user"></i></div>
+    <div class="info"><h6>Dr. Sarah Khan</h6><small>Sr. Lecturer · Physics</small></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <button class="toggle" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+    <span style="font-size:16px;font-weight:700;color:#1e293b"><i class="fas fa-calendar-check me-2" style="color:#059669"></i>Mark Attendance</span>
+    <div><img src="https://ui-avatars.com/api/?name=Sarah+Khan&background=059669&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" /></div>
+  </div>
+
+  <div class="content">
+    <!-- Filters -->
+    <div class="sec-card">
+      <div class="sec-head"><h5><i class="fas fa-filter me-2 text-primary"></i>Select Class & Date</h5></div>
+      <div class="p-4">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:12px">Class</label>
+            <select class="form-select form-select-sm">
+              <option selected>Class 12-A (Physics)</option>
+              <option>Class 11-A (Physics)</option>
+              <option>Class 11-B (Physics)</option>
+              <option>Class 12-B (Physics)</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:12px">Date</label>
+            <input type="date" class="form-control form-control-sm" value="2026-05-21" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:12px">Period</label>
+            <select class="form-select form-select-sm">
+              <option selected>Period 1 · 07:30–08:15</option>
+              <option>Period 2 · 08:15–09:00</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <button class="btn btn-primary btn-sm w-100">Load Class</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="d-flex gap-2 flex-wrap mb-3">
+      <button class="btn btn-sm btn-success" onclick="markAll('p')"><i class="fas fa-check me-1"></i>Mark All Present</button>
+      <button class="btn btn-sm btn-danger" onclick="markAll('a')"><i class="fas fa-times me-1"></i>Mark All Absent</button>
+      <div class="ms-auto d-flex gap-2">
+        <span class="summary-pill" style="background:#dcfce7;color:#166534" id="pCount">Present: 0</span>
+        <span class="summary-pill" style="background:#fee2e2;color:#991b1b" id="aCount">Absent: 0</span>
+        <span class="summary-pill" style="background:#fef9c3;color:#854d0e" id="lCount">Late: 0</span>
+      </div>
+    </div>
+
+    <!-- Attendance Table -->
+    <div class="sec-card">
+      <div class="sec-head">
+        <h5><i class="fas fa-users me-2" style="color:#059669"></i>Class 12-A — Physics · 21 May 2026</h5>
+        <span class="badge bg-warning text-dark">29 Students</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr>
+            <th class="ps-4">#</th><th>Roll No</th><th>Student Name</th>
+            <th>Status</th><th>Overall Att%</th><th class="pe-4">Remark</th>
+          </tr></thead>
+          <tbody id="attBody">
+            <tr data-status="p"><td class="ps-4">1</td><td>101</td><td>Ahmed Ali</td>
+              <td><div class="att-btn-grp"><button class="p" onclick="setRow(this,'p')">P</button><button onclick="setRow(this,'a')">A</button><button onclick="setRow(this,'l')">L</button><button onclick="setRow(this,'hd')">HD</button></div></td>
+              <td><span style="color:#059669;font-weight:600">82%</span></td><td class="pe-4"><input class="form-control form-control-sm" placeholder="Optional..." style="max-width:140px" /></td></tr>
+            <tr data-status="p"><td class="ps-4">2</td><td>102</td><td>Bilal Ahmed</td>
+              <td><div class="att-btn-grp"><button class="p" onclick="setRow(this,'p')">P</button><button onclick="setRow(this,'a')">A</button><button onclick="setRow(this,'l')">L</button><button onclick="setRow(this,'hd')">HD</button></div></td>
+              <td><span style="color:#059669;font-weight:600">89%</span></td><td class="pe-4"><input class="form-control form-control-sm" placeholder="Optional..." style="max-width:140px" /></td></tr>
+            <tr data-status="a"><td class="ps-4">3</td><td>103</td><td>Fatima Noor</td>
+              <td><div class="att-btn-grp"><button onclick="setRow(this,'p')">P</button><button class="a" onclick="setRow(this,'a')">A</button><button onclick="setRow(this,'l')">L</button><button onclick="setRow(this,'hd')">HD</button></div></td>
+              <td><span style="color:#d97706;font-weight:600">74%</span></td><td class="pe-4"><input class="form-control form-control-sm" placeholder="Optional..." style="max-width:140px" /></td></tr>
+            <tr data-status="p"><td class="ps-4">4</td><td>104</td><td>Hassan Raza</td>
+              <td><div class="att-btn-grp"><button class="p" onclick="setRow(this,'p')">P</button><button onclick="setRow(this,'a')">A</button><button onclick="setRow(this,'l')">L</button><button onclick="setRow(this,'hd')">HD</button></div></td>
+              <td><span style="color:#059669;font-weight:600">85%</span></td><td class="pe-4"><input class="form-control form-control-sm" placeholder="Optional..." style="max-width:140px" /></td></tr>
+            <tr data-status="l"><td class="ps-4">5</td><td>105</td><td>Iqra Shah</td>
+              <td><div class="att-btn-grp"><button onclick="setRow(this,'p')">P</button><button onclick="setRow(this,'a')">A</button><button class="l" onclick="setRow(this,'l')">L</button><button onclick="setRow(this,'hd')">HD</button></div></td>
+              <td><span style="color:#ef4444;font-weight:600">71%</span></td><td class="pe-4"><input class="form-control form-control-sm" placeholder="Optional..." style="max-width:140px" /></td></tr>
+            <tr data-status="p"><td class="ps-4">6</td><td>106</td><td>Junaid Malik</td>
+              <td><div class="att-btn-grp"><button class="p" onclick="setRow(this,'p')">P</button><button onclick="setRow(this,'a')">A</button><button onclick="setRow(this,'l')">L</button><button onclick="setRow(this,'hd')">HD</button></div></td>
+              <td><span style="color:#059669;font-weight:600">91%</span></td><td class="pe-4"><input class="form-control form-control-sm" placeholder="Optional..." style="max-width:140px" /></td></tr>
+            <tr data-status="p"><td class="ps-4">7</td><td>107</td><td>Kiran Baig</td>
+              <td><div class="att-btn-grp"><button class="p" onclick="setRow(this,'p')">P</button><button onclick="setRow(this,'a')">A</button><button onclick="setRow(this,'l')">L</button><button onclick="setRow(this,'hd')">HD</button></div></td>
+              <td><span style="color:#059669;font-weight:600">87%</span></td><td class="pe-4"><input class="form-control form-control-sm" placeholder="Optional..." style="max-width:140px" /></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="p-3 d-flex justify-content-between align-items-center border-top" style="background:#f8fafc">
+        <small class="text-muted">Showing 7 of 29 students</small>
+        <button class="btn btn-success btn-sm" onclick="alert('Attendance saved! Absentees will be notified.')"><i class="fas fa-save me-1"></i>Save Attendance</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
+  function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+
+  function setRow(btn, type){
+    const grp = btn.closest('.att-btn-grp');
+    grp.querySelectorAll('button').forEach(b=>b.className='');
+    btn.className=type;
+    const row = btn.closest('tr');
+    row.dataset.status = type;
+    updateCounts();
+  }
+
+  function markAll(type){
+    document.querySelectorAll('#attBody tr').forEach(row=>{
+      row.dataset.status=type;
+      row.querySelectorAll('.att-btn-grp button').forEach(b=>{
+        b.className='';
+        const map={'p':'P','a':'A','l':'L','hd':'HD'};
+        if(b.textContent===map[type]) b.className=type;
+      });
+    });
+    updateCounts();
+  }
+
+  function updateCounts(){
+    const rows=[...document.querySelectorAll('#attBody tr')];
+    document.getElementById('pCount').textContent='Present: '+rows.filter(r=>r.dataset.status==='p').length;
+    document.getElementById('aCount').textContent='Absent: '+rows.filter(r=>r.dataset.status==='a').length;
+    document.getElementById('lCount').textContent='Late: '+rows.filter(r=>r.dataset.status==='l').length;
+  }
+  updateCounts();
+</script>
+</body>
+</html>

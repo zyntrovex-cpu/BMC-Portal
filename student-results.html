@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Results — BMC Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    :root{--sb:#0f172a;--pr:#1565c0;--bg:#f0f4f8;}
+    body{background:var(--bg);font-family:'Segoe UI',sans-serif;margin:0;}
+    .sidebar{width:255px;background:var(--sb);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:1050;transition:.3s;}
+    .sb-brand{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+    .sb-brand .icon{background:var(--pr);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+    .sb-brand .txt h6{color:#fff;font-size:14px;font-weight:700;margin:0;}
+    .sb-brand .txt small{color:rgba(255,255,255,.5);font-size:10px;}
+    .sb-nav{padding:10px 0;}
+    .sb-section{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:12px 20px 6px;}
+    .sb-nav a{display:flex;align-items:center;gap:10px;padding:11px 20px;color:rgba(255,255,255,.65);text-decoration:none;font-size:13.5px;transition:.18s;}
+    .sb-nav a:hover,.sb-nav a.active{background:rgba(255,255,255,.09);color:#fff;}
+    .sb-nav a.active{border-left:3px solid var(--pr);}
+    .sb-nav a i{width:18px;text-align:center;}
+    .sb-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+    .sb-user .av{width:36px;height:36px;border-radius:50%;background:var(--pr);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+    .sb-user .info h6{color:#fff;font-size:12.5px;margin:0;}
+    .sb-user .info small{color:rgba(255,255,255,.4);font-size:10.5px;}
+    .main{margin-left:255px;min-height:100vh;}
+    .topbar{background:#fff;padding:14px 24px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+    .topbar .toggle{display:none;background:none;border:none;font-size:20px;color:#475569;cursor:pointer;}
+    .content{padding:24px;}
+    .sec-card{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:24px;overflow:hidden;}
+    .sec-head{padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;}
+    .sec-head h5{font-size:15px;font-weight:700;margin:0;color:#1e293b;}
+    table thead{background:#f8fafc;}
+    table thead th{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;border:none;}
+    table td{font-size:13.5px;vertical-align:middle;}
+    .grade-badge{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1040;}
+    @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.overlay.show{display:block}.main{margin-left:0}.topbar .toggle{display:block}}
+  </style>
+</head>
+<body>
+<div class="overlay" id="overlay" onclick="closeSb()"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="icon"><i class="fas fa-university"></i></div>
+    <div class="txt"><h6>BMC Portal</h6><small>Bahria Model College</small></div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Main Menu</div>
+    <a href="student-dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="student-results.html" class="active"><i class="fas fa-chart-bar"></i> My Results</a>
+    <a href="student-attendance.html"><i class="fas fa-calendar-check"></i> Attendance</a>
+    <a href="student-timetable.html"><i class="fas fa-clock"></i> Timetable</a>
+    <a href="student-assignments.html"><i class="fas fa-book-open"></i> Assignments</a>
+    <a href="notices.html"><i class="fas fa-bullhorn"></i> Notices</a>
+    <div class="sb-section">Account</div>
+    <a href="student-profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
+    <a href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+  <div class="sb-user">
+    <div class="av"><i class="fas fa-user"></i></div>
+    <div class="info"><h6>Ahmed Ali</h6><small>Roll No. 101 · 12-A</small></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <button class="toggle" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+    <span style="font-size:16px;font-weight:700;color:#1e293b"><i class="fas fa-chart-bar me-2 text-primary"></i>My Results</span>
+    <div>
+      <img src="https://ui-avatars.com/api/?name=Ahmed+Ali&background=1565c0&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- GPA Summary Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="sec-card p-4 text-center mb-0">
+          <div style="font-size:28px;font-weight:700;color:#1565c0">3.7</div>
+          <div style="font-size:12px;color:#64748b">Current GPA</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="sec-card p-4 text-center mb-0">
+          <div style="font-size:28px;font-weight:700;color:#059669">84.2%</div>
+          <div style="font-size:12px;color:#64748b">Overall %</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="sec-card p-4 text-center mb-0">
+          <div style="font-size:28px;font-weight:700;color:#7c3aed">5th</div>
+          <div style="font-size:12px;color:#64748b">Class Rank</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="sec-card p-4 text-center mb-0">
+          <div style="font-size:28px;font-weight:700;color:#059669">Pass</div>
+          <div style="font-size:12px;color:#64748b">Status — All Subjects</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Term Selector -->
+    <div class="sec-card">
+      <div class="sec-head">
+        <h5><i class="fas fa-graduation-cap me-2 text-primary"></i>Weightage-Based Result Sheet — Mid-Term 2026</h5>
+        <div class="d-flex gap-2">
+          <select class="form-select form-select-sm" style="width:auto">
+            <option>Mid-Term 2026</option>
+            <option>Final 2025</option>
+            <option>Mid-Term 2025</option>
+          </select>
+          <button class="btn btn-sm btn-primary"><i class="fas fa-download me-1"></i>Download PDF</button>
+        </div>
+      </div>
+      <div class="p-0">
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th class="ps-4">Subject</th>
+                <th>Quiz <small class="d-block text-muted fw-normal">10% · /10</small></th>
+                <th>Assign <small class="d-block text-muted fw-normal">10% · /10</small></th>
+                <th>Mid-Term <small class="d-block text-muted fw-normal">30% · /50</small></th>
+                <th>Practical <small class="d-block text-muted fw-normal">15% · /25</small></th>
+                <th>Final <small class="d-block text-muted fw-normal">35% · /100</small></th>
+                <th>Total %</th>
+                <th>Grade</th>
+                <th class="pe-4">GPA</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="ps-4 fw-semibold">English</td>
+                <td>8.5</td><td>9.0</td><td>41/50</td><td>22/25</td><td>85/100</td>
+                <td class="fw-bold text-primary">88%</td>
+                <td><span class="grade-badge" style="background:#eff6ff;color:#1565c0">A</span></td>
+                <td class="pe-4">3.7</td>
+              </tr>
+              <tr>
+                <td class="ps-4 fw-semibold">Physics</td>
+                <td>7.0</td><td>8.0</td><td>36/50</td><td>20/25</td><td>76/100</td>
+                <td class="fw-bold" style="color:#059669">79%</td>
+                <td><span class="grade-badge" style="background:#f0fdf4;color:#059669">B+</span></td>
+                <td class="pe-4">3.3</td>
+              </tr>
+              <tr>
+                <td class="ps-4 fw-semibold">Chemistry</td>
+                <td>9.0</td><td>9.5</td><td>46/50</td><td>24/25</td><td>91/100</td>
+                <td class="fw-bold text-primary">92%</td>
+                <td><span class="grade-badge" style="background:#eff6ff;color:#1565c0">A+</span></td>
+                <td class="pe-4">4.0</td>
+              </tr>
+              <tr>
+                <td class="ps-4 fw-semibold">Mathematics</td>
+                <td>6.0</td><td>7.0</td><td>32/50</td><td>18/25</td><td>63/100</td>
+                <td class="fw-bold" style="color:#d97706">66%</td>
+                <td><span class="grade-badge" style="background:#fffbeb;color:#d97706">B</span></td>
+                <td class="pe-4">3.0</td>
+              </tr>
+              <tr>
+                <td class="ps-4 fw-semibold">Biology</td>
+                <td>8.0</td><td>8.5</td><td>40/50</td><td>21/25</td><td>82/100</td>
+                <td class="fw-bold" style="color:#059669">83%</td>
+                <td><span class="grade-badge" style="background:#f0fdf4;color:#059669">A</span></td>
+                <td class="pe-4">3.7</td>
+              </tr>
+              <tr style="background:#fafffe">
+                <td class="ps-4 fw-semibold">Computer Science</td>
+                <td>10.0</td><td>10.0</td><td>48/50</td><td>25/25</td><td>96/100</td>
+                <td class="fw-bold text-primary">97%</td>
+                <td><span class="grade-badge" style="background:#eff6ff;color:#1565c0">A+</span></td>
+                <td class="pe-4">4.0</td>
+              </tr>
+            </tbody>
+            <tfoot style="background:#f8fafc">
+              <tr>
+                <td class="ps-4 fw-bold" colspan="6">Cumulative Average</td>
+                <td class="fw-bold text-primary fs-6">84.2%</td>
+                <td><span class="grade-badge" style="background:#eff6ff;color:#1565c0">A</span></td>
+                <td class="pe-4 fw-bold">3.7</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weightage Info -->
+    <div class="sec-card">
+      <div class="sec-head"><h5><i class="fas fa-info-circle me-2 text-primary"></i>Weightage Configuration</h5></div>
+      <div class="p-4">
+        <div class="row g-2 text-center">
+          <div class="col"><div class="p-3 rounded" style="background:#eff6ff"><div style="font-size:20px;font-weight:700;color:#1565c0">10%</div><div style="font-size:12px;color:#64748b">Quiz / Tests</div></div></div>
+          <div class="col"><div class="p-3 rounded" style="background:#f0fdf4"><div style="font-size:20px;font-weight:700;color:#059669">10%</div><div style="font-size:12px;color:#64748b">Assignments</div></div></div>
+          <div class="col"><div class="p-3 rounded" style="background:#fffbeb"><div style="font-size:20px;font-weight:700;color:#d97706">30%</div><div style="font-size:12px;color:#64748b">Mid-Term</div></div></div>
+          <div class="col"><div class="p-3 rounded" style="background:#fdf4ff"><div style="font-size:20px;font-weight:700;color:#7c3aed">15%</div><div style="font-size:12px;color:#64748b">Practical</div></div></div>
+          <div class="col"><div class="p-3 rounded" style="background:#fef2f2"><div style="font-size:20px;font-weight:700;color:#ef4444">35%</div><div style="font-size:12px;color:#64748b">Final Exam</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
+  function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+</script>
+</body>
+</html>

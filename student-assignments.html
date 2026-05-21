@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assignments — BMC Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    :root{--sb:#0f172a;--pr:#1565c0;--bg:#f0f4f8;}
+    body{background:var(--bg);font-family:'Segoe UI',sans-serif;margin:0;}
+    .sidebar{width:255px;background:var(--sb);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:1050;transition:.3s;}
+    .sb-brand{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+    .sb-brand .icon{background:var(--pr);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+    .sb-brand .txt h6{color:#fff;font-size:14px;font-weight:700;margin:0;}
+    .sb-brand .txt small{color:rgba(255,255,255,.5);font-size:10px;}
+    .sb-nav{padding:10px 0;}
+    .sb-section{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:12px 20px 6px;}
+    .sb-nav a{display:flex;align-items:center;gap:10px;padding:11px 20px;color:rgba(255,255,255,.65);text-decoration:none;font-size:13.5px;transition:.18s;}
+    .sb-nav a:hover,.sb-nav a.active{background:rgba(255,255,255,.09);color:#fff;}
+    .sb-nav a.active{border-left:3px solid var(--pr);}
+    .sb-nav a i{width:18px;text-align:center;}
+    .sb-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+    .sb-user .av{width:36px;height:36px;border-radius:50%;background:var(--pr);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+    .sb-user .info h6{color:#fff;font-size:12.5px;margin:0;}
+    .sb-user .info small{color:rgba(255,255,255,.4);font-size:10.5px;}
+    .main{margin-left:255px;min-height:100vh;}
+    .topbar{background:#fff;padding:14px 24px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+    .topbar .toggle{display:none;background:none;border:none;font-size:20px;color:#475569;cursor:pointer;}
+    .content{padding:24px;}
+    .sec-card{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px;}
+    .asgn-card{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);padding:20px;margin-bottom:16px;border-left:5px solid #1565c0;}
+    .asgn-card.urgent{border-color:#ef4444;}
+    .asgn-card.submitted{border-color:#059669;background:#fafffe;}
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1040;}
+    @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.overlay.show{display:block}.main{margin-left:0}.topbar .toggle{display:block}}
+  </style>
+</head>
+<body>
+<div class="overlay" id="overlay" onclick="closeSb()"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="icon"><i class="fas fa-university"></i></div>
+    <div class="txt"><h6>BMC Portal</h6><small>Bahria Model College</small></div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Main Menu</div>
+    <a href="student-dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="student-results.html"><i class="fas fa-chart-bar"></i> My Results</a>
+    <a href="student-attendance.html"><i class="fas fa-calendar-check"></i> Attendance</a>
+    <a href="student-timetable.html"><i class="fas fa-clock"></i> Timetable</a>
+    <a href="student-assignments.html" class="active"><i class="fas fa-book-open"></i> Assignments</a>
+    <a href="notices.html"><i class="fas fa-bullhorn"></i> Notices</a>
+    <div class="sb-section">Account</div>
+    <a href="student-profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
+    <a href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+  <div class="sb-user">
+    <div class="av"><i class="fas fa-user"></i></div>
+    <div class="info"><h6>Ahmed Ali</h6><small>Roll No. 101 · 12-A</small></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <button class="toggle" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+    <span style="font-size:16px;font-weight:700;color:#1e293b"><i class="fas fa-book-open me-2 text-warning"></i>My Assignments</span>
+    <div><img src="https://ui-avatars.com/api/?name=Ahmed+Ali&background=1565c0&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" /></div>
+  </div>
+
+  <div class="content">
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3"><div class="sec-card p-4 text-center mb-0"><div style="font-size:26px;font-weight:700;color:#ef4444">3</div><div style="font-size:12px;color:#64748b">Due Soon</div></div></div>
+      <div class="col-6 col-md-3"><div class="sec-card p-4 text-center mb-0"><div style="font-size:26px;font-weight:700;color:#059669">4</div><div style="font-size:12px;color:#64748b">Submitted</div></div></div>
+      <div class="col-6 col-md-3"><div class="sec-card p-4 text-center mb-0"><div style="font-size:26px;font-weight:700;color:#1565c0">2</div><div style="font-size:12px;color:#64748b">Graded</div></div></div>
+      <div class="col-6 col-md-3"><div class="sec-card p-4 text-center mb-0"><div style="font-size:26px;font-weight:700;color:#7c3aed">9</div><div style="font-size:12px;color:#64748b">Total This Term</div></div></div>
+    </div>
+
+    <ul class="nav nav-pills mb-4" id="tabs">
+      <li class="nav-item"><button class="nav-link active" onclick="showTab('pending',this)">Pending (3)</button></li>
+      <li class="nav-item"><button class="nav-link" onclick="showTab('submitted',this)">Submitted (4)</button></li>
+      <li class="nav-item"><button class="nav-link" onclick="showTab('graded',this)">Graded (2)</button></li>
+    </ul>
+
+    <div id="pending">
+      <div class="asgn-card urgent">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge bg-danger">Urgent</span>
+              <span style="font-size:12px;color:#64748b">Physics · Dr. Sarah Khan</span>
+            </div>
+            <h6 class="fw-bold mb-1">Physics Lab Report — Optics Experiment</h6>
+            <p style="font-size:13px;color:#475569;margin:0">Write a detailed lab report on the optics experiment conducted on 15 May. Include observations, calculations, and diagrams.</p>
+          </div>
+          <div class="text-end">
+            <div style="font-size:12px;color:#ef4444;font-weight:600"><i class="fas fa-clock me-1"></i>Due: 23 May 2026</div>
+            <div style="font-size:11px;color:#94a3b8">Max Marks: 20</div>
+          </div>
+        </div>
+        <div class="mt-3 d-flex gap-2 flex-wrap">
+          <button class="btn btn-sm btn-danger"><i class="fas fa-upload me-1"></i>Submit Now</button>
+          <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-paperclip me-1"></i>View Instructions PDF</button>
+        </div>
+      </div>
+
+      <div class="asgn-card">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge bg-warning text-dark">Pending</span>
+              <span style="font-size:12px;color:#64748b">Mathematics · Mr. Hasan Ali</span>
+            </div>
+            <h6 class="fw-bold mb-1">Math Problem Set 4 — Calculus</h6>
+            <p style="font-size:13px;color:#475569;margin:0">Complete all problems from Chapter 12 (Integration). Show full working. Total 10 problems.</p>
+          </div>
+          <div class="text-end">
+            <div style="font-size:12px;color:#d97706;font-weight:600"><i class="fas fa-clock me-1"></i>Due: 25 May 2026</div>
+            <div style="font-size:11px;color:#94a3b8">Max Marks: 15</div>
+          </div>
+        </div>
+        <div class="mt-3 d-flex gap-2">
+          <button class="btn btn-sm btn-primary"><i class="fas fa-upload me-1"></i>Submit</button>
+        </div>
+      </div>
+
+      <div class="asgn-card">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge bg-secondary">Open</span>
+              <span style="font-size:12px;color:#64748b">English · Ms. Nadia Raza</span>
+            </div>
+            <h6 class="fw-bold mb-1">Argumentative Essay — Technology in Education</h6>
+            <p style="font-size:13px;color:#475569;margin:0">Write a 700-word argumentative essay on the role of technology in modern education. Include for and against arguments.</p>
+          </div>
+          <div class="text-end">
+            <div style="font-size:12px;color:#475569;font-weight:600"><i class="fas fa-clock me-1"></i>Due: 28 May 2026</div>
+            <div style="font-size:11px;color:#94a3b8">Max Marks: 10</div>
+          </div>
+        </div>
+        <div class="mt-3 d-flex gap-2">
+          <button class="btn btn-sm btn-primary"><i class="fas fa-upload me-1"></i>Submit</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="submitted" style="display:none">
+      <div class="asgn-card submitted">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge bg-success">Submitted</span>
+              <span style="font-size:12px;color:#64748b">Chemistry · Dr. Amina Siddiqui · Submitted 18 May</span>
+            </div>
+            <h6 class="fw-bold mb-0">Chemistry Assignment — Periodic Table</h6>
+          </div>
+          <div class="text-end">
+            <div style="font-size:12px;color:#059669;font-weight:600"><i class="fas fa-check me-1"></i>Awaiting Grade</div>
+          </div>
+        </div>
+      </div>
+      <div class="asgn-card submitted">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge bg-success">Submitted</span>
+              <span style="font-size:12px;color:#64748b">Biology · Mr. Imran · Submitted 15 May</span>
+            </div>
+            <h6 class="fw-bold mb-0">Photosynthesis Diagram</h6>
+          </div>
+          <div class="text-end">
+            <div style="font-size:12px;color:#059669;font-weight:600"><i class="fas fa-check me-1"></i>Awaiting Grade</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="graded" style="display:none">
+      <div class="asgn-card submitted">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge" style="background:#7c3aed">Graded</span>
+              <span style="font-size:12px;color:#64748b">Computer Science · Mr. Farhan</span>
+            </div>
+            <h6 class="fw-bold mb-1">Web Development Project — HTML/CSS</h6>
+            <p style="font-size:13px;color:#475569;margin:0">Feedback: "Excellent work! Very clean code and good design. Minor improvement needed in responsiveness."</p>
+          </div>
+          <div class="text-end">
+            <div style="font-size:20px;font-weight:700;color:#059669">18/20</div>
+            <div style="font-size:11px;color:#94a3b8">Grade: A</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
+  function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+  function showTab(id, btn){
+    ['pending','submitted','graded'].forEach(t => document.getElementById(t).style.display='none');
+    document.getElementById(id).style.display='block';
+    document.querySelectorAll('#tabs .nav-link').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>

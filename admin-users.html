@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Management — BMC Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    :root{--sb:#0f172a;--pr:#7c3aed;--bg:#f0f4f8;}
+    body{background:var(--bg);font-family:'Segoe UI',sans-serif;margin:0;}
+    .sidebar{width:255px;background:var(--sb);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:1050;transition:.3s;}
+    .sb-brand{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+    .sb-brand .icon{background:var(--pr);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+    .sb-brand .txt h6{color:#fff;font-size:14px;font-weight:700;margin:0;}
+    .sb-brand .txt small{color:rgba(255,255,255,.5);font-size:10px;}
+    .sb-nav{padding:10px 0;}
+    .sb-section{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:12px 20px 6px;}
+    .sb-nav a{display:flex;align-items:center;gap:10px;padding:11px 20px;color:rgba(255,255,255,.65);text-decoration:none;font-size:13.5px;transition:.18s;}
+    .sb-nav a:hover,.sb-nav a.active{background:rgba(255,255,255,.09);color:#fff;}
+    .sb-nav a.active{border-left:3px solid var(--pr);}
+    .sb-nav a i{width:18px;text-align:center;}
+    .sb-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+    .sb-user .av{width:36px;height:36px;border-radius:50%;background:var(--pr);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+    .sb-user .info h6{color:#fff;font-size:12.5px;margin:0;}
+    .sb-user .info small{color:rgba(255,255,255,.4);font-size:10.5px;}
+    .main{margin-left:255px;min-height:100vh;}
+    .topbar{background:#fff;padding:14px 24px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+    .topbar .toggle{display:none;background:none;border:none;font-size:20px;color:#475569;cursor:pointer;}
+    .content{padding:24px;}
+    .sec-card{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:24px;overflow:hidden;}
+    .sec-head{padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+    .sec-head h5{font-size:15px;font-weight:700;margin:0;color:#1e293b;}
+    table thead{background:#f8fafc;}
+    table thead th{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;border:none;}
+    table td{font-size:13.5px;vertical-align:middle;}
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1040;}
+    @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.overlay.show{display:block}.main{margin-left:0}.topbar .toggle{display:block}}
+  </style>
+</head>
+<body>
+<div class="overlay" id="overlay" onclick="closeSb()"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="icon"><i class="fas fa-shield-alt"></i></div>
+    <div class="txt"><h6>BMC Portal</h6><small>Admin Panel</small></div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Main Menu</div>
+    <a href="admin-dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="admin-users.html" class="active"><i class="fas fa-users"></i> User Management</a>
+    <a href="admin-classes.html"><i class="fas fa-school"></i> Classes &amp; Subjects</a>
+    <a href="admin-results.html"><i class="fas fa-chart-bar"></i> Results Management</a>
+    <a href="admin-attendance.html"><i class="fas fa-calendar-check"></i> Attendance Reports</a>
+    <a href="admin-analytics.html"><i class="fas fa-chart-line"></i> Analytics</a>
+    <a href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
+    <a href="finance-dashboard.html"><i class="fas fa-coins"></i> Finance Portal</a>
+    <div class="sb-section">System</div>
+    <a href="admin-settings.html"><i class="fas fa-cog"></i> Settings</a>
+    <a href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+  <div class="sb-user">
+    <div class="av"><i class="fas fa-user-shield"></i></div>
+    <div class="info"><h6>Mr. Tariq Mehmood</h6><small>System Administrator</small></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <button class="toggle" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+    <span style="font-size:16px;font-weight:700;color:#1e293b"><i class="fas fa-users me-2" style="color:#7c3aed"></i>User Management</span>
+    <div><img src="https://ui-avatars.com/api/?name=Tariq+Mehmood&background=7c3aed&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" /></div>
+  </div>
+
+  <div class="content">
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3"><div class="sec-card p-4 text-center mb-0"><div style="font-size:26px;font-weight:700;color:#1565c0">842</div><div style="font-size:12px;color:#64748b">Students</div></div></div>
+      <div class="col-6 col-md-3"><div class="sec-card p-4 text-center mb-0"><div style="font-size:26px;font-weight:700;color:#059669">47</div><div style="font-size:12px;color:#64748b">Teachers</div></div></div>
+      <div class="col-6 col-md-3"><div class="sec-card p-4 text-center mb-0"><div style="font-size:26px;font-weight:700;color:#7c3aed">8</div><div style="font-size:12px;color:#64748b">Admin Staff</div></div></div>
+      <div class="col-6 col-md-3"><div class="sec-card p-4 text-center mb-0"><div style="font-size:26px;font-weight:700;color:#d97706">3</div><div style="font-size:12px;color:#64748b">Pending Activation</div></div></div>
+    </div>
+
+    <!-- Tabs & Filters -->
+    <div class="sec-card">
+      <div class="sec-head">
+        <h5><i class="fas fa-filter me-2 text-primary"></i>Filter &amp; Search Users</h5>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal"><i class="fas fa-plus me-1"></i>Add User</button>
+          <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-excel me-1"></i>Bulk Import</button>
+          <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-download me-1"></i>Export</button>
+        </div>
+      </div>
+      <div class="p-4">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <input type="text" class="form-control form-control-sm" placeholder="Search by name, roll no, email..." oninput="filterTable(this.value)" />
+          </div>
+          <div class="col-md-2">
+            <select class="form-select form-select-sm" onchange="filterTable()">
+              <option value="">All Roles</option><option>Student</option><option>Teacher</option><option>Admin</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <select class="form-select form-select-sm">
+              <option>All Classes</option><option>Class 12</option><option>Class 11</option><option>Class 10</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <select class="form-select form-select-sm">
+              <option>All Status</option><option>Active</option><option>Inactive</option><option>Pending</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-primary btn-sm w-100">Search</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="sec-card">
+      <div class="sec-head">
+        <h5><i class="fas fa-list me-2" style="color:#7c3aed"></i>All Users</h5>
+        <small class="text-muted">Showing 10 of 897 users</small>
+      </div>
+      <div class="table-responsive">
+        <table class="table mb-0" id="usersTable">
+          <thead><tr>
+            <th class="ps-4"><input type="checkbox" /></th>
+            <th>Name</th><th>Role</th><th>Class / Dept</th><th>Email</th><th>Joined</th><th>Status</th><th class="pe-4">Actions</th>
+          </tr></thead>
+          <tbody>
+            <tr><td class="ps-4"><input type="checkbox" /></td><td class="fw-semibold">Ahmed Ali</td><td><span class="badge bg-primary">Student</span></td><td>12-A</td><td>ahmed@bmc.edu.pk</td><td>Sep 2024</td><td><span class="badge bg-success">Active</span></td><td class="pe-4"><button class="btn btn-xs btn-outline-primary" style="font-size:11px;padding:2px 8px">Edit</button></td></tr>
+            <tr><td class="ps-4"><input type="checkbox" /></td><td class="fw-semibold">Dr. Sarah Khan</td><td><span class="badge bg-success">Teacher</span></td><td>Physics</td><td>sarah@bmc.edu.pk</td><td>Jan 2022</td><td><span class="badge bg-success">Active</span></td><td class="pe-4"><button class="btn btn-xs btn-outline-primary" style="font-size:11px;padding:2px 8px">Edit</button></td></tr>
+            <tr><td class="ps-4"><input type="checkbox" /></td><td class="fw-semibold">Fatima Noor</td><td><span class="badge bg-primary">Student</span></td><td>12-A</td><td>fatima@bmc.edu.pk</td><td>Sep 2024</td><td><span class="badge bg-success">Active</span></td><td class="pe-4"><button class="btn btn-xs btn-outline-primary" style="font-size:11px;padding:2px 8px">Edit</button></td></tr>
+            <tr><td class="ps-4"><input type="checkbox" /></td><td class="fw-semibold">Mr. Hasan Ali</td><td><span class="badge bg-success">Teacher</span></td><td>Mathematics</td><td>hasan@bmc.edu.pk</td><td>Mar 2021</td><td><span class="badge bg-success">Active</span></td><td class="pe-4"><button class="btn btn-xs btn-outline-primary" style="font-size:11px;padding:2px 8px">Edit</button></td></tr>
+            <tr><td class="ps-4"><input type="checkbox" /></td><td class="fw-semibold">Bilal Ahmed</td><td><span class="badge bg-primary">Student</span></td><td>11-B</td><td>bilal@bmc.edu.pk</td><td>Sep 2025</td><td><span class="badge bg-success">Active</span></td><td class="pe-4"><button class="btn btn-xs btn-outline-primary" style="font-size:11px;padding:2px 8px">Edit</button></td></tr>
+            <tr><td class="ps-4"><input type="checkbox" /></td><td class="fw-semibold">Ms. Nadia Raza</td><td><span class="badge bg-success">Teacher</span></td><td>English</td><td>nadia@bmc.edu.pk</td><td>Aug 2020</td><td><span class="badge bg-success">Active</span></td><td class="pe-4"><button class="btn btn-xs btn-outline-primary" style="font-size:11px;padding:2px 8px">Edit</button></td></tr>
+            <tr><td class="ps-4"><input type="checkbox" /></td><td class="fw-semibold">Zara Iqbal</td><td><span class="badge bg-primary">Student</span></td><td>11-C</td><td>zara@bmc.edu.pk</td><td>May 2026</td><td><span class="badge bg-warning text-dark">Pending</span></td><td class="pe-4"><button class="btn btn-xs btn-success" style="font-size:11px;padding:2px 8px" onclick="alert('Activated!')">Activate</button></td></tr>
+            <tr><td class="ps-4"><input type="checkbox" /></td><td class="fw-semibold">Mr. Ali Hassan</td><td><span class="badge bg-success">Teacher</span></td><td>Urdu</td><td>ali@bmc.edu.pk</td><td>May 2026</td><td><span class="badge bg-warning text-dark">Pending</span></td><td class="pe-4"><button class="btn btn-xs btn-success" style="font-size:11px;padding:2px 8px" onclick="alert('Activated!')">Activate</button></td></tr>
+            <tr><td class="ps-4"><input type="checkbox" /></td><td class="fw-semibold">Iqra Shah</td><td><span class="badge bg-primary">Student</span></td><td>12-A</td><td>iqra@bmc.edu.pk</td><td>Sep 2024</td><td><span class="badge bg-success">Active</span></td><td class="pe-4"><button class="btn btn-xs btn-outline-primary" style="font-size:11px;padding:2px 8px">Edit</button></td></tr>
+            <tr><td class="ps-4"><input type="checkbox" /></td><td class="fw-semibold">Hassan Raza</td><td><span class="badge bg-primary">Student</span></td><td>12-A</td><td>hassan@bmc.edu.pk</td><td>Sep 2024</td><td><span class="badge bg-danger">Inactive</span></td><td class="pe-4"><button class="btn btn-xs btn-outline-success" style="font-size:11px;padding:2px 8px" onclick="alert('Reactivated!')">Enable</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="p-3 d-flex justify-content-between align-items-center" style="background:#f8fafc;border-top:1px solid #f1f5f9">
+        <small class="text-muted">Page 1 of 90</small>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-secondary">Previous</button>
+          <button class="btn btn-sm btn-primary">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-0" style="border-radius:16px">
+      <div class="modal-header" style="background:linear-gradient(135deg,#2e1065,#7c3aed);color:#fff;border-radius:16px 16px 0 0">
+        <h5 class="modal-title fw-bold"><i class="fas fa-user-plus me-2"></i>Add New User</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-6"><label class="form-label fw-semibold" style="font-size:12px">First Name</label><input class="form-control form-control-sm" placeholder="First name" /></div>
+          <div class="col-6"><label class="form-label fw-semibold" style="font-size:12px">Last Name</label><input class="form-control form-control-sm" placeholder="Last name" /></div>
+          <div class="col-12"><label class="form-label fw-semibold" style="font-size:12px">Role</label><select class="form-select form-select-sm"><option>Student</option><option>Teacher</option><option>Admin</option></select></div>
+          <div class="col-12"><label class="form-label fw-semibold" style="font-size:12px">Email</label><input type="email" class="form-control form-control-sm" placeholder="user@bmc.edu.pk" /></div>
+          <div class="col-6"><label class="form-label fw-semibold" style="font-size:12px">Class / Department</label><input class="form-control form-control-sm" placeholder="e.g. 12-A or Physics" /></div>
+          <div class="col-6"><label class="form-label fw-semibold" style="font-size:12px">CNIC / B-Form</label><input class="form-control form-control-sm" placeholder="XXXXX-XXXXXXX-X" /></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary" onclick="alert('User created! Login credentials sent via email.');bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide()">Create User &amp; Send Credentials</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
+  function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+  function filterTable(q){
+    const rows=document.querySelectorAll('#usersTable tbody tr');
+    rows.forEach(r=>{r.style.display=(r.textContent.toLowerCase().includes((q||'').toLowerCase()))?'':'none';});
+  }
+</script>
+</body>
+</html>

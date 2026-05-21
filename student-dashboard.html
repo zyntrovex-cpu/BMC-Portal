@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Portal — BMC Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    :root { --sb:#0f172a; --sb2:#1e293b; --pr:#1565c0; --bg:#f0f4f8; }
+    body { background: var(--bg); font-family:'Segoe UI',sans-serif; margin:0; }
+    /* Sidebar */
+    .sidebar { width:255px; background:var(--sb); position:fixed; top:0; left:0; height:100vh; overflow-y:auto; z-index:1050; transition:.3s; }
+    .sb-brand { padding:20px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:10px; }
+    .sb-brand .icon { background:var(--pr); border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px; }
+    .sb-brand .txt h6 { color:#fff; font-size:14px; font-weight:700; margin:0; }
+    .sb-brand .txt small { color:rgba(255,255,255,.5); font-size:10px; }
+    .sb-nav { padding:10px 0; }
+    .sb-section { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,.35); padding:12px 20px 6px; }
+    .sb-nav a { display:flex; align-items:center; gap:10px; padding:11px 20px; color:rgba(255,255,255,.65); text-decoration:none; font-size:13.5px; transition:.18s; }
+    .sb-nav a:hover, .sb-nav a.active { background:rgba(255,255,255,.09); color:#fff; }
+    .sb-nav a.active { border-left:3px solid var(--pr); }
+    .sb-nav a i { width:18px; text-align:center; }
+    .sb-user { padding:16px 20px; border-top:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:10px; }
+    .sb-user .av { width:36px; height:36px; border-radius:50%; background:var(--pr); display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; }
+    .sb-user .info h6 { color:#fff; font-size:12.5px; margin:0; }
+    .sb-user .info small { color:rgba(255,255,255,.4); font-size:10.5px; }
+    /* Main */
+    .main { margin-left:255px; min-height:100vh; }
+    .topbar { background:#fff; padding:14px 24px; box-shadow:0 1px 6px rgba(0,0,0,.08); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+    .topbar .toggle { display:none; background:none; border:none; font-size:20px; color:#475569; cursor:pointer; }
+    .topbar .page-title { font-size:16px; font-weight:700; color:#1e293b; margin:0; }
+    .topbar .top-right { display:flex; align-items:center; gap:12px; }
+    .badge-notif { background:#ef4444; color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; display:flex; align-items:center; justify-content:center; }
+    .content { padding:24px; }
+    /* Cards */
+    .stat-card { background:#fff; border-radius:14px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+    .stat-card .icon { width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:12px; }
+    .stat-card h3 { font-size:26px; font-weight:700; margin:0; }
+    .stat-card p { font-size:12px; color:#64748b; margin:4px 0 0; }
+    /* Section card */
+    .sec-card { background:#fff; border-radius:14px; box-shadow:0 2px 8px rgba(0,0,0,.06); margin-bottom:24px; overflow:hidden; }
+    .sec-card .sec-head { padding:16px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; }
+    .sec-card .sec-head h5 { font-size:15px; font-weight:700; margin:0; color:#1e293b; }
+    .sec-card .sec-body { padding:20px; }
+    /* Table tweaks */
+    table thead { background:#f8fafc; }
+    table thead th { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#64748b; border:none; }
+    table td { font-size:13.5px; vertical-align:middle; }
+    .grade-badge { padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; }
+    /* Progress */
+    .att-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+    .att-row label { width:130px; font-size:13px; color:#475569; flex-shrink:0; }
+    .att-row .bar { flex:1; height:10px; border-radius:20px; background:#e2e8f0; overflow:hidden; }
+    .att-row .bar .fill { height:100%; border-radius:20px; }
+    .att-row .pct { width:40px; text-align:right; font-size:12px; font-weight:700; }
+    /* Timetable */
+    .tt-row { display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; }
+    .tt-slot { flex:0 0 130px; background:#f8fafc; border-radius:10px; padding:12px; border-left:4px solid #1565c0; }
+    .tt-slot.lunch { border-color:#f59e0b; background:#fffbeb; }
+    .tt-slot .time { font-size:10px; color:#64748b; margin-bottom:4px; }
+    .tt-slot .subj { font-size:13px; font-weight:700; color:#1e293b; }
+    .tt-slot .room { font-size:11px; color:#94a3b8; margin-top:2px; }
+    /* Notices */
+    .notice-item { display:flex; gap:14px; padding:14px 0; border-bottom:1px solid #f1f5f9; }
+    .notice-item:last-child { border:none; }
+    .notice-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+    /* Assignments */
+    .asgn-item { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid #f1f5f9; }
+    .asgn-item:last-child { border:none; }
+    /* Overlay */
+    .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:1040; }
+    @media(max-width:768px){
+      .sidebar { transform:translateX(-100%); }
+      .sidebar.open { transform:translateX(0); }
+      .overlay.show { display:block; }
+      .main { margin-left:0; }
+      .topbar .toggle { display:block; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closeSb()"></div>
+
+<div class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="icon"><i class="fas fa-university"></i></div>
+    <div class="txt"><h6>BMC Portal</h6><small>Bahria Model College</small></div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Main Menu</div>
+    <a href="student-dashboard.html" class="active"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="student-results.html"><i class="fas fa-chart-bar"></i> My Results</a>
+    <a href="student-attendance.html"><i class="fas fa-calendar-check"></i> Attendance</a>
+    <a href="student-timetable.html"><i class="fas fa-clock"></i> Timetable</a>
+    <a href="student-assignments.html"><i class="fas fa-book-open"></i> Assignments</a>
+    <a href="notices.html"><i class="fas fa-bullhorn"></i> Notices <span class="badge bg-danger ms-auto">3</span></a>
+    <div class="sb-section">Account</div>
+    <a href="student-profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
+    <a href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+  <div class="sb-user">
+    <div class="av"><i class="fas fa-user"></i></div>
+    <div class="info"><h6>Ahmed Ali</h6><small>Roll No. 101 &nbsp;·&nbsp; 12-A</small></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <button class="toggle" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+    <span class="page-title"><i class="fas fa-home me-2 text-primary"></i>Student Dashboard</span>
+    <div class="top-right">
+      <div class="position-relative" style="cursor:pointer" onclick="location.href='notices.html'">
+        <i class="fas fa-bell" style="font-size:18px;color:#475569"></i>
+        <span class="badge-notif position-absolute" style="top:-6px;right:-6px">3</span>
+      </div>
+      <img src="https://ui-avatars.com/api/?name=Ahmed+Ali&background=1565c0&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Welcome Banner -->
+    <div class="alert" style="background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+          <h5 class="mb-1 fw-bold">Good Morning, Ahmed! 👋</h5>
+          <small style="opacity:.85">Wednesday, 21 May 2026 &nbsp;·&nbsp; Class 12-A &nbsp;·&nbsp; Roll No. 101</small>
+        </div>
+        <a href="student-results.html" class="btn btn-light btn-sm fw-semibold">View Full Report Card</a>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="icon" style="background:#eff6ff"><i class="fas fa-star" style="color:#1565c0"></i></div>
+          <h3 style="color:#1565c0">3.7</h3>
+          <p>Current GPA &nbsp;<span class="badge" style="background:#eff6ff;color:#1565c0">Grade A</span></p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="icon" style="background:#f0fdf4"><i class="fas fa-calendar-check" style="color:#059669"></i></div>
+          <h3 style="color:#059669">82%</h3>
+          <p>Overall Attendance</p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="icon" style="background:#fffbeb"><i class="fas fa-tasks" style="color:#d97706"></i></div>
+          <h3 style="color:#d97706">3</h3>
+          <p>Assignments Due</p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="icon" style="background:#fef2f2"><i class="fas fa-bullhorn" style="color:#ef4444"></i></div>
+          <h3 style="color:#ef4444">3</h3>
+          <p>Unread Notices</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <!-- Left column -->
+      <div class="col-lg-8">
+        <!-- Results -->
+        <div class="sec-card">
+          <div class="sec-head">
+            <h5><i class="fas fa-chart-bar me-2 text-primary"></i>Latest Results — Mid-Term 2026</h5>
+            <a href="student-results.html" class="btn btn-sm btn-outline-primary">View All</a>
+          </div>
+          <div class="sec-body p-0">
+            <div class="table-responsive">
+              <table class="table mb-0">
+                <thead><tr>
+                  <th class="ps-4">Subject</th><th>Quiz (10%)</th><th>Mid (30%)</th><th>Assign (10%)</th><th>Total</th><th>Grade</th>
+                </tr></thead>
+                <tbody>
+                  <tr>
+                    <td class="ps-4 fw-semibold">English</td>
+                    <td>8.5/10</td><td>27/30</td><td>9/10</td>
+                    <td class="fw-bold">88%</td>
+                    <td><span class="grade-badge" style="background:#eff6ff;color:#1565c0">A</span></td>
+                  </tr>
+                  <tr>
+                    <td class="ps-4 fw-semibold">Physics</td>
+                    <td>7/10</td><td>24/30</td><td>8/10</td>
+                    <td class="fw-bold">79%</td>
+                    <td><span class="grade-badge" style="background:#f0fdf4;color:#059669">B+</span></td>
+                  </tr>
+                  <tr>
+                    <td class="ps-4 fw-semibold">Chemistry</td>
+                    <td>9/10</td><td>28/30</td><td>9.5/10</td>
+                    <td class="fw-bold">92%</td>
+                    <td><span class="grade-badge" style="background:#eff6ff;color:#1565c0">A+</span></td>
+                  </tr>
+                  <tr>
+                    <td class="ps-4 fw-semibold">Mathematics</td>
+                    <td>6/10</td><td>20/30</td><td>7/10</td>
+                    <td class="fw-bold">66%</td>
+                    <td><span class="grade-badge" style="background:#fffbeb;color:#d97706">B</span></td>
+                  </tr>
+                  <tr>
+                    <td class="ps-4 fw-semibold">Biology</td>
+                    <td>8/10</td><td>25/30</td><td>8.5/10</td>
+                    <td class="fw-bold">83%</td>
+                    <td><span class="grade-badge" style="background:#f0fdf4;color:#059669">A</span></td>
+                  </tr>
+                  <tr>
+                    <td class="ps-4 fw-semibold">Computer Sc.</td>
+                    <td>10/10</td><td>29/30</td><td>10/10</td>
+                    <td class="fw-bold">97%</td>
+                    <td><span class="grade-badge" style="background:#eff6ff;color:#1565c0">A+</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Timetable -->
+        <div class="sec-card">
+          <div class="sec-head">
+            <h5><i class="fas fa-clock me-2 text-primary"></i>Today's Timetable — Wednesday</h5>
+            <a href="student-timetable.html" class="btn btn-sm btn-outline-primary">Full Timetable</a>
+          </div>
+          <div class="sec-body">
+            <div class="tt-row">
+              <div class="tt-slot"><div class="time">07:30 – 08:15</div><div class="subj">English</div><div class="room"><i class="fas fa-door-open me-1"></i>Room 201</div></div>
+              <div class="tt-slot" style="border-color:#059669"><div class="time">08:15 – 09:00</div><div class="subj">Physics</div><div class="room"><i class="fas fa-door-open me-1"></i>Lab-A</div></div>
+              <div class="tt-slot" style="border-color:#7c3aed"><div class="time">09:00 – 09:45</div><div class="subj">Chemistry</div><div class="room"><i class="fas fa-door-open me-1"></i>Lab-B</div></div>
+              <div class="tt-slot lunch"><div class="time">09:45 – 10:15</div><div class="subj">☕ Break</div><div class="room">Canteen</div></div>
+              <div class="tt-slot" style="border-color:#dc2626"><div class="time">10:15 – 11:00</div><div class="subj">Mathematics</div><div class="room"><i class="fas fa-door-open me-1"></i>Room 305</div></div>
+              <div class="tt-slot" style="border-color:#059669"><div class="time">11:00 – 11:45</div><div class="subj">Biology</div><div class="room"><i class="fas fa-door-open me-1"></i>Room 212</div></div>
+              <div class="tt-slot" style="border-color:#0891b2"><div class="time">11:45 – 12:30</div><div class="subj">Computer Sc.</div><div class="room"><i class="fas fa-door-open me-1"></i>Lab-C</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="col-lg-4">
+        <!-- Attendance -->
+        <div class="sec-card mb-3">
+          <div class="sec-head">
+            <h5><i class="fas fa-calendar-check me-2 text-success"></i>Attendance</h5>
+            <a href="student-attendance.html" class="btn btn-sm btn-outline-success">Details</a>
+          </div>
+          <div class="sec-body">
+            <div class="att-row"><label>English</label><div class="bar"><div class="fill" style="width:90%;background:#059669"></div></div><span class="pct" style="color:#059669">90%</span></div>
+            <div class="att-row"><label>Physics</label><div class="bar"><div class="fill" style="width:78%;background:#d97706"></div></div><span class="pct" style="color:#d97706">78%</span></div>
+            <div class="att-row"><label>Chemistry</label><div class="bar"><div class="fill" style="width:88%;background:#059669"></div></div><span class="pct" style="color:#059669">88%</span></div>
+            <div class="att-row"><label>Mathematics</label><div class="bar"><div class="fill" style="width:72%;background:#ef4444"></div></div><span class="pct" style="color:#ef4444">72%</span></div>
+            <div class="att-row"><label>Biology</label><div class="bar"><div class="fill" style="width:84%;background:#059669"></div></div><span class="pct" style="color:#059669">84%</span></div>
+            <div class="att-row"><label>Computer Sc.</label><div class="bar"><div class="fill" style="width:95%;background:#059669"></div></div><span class="pct" style="color:#059669">95%</span></div>
+            <div class="alert alert-warning p-2 mt-2 mb-0" style="font-size:12px"><i class="fas fa-exclamation-triangle me-1"></i>Mathematics attendance is below 75% threshold!</div>
+          </div>
+        </div>
+
+        <!-- Assignments Due -->
+        <div class="sec-card mb-3">
+          <div class="sec-head">
+            <h5><i class="fas fa-tasks me-2 text-warning"></i>Assignments Due</h5>
+            <a href="student-assignments.html" class="btn btn-sm btn-outline-warning">All</a>
+          </div>
+          <div class="sec-body p-0 px-3">
+            <div class="asgn-item">
+              <div><div class="fw-semibold" style="font-size:13.5px">Physics Lab Report</div><small class="text-muted">Due: 23 May 2026</small></div>
+              <span class="badge bg-danger">Urgent</span>
+            </div>
+            <div class="asgn-item">
+              <div><div class="fw-semibold" style="font-size:13.5px">Math Problem Set 4</div><small class="text-muted">Due: 25 May 2026</small></div>
+              <span class="badge bg-warning text-dark">Pending</span>
+            </div>
+            <div class="asgn-item">
+              <div><div class="fw-semibold" style="font-size:13.5px">English Essay</div><small class="text-muted">Due: 28 May 2026</small></div>
+              <span class="badge bg-secondary">Open</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notices -->
+        <div class="sec-card">
+          <div class="sec-head">
+            <h5><i class="fas fa-bullhorn me-2 text-danger"></i>Latest Notices</h5>
+            <a href="notices.html" class="btn btn-sm btn-outline-danger">All</a>
+          </div>
+          <div class="sec-body p-0 px-3">
+            <div class="notice-item">
+              <div class="notice-icon" style="background:#fef2f2;color:#ef4444"><i class="fas fa-exclamation"></i></div>
+              <div><div class="fw-semibold" style="font-size:13px">Final Exam Schedule Released</div><small class="text-muted">19 May 2026 &nbsp;·&nbsp; <i class="fas fa-paperclip"></i> PDF Attached</small></div>
+            </div>
+            <div class="notice-item">
+              <div class="notice-icon" style="background:#eff6ff;color:#1565c0"><i class="fas fa-info"></i></div>
+              <div><div class="fw-semibold" style="font-size:13px">PTM on 27 May 2026</div><small class="text-muted">18 May 2026</small></div>
+            </div>
+            <div class="notice-item">
+              <div class="notice-icon" style="background:#f0fdf4;color:#059669"><i class="fas fa-calendar"></i></div>
+              <div><div class="fw-semibold" style="font-size:13px">Eid Holidays: 30 May – 3 June</div><small class="text-muted">17 May 2026</small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleSb() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
+  }
+  function closeSb() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('show');
+  }
+</script>
+</body>
+</html>

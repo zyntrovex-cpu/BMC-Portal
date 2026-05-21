@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timetable — BMC Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    :root{--sb:#0f172a;--pr:#1565c0;--bg:#f0f4f8;}
+    body{background:var(--bg);font-family:'Segoe UI',sans-serif;margin:0;}
+    .sidebar{width:255px;background:var(--sb);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:1050;transition:.3s;}
+    .sb-brand{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+    .sb-brand .icon{background:var(--pr);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+    .sb-brand .txt h6{color:#fff;font-size:14px;font-weight:700;margin:0;}
+    .sb-brand .txt small{color:rgba(255,255,255,.5);font-size:10px;}
+    .sb-nav{padding:10px 0;}
+    .sb-section{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:12px 20px 6px;}
+    .sb-nav a{display:flex;align-items:center;gap:10px;padding:11px 20px;color:rgba(255,255,255,.65);text-decoration:none;font-size:13.5px;transition:.18s;}
+    .sb-nav a:hover,.sb-nav a.active{background:rgba(255,255,255,.09);color:#fff;}
+    .sb-nav a.active{border-left:3px solid var(--pr);}
+    .sb-nav a i{width:18px;text-align:center;}
+    .sb-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+    .sb-user .av{width:36px;height:36px;border-radius:50%;background:var(--pr);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+    .sb-user .info h6{color:#fff;font-size:12.5px;margin:0;}
+    .sb-user .info small{color:rgba(255,255,255,.4);font-size:10.5px;}
+    .main{margin-left:255px;min-height:100vh;}
+    .topbar{background:#fff;padding:14px 24px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+    .topbar .toggle{display:none;background:none;border:none;font-size:20px;color:#475569;cursor:pointer;}
+    .content{padding:24px;}
+    .sec-card{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:24px;overflow:hidden;}
+    .sec-head{padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;}
+    .sec-head h5{font-size:15px;font-weight:700;margin:0;color:#1e293b;}
+    .tt-table{border-collapse:separate;border-spacing:4px;width:100%;}
+    .tt-table th{background:#f8fafc;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;padding:10px 14px;text-align:center;border-radius:8px;}
+    .tt-table td{padding:4px;}
+    .tt-cell{border-radius:10px;padding:10px 12px;font-size:13px;text-align:center;}
+    .tt-cell .subj{font-weight:700;color:#1e293b;}
+    .tt-cell .info{font-size:11px;color:#64748b;margin-top:2px;}
+    .tt-cell.eng{background:#eff6ff;border-left:3px solid #1565c0;}
+    .tt-cell.phy{background:#f0fdf4;border-left:3px solid #059669;}
+    .tt-cell.che{background:#fdf4ff;border-left:3px solid #7c3aed;}
+    .tt-cell.mat{background:#fef2f2;border-left:3px solid #ef4444;}
+    .tt-cell.bio{background:#fff7ed;border-left:3px solid #ea580c;}
+    .tt-cell.cs{background:#f0f9ff;border-left:3px solid #0891b2;}
+    .tt-cell.brk{background:#fffbeb;border-left:3px solid #f59e0b;font-style:italic;color:#92400e;}
+    .tt-cell.free{background:#f8fafc;color:#94a3b8;font-style:italic;}
+    .tt-time{background:#f8fafc;border-radius:8px;padding:10px 12px;font-size:11.5px;font-weight:700;color:#475569;text-align:center;white-space:nowrap;}
+    .day-highlight{background:#eff6ff !important;}
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1040;}
+    @media(max-width:900px){.tt-table{display:block;overflow-x:auto;}}
+    @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.overlay.show{display:block}.main{margin-left:0}.topbar .toggle{display:block}}
+  </style>
+</head>
+<body>
+<div class="overlay" id="overlay" onclick="closeSb()"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="icon"><i class="fas fa-university"></i></div>
+    <div class="txt"><h6>BMC Portal</h6><small>Bahria Model College</small></div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Main Menu</div>
+    <a href="student-dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="student-results.html"><i class="fas fa-chart-bar"></i> My Results</a>
+    <a href="student-attendance.html"><i class="fas fa-calendar-check"></i> Attendance</a>
+    <a href="student-timetable.html" class="active"><i class="fas fa-clock"></i> Timetable</a>
+    <a href="student-assignments.html"><i class="fas fa-book-open"></i> Assignments</a>
+    <a href="notices.html"><i class="fas fa-bullhorn"></i> Notices</a>
+    <div class="sb-section">Account</div>
+    <a href="student-profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
+    <a href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+  <div class="sb-user">
+    <div class="av"><i class="fas fa-user"></i></div>
+    <div class="info"><h6>Ahmed Ali</h6><small>Roll No. 101 · 12-A</small></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <button class="toggle" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+    <span style="font-size:16px;font-weight:700;color:#1e293b"><i class="fas fa-clock me-2 text-primary"></i>Weekly Timetable — Class 12-A</span>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-primary"><i class="fas fa-download me-1"></i>Download PDF</button>
+      <img src="https://ui-avatars.com/api/?name=Ahmed+Ali&background=1565c0&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="d-flex gap-2 flex-wrap mb-3">
+      <span class="badge py-2 px-3" style="background:#eff6ff;color:#1565c0;font-size:12px">English</span>
+      <span class="badge py-2 px-3" style="background:#f0fdf4;color:#059669;font-size:12px">Physics</span>
+      <span class="badge py-2 px-3" style="background:#fdf4ff;color:#7c3aed;font-size:12px">Chemistry</span>
+      <span class="badge py-2 px-3" style="background:#fef2f2;color:#ef4444;font-size:12px">Mathematics</span>
+      <span class="badge py-2 px-3" style="background:#fff7ed;color:#ea580c;font-size:12px">Biology</span>
+      <span class="badge py-2 px-3" style="background:#f0f9ff;color:#0891b2;font-size:12px">Computer Science</span>
+      <span class="badge py-2 px-3" style="background:#fffbeb;color:#92400e;font-size:12px">Break</span>
+    </div>
+
+    <div class="sec-card">
+      <div class="sec-head">
+        <h5><i class="fas fa-table me-2 text-primary"></i>May 2026 — Week Schedule</h5>
+        <span class="badge bg-primary">Today: Wednesday</span>
+      </div>
+      <div class="p-3" style="overflow-x:auto">
+        <table class="tt-table">
+          <tr>
+            <th>Period / Time</th>
+            <th>Monday</th><th>Tuesday</th>
+            <th style="background:#eff6ff;color:#1565c0">Wednesday ★</th>
+            <th>Thursday</th><th>Friday</th>
+          </tr>
+          <tr>
+            <td><div class="tt-time">07:30–08:15<br><small>Period 1</small></div></td>
+            <td><div class="tt-cell phy"><div class="subj">Physics</div><div class="info">Lab-A · Dr. Sarah</div></div></td>
+            <td><div class="tt-cell mat"><div class="subj">Mathematics</div><div class="info">Room 305 · Mr. Hasan</div></div></td>
+            <td class="day-highlight"><div class="tt-cell eng"><div class="subj">English</div><div class="info">Room 201 · Ms. Nadia</div></div></td>
+            <td><div class="tt-cell che"><div class="subj">Chemistry</div><div class="info">Lab-B · Dr. Amina</div></div></td>
+            <td><div class="tt-cell bio"><div class="subj">Biology</div><div class="info">Room 212 · Mr. Imran</div></div></td>
+          </tr>
+          <tr>
+            <td><div class="tt-time">08:15–09:00<br><small>Period 2</small></div></td>
+            <td><div class="tt-cell eng"><div class="subj">English</div><div class="info">Room 201 · Ms. Nadia</div></div></td>
+            <td><div class="tt-cell bio"><div class="subj">Biology</div><div class="info">Room 212 · Mr. Imran</div></div></td>
+            <td class="day-highlight"><div class="tt-cell phy"><div class="subj">Physics</div><div class="info">Lab-A · Dr. Sarah</div></div></td>
+            <td><div class="tt-cell cs"><div class="subj">Computer Sc.</div><div class="info">Lab-C · Mr. Farhan</div></div></td>
+            <td><div class="tt-cell mat"><div class="subj">Mathematics</div><div class="info">Room 305 · Mr. Hasan</div></div></td>
+          </tr>
+          <tr>
+            <td><div class="tt-time">09:00–09:45<br><small>Period 3</small></div></td>
+            <td><div class="tt-cell che"><div class="subj">Chemistry</div><div class="info">Lab-B · Dr. Amina</div></div></td>
+            <td><div class="tt-cell cs"><div class="subj">Computer Sc.</div><div class="info">Lab-C · Mr. Farhan</div></div></td>
+            <td class="day-highlight"><div class="tt-cell che"><div class="subj">Chemistry</div><div class="info">Lab-B · Dr. Amina</div></div></td>
+            <td><div class="tt-cell mat"><div class="subj">Mathematics</div><div class="info">Room 305 · Mr. Hasan</div></div></td>
+            <td><div class="tt-cell eng"><div class="subj">English</div><div class="info">Room 201 · Ms. Nadia</div></div></td>
+          </tr>
+          <tr>
+            <td><div class="tt-time">09:45–10:15<br><small>Break</small></div></td>
+            <td colspan="5"><div class="tt-cell brk text-center">☕ Break — Canteen / Prayer</div></td>
+          </tr>
+          <tr>
+            <td><div class="tt-time">10:15–11:00<br><small>Period 4</small></div></td>
+            <td><div class="tt-cell mat"><div class="subj">Mathematics</div><div class="info">Room 305 · Mr. Hasan</div></div></td>
+            <td><div class="tt-cell phy"><div class="subj">Physics</div><div class="info">Lab-A · Dr. Sarah</div></div></td>
+            <td class="day-highlight"><div class="tt-cell mat"><div class="subj">Mathematics</div><div class="info">Room 305 · Mr. Hasan</div></div></td>
+            <td><div class="tt-cell bio"><div class="subj">Biology</div><div class="info">Room 212 · Mr. Imran</div></div></td>
+            <td><div class="tt-cell che"><div class="subj">Chemistry</div><div class="info">Lab-B · Dr. Amina</div></div></td>
+          </tr>
+          <tr>
+            <td><div class="tt-time">11:00–11:45<br><small>Period 5</small></div></td>
+            <td><div class="tt-cell bio"><div class="subj">Biology</div><div class="info">Room 212 · Mr. Imran</div></div></td>
+            <td><div class="tt-cell eng"><div class="subj">English</div><div class="info">Room 201 · Ms. Nadia</div></div></td>
+            <td class="day-highlight"><div class="tt-cell bio"><div class="subj">Biology</div><div class="info">Room 212 · Mr. Imran</div></div></td>
+            <td><div class="tt-cell phy"><div class="subj">Physics</div><div class="info">Lab-A · Dr. Sarah</div></div></td>
+            <td><div class="tt-cell cs"><div class="subj">Computer Sc.</div><div class="info">Lab-C · Mr. Farhan</div></div></td>
+          </tr>
+          <tr>
+            <td><div class="tt-time">11:45–12:30<br><small>Period 6</small></div></td>
+            <td><div class="tt-cell cs"><div class="subj">Computer Sc.</div><div class="info">Lab-C · Mr. Farhan</div></div></td>
+            <td><div class="tt-cell che"><div class="subj">Chemistry</div><div class="info">Lab-B · Dr. Amina</div></div></td>
+            <td class="day-highlight"><div class="tt-cell cs"><div class="subj">Computer Sc.</div><div class="info">Lab-C · Mr. Farhan</div></div></td>
+            <td><div class="tt-cell eng"><div class="subj">English</div><div class="info">Room 201 · Ms. Nadia</div></div></td>
+            <td><div class="tt-cell bio"><div class="subj">Biology</div><div class="info">Room 212 · Mr. Imran</div></div></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
+  function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+</script>
+</body>
+</html>

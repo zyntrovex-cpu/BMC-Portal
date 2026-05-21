@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BMC Portal — Bahria Model College</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(145deg, #050d1a 0%, #0d2137 40%, #0d47a1 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Segoe UI', sans-serif; padding: 20px;
+    }
+    .login-wrap {
+      width: 100%; max-width: 500px;
+      background: #fff; border-radius: 20px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.5); overflow: hidden;
+    }
+    .lh { background: linear-gradient(145deg, #0d2137 0%, #1565c0 100%); padding: 38px 30px; text-align: center; color: #fff; }
+    .lh .logo { width: 70px; height: 70px; background: rgba(255,255,255,.15); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 14px; }
+    .lh h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+    .lh p  { font-size: 12px; opacity: .8; margin: 0; }
+    .lb { padding: 30px; }
+    .role-label { font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+    .rc {
+      border: 2px solid #e2e8f0; border-radius: 12px; padding: 14px 8px;
+      text-align: center; cursor: pointer; transition: .2s;
+    }
+    .rc:hover { border-color: #1565c0; background: #eff6ff; }
+    .rc.active { border-color: #1565c0; background: #eff6ff; }
+    .rc i { font-size: 22px; display: block; margin-bottom: 6px; }
+    .rc span { font-size: 12px; font-weight: 600; color: #1e293b; }
+    .rc.s i { color: #1565c0; } .rc.t i { color: #059669; } .rc.a i { color: #7c3aed; } .rc.f i { color: #d97706; }
+    .form-control, .input-group-text {
+      border-radius: 10px; border: 2px solid #e2e8f0; font-size: 14px;
+    }
+    .input-group .form-control { border-left: none; border-radius: 0 10px 10px 0; }
+    .input-group-text { border-right: none; border-radius: 10px 0 0 10px; background: #f8fafc; color: #64748b; }
+    .form-control:focus { border-color: #1565c0; box-shadow: 0 0 0 3px rgba(21,101,192,.1); }
+    .btn-login {
+      background: linear-gradient(135deg, #1565c0, #0d47a1); color: #fff; border: none;
+      border-radius: 10px; padding: 13px; font-size: 15px; font-weight: 600;
+      width: 100%; cursor: pointer; transition: opacity .2s; margin-top: 18px;
+    }
+    .btn-login:hover { opacity: .9; }
+    .demo-box {
+      background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px;
+      padding: 12px 15px; margin-top: 18px; font-size: 11.5px; color: #0369a1;
+    }
+    .demo-box b { display: block; font-weight: 700; margin-bottom: 6px; }
+    .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+    .foot { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 14px; }
+  </style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="lh">
+    <div class="logo"><i class="fas fa-university"></i></div>
+    <h1>BMC Portal</h1>
+    <p>Bahria Model College &nbsp;·&nbsp; Academic &amp; Administrative Management System</p>
+  </div>
+  <div class="lb">
+    <div class="role-label">Select Your Role</div>
+    <div class="role-grid">
+      <div class="rc s active" onclick="pick('student',this)"><i class="fas fa-user-graduate"></i><span>Student</span></div>
+      <div class="rc t"        onclick="pick('teacher',this)"><i class="fas fa-chalkboard-teacher"></i><span>Teacher</span></div>
+      <div class="rc a"        onclick="pick('admin',this)"><i class="fas fa-shield-alt"></i><span>Admin</span></div>
+      <div class="rc f"        onclick="pick('finance',this)"><i class="fas fa-coins"></i><span>Finance</span></div>
+    </div>
+    <div class="mb-3">
+      <div class="input-group">
+        <span class="input-group-text"><i class="fas fa-user"></i></span>
+        <input type="text" class="form-control" id="uname" placeholder="Username / Roll Number" />
+      </div>
+    </div>
+    <div class="mb-2">
+      <div class="input-group">
+        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+        <input type="password" class="form-control" id="upass" placeholder="Password" />
+      </div>
+    </div>
+    <button class="btn-login" onclick="doLogin()"><i class="fas fa-sign-in-alt me-2"></i>Login to Portal</button>
+    <div class="demo-box">
+      <b><i class="fas fa-info-circle me-1"></i>Demo Credentials (click role to auto-fill)</b>
+      <div class="demo-grid">
+        <span>Student: <b>student / demo123</b></span>
+        <span>Teacher: <b>teacher / demo123</b></span>
+        <span>Admin: <b>admin / demo123</b></span>
+        <span>Finance: <b>finance / demo123</b></span>
+      </div>
+    </div>
+    <div class="foot">Powered by <strong>Zyntrovex Technologies</strong> &nbsp;·&nbsp; © 2026 All Rights Reserved</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const routes = { student:'student-dashboard.html', teacher:'teacher-dashboard.html', admin:'admin-dashboard.html', finance:'finance-dashboard.html' };
+  const creds  = { student:{u:'student',p:'demo123'}, teacher:{u:'teacher',p:'demo123'}, admin:{u:'admin',p:'demo123'}, finance:{u:'finance',p:'demo123'} };
+  let role = 'student';
+
+  function pick(r, el) {
+    document.querySelectorAll('.rc').forEach(c => c.classList.remove('active'));
+    el.classList.add('active'); role = r;
+    document.getElementById('uname').value = creds[r].u;
+    document.getElementById('upass').value = creds[r].p;
+  }
+  function doLogin() {
+    const u = document.getElementById('uname').value.trim();
+    const p = document.getElementById('upass').value.trim();
+    if (!u || !p) { alert('Please enter credentials.'); return; }
+    window.location.href = routes[role];
+  }
+  // Auto-fill student on load
+  document.getElementById('uname').value = 'student';
+  document.getElementById('upass').value = 'demo123';
+</script>
+</body>
+</html>
