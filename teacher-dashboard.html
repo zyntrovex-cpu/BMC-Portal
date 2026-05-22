@@ -24,16 +24,15 @@
   <div class="sb-menu">
     <div class="sb-section">Main Menu</div>
     <a class="sb-link active" href="teacher-dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
-    <a class="sb-link" href="teacher-marks.html"><i class="fas fa-pen"></i> Enter Marks</a>
-    <a class="sb-link" href="teacher-attendance.html"><i class="fas fa-calendar-check"></i> Mark Attendance</a>
-    <a class="sb-link" href="teacher-assignments.html"><i class="fas fa-tasks"></i> Assignments</a>
+    <a class="sb-link" href="teacher-marks.html"><i class="fas fa-chart-bar"></i> Enter Marks</a>
+    <a class="sb-link" href="teacher-attendance.html"><i class="fas fa-calendar-check"></i> Attendance</a>
     <a class="sb-link" href="teacher-timetable.html"><i class="fas fa-clock"></i> My Timetable</a>
-    <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
+    <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notices</a>
     <div class="sb-section">Account</div>
     <a class="sb-link" href="teacher-profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
     <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
   </div>
-  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user"></i></div><div class="sb-foot-info"><h6>Dr. Sarah Khan</h6><small>Sr. Lecturer · Physics</small></div></div>
+  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user"></i></div><div class="sb-foot-info"><h6>Dr. Sarah Khan</h6><small>Physics Teacher</small></div></div>
 </div>
 
 <div class="main">
@@ -80,8 +79,8 @@
       </div>
       <div class="col-6 col-lg-3">
         <div class="stat-card">
-          <div class="stat-icon" style="background:#fef2f2"><i class="fas fa-tasks" style="color:#ef4444"></i></div>
-          <div class="stat-val" style="color:#ef4444">3</div><div class="stat-lbl">Active Assignments</div>
+          <div class="stat-icon" style="background:#fef2f2"><i class="fas fa-bullhorn" style="color:#ef4444"></i></div>
+          <div class="stat-val" style="color:#ef4444">5</div><div class="stat-lbl">Notices</div>
         </div>
       </div>
     </div>
@@ -171,6 +170,19 @@
             <button class="btn btn-warning btn-sm text-white" onclick="alert('Marks saved!')"><i class="fas fa-save me-1"></i>Save Marks</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- GCR Notice -->
+    <div class="sec-card mt-3">
+      <div class="sec-head"><h5><i class="fas fa-external-link-alt me-2 text-primary"></i>Google Classroom (GCR)</h5></div>
+      <div class="p-4 d-flex align-items-center gap-3 flex-wrap">
+        <div class="stat-icon" style="background:#eff6ff;width:52px;height:52px;flex-shrink:0"><i class="fab fa-google" style="color:#1d4ed8;font-size:22px"></i></div>
+        <div class="flex-grow-1">
+          <div class="fw-semibold mb-1">Assignments are managed through Google Classroom (GCR).</div>
+          <div style="font-size:13px;color:#64748b">Access your GCR dashboard from the link in your email to create assignments, review submissions, and give feedback to students.</div>
+        </div>
+        <a href="#" onclick="alert('Open the GCR link from your institutional email inbox.')" class="btn btn-primary btn-sm"><i class="fab fa-google me-1"></i>Open GCR</a>
       </div>
     </div>
   </div>

@@ -9,9 +9,11 @@
   <link href="portal.css" rel="stylesheet" />
   <style>
     .sb-link.active{border-color:#059669;} .sb-logo{background:#059669;} .sb-av{background:#059669;}
-    .marks-input{width:65px;border:2px solid #e2e8f0;border-radius:8px;padding:4px 8px;font-size:13px;text-align:center;}
+    .marks-input{width:72px;border:2px solid #e2e8f0;border-radius:8px;padding:4px 8px;font-size:13px;text-align:center;transition:.15s;}
     .marks-input:focus{outline:none;border-color:#059669;}
-    .total-cell{font-weight:700;color:#059669;}
+    .pct-cell{font-weight:700;font-size:13px;}
+    .grade-legend{display:flex;flex-wrap:wrap;gap:8px;padding:14px 20px;}
+    .gl-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#475569;}
   </style>
 </head>
 <body>
@@ -21,23 +23,22 @@
   <div class="sb-menu">
     <div class="sb-section">Main Menu</div>
     <a class="sb-link" href="teacher-dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
-    <a class="sb-link active" href="teacher-marks.html"><i class="fas fa-pen"></i> Enter Marks</a>
-    <a class="sb-link" href="teacher-attendance.html"><i class="fas fa-calendar-check"></i> Mark Attendance</a>
-    <a class="sb-link" href="teacher-assignments.html"><i class="fas fa-tasks"></i> Assignments</a>
+    <a class="sb-link active" href="teacher-marks.html"><i class="fas fa-chart-bar"></i> Enter Marks</a>
+    <a class="sb-link" href="teacher-attendance.html"><i class="fas fa-calendar-check"></i> Attendance</a>
     <a class="sb-link" href="teacher-timetable.html"><i class="fas fa-clock"></i> My Timetable</a>
-    <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
+    <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notices</a>
     <div class="sb-section">Account</div>
     <a class="sb-link" href="teacher-profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
     <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
   </div>
-  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user"></i></div><div class="sb-foot-info"><h6>Dr. Sarah Khan</h6><small>Sr. Lecturer · Physics</small></div></div>
+  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user"></i></div><div class="sb-foot-info"><h6>Dr. Sarah Khan</h6><small>Physics Teacher</small></div></div>
 </div>
 
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
       <button class="toggle-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
-      <span class="topbar-title"><i class="fas fa-pen me-2 text-warning"></i>Enter Marks</span>
+      <span class="topbar-title"><i class="fas fa-chart-bar me-2" style="color:#059669"></i>Enter Marks</span>
     </div>
     <div class="topbar-right">
       <img src="https://ui-avatars.com/api/?name=Sarah+Khan&background=059669&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
@@ -45,25 +46,32 @@
   </div>
 
   <div class="content">
-    <!-- Filters -->
+
+    <!-- Section 1: Filters -->
     <div class="sec-card mb-4">
       <div class="sec-head"><h5><i class="fas fa-filter me-2 text-primary"></i>Select Class &amp; Assessment</h5></div>
       <div class="p-4">
         <div class="row g-3">
           <div class="col-md-3">
             <label class="form-label fw-semibold" style="font-size:12px">Class</label>
-            <select class="form-select form-select-sm"><option selected>Class 12-A</option><option>Class 11-A</option><option>Class 11-B</option><option>Class 12-B</option></select>
+            <select class="form-select form-select-sm">
+              <option selected>Class 12-A</option>
+              <option>Class 12-B</option>
+              <option>Class 11-A</option>
+              <option>Class 11-B</option>
+            </select>
           </div>
           <div class="col-md-3">
             <label class="form-label fw-semibold" style="font-size:12px">Subject</label>
-            <select class="form-select form-select-sm"><option selected>Physics</option></select>
+            <select class="form-select form-select-sm">
+              <option selected>Physics</option>
+            </select>
           </div>
           <div class="col-md-3">
-            <label class="form-label fw-semibold" style="font-size:12px">Assessment</label>
+            <label class="form-label fw-semibold" style="font-size:12px">Exam Type</label>
             <select class="form-select form-select-sm">
-              <option>Quiz 1 (Done)</option><option>Quiz 2 (Done)</option>
-              <option selected>Quiz 3 (Pending)</option>
-              <option>Mid-Term (Done)</option><option>Practical (Pending)</option>
+              <option selected>Mid Term</option>
+              <option>Final Term</option>
             </select>
           </div>
           <div class="col-md-3 d-flex align-items-end">
@@ -73,52 +81,86 @@
       </div>
     </div>
 
-    <!-- Weightage Info -->
-    <div class="alert alert-info d-flex align-items-center gap-3 mb-4" style="border-radius:12px">
-      <i class="fas fa-info-circle fs-5"></i>
-      <div style="font-size:13px"><strong>Quiz 3 Weightage:</strong> 10% of final grade &nbsp;·&nbsp; Max Marks: 10 &nbsp;·&nbsp; Entry deadline: 22 May 2026 &nbsp;·&nbsp; <strong>Class: 12-A</strong> (29 students)</div>
-    </div>
-
-    <!-- Marks Table -->
-    <div class="sec-card">
+    <!-- Section 2: Marks Entry Table -->
+    <div class="sec-card mb-4">
       <div class="sec-head">
-        <h5><i class="fas fa-table me-2 text-warning"></i>Quiz 3 Marks Entry — Class 12-A · Physics</h5>
-        <div class="d-flex gap-2 flex-wrap">
-          <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-excel me-1"></i>Upload Excel</button>
-          <button class="btn btn-sm btn-success" onclick="saveMarks()"><i class="fas fa-save me-1"></i>Save All Marks</button>
-        </div>
+        <h5><i class="fas fa-table me-2" style="color:#059669"></i>Mid Term Marks Entry — Class 12-A · Physics</h5>
+        <button class="btn btn-sm btn-success" onclick="saveMarks()"><i class="fas fa-save me-1"></i>Save Marks</button>
       </div>
       <div class="table-responsive">
-        <table class="table mb-0">
-          <thead><tr>
-            <th class="ps-4">#</th><th>Roll No</th><th>Student Name</th>
-            <th>Quiz 3 <small class="d-block fw-normal text-muted">/10</small></th>
-            <th>Quiz 1<small class="d-block fw-normal text-muted">Done</small></th>
-            <th>Quiz 2<small class="d-block fw-normal text-muted">Done</small></th>
-            <th>Mid-Term<small class="d-block fw-normal text-muted">Done</small></th>
-            <th class="pe-4">Running %</th>
-          </tr></thead>
+        <table class="data-table" id="marksTable">
+          <thead>
+            <tr>
+              <th class="ps-4">Roll No</th>
+              <th>Student Name</th>
+              <th style="text-align:center">Max Marks</th>
+              <th style="text-align:center">Marks Obtained</th>
+              <th style="text-align:center">%</th>
+              <th style="text-align:center" class="pe-4">Grade</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td class="ps-4">1</td><td>101</td><td>Ahmed Ali</td><td><input type="number" class="marks-input" value="8.5" min="0" max="10" oninput="calcRow(this)" /></td><td>7.5</td><td>8</td><td>41/50</td><td class="total-cell pe-4">79%</td></tr>
-            <tr><td class="ps-4">2</td><td>102</td><td>Bilal Ahmed</td><td><input type="number" class="marks-input" value="7" min="0" max="10" oninput="calcRow(this)" /></td><td>6.5</td><td>7</td><td>38/50</td><td class="total-cell pe-4">74%</td></tr>
-            <tr><td class="ps-4">3</td><td>103</td><td>Fatima Noor</td><td><input type="number" class="marks-input" value="9" min="0" max="10" oninput="calcRow(this)" /></td><td>9</td><td>9.5</td><td>46/50</td><td class="total-cell pe-4">91%</td></tr>
-            <tr><td class="ps-4">4</td><td>104</td><td>Hassan Raza</td><td><input type="number" class="marks-input" placeholder="—" min="0" max="10" /></td><td>5</td><td>6</td><td>30/50</td><td class="total-cell pe-4" style="color:#d97706">61%</td></tr>
-            <tr><td class="ps-4">5</td><td>105</td><td>Iqra Shah</td><td><input type="number" class="marks-input" value="10" min="0" max="10" /></td><td>9.5</td><td>10</td><td>48/50</td><td class="total-cell pe-4">95%</td></tr>
-            <tr><td class="ps-4">6</td><td>106</td><td>Junaid Malik</td><td><input type="number" class="marks-input" value="6" min="0" max="10" /></td><td>5.5</td><td>6.5</td><td>32/50</td><td class="total-cell pe-4" style="color:#d97706">64%</td></tr>
-            <tr><td class="ps-4">7</td><td>107</td><td>Kiran Baig</td><td><input type="number" class="marks-input" value="8" min="0" max="10" /></td><td>8</td><td>7.5</td><td>40/50</td><td class="total-cell pe-4">80%</td></tr>
-            <tr><td class="ps-4">8</td><td>108</td><td>Layla Hassan</td><td><input type="number" class="marks-input" value="9.5" min="0" max="10" /></td><td>9</td><td>9</td><td>44/50</td><td class="total-cell pe-4">88%</td></tr>
+            <tr><td class="ps-4">101</td><td>Ahmed Ali</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="34" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
+            <tr><td class="ps-4">102</td><td>Fatima Noor</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="36" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
+            <tr><td class="ps-4">103</td><td>Hassan Raza</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="28" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
+            <tr><td class="ps-4">104</td><td>Iqra Shah</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="38" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
+            <tr><td class="ps-4">105</td><td>Bilal Ahmed</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="22" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
+            <tr><td class="ps-4">106</td><td>Zara Malik</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="31" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
+            <tr><td class="ps-4">107</td><td>Saad Hussain</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="25" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
+            <tr><td class="ps-4">108</td><td>Amna Baig</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="33" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
+            <tr><td class="ps-4">109</td><td>Usman Tariq</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="19" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
+            <tr><td class="ps-4">110</td><td>Rabia Noor</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="29" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
+            <tr><td class="ps-4">111</td><td>Faisal Raza</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="35" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
+            <tr><td class="ps-4">112</td><td>Nida Akhtar</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="27" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
+            <tr><td class="ps-4">113</td><td>Asad Karim</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="32" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
+            <tr><td class="ps-4">114</td><td>Sana Javed</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="37" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
+            <tr><td class="ps-4">115</td><td>Kamran Shah</td><td style="text-align:center"><span class="max-marks">40</span></td><td style="text-align:center"><input type="number" class="marks-input" value="24" min="0" max="40" oninput="calcRow(this)" /></td><td style="text-align:center" class="pct-cell"></td><td style="text-align:center" class="pe-4 grade-cell"></td></tr>
           </tbody>
         </table>
       </div>
-      <div class="p-3 d-flex justify-content-between align-items-center border-top" style="background:#f8fafc">
-        <small class="text-muted">Showing 8 of 29 students &nbsp;·&nbsp; 5 entries missing</small>
-        <div class="d-flex gap-2">
-          <button class="btn btn-sm btn-outline-primary">Previous Page</button>
-          <button class="btn btn-sm btn-outline-primary">Next Page</button>
-          <button class="btn btn-sm btn-success" onclick="saveMarks()"><i class="fas fa-save me-1"></i>Save</button>
+
+      <!-- Section 3: Summary Stats -->
+      <div class="p-3 border-top" style="background:#f8fafc">
+        <div class="row g-3">
+          <div class="col-6 col-md-3 text-center">
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;font-weight:600">Class Average</div>
+            <div id="statAvg" style="font-size:20px;font-weight:700;color:#059669">—</div>
+          </div>
+          <div class="col-6 col-md-3 text-center">
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;font-weight:600">Highest</div>
+            <div id="statHigh" style="font-size:20px;font-weight:700;color:#1d4ed8">—</div>
+          </div>
+          <div class="col-6 col-md-3 text-center">
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;font-weight:600">Lowest</div>
+            <div id="statLow" style="font-size:20px;font-weight:700;color:#ef4444">—</div>
+          </div>
+          <div class="col-6 col-md-3 text-center">
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;font-weight:600">Pass Rate</div>
+            <div id="statPass" style="font-size:20px;font-weight:700;color:#d97706">—</div>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Section 4: Save Button -->
+    <div class="d-flex justify-content-end mb-4">
+      <button class="btn btn-success px-5" onclick="saveMarks()"><i class="fas fa-save me-2"></i>Save All Marks</button>
+    </div>
+
+    <!-- Grade Scale Legend -->
+    <div class="sec-card">
+      <div class="sec-head"><h5><i class="fas fa-info-circle me-2 text-primary"></i>Grade Scale</h5></div>
+      <div class="grade-legend">
+        <div class="gl-item"><span class="grade grade-aplus">A+</span> 90–100%</div>
+        <div class="gl-item"><span class="grade grade-a">A</span> 80–89%</div>
+        <div class="gl-item"><span class="grade grade-bplus">B+</span> 70–79%</div>
+        <div class="gl-item"><span class="grade grade-b">B</span> 60–69%</div>
+        <div class="gl-item"><span class="grade grade-c">C</span> 50–59%</div>
+        <div class="gl-item"><span class="grade grade-d">D</span> 40–49%</div>
+        <div class="gl-item"><span class="grade grade-f">F</span> Below 40%</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -126,7 +168,61 @@
 <script>
   function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
   function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
-  function saveMarks(){alert('Marks saved successfully! Students will be notified once results are published.');}
+
+  function getGrade(pct){
+    if(pct>=90) return {label:'A+',cls:'grade-aplus'};
+    if(pct>=80) return {label:'A', cls:'grade-a'};
+    if(pct>=70) return {label:'B+',cls:'grade-bplus'};
+    if(pct>=60) return {label:'B', cls:'grade-b'};
+    if(pct>=50) return {label:'C', cls:'grade-c'};
+    if(pct>=40) return {label:'D', cls:'grade-d'};
+    return {label:'F', cls:'grade-f'};
+  }
+
+  function calcRow(input){
+    const row = input.closest('tr');
+    const max = parseFloat(row.querySelector('.max-marks').textContent);
+    const obtained = parseFloat(input.value);
+    const pctCell = row.querySelector('.pct-cell');
+    const gradeCell = row.querySelector('.grade-cell');
+    if(isNaN(obtained)||input.value===''){pctCell.textContent='';gradeCell.innerHTML='';updateStats();return;}
+    const pct = Math.min(100, (obtained / max) * 100);
+    const g = getGrade(pct);
+    pctCell.textContent = pct.toFixed(1)+'%';
+    gradeCell.innerHTML = '<span class="grade '+g.cls+'">'+g.label+'</span>';
+    updateStats();
+  }
+
+  function updateStats(){
+    const inputs = document.querySelectorAll('#marksTable tbody .marks-input');
+    const pcts = [];
+    inputs.forEach(inp=>{
+      const row = inp.closest('tr');
+      const max = parseFloat(row.querySelector('.max-marks').textContent);
+      const val = parseFloat(inp.value);
+      if(!isNaN(val)&&inp.value!=='') pcts.push(Math.min(100,(val/max)*100));
+    });
+    if(pcts.length===0){
+      document.getElementById('statAvg').textContent='—';
+      document.getElementById('statHigh').textContent='—';
+      document.getElementById('statLow').textContent='—';
+      document.getElementById('statPass').textContent='—';
+      return;
+    }
+    const avg = pcts.reduce((a,b)=>a+b,0)/pcts.length;
+    const high = Math.max(...pcts);
+    const low = Math.min(...pcts);
+    const pass = pcts.filter(p=>p>=40).length;
+    document.getElementById('statAvg').textContent=avg.toFixed(1)+'%';
+    document.getElementById('statHigh').textContent=high.toFixed(1)+'%';
+    document.getElementById('statLow').textContent=low.toFixed(1)+'%';
+    document.getElementById('statPass').textContent=((pass/pcts.length)*100).toFixed(0)+'%';
+  }
+
+  function saveMarks(){alert('Marks saved successfully!');}
+
+  // Init all rows on page load
+  document.querySelectorAll('#marksTable tbody .marks-input').forEach(inp=>calcRow(inp));
 </script>
 </body>
 </html>

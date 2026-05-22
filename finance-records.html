@@ -45,48 +45,96 @@
 
   <div class="content">
     <div class="row g-3 mb-4">
-      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-check-circle" style="color:#059669"></i></div><div class="stat-val" style="color:#059669">753</div><div class="stat-lbl">Fee Paid</div></div></div>
-      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fef2f2"><i class="fas fa-times-circle" style="color:#ef4444"></i></div><div class="stat-val" style="color:#ef4444">89</div><div class="stat-lbl">Unpaid</div></div></div>
-      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fffbeb"><i class="fas fa-rupee-sign" style="color:#d97706"></i></div><div class="stat-val" style="color:#d97706">₨42.3L</div><div class="stat-lbl">Collected (May)</div></div></div>
-      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fef2f2"><i class="fas fa-exclamation-circle" style="color:#ef4444"></i></div><div class="stat-val" style="color:#ef4444">₨8.7L</div><div class="stat-lbl">Outstanding</div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-check-circle" style="color:#059669"></i></div><div class="stat-val" style="color:#059669">643</div><div class="stat-lbl">Fee Paid (May)</div><div class="stat-trend" style="color:#059669">Out of 842 students</div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fef2f2"><i class="fas fa-times-circle" style="color:#ef4444"></i></div><div class="stat-val" style="color:#ef4444">199</div><div class="stat-lbl">Unpaid (May)</div><div class="stat-trend" style="color:#ef4444">Fee not yet received</div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fffbeb"><i class="fas fa-rupee-sign" style="color:#d97706"></i></div><div class="stat-val" style="color:#d97706">₨76L</div><div class="stat-lbl">Collected (May)</div><div class="stat-trend" style="color:#d97706">76% collection rate</div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-icon" style="background:#fef2f2"><i class="fas fa-exclamation-circle" style="color:#ef4444"></i></div><div class="stat-val" style="color:#ef4444">₨24L</div><div class="stat-lbl">Outstanding</div><div class="stat-trend" style="color:#ef4444">Pending collection</div></div></div>
     </div>
 
-    <!-- Search & Filter -->
+    <!-- Filter -->
     <div class="sec-card">
-      <div class="sec-head"><h5><i class="fas fa-filter me-2 text-primary"></i>Search Fee Records</h5></div>
-      <div class="p-4">
+      <div class="sec-head"><h5><i class="fas fa-filter me-2 text-primary"></i>Filter Records</h5></div>
+      <div class="p-3">
         <div class="row g-3 align-items-end">
-          <div class="col-md-3"><label class="form-label fw-semibold" style="font-size:12px">Search Student</label><input type="text" class="form-control form-control-sm" placeholder="Name or Roll No..." oninput="filterTable(this.value)" /></div>
-          <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:12px">Class</label><select class="form-select form-select-sm"><option>All Classes</option><option>Class 12</option><option>Class 11</option><option>Class 10</option></select></div>
-          <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:12px">Month</label><select class="form-select form-select-sm"><option>May 2026</option><option>April 2026</option><option>March 2026</option></select></div>
-          <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:12px">Status</label><select class="form-select form-select-sm"><option>All</option><option>Paid</option><option>Unpaid</option><option>Partial</option></select></div>
-          <div class="col-md-3"><button class="btn btn-warning text-white btn-sm w-100">Search</button></div>
+          <div class="col-md-3"><label class="form-label fw-semibold" style="font-size:12px">Search Student / Roll No</label><input type="text" class="form-control form-control-sm" placeholder="Name or Roll No..." oninput="filterTable(this.value)" /></div>
+          <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:12px">Class</label>
+            <select class="form-select form-select-sm" id="classFilter" onchange="applyFilters()">
+              <option value="">All Classes</option>
+              <option value="Class 8">Class 8</option>
+              <option value="Class 9">Class 9</option>
+              <option value="Class 10">Class 10</option>
+              <option value="Class 11">Class 11</option>
+              <option value="Class 12">Class 12</option>
+            </select>
+          </div>
+          <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:12px">Month</label>
+            <select class="form-select form-select-sm" id="monthFilter" onchange="applyFilters()">
+              <option>May 2026</option><option>April 2026</option><option>March 2026</option>
+              <option>February 2026</option><option>January 2026</option>
+            </select>
+          </div>
+          <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:12px">Payment Mode</label>
+            <select class="form-select form-select-sm">
+              <option>All Modes</option><option>Cash</option><option>Bank Transfer</option><option>Online</option>
+            </select>
+          </div>
+          <div class="col-md-3 d-flex gap-2 align-items-end">
+            <button class="btn btn-warning text-white btn-sm flex-fill">Apply</button>
+            <button class="btn btn-outline-secondary btn-sm flex-fill" onclick="clearFilters()">Clear</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Records Table -->
+    <!-- Ledger Table -->
     <div class="sec-card">
-      <div class="sec-head"><h5><i class="fas fa-list me-2" style="color:#d97706"></i>All Fee Records — May 2026</h5><small class="text-muted">Showing 10 of 842</small></div>
+      <div class="sec-head">
+        <h5><i class="fas fa-book me-2" style="color:#d97706"></i>Fee Ledger — May 2026</h5>
+        <div class="d-flex align-items-center gap-2">
+          <small class="text-muted">Showing 20 records</small>
+          <button class="btn btn-sm btn-outline-secondary" onclick="alert('Exporting to Excel...')"><i class="fas fa-file-excel me-1"></i>Export</button>
+        </div>
+      </div>
       <div class="table-responsive">
         <table class="data-table" id="feeTable">
-          <thead><tr><th class="ps-4">Roll</th><th>Student Name</th><th>Class</th><th>Monthly Fee</th><th>Paid</th><th>Balance</th><th>Date</th><th>Mode</th><th class="pe-4">Status</th></tr></thead>
+          <thead>
+            <tr>
+              <th class="ps-4">Roll No</th>
+              <th>Student Name</th>
+              <th>Class</th>
+              <th>Month</th>
+              <th>Amount</th>
+              <th>Payment Mode</th>
+              <th>Date</th>
+              <th class="pe-4">Receipt #</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td class="ps-4 fw-bold">101</td><td>Ahmed Ali</td><td>12-A</td><td>₨12,000</td><td class="text-success fw-bold">₨12,000</td><td>₨0</td><td>20 May</td><td><span class="badge bg-light text-dark">Cash</span></td><td class="pe-4"><span class="badge bg-success">Paid</span></td></tr>
-            <tr><td class="ps-4 fw-bold">102</td><td>Bilal Ahmed</td><td>12-A</td><td>₨12,000</td><td class="text-success fw-bold">₨12,000</td><td>₨0</td><td>19 May</td><td><span class="badge bg-info text-white">Online</span></td><td class="pe-4"><span class="badge bg-success">Paid</span></td></tr>
-            <tr><td class="ps-4 fw-bold">103</td><td>Fatima Noor</td><td>12-A</td><td>₨12,000</td><td class="text-success fw-bold">₨12,000</td><td>₨0</td><td>18 May</td><td><span class="badge bg-primary">Bank</span></td><td class="pe-4"><span class="badge bg-success">Paid</span></td></tr>
-            <tr style="background:#fff8f8"><td class="ps-4 fw-bold">104</td><td>Hassan Raza</td><td>12-A</td><td>₨12,000</td><td class="text-danger fw-bold">₨0</td><td class="text-danger fw-bold">₨24,000</td><td>—</td><td>—</td><td class="pe-4"><span class="badge bg-danger">2 Months Unpaid</span></td></tr>
-            <tr><td class="ps-4 fw-bold">105</td><td>Iqra Shah</td><td>12-A</td><td>₨12,000</td><td class="text-success fw-bold">₨12,000</td><td>₨0</td><td>17 May</td><td><span class="badge bg-info text-white">Online</span></td><td class="pe-4"><span class="badge bg-success">Paid</span></td></tr>
-            <tr style="background:#fff8f8"><td class="ps-4 fw-bold">106</td><td>Junaid Malik</td><td>12-A</td><td>₨12,000</td><td class="fw-bold" style="color:#d97706">₨6,000</td><td class="fw-bold" style="color:#d97706">₨6,000</td><td>15 May</td><td><span class="badge bg-light text-dark">Cash</span></td><td class="pe-4"><span class="badge bg-warning text-dark">Partial</span></td></tr>
-            <tr><td class="ps-4 fw-bold">107</td><td>Kiran Baig</td><td>12-A</td><td>₨12,000</td><td class="text-success fw-bold">₨12,000</td><td>₨0</td><td>16 May</td><td><span class="badge bg-primary">Bank</span></td><td class="pe-4"><span class="badge bg-success">Paid</span></td></tr>
-            <tr><td class="ps-4 fw-bold">108</td><td>Layla Hassan</td><td>12-A</td><td>₨12,000</td><td class="text-success fw-bold">₨12,000</td><td>₨0</td><td>14 May</td><td><span class="badge bg-info text-white">Online</span></td><td class="pe-4"><span class="badge bg-success">Paid</span></td></tr>
-            <tr style="background:#fff8f8"><td class="ps-4 fw-bold">201</td><td>Saad Qureshi</td><td>11-B</td><td>₨10,000</td><td class="text-danger fw-bold">₨0</td><td class="text-danger fw-bold">₨10,000</td><td>—</td><td>—</td><td class="pe-4"><span class="badge bg-danger">Unpaid</span></td></tr>
-            <tr><td class="ps-4 fw-bold">202</td><td>Mariam Ali</td><td>11-B</td><td>₨10,000</td><td class="text-success fw-bold">₨10,000</td><td>₨0</td><td>21 May</td><td><span class="badge bg-light text-dark">Cash</span></td><td class="pe-4"><span class="badge bg-success">Paid</span></td></tr>
+            <tr><td class="ps-4 fw-bold">101</td><td class="fw-semibold">Ahmed Ali</td><td>12-A</td><td>May 2026</td><td class="text-success fw-bold">₨12,000</td><td><span class="badge bg-light text-dark border">Cash</span></td><td>20 May 2026</td><td class="pe-4 text-muted">RCP-2026-0101</td></tr>
+            <tr><td class="ps-4 fw-bold">102</td><td class="fw-semibold">Fatima Noor</td><td>12-A</td><td>May 2026</td><td class="text-success fw-bold">₨12,000</td><td><span class="badge bg-info text-white">Online</span></td><td>19 May 2026</td><td class="pe-4 text-muted">RCP-2026-0102</td></tr>
+            <tr><td class="ps-4 fw-bold">104</td><td class="fw-semibold">Iqra Shah</td><td>12-A</td><td>May 2026</td><td class="text-success fw-bold">₨12,000</td><td><span class="badge bg-primary">Bank</span></td><td>18 May 2026</td><td class="pe-4 text-muted">RCP-2026-0104</td></tr>
+            <tr><td class="ps-4 fw-bold">106</td><td class="fw-semibold">Zara Iqbal</td><td>12-A</td><td>May 2026</td><td class="text-success fw-bold">₨12,000</td><td><span class="badge bg-light text-dark border">Cash</span></td><td>17 May 2026</td><td class="pe-4 text-muted">RCP-2026-0106</td></tr>
+            <tr><td class="ps-4 fw-bold">108</td><td class="fw-semibold">Amna Zahid</td><td>12-A</td><td>May 2026</td><td class="text-success fw-bold">₨12,000</td><td><span class="badge bg-info text-white">Online</span></td><td>16 May 2026</td><td class="pe-4 text-muted">RCP-2026-0108</td></tr>
+            <tr><td class="ps-4 fw-bold">110</td><td class="fw-semibold">Rabia Malik</td><td>12-A</td><td>May 2026</td><td class="text-success fw-bold">₨12,000</td><td><span class="badge bg-primary">Bank</span></td><td>15 May 2026</td><td class="pe-4 text-muted">RCP-2026-0110</td></tr>
+            <tr><td class="ps-4 fw-bold">112</td><td class="fw-semibold">Nida Ansari</td><td>12-A</td><td>May 2026</td><td class="text-success fw-bold">₨12,000</td><td><span class="badge bg-light text-dark border">Cash</span></td><td>14 May 2026</td><td class="pe-4 text-muted">RCP-2026-0112</td></tr>
+            <tr><td class="ps-4 fw-bold">114</td><td class="fw-semibold">Sana Butt</td><td>12-A</td><td>May 2026</td><td class="text-success fw-bold">₨12,000</td><td><span class="badge bg-info text-white">Online</span></td><td>13 May 2026</td><td class="pe-4 text-muted">RCP-2026-0114</td></tr>
+            <tr><td class="ps-4 fw-bold">201</td><td class="fw-semibold">Hamid Saeed</td><td>11-A</td><td>May 2026</td><td class="text-success fw-bold">₨10,000</td><td><span class="badge bg-primary">Bank</span></td><td>20 May 2026</td><td class="pe-4 text-muted">RCP-2026-0201</td></tr>
+            <tr><td class="ps-4 fw-bold">203</td><td class="fw-semibold">Ayesha Baig</td><td>11-A</td><td>May 2026</td><td class="text-success fw-bold">₨10,000</td><td><span class="badge bg-light text-dark border">Cash</span></td><td>19 May 2026</td><td class="pe-4 text-muted">RCP-2026-0203</td></tr>
+            <tr><td class="ps-4 fw-bold">205</td><td class="fw-semibold">Bilal Tariq</td><td>11-B</td><td>May 2026</td><td class="text-success fw-bold">₨10,000</td><td><span class="badge bg-info text-white">Online</span></td><td>18 May 2026</td><td class="pe-4 text-muted">RCP-2026-0205</td></tr>
+            <tr><td class="ps-4 fw-bold">207</td><td class="fw-semibold">Sadia Hussain</td><td>11-B</td><td>May 2026</td><td class="text-success fw-bold">₨10,000</td><td><span class="badge bg-primary">Bank</span></td><td>17 May 2026</td><td class="pe-4 text-muted">RCP-2026-0207</td></tr>
+            <tr><td class="ps-4 fw-bold">301</td><td class="fw-semibold">Omar Farooq</td><td>10-A</td><td>May 2026</td><td class="text-success fw-bold">₨9,500</td><td><span class="badge bg-light text-dark border">Cash</span></td><td>21 May 2026</td><td class="pe-4 text-muted">RCP-2026-0301</td></tr>
+            <tr><td class="ps-4 fw-bold">304</td><td class="fw-semibold">Maryam Riaz</td><td>10-A</td><td>May 2026</td><td class="text-success fw-bold">₨9,500</td><td><span class="badge bg-info text-white">Online</span></td><td>20 May 2026</td><td class="pe-4 text-muted">RCP-2026-0304</td></tr>
+            <tr><td class="ps-4 fw-bold">401</td><td class="fw-semibold">Tariq Jameel</td><td>9-A</td><td>May 2026</td><td class="text-success fw-bold">₨8,000</td><td><span class="badge bg-primary">Bank</span></td><td>19 May 2026</td><td class="pe-4 text-muted">RCP-2026-0401</td></tr>
+            <tr><td class="ps-4 fw-bold">403</td><td class="fw-semibold">Kiran Shahid</td><td>9-A</td><td>May 2026</td><td class="text-success fw-bold">₨8,000</td><td><span class="badge bg-light text-dark border">Cash</span></td><td>18 May 2026</td><td class="pe-4 text-muted">RCP-2026-0403</td></tr>
+            <tr><td class="ps-4 fw-bold">501</td><td class="fw-semibold">Zubair Ahmed</td><td>8-A</td><td>May 2026</td><td class="text-success fw-bold">₨7,000</td><td><span class="badge bg-info text-white">Online</span></td><td>20 May 2026</td><td class="pe-4 text-muted">RCP-2026-0501</td></tr>
+            <tr><td class="ps-4 fw-bold">503</td><td class="fw-semibold">Hira Malik</td><td>8-A</td><td>May 2026</td><td class="text-success fw-bold">₨7,000</td><td><span class="badge bg-primary">Bank</span></td><td>19 May 2026</td><td class="pe-4 text-muted">RCP-2026-0503</td></tr>
+            <tr><td class="ps-4 fw-bold">505</td><td class="fw-semibold">Farhan Iqbal</td><td>8-B</td><td>May 2026</td><td class="text-success fw-bold">₨7,000</td><td><span class="badge bg-light text-dark border">Cash</span></td><td>18 May 2026</td><td class="pe-4 text-muted">RCP-2026-0505</td></tr>
+            <tr><td class="ps-4 fw-bold">507</td><td class="fw-semibold">Nadia Khan</td><td>8-B</td><td>May 2026</td><td class="text-success fw-bold">₨7,000</td><td><span class="badge bg-info text-white">Online</span></td><td>17 May 2026</td><td class="pe-4 text-muted">RCP-2026-0507</td></tr>
           </tbody>
         </table>
       </div>
       <div class="p-3 d-flex justify-content-between align-items-center border-top" style="background:#f8fafc">
-        <small class="text-muted">Page 1 of 85</small>
+        <small class="text-muted">Page 1 of 33 &nbsp;·&nbsp; 643 records total</small>
         <div class="d-flex gap-2">
           <button class="btn btn-sm btn-outline-secondary">Prev</button>
           <button class="btn btn-sm btn-warning text-white">Next</button>
@@ -123,7 +171,23 @@
 <script>
   function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
   function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
-  function filterTable(q){document.querySelectorAll('#feeTable tbody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none');}
+  function filterTable(q){
+    document.querySelectorAll('#feeTable tbody tr').forEach(r=>{
+      r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
+    });
+  }
+  function applyFilters(){
+    const cls=document.getElementById('classFilter').value.toLowerCase();
+    document.querySelectorAll('#feeTable tbody tr').forEach(r=>{
+      const rowCls=r.cells[2].textContent.toLowerCase();
+      r.style.display=(!cls||rowCls.startsWith(cls.replace('class ','')))?'':'none';
+    });
+  }
+  function clearFilters(){
+    document.getElementById('classFilter').value='';
+    document.getElementById('monthFilter').value='May 2026';
+    document.querySelectorAll('#feeTable tbody tr').forEach(r=>r.style.display='');
+  }
 </script>
 </body>
 </html>

@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Attendance — BMC Portal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
@@ -11,12 +10,17 @@
     .sb-link.active{border-color:#1d4ed8;} .sb-logo{background:#1d4ed8;} .sb-av{background:#1d4ed8;}
     .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;}
     .cal-hdr{font-size:11px;font-weight:700;color:#64748b;padding:4px;}
-    .cal-day{padding:8px 4px;border-radius:8px;font-size:12.5px;font-weight:600;}
+    .cal-day{padding:8px 4px;border-radius:6px;font-size:12px;font-weight:600;line-height:1.3;}
     .cal-day.p{background:#dcfce7;color:#166534;}
     .cal-day.a{background:#fee2e2;color:#991b1b;}
     .cal-day.l{background:#fef9c3;color:#854d0e;}
     .cal-day.hol{background:#f1f5f9;color:#94a3b8;}
-    .cal-day.na{opacity:.3;}
+    .cal-day.na{opacity:.25;color:#cbd5e1;}
+    .cal-day.today{outline:2px solid #1d4ed8;outline-offset:1px;}
+    .month-bar-label{font-size:12px;color:#475569;font-weight:600;width:36px;flex-shrink:0;}
+    .month-bar-wrap{flex:1;height:10px;background:#e2e8f0;border-radius:10px;overflow:hidden;}
+    .month-bar-fill{height:100%;border-radius:10px;background:#1d4ed8;}
+    .month-bar-val{font-size:12px;font-weight:700;width:38px;text-align:right;flex-shrink:0;}
   </style>
 </head>
 <body>
@@ -29,7 +33,6 @@
     <a class="sb-link" href="student-results.html"><i class="fas fa-chart-bar"></i> My Results</a>
     <a class="sb-link active" href="student-attendance.html"><i class="fas fa-calendar-check"></i> Attendance</a>
     <a class="sb-link" href="student-timetable.html"><i class="fas fa-clock"></i> Timetable</a>
-    <a class="sb-link" href="student-assignments.html"><i class="fas fa-book-open"></i> Assignments</a>
     <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notices</a>
     <div class="sb-section">Account</div>
     <a class="sb-link" href="student-profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
@@ -42,110 +45,187 @@
   <div class="topbar">
     <div class="topbar-left">
       <button class="toggle-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
-      <span class="topbar-title"><i class="fas fa-calendar-check me-2 text-success"></i>Attendance</span>
+      <span class="topbar-title"><i class="fas fa-calendar-check me-2" style="color:#059669"></i>Attendance</span>
     </div>
     <div class="topbar-right">
-      <img src="https://ui-avatars.com/api/?name=Ahmed+Ali&background=1565c0&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
+      <img src="https://ui-avatars.com/api/?name=Ahmed+Ali&background=1d4ed8&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
     </div>
   </div>
 
   <div class="content">
-    <!-- Summary Cards -->
+
+    <!-- Summary Stats -->
     <div class="row g-3 mb-4">
       <div class="col-6 col-md-3">
-        <div class="sec-card p-4 text-center mb-0">
-          <div style="font-size:28px;font-weight:700;color:#059669">82%</div>
-          <div style="font-size:12px;color:#64748b">Overall Attendance</div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-user-check" style="color:#059669"></i></div>
+          <div class="stat-val" style="color:#059669">102</div>
+          <div class="stat-lbl">Days Present</div>
         </div>
       </div>
       <div class="col-6 col-md-3">
-        <div class="sec-card p-4 text-center mb-0">
-          <div style="font-size:28px;font-weight:700;color:#1565c0">102</div>
-          <div style="font-size:12px;color:#64748b">Classes Present</div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fef2f2"><i class="fas fa-user-times" style="color:#ef4444"></i></div>
+          <div class="stat-val" style="color:#ef4444">18</div>
+          <div class="stat-lbl">Days Absent</div>
         </div>
       </div>
       <div class="col-6 col-md-3">
-        <div class="sec-card p-4 text-center mb-0">
-          <div style="font-size:28px;font-weight:700;color:#ef4444">22</div>
-          <div style="font-size:12px;color:#64748b">Classes Absent</div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fffbeb"><i class="fas fa-file-alt" style="color:#d97706"></i></div>
+          <div class="stat-val" style="color:#d97706">4</div>
+          <div class="stat-lbl">Leave Days</div>
         </div>
       </div>
       <div class="col-6 col-md-3">
-        <div class="sec-card p-4 text-center mb-0">
-          <div style="font-size:28px;font-weight:700;color:#d97706">4</div>
-          <div style="font-size:12px;color:#64748b">Late Arrivals</div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#eff6ff"><i class="fas fa-percent" style="color:#1d4ed8"></i></div>
+          <div class="stat-val" style="color:#1d4ed8">82%</div>
+          <div class="stat-lbl">Attendance %</div>
         </div>
       </div>
     </div>
 
-    <div class="alert alert-warning d-flex align-items-center gap-2" style="border-radius:12px">
+    <!-- Warning -->
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" style="border-radius:8px">
       <i class="fas fa-exclamation-triangle fs-5"></i>
-      <div><strong>Attendance Warning:</strong> Mathematics attendance (72%) is below the required 75% threshold. You risk becoming a defaulter.</div>
+      <div><strong>Attendance Warning:</strong> Mathematics attendance (72%) is below the required 75% threshold. You risk being marked a defaulter.</div>
     </div>
 
-    <!-- Subject-wise -->
-    <div class="sec-card">
-      <div class="sec-head"><h5><i class="fas fa-book me-2 text-primary"></i>Subject-wise Attendance</h5></div>
-      <div class="p-0">
-        <div class="table-responsive">
-          <table class="table mb-0">
-            <thead><tr>
-              <th class="ps-4">Subject</th>
-              <th>Total Classes</th><th>Present</th><th>Absent</th><th>Late</th>
-              <th>Percentage</th><th class="pe-4">Status</th>
-            </tr></thead>
-            <tbody>
-              <tr>
-                <td class="ps-4 fw-semibold">English</td>
-                <td>30</td><td>27</td><td>3</td><td>0</td>
-                <td><div class="d-flex align-items-center gap-2"><div style="flex:1;height:8px;background:#e2e8f0;border-radius:10px;overflow:hidden"><div style="width:90%;height:100%;background:#059669;border-radius:10px"></div></div><span class="fw-bold" style="color:#059669">90%</span></div></td>
-                <td class="pe-4"><span class="badge bg-success">Good</span></td>
-              </tr>
-              <tr>
-                <td class="ps-4 fw-semibold">Physics</td>
-                <td>30</td><td>23</td><td>7</td><td>2</td>
-                <td><div class="d-flex align-items-center gap-2"><div style="flex:1;height:8px;background:#e2e8f0;border-radius:10px;overflow:hidden"><div style="width:78%;height:100%;background:#d97706;border-radius:10px"></div></div><span class="fw-bold" style="color:#d97706">78%</span></div></td>
-                <td class="pe-4"><span class="badge bg-warning text-dark">Caution</span></td>
-              </tr>
-              <tr>
-                <td class="ps-4 fw-semibold">Chemistry</td>
-                <td>30</td><td>26</td><td>4</td><td>1</td>
-                <td><div class="d-flex align-items-center gap-2"><div style="flex:1;height:8px;background:#e2e8f0;border-radius:10px;overflow:hidden"><div style="width:88%;height:100%;background:#059669;border-radius:10px"></div></div><span class="fw-bold" style="color:#059669">88%</span></div></td>
-                <td class="pe-4"><span class="badge bg-success">Good</span></td>
-              </tr>
-              <tr style="background:#fff8f8">
-                <td class="ps-4 fw-semibold">Mathematics</td>
-                <td>30</td><td>22</td><td>8</td><td>1</td>
-                <td><div class="d-flex align-items-center gap-2"><div style="flex:1;height:8px;background:#e2e8f0;border-radius:10px;overflow:hidden"><div style="width:72%;height:100%;background:#ef4444;border-radius:10px"></div></div><span class="fw-bold" style="color:#ef4444">72%</span></div></td>
-                <td class="pe-4"><span class="badge bg-danger">Defaulter</span></td>
-              </tr>
-              <tr>
-                <td class="ps-4 fw-semibold">Biology</td>
-                <td>30</td><td>25</td><td>5</td><td>0</td>
-                <td><div class="d-flex align-items-center gap-2"><div style="flex:1;height:8px;background:#e2e8f0;border-radius:10px;overflow:hidden"><div style="width:84%;height:100%;background:#059669;border-radius:10px"></div></div><span class="fw-bold" style="color:#059669">84%</span></div></td>
-                <td class="pe-4"><span class="badge bg-success">Good</span></td>
-              </tr>
-              <tr>
-                <td class="ps-4 fw-semibold">Computer Science</td>
-                <td>30</td><td>28</td><td>2</td><td>0</td>
-                <td><div class="d-flex align-items-center gap-2"><div style="flex:1;height:8px;background:#e2e8f0;border-radius:10px;overflow:hidden"><div style="width:95%;height:100%;background:#059669;border-radius:10px"></div></div><span class="fw-bold" style="color:#059669">95%</span></div></td>
-                <td class="pe-4"><span class="badge bg-success">Excellent</span></td>
-              </tr>
-            </tbody>
-          </table>
+    <div class="row g-3">
+      <!-- Subject-wise Attendance -->
+      <div class="col-lg-8">
+        <div class="sec-card">
+          <div class="sec-head"><h5><i class="fas fa-book me-2" style="color:#1d4ed8"></i>Subject-wise Attendance</h5></div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="ps-4">Subject</th>
+                  <th>Total Classes</th>
+                  <th>Present</th>
+                  <th>Absent</th>
+                  <th>%</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="ps-4 fw-semibold">English</td>
+                  <td>30</td><td>27</td><td>3</td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="att-bar-wrap" style="width:70px"><div class="att-bar-fill" style="width:90%;background:#059669"></div></div>
+                      <span class="fw-bold" style="color:#059669">90%</span>
+                    </div>
+                  </td>
+                  <td><span class="badge bg-success">Good</span></td>
+                </tr>
+                <tr>
+                  <td class="ps-4 fw-semibold">Physics</td>
+                  <td>30</td><td>23</td><td>7</td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="att-bar-wrap" style="width:70px"><div class="att-bar-fill" style="width:78%;background:#d97706"></div></div>
+                      <span class="fw-bold" style="color:#d97706">78%</span>
+                    </div>
+                  </td>
+                  <td><span class="badge bg-warning text-dark">Caution</span></td>
+                </tr>
+                <tr>
+                  <td class="ps-4 fw-semibold">Chemistry</td>
+                  <td>30</td><td>26</td><td>4</td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="att-bar-wrap" style="width:70px"><div class="att-bar-fill" style="width:88%;background:#059669"></div></div>
+                      <span class="fw-bold" style="color:#059669">88%</span>
+                    </div>
+                  </td>
+                  <td><span class="badge bg-success">Good</span></td>
+                </tr>
+                <tr style="background:#fff8f8">
+                  <td class="ps-4 fw-semibold">Mathematics</td>
+                  <td>30</td><td>22</td><td>8</td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="att-bar-wrap" style="width:70px"><div class="att-bar-fill" style="width:72%;background:#ef4444"></div></div>
+                      <span class="fw-bold" style="color:#ef4444">72%</span>
+                    </div>
+                  </td>
+                  <td><span class="badge bg-danger">Defaulter</span></td>
+                </tr>
+                <tr>
+                  <td class="ps-4 fw-semibold">Biology</td>
+                  <td>30</td><td>25</td><td>5</td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="att-bar-wrap" style="width:70px"><div class="att-bar-fill" style="width:84%;background:#059669"></div></div>
+                      <span class="fw-bold" style="color:#059669">84%</span>
+                    </div>
+                  </td>
+                  <td><span class="badge bg-success">Good</span></td>
+                </tr>
+                <tr>
+                  <td class="ps-4 fw-semibold">Computer Sc.</td>
+                  <td>30</td><td>28</td><td>2</td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="att-bar-wrap" style="width:70px"><div class="att-bar-fill" style="width:95%;background:#059669"></div></div>
+                      <span class="fw-bold" style="color:#059669">95%</span>
+                    </div>
+                  </td>
+                  <td><span class="badge bg-success">Excellent</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Progress Bars -->
+      <div class="col-lg-4">
+        <div class="sec-card">
+          <div class="sec-head"><h5><i class="fas fa-chart-bar me-2" style="color:#1d4ed8"></i>Monthly Attendance</h5></div>
+          <div class="p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <span class="month-bar-label">Jan</span>
+              <div class="month-bar-wrap"><div class="month-bar-fill" style="width:88%"></div></div>
+              <span class="month-bar-val" style="color:#059669">88%</span>
+            </div>
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <span class="month-bar-label">Feb</span>
+              <div class="month-bar-wrap"><div class="month-bar-fill" style="width:85%"></div></div>
+              <span class="month-bar-val" style="color:#059669">85%</span>
+            </div>
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <span class="month-bar-label">Mar</span>
+              <div class="month-bar-wrap"><div class="month-bar-fill" style="width:79%"></div></div>
+              <span class="month-bar-val" style="color:#d97706">79%</span>
+            </div>
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <span class="month-bar-label">Apr</span>
+              <div class="month-bar-wrap"><div class="month-bar-fill" style="width:76%"></div></div>
+              <span class="month-bar-val" style="color:#d97706">76%</span>
+            </div>
+            <div class="d-flex align-items-center gap-3 mb-0">
+              <span class="month-bar-label">May</span>
+              <div class="month-bar-wrap"><div class="month-bar-fill" style="width:82%"></div></div>
+              <span class="month-bar-val" style="color:#059669">82%</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Monthly Calendar -->
-    <div class="sec-card">
+    <div class="sec-card mt-3">
       <div class="sec-head">
-        <h5><i class="fas fa-calendar me-2 text-primary"></i>May 2026 — Attendance Calendar</h5>
+        <h5><i class="fas fa-calendar me-2" style="color:#1d4ed8"></i>May 2026 — Attendance Calendar</h5>
         <div class="d-flex gap-2 flex-wrap">
-          <span class="badge" style="background:#dcfce7;color:#166534">P = Present</span>
-          <span class="badge" style="background:#fee2e2;color:#991b1b">A = Absent</span>
-          <span class="badge" style="background:#fef9c3;color:#854d0e">L = Late</span>
-          <span class="badge" style="background:#f1f5f9;color:#64748b">H = Holiday</span>
+          <span class="badge" style="background:#dcfce7;color:#166534">P Present</span>
+          <span class="badge" style="background:#fee2e2;color:#991b1b">A Absent</span>
+          <span class="badge" style="background:#fef9c3;color:#854d0e">L Late</span>
+          <span class="badge" style="background:#f1f5f9;color:#64748b">H Holiday</span>
         </div>
       </div>
       <div class="p-4">
@@ -154,24 +234,34 @@
           <div class="cal-hdr">Thu</div><div class="cal-hdr">Fri</div><div class="cal-hdr">Sat</div><div class="cal-hdr">Sun</div>
         </div>
         <div class="cal-grid">
-          <div class="cal-day na">—</div><div class="cal-day na">—</div><div class="cal-day na">—</div>
-          <div class="cal-day p">1<br><small>P</small></div><div class="cal-day p">2<br><small>P</small></div>
-          <div class="cal-day hol">3<br><small>H</small></div><div class="cal-day hol">4<br><small>H</small></div>
-          <div class="cal-day p">5<br><small>P</small></div><div class="cal-day a">6<br><small>A</small></div>
-          <div class="cal-day p">7<br><small>P</small></div><div class="cal-day p">8<br><small>P</small></div>
-          <div class="cal-day l">9<br><small>L</small></div>
-          <div class="cal-day hol">10<br><small>H</small></div><div class="cal-day hol">11<br><small>H</small></div>
-          <div class="cal-day p">12<br><small>P</small></div><div class="cal-day p">13<br><small>P</small></div>
-          <div class="cal-day p">14<br><small>P</small></div><div class="cal-day a">15<br><small>A</small></div>
-          <div class="cal-day p">16<br><small>P</small></div>
-          <div class="cal-day hol">17<br><small>H</small></div><div class="cal-day hol">18<br><small>H</small></div>
-          <div class="cal-day p">19<br><small>P</small></div><div class="cal-day p">20<br><small>P</small></div>
-          <div class="cal-day p" style="border:2px solid #1565c0">21<br><small>Today</small></div>
-          <div class="cal-day na">22<br><small>—</small></div><div class="cal-day na">23<br><small>—</small></div>
-          <div class="cal-day hol">24<br><small>H</small></div><div class="cal-day hol">25<br><small>H</small></div>
+          <!-- May 2026 starts on Friday -->
+          <div class="cal-day na">—</div><div class="cal-day na">—</div><div class="cal-day na">—</div><div class="cal-day na">—</div>
+          <div class="cal-day p">1<br><small>P</small></div>
+          <div class="cal-day hol">2<br><small>H</small></div><div class="cal-day hol">3<br><small>H</small></div>
+
+          <div class="cal-day p">4<br><small>P</small></div><div class="cal-day a">5<br><small>A</small></div>
+          <div class="cal-day p">6<br><small>P</small></div><div class="cal-day p">7<br><small>P</small></div>
+          <div class="cal-day l">8<br><small>L</small></div>
+          <div class="cal-day hol">9<br><small>H</small></div><div class="cal-day hol">10<br><small>H</small></div>
+
+          <div class="cal-day p">11<br><small>P</small></div><div class="cal-day p">12<br><small>P</small></div>
+          <div class="cal-day p">13<br><small>P</small></div><div class="cal-day a">14<br><small>A</small></div>
+          <div class="cal-day p">15<br><small>P</small></div>
+          <div class="cal-day hol">16<br><small>H</small></div><div class="cal-day hol">17<br><small>H</small></div>
+
+          <div class="cal-day p">18<br><small>P</small></div><div class="cal-day p">19<br><small>P</small></div>
+          <div class="cal-day p">20<br><small>P</small></div><div class="cal-day p">21<br><small>P</small></div>
+          <div class="cal-day p today">22<br><small>Today</small></div>
+          <div class="cal-day hol">23<br><small>H</small></div><div class="cal-day hol">24<br><small>H</small></div>
+
+          <div class="cal-day na">25<br><small>—</small></div><div class="cal-day na">26<br><small>—</small></div>
+          <div class="cal-day na">27<br><small>—</small></div><div class="cal-day na">28<br><small>—</small></div>
+          <div class="cal-day na">29<br><small>—</small></div>
+          <div class="cal-day hol">30<br><small>H</small></div><div class="cal-day hol">31<br><small>H</small></div>
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
