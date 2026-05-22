@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monthly Fee Report — BMC Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="portal.css" rel="stylesheet" />
+  <style>
+    .sb-link.active{border-color:#d97706;} .sb-logo{background:#d97706;} .sb-av{background:#d97706;}
+    .pct-good{color:#059669;font-weight:700;}
+    .pct-mid{color:#d97706;font-weight:700;}
+    .pct-low{color:#ef4444;font-weight:700;}
+    tfoot td{font-weight:700;background:#f0fdf4;border-top:2px solid #d1fae5;}
+  </style>
+</head>
+<body>
+<div class="overlay" id="ov" onclick="closeSb()"></div>
+<div class="sidebar" id="sb">
+  <div class="sb-brand"><div class="sb-logo"><i class="fas fa-coins"></i></div><div class="sb-title"><h6>BMC Portal</h6><small>Finance Portal</small></div></div>
+  <div class="sb-menu">
+    <div class="sb-section">Finance</div>
+    <a class="sb-link" href="finance-dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a class="sb-link" href="finance-collection.html"><i class="fas fa-check-square"></i> Fee Collection</a>
+    <a class="sb-link active" href="finance-monthly.html"><i class="fas fa-calendar-alt"></i> Monthly Report</a>
+    <a class="sb-link" href="finance-records.html"><i class="fas fa-file-invoice-dollar"></i> Fee Records</a>
+    <a class="sb-link" href="finance-defaulters.html"><i class="fas fa-exclamation-triangle"></i> Defaulter List</a>
+    <a class="sb-link" href="finance-reports.html"><i class="fas fa-chart-bar"></i> Analytics</a>
+    <div class="sb-section">Navigation</div>
+    <a class="sb-link" href="admin-dashboard.html"><i class="fas fa-shield-alt"></i> Admin Panel</a>
+    <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
+    <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user"></i></div><div class="sb-foot-info"><h6>Ms. Ayesha Rizvi</h6><small>Finance Officer</small></div></div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="toggle-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <span class="topbar-title"><i class="fas fa-calendar-alt" style="color:#d97706"></i> Monthly Fee Report &mdash; May 2026</span>
+    </div>
+    <div class="topbar-right">
+      <div class="d-flex align-items-center gap-2">
+        <select class="form-select form-select-sm" style="width:auto">
+          <option>May 2026</option><option>April 2026</option><option>March 2026</option>
+          <option>February 2026</option><option>January 2026</option>
+          <option>December 2025</option><option>November 2025</option>
+          <option>October 2025</option><option>September 2025</option>
+          <option>August 2025</option><option>July 2025</option><option>June 2025</option>
+        </select>
+        <button class="btn btn-sm btn-warning text-white fw-semibold" onclick="alert('Report loaded for selected month!')"><i class="fas fa-sync me-1"></i>Load Report</button>
+        <img src="https://ui-avatars.com/api/?name=Ayesha+Rizvi&background=d97706&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#eff6ff"><i class="fas fa-rupee-sign" style="color:#1d4ed8"></i></div>
+          <div class="stat-val" style="color:#1d4ed8">₨1,00,00,000</div>
+          <div class="stat-lbl">Total Fee Due</div>
+          <div class="stat-trend" style="color:#64748b">May 2026 · All classes</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-check-circle" style="color:#059669"></i></div>
+          <div class="stat-val" style="color:#059669">₨76,00,000</div>
+          <div class="stat-lbl">Total Collected</div>
+          <div class="stat-trend" style="color:#059669"><i class="fas fa-arrow-up"></i> 643 students paid</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fef2f2"><i class="fas fa-exclamation-circle" style="color:#ef4444"></i></div>
+          <div class="stat-val" style="color:#ef4444">₨24,00,000</div>
+          <div class="stat-lbl">Outstanding</div>
+          <div class="stat-trend" style="color:#ef4444">199 students unpaid</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fffbeb"><i class="fas fa-percent" style="color:#d97706"></i></div>
+          <div class="stat-val" style="color:#d97706">76%</div>
+          <div class="stat-lbl">Collection Rate</div>
+          <div class="stat-trend" style="color:#d97706">May 2026 target: 90%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Class-wise Summary Table -->
+    <div class="sec-card mb-4">
+      <div class="sec-head">
+        <h5><i class="fas fa-table me-2" style="color:#d97706"></i>Class-wise Fee Summary — May 2026</h5>
+        <button class="btn btn-sm btn-outline-secondary" onclick="alert('Exporting to Excel...')"><i class="fas fa-file-excel me-1"></i>Export</button>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="ps-4">Class</th>
+              <th>Section</th>
+              <th>Total Students</th>
+              <th>Paid</th>
+              <th>Unpaid</th>
+              <th>Collection %</th>
+              <th class="pe-4">Outstanding Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Class 8 -->
+            <tr><td class="ps-4 fw-semibold">Class 8</td><td>A</td><td>35</td><td class="text-success fw-semibold">28</td><td class="text-danger">7</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:80%;background:#d97706"></div></div><span class="pct-mid">80%</span></div></td><td class="pe-4 text-danger fw-semibold">₨49,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">Class 8</td><td>B</td><td>34</td><td class="text-success fw-semibold">26</td><td class="text-danger">8</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:76%;background:#d97706"></div></div><span class="pct-mid">76%</span></div></td><td class="pe-4 text-danger fw-semibold">₨56,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">Class 8</td><td>C</td><td>33</td><td class="text-success fw-semibold">24</td><td class="text-danger">9</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:73%;background:#ef4444"></div></div><span class="pct-low">73%</span></div></td><td class="pe-4 text-danger fw-semibold">₨63,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">Class 8</td><td>D</td><td>34</td><td class="text-success fw-semibold">25</td><td class="text-danger">9</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:74%;background:#d97706"></div></div><span class="pct-mid">74%</span></div></td><td class="pe-4 text-danger fw-semibold">₨63,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">Class 8</td><td>E</td><td>32</td><td class="text-success fw-semibold">23</td><td class="text-danger">9</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:72%;background:#ef4444"></div></div><span class="pct-low">72%</span></div></td><td class="pe-4 text-danger fw-semibold">₨63,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">Class 8</td><td>F</td><td>31</td><td class="text-success fw-semibold">22</td><td class="text-danger">9</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:71%;background:#ef4444"></div></div><span class="pct-low">71%</span></div></td><td class="pe-4 text-danger fw-semibold">₨63,000</td></tr>
+            <!-- Class 9 -->
+            <tr style="background:#fafbfc"><td class="ps-4 fw-semibold">Class 9</td><td>A</td><td>38</td><td class="text-success fw-semibold">31</td><td class="text-danger">7</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:82%;background:#d97706"></div></div><span class="pct-mid">82%</span></div></td><td class="pe-4 text-danger fw-semibold">₨56,000</td></tr>
+            <tr style="background:#fafbfc"><td class="ps-4 fw-semibold">Class 9</td><td>B</td><td>37</td><td class="text-success fw-semibold">29</td><td class="text-danger">8</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:78%;background:#d97706"></div></div><span class="pct-mid">78%</span></div></td><td class="pe-4 text-danger fw-semibold">₨64,000</td></tr>
+            <tr style="background:#fafbfc"><td class="ps-4 fw-semibold">Class 9</td><td>C</td><td>36</td><td class="text-success fw-semibold">28</td><td class="text-danger">8</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:78%;background:#d97706"></div></div><span class="pct-mid">78%</span></div></td><td class="pe-4 text-danger fw-semibold">₨64,000</td></tr>
+            <tr style="background:#fafbfc"><td class="ps-4 fw-semibold">Class 9</td><td>D</td><td>36</td><td class="text-success fw-semibold">27</td><td class="text-danger">9</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:75%;background:#d97706"></div></div><span class="pct-mid">75%</span></div></td><td class="pe-4 text-danger fw-semibold">₨72,000</td></tr>
+            <tr style="background:#fafbfc"><td class="ps-4 fw-semibold">Class 9</td><td>E</td><td>35</td><td class="text-success fw-semibold">26</td><td class="text-danger">9</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:74%;background:#d97706"></div></div><span class="pct-mid">74%</span></div></td><td class="pe-4 text-danger fw-semibold">₨72,000</td></tr>
+            <tr style="background:#fafbfc"><td class="ps-4 fw-semibold">Class 9</td><td>F</td><td>34</td><td class="text-success fw-semibold">25</td><td class="text-danger">9</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:74%;background:#d97706"></div></div><span class="pct-mid">74%</span></div></td><td class="pe-4 text-danger fw-semibold">₨72,000</td></tr>
+            <!-- Class 10 -->
+            <tr><td class="ps-4 fw-semibold">Class 10</td><td>A</td><td>40</td><td class="text-success fw-semibold">34</td><td class="text-danger">6</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:85%;background:#059669"></div></div><span class="pct-good">85%</span></div></td><td class="pe-4 text-danger fw-semibold">₨57,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">Class 10</td><td>B</td><td>39</td><td class="text-success fw-semibold">32</td><td class="text-danger">7</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:82%;background:#d97706"></div></div><span class="pct-mid">82%</span></div></td><td class="pe-4 text-danger fw-semibold">₨66,500</td></tr>
+            <tr><td class="ps-4 fw-semibold">Class 10</td><td>C</td><td>38</td><td class="text-success fw-semibold">30</td><td class="text-danger">8</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:79%;background:#d97706"></div></div><span class="pct-mid">79%</span></div></td><td class="pe-4 text-danger fw-semibold">₨76,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">Class 10</td><td>D</td><td>37</td><td class="text-success fw-semibold">29</td><td class="text-danger">8</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:78%;background:#d97706"></div></div><span class="pct-mid">78%</span></div></td><td class="pe-4 text-danger fw-semibold">₨76,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">Class 10</td><td>E</td><td>36</td><td class="text-success fw-semibold">29</td><td class="text-danger">7</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:81%;background:#d97706"></div></div><span class="pct-mid">81%</span></div></td><td class="pe-4 text-danger fw-semibold">₨66,500</td></tr>
+            <!-- Class 11 -->
+            <tr style="background:#fafbfc"><td class="ps-4 fw-semibold">Class 11</td><td>A</td><td>42</td><td class="text-success fw-semibold">38</td><td class="text-danger">4</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:90%;background:#059669"></div></div><span class="pct-good">90%</span></div></td><td class="pe-4 text-danger fw-semibold">₨40,000</td></tr>
+            <tr style="background:#fafbfc"><td class="ps-4 fw-semibold">Class 11</td><td>B</td><td>41</td><td class="text-success fw-semibold">36</td><td class="text-danger">5</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:88%;background:#059669"></div></div><span class="pct-good">88%</span></div></td><td class="pe-4 text-danger fw-semibold">₨50,000</td></tr>
+            <tr style="background:#fafbfc"><td class="ps-4 fw-semibold">Class 11</td><td>C</td><td>40</td><td class="text-success fw-semibold">34</td><td class="text-danger">6</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:85%;background:#059669"></div></div><span class="pct-good">85%</span></div></td><td class="pe-4 text-danger fw-semibold">₨60,000</td></tr>
+            <tr style="background:#fafbfc"><td class="ps-4 fw-semibold">Class 11</td><td>D</td><td>39</td><td class="text-success fw-semibold">33</td><td class="text-danger">6</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:85%;background:#059669"></div></div><span class="pct-good">85%</span></div></td><td class="pe-4 text-danger fw-semibold">₨60,000</td></tr>
+            <tr style="background:#fafbfc"><td class="ps-4 fw-semibold">Class 11</td><td>E</td><td>38</td><td class="text-success fw-semibold">33</td><td class="text-danger">5</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:87%;background:#059669"></div></div><span class="pct-good">87%</span></div></td><td class="pe-4 text-danger fw-semibold">₨50,000</td></tr>
+            <!-- Class 12 -->
+            <tr><td class="ps-4 fw-semibold">Class 12</td><td>A</td><td>15</td><td class="text-success fw-semibold">8</td><td class="text-danger">7</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:53%;background:#d97706"></div></div><span class="pct-mid">53%</span></div></td><td class="pe-4 text-danger fw-semibold">₨84,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">Class 12</td><td>B</td><td>38</td><td class="text-success fw-semibold">36</td><td class="text-danger">2</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:95%;background:#059669"></div></div><span class="pct-good">95%</span></div></td><td class="pe-4 text-danger fw-semibold">₨24,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">Class 12</td><td>C</td><td>37</td><td class="text-success fw-semibold">35</td><td class="text-danger">2</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:95%;background:#059669"></div></div><span class="pct-good">95%</span></div></td><td class="pe-4 text-danger fw-semibold">₨24,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">Class 12</td><td>D</td><td>36</td><td class="text-success fw-semibold">34</td><td class="text-danger">2</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:94%;background:#059669"></div></div><span class="pct-good">94%</span></div></td><td class="pe-4 text-danger fw-semibold">₨24,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">Class 12</td><td>E</td><td>35</td><td class="text-success fw-semibold">33</td><td class="text-danger">2</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:94%;background:#059669"></div></div><span class="pct-good">94%</span></div></td><td class="pe-4 text-danger fw-semibold">₨24,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">Class 12</td><td>F</td><td>34</td><td class="text-success fw-semibold">32</td><td class="text-danger">2</td><td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:94%;background:#059669"></div></div><span class="pct-good">94%</span></div></td><td class="pe-4 text-danger fw-semibold">₨24,000</td></tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="ps-4" colspan="2">Grand Total</td>
+              <td>842</td>
+              <td class="text-success">643</td>
+              <td class="text-danger">199</td>
+              <td><div class="d-flex align-items-center gap-2"><div class="att-bar-wrap" style="width:80px;display:inline-block"><div class="att-bar-fill" style="width:76%;background:#d97706"></div></div><span style="color:#d97706;font-weight:700">76%</span></div></td>
+              <td class="pe-4 text-danger">₨24,00,000</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Payment Mode Breakdown -->
+    <div class="sec-card mb-4">
+      <div class="sec-head"><h5><i class="fas fa-credit-card me-2" style="color:#d97706"></i>Payment Mode Breakdown — May 2026</h5></div>
+      <div class="p-4">
+        <div class="row g-4">
+          <div class="col-md-4">
+            <div class="d-flex justify-content-between mb-1">
+              <span style="font-size:13px;font-weight:600"><i class="fas fa-money-bill-wave me-2 text-success"></i>Cash</span>
+              <span class="fw-bold text-success">45% &nbsp;·&nbsp; ₨34,20,000</span>
+            </div>
+            <div class="att-bar-wrap mb-1">
+              <div class="att-bar-fill" style="width:45%;background:#059669"></div>
+            </div>
+            <small class="text-muted">289 students · Most common mode</small>
+          </div>
+          <div class="col-md-4">
+            <div class="d-flex justify-content-between mb-1">
+              <span style="font-size:13px;font-weight:600"><i class="fas fa-university me-2 text-primary"></i>Bank Transfer</span>
+              <span class="fw-bold text-primary">30% &nbsp;·&nbsp; ₨22,80,000</span>
+            </div>
+            <div class="att-bar-wrap mb-1">
+              <div class="att-bar-fill" style="width:30%;background:#1d4ed8"></div>
+            </div>
+            <small class="text-muted">193 students</small>
+          </div>
+          <div class="col-md-4">
+            <div class="d-flex justify-content-between mb-1">
+              <span style="font-size:13px;font-weight:600"><i class="fas fa-mobile-alt me-2" style="color:#7c3aed"></i>Online / Mobile</span>
+              <span class="fw-bold" style="color:#7c3aed">25% &nbsp;·&nbsp; ₨19,00,000</span>
+            </div>
+            <div class="att-bar-wrap mb-1">
+              <div class="att-bar-fill" style="width:25%;background:#7c3aed"></div>
+            </div>
+            <small class="text-muted">161 students · JazzCash / EasyPaisa</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date-wise Collection Table -->
+    <div class="sec-card mb-4">
+      <div class="sec-head">
+        <h5><i class="fas fa-calendar-day me-2" style="color:#d97706"></i>Date-wise Collection — Last 10 Days</h5>
+        <small class="text-muted">May 2026</small>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="ps-4">Date</th>
+              <th>Day</th>
+              <th>Students Paid</th>
+              <th>Amount Collected</th>
+              <th class="pe-4">Running Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="ps-4 fw-semibold">20 May 2026</td><td class="text-muted">Thursday</td><td><span class="badge bg-success bg-opacity-10 text-success fw-bold px-3">42</span></td><td class="fw-bold text-success">₨5,04,000</td><td class="pe-4 text-muted">₨76,00,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">19 May 2026</td><td class="text-muted">Wednesday</td><td><span class="badge bg-success bg-opacity-10 text-success fw-bold px-3">38</span></td><td class="fw-bold text-success">₨4,56,000</td><td class="pe-4 text-muted">₨70,96,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">18 May 2026</td><td class="text-muted">Tuesday</td><td><span class="badge bg-success bg-opacity-10 text-success fw-bold px-3">45</span></td><td class="fw-bold text-success">₨5,40,000</td><td class="pe-4 text-muted">₨66,40,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">17 May 2026</td><td class="text-muted">Monday</td><td><span class="badge bg-success bg-opacity-10 text-success fw-bold px-3">52</span></td><td class="fw-bold text-success">₨6,24,000</td><td class="pe-4 text-muted">₨61,00,000</td></tr>
+            <tr style="background:#fafbfc"><td class="ps-4 fw-semibold text-muted">16 May 2026</td><td class="text-muted">Sunday</td><td><span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-3">0</span></td><td class="text-muted">—</td><td class="pe-4 text-muted">₨54,76,000</td></tr>
+            <tr style="background:#fafbfc"><td class="ps-4 fw-semibold text-muted">15 May 2026</td><td class="text-muted">Saturday</td><td><span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-3">0</span></td><td class="text-muted">—</td><td class="pe-4 text-muted">₨54,76,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">14 May 2026</td><td class="text-muted">Friday</td><td><span class="badge bg-success bg-opacity-10 text-success fw-bold px-3">30</span></td><td class="fw-bold text-success">₨3,60,000</td><td class="pe-4 text-muted">₨54,76,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">13 May 2026</td><td class="text-muted">Thursday</td><td><span class="badge bg-success bg-opacity-10 text-success fw-bold px-3">61</span></td><td class="fw-bold text-success">₨7,32,000</td><td class="pe-4 text-muted">₨51,16,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">12 May 2026</td><td class="text-muted">Wednesday</td><td><span class="badge bg-success bg-opacity-10 text-success fw-bold px-3">58</span></td><td class="fw-bold text-success">₨6,96,000</td><td class="pe-4 text-muted">₨43,84,000</td></tr>
+            <tr><td class="ps-4 fw-semibold">11 May 2026</td><td class="text-muted">Tuesday</td><td><span class="badge bg-success bg-opacity-10 text-success fw-bold px-3">74</span></td><td class="fw-bold text-success">₨8,88,000</td><td class="pe-4 text-muted">₨36,88,000</td></tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="ps-4" colspan="2">10-Day Total</td>
+              <td>400 students</td>
+              <td class="text-success">₨48,00,000</td>
+              <td class="pe-4 text-muted">—</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="sec-card">
+      <div class="sec-head"><h5><i class="fas fa-cog me-2" style="color:#d97706"></i>Report Actions</h5></div>
+      <div class="p-4 d-flex flex-wrap gap-3">
+        <button class="btn btn-danger" onclick="alert('Generating PDF report for May 2026...')">
+          <i class="fas fa-file-pdf me-2"></i>Export PDF Report
+        </button>
+        <button class="btn btn-outline-secondary" onclick="alert('Exporting to Excel...')">
+          <i class="fas fa-file-excel me-2"></i>Export Excel
+        </button>
+        <button class="btn btn-warning text-white" onclick="alert('Sending reminder messages to 199 defaulters...')">
+          <i class="fas fa-bell me-2"></i>Send Reminders to Defaulters
+        </button>
+        <a href="finance-defaulters.html" class="btn btn-outline-danger">
+          <i class="fas fa-exclamation-triangle me-2"></i>View Defaulter List
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
+  function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
+</script>
+</body>
+</html>
