@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fee Collection — BMC Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="portal.css" rel="stylesheet" />
+  <style>
+    .sb-link.active{border-color:#d97706;} .sb-logo{background:#d97706;} .sb-av{background:#d97706;}
+    .class-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+    .class-tab{padding:6px 18px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:13px;font-weight:600;color:#475569;cursor:pointer;transition:.15s;}
+    .class-tab:hover{border-color:#d97706;color:#d97706;}
+    .class-tab.active{background:#d97706;border-color:#d97706;color:#fff;}
+    .section-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+    .section-tab{padding:4px 14px;border-radius:16px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;color:#64748b;cursor:pointer;transition:.15s;}
+    .section-tab:hover{border-color:#d97706;color:#d97706;}
+    .section-tab.active{background:#fffbeb;border-color:#d97706;color:#b45309;}
+    .fee-tick{width:18px;height:18px;accent-color:#059669;cursor:pointer;}
+    .fee-paid-row{background:#f0fdf4 !important;}
+    .fee-paid-row td{color:#166534;}
+    input[type="date"]:disabled,select:disabled,input[type="text"]:disabled{background:#f1f5f9;color:#94a3b8;cursor:not-allowed;}
+    .table-input{border:1.5px solid var(--border);border-radius:var(--radius);padding:4px 8px;font-size:12px;width:100%;}
+    .table-input:focus{outline:none;border-color:#d97706;}
+    .collection-summary{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px;}
+  </style>
+</head>
+<body>
+<div class="overlay" id="ov" onclick="closeSb()"></div>
+<div class="sidebar" id="sb">
+  <div class="sb-brand"><div class="sb-logo"><i class="fas fa-coins"></i></div><div class="sb-title"><h6>BMC Portal</h6><small>Finance Portal</small></div></div>
+  <div class="sb-menu">
+    <div class="sb-section">Finance</div>
+    <a class="sb-link" href="finance-dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a class="sb-link active" href="finance-collection.html"><i class="fas fa-check-square"></i> Fee Collection</a>
+    <a class="sb-link" href="finance-monthly.html"><i class="fas fa-calendar-alt"></i> Monthly Report</a>
+    <a class="sb-link" href="finance-records.html"><i class="fas fa-file-invoice-dollar"></i> Fee Records</a>
+    <a class="sb-link" href="finance-defaulters.html"><i class="fas fa-exclamation-triangle"></i> Defaulter List</a>
+    <a class="sb-link" href="finance-reports.html"><i class="fas fa-chart-bar"></i> Analytics</a>
+    <div class="sb-section">Navigation</div>
+    <a class="sb-link" href="admin-dashboard.html"><i class="fas fa-shield-alt"></i> Admin Panel</a>
+    <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
+    <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user"></i></div><div class="sb-foot-info"><h6>Ms. Ayesha Rizvi</h6><small>Finance Officer</small></div></div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="toggle-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <span class="topbar-title"><i class="fas fa-check-square" style="color:#d97706"></i> Fee Collection &mdash; May 2026</span>
+    </div>
+    <div class="topbar-right">
+      <div class="d-flex align-items-center gap-2">
+        <select class="form-select form-select-sm" style="width:auto">
+          <option>May 2026</option><option>April 2026</option><option>March 2026</option>
+          <option>February 2026</option><option>January 2026</option>
+        </select>
+        <button class="btn btn-sm btn-warning text-white fw-semibold" onclick="saveAll()"><i class="fas fa-save me-1"></i>Save All</button>
+        <img src="https://ui-avatars.com/api/?name=Ayesha+Rizvi&background=d97706&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#eff6ff"><i class="fas fa-users" style="color:#1d4ed8"></i></div>
+          <div class="stat-val" style="color:#1d4ed8">842</div>
+          <div class="stat-lbl">Total Students</div>
+          <div class="stat-trend" style="color:#64748b">All classes combined</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-check-circle" style="color:#059669"></i></div>
+          <div class="stat-val" style="color:#059669">643</div>
+          <div class="stat-lbl">Paid</div>
+          <div class="stat-trend" style="color:#059669"><i class="fas fa-arrow-up"></i> Updated this session</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fef2f2"><i class="fas fa-times-circle" style="color:#ef4444"></i></div>
+          <div class="stat-val" style="color:#ef4444">199</div>
+          <div class="stat-lbl">Unpaid</div>
+          <div class="stat-trend" style="color:#ef4444">Awaiting payment</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fffbeb"><i class="fas fa-percent" style="color:#d97706"></i></div>
+          <div class="stat-val" style="color:#d97706">76%</div>
+          <div class="stat-lbl">Collection %</div>
+          <div class="stat-trend" style="color:#d97706">May 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Class & Section Selectors -->
+    <div class="sec-card mb-3">
+      <div class="sec-head"><h5><i class="fas fa-filter me-2" style="color:#d97706"></i>Select Class &amp; Section</h5></div>
+      <div class="p-3">
+        <div class="class-tabs">
+          <button class="class-tab" onclick="selectClass('all',this)">All</button>
+          <button class="class-tab" onclick="selectClass('8',this)">Class 8</button>
+          <button class="class-tab" onclick="selectClass('9',this)">Class 9</button>
+          <button class="class-tab" onclick="selectClass('10',this)">Class 10</button>
+          <button class="class-tab" onclick="selectClass('11',this)">Class 11</button>
+          <button class="class-tab active" onclick="selectClass('12',this)">Class 12</button>
+        </div>
+        <div class="section-tabs" id="sectionTabs">
+          <button class="section-tab active" onclick="selectSection('A',this)">Section A</button>
+          <button class="section-tab" onclick="selectSection('B',this)">Section B</button>
+          <button class="section-tab" onclick="selectSection('C',this)">Section C</button>
+          <button class="section-tab" onclick="selectSection('D',this)">Section D</button>
+          <button class="section-tab" onclick="selectSection('E',this)">Section E</button>
+          <button class="section-tab" onclick="selectSection('F',this)">Section F</button>
+        </div>
+        <div style="font-size:13px;color:#64748b;">Showing: <strong id="currentLabel">Class 12 — Section A</strong> &nbsp;·&nbsp; <span id="paidCount">8</span> paid / <span id="totalCount">15</span> students</div>
+      </div>
+    </div>
+
+    <!-- Collection Table -->
+    <div class="sec-card mb-3">
+      <div class="sec-head">
+        <h5><i class="fas fa-check-square me-2" style="color:#059669"></i>Fee Collection Sheet — Class 12-A</h5>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-secondary" onclick="alert('Printing sheet...')"><i class="fas fa-print me-1"></i>Print</button>
+          <button class="btn btn-sm btn-warning text-white" onclick="saveAll()"><i class="fas fa-save me-1"></i>Save</button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table" id="collectionTable">
+          <thead>
+            <tr>
+              <th class="ps-3" style="width:40px">#</th>
+              <th style="width:70px">Roll No</th>
+              <th>Student Name</th>
+              <th>Father's Name</th>
+              <th style="width:100px">Fee Amount</th>
+              <th style="width:60px;text-align:center">Paid?</th>
+              <th style="width:130px">Payment Date</th>
+              <th style="width:120px">Mode</th>
+              <th class="pe-3">Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Row 1 - PAID -->
+            <tr class="fee-paid-row" data-class="12" data-section="A">
+              <td class="ps-3">1</td>
+              <td class="fw-bold">101</td>
+              <td class="fw-semibold">Ahmed Ali</td>
+              <td>Muhammad Ali</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" checked onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" value="2026-05-20" /></td>
+              <td><select class="table-input"><option>Cash</option><option>Bank Transfer</option><option>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." value="" /></td>
+            </tr>
+            <!-- Row 2 - PAID -->
+            <tr class="fee-paid-row" data-class="12" data-section="A">
+              <td class="ps-3">2</td>
+              <td class="fw-bold">102</td>
+              <td class="fw-semibold">Fatima Noor</td>
+              <td>Noor Ahmed</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" checked onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" value="2026-05-19" /></td>
+              <td><select class="table-input"><option>Cash</option><option selected>Bank Transfer</option><option>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." value="" /></td>
+            </tr>
+            <!-- Row 3 - UNPAID -->
+            <tr data-class="12" data-section="A">
+              <td class="ps-3">3</td>
+              <td class="fw-bold">103</td>
+              <td class="fw-semibold">Hassan Raza</td>
+              <td>Raza Khan</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" disabled /></td>
+              <td><select class="table-input" disabled><option>Cash</option><option>Bank Transfer</option><option>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." disabled /></td>
+            </tr>
+            <!-- Row 4 - PAID -->
+            <tr class="fee-paid-row" data-class="12" data-section="A">
+              <td class="ps-3">4</td>
+              <td class="fw-bold">104</td>
+              <td class="fw-semibold">Iqra Shah</td>
+              <td>Shahid Hussain</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" checked onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" value="2026-05-18" /></td>
+              <td><select class="table-input"><option selected>Cash</option><option>Bank Transfer</option><option>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." value="" /></td>
+            </tr>
+            <!-- Row 5 - UNPAID -->
+            <tr data-class="12" data-section="A">
+              <td class="ps-3">5</td>
+              <td class="fw-bold">105</td>
+              <td class="fw-semibold">Bilal Tariq</td>
+              <td>Tariq Mehmood</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" disabled /></td>
+              <td><select class="table-input" disabled><option>Cash</option><option>Bank Transfer</option><option>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." disabled /></td>
+            </tr>
+            <!-- Row 6 - PAID -->
+            <tr class="fee-paid-row" data-class="12" data-section="A">
+              <td class="ps-3">6</td>
+              <td class="fw-bold">106</td>
+              <td class="fw-semibold">Zara Iqbal</td>
+              <td>Iqbal Hussain</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" checked onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" value="2026-05-17" /></td>
+              <td><select class="table-input"><option>Cash</option><option>Bank Transfer</option><option selected>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." value="" /></td>
+            </tr>
+            <!-- Row 7 - UNPAID -->
+            <tr data-class="12" data-section="A">
+              <td class="ps-3">7</td>
+              <td class="fw-bold">107</td>
+              <td class="fw-semibold">Saad Qureshi</td>
+              <td>Qureshi Sahib</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" disabled /></td>
+              <td><select class="table-input" disabled><option>Cash</option><option>Bank Transfer</option><option>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." disabled /></td>
+            </tr>
+            <!-- Row 8 - PAID -->
+            <tr class="fee-paid-row" data-class="12" data-section="A">
+              <td class="ps-3">8</td>
+              <td class="fw-bold">108</td>
+              <td class="fw-semibold">Amna Zahid</td>
+              <td>Zahid Ali</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" checked onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" value="2026-05-16" /></td>
+              <td><select class="table-input"><option selected>Cash</option><option>Bank Transfer</option><option>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." value="" /></td>
+            </tr>
+            <!-- Row 9 - UNPAID -->
+            <tr data-class="12" data-section="A">
+              <td class="ps-3">9</td>
+              <td class="fw-bold">109</td>
+              <td class="fw-semibold">Usman Ghani</td>
+              <td>Ghani Sahib</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" disabled /></td>
+              <td><select class="table-input" disabled><option>Cash</option><option>Bank Transfer</option><option>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." disabled /></td>
+            </tr>
+            <!-- Row 10 - PAID -->
+            <tr class="fee-paid-row" data-class="12" data-section="A">
+              <td class="ps-3">10</td>
+              <td class="fw-bold">110</td>
+              <td class="fw-semibold">Rabia Malik</td>
+              <td>Malik Sahib</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" checked onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" value="2026-05-15" /></td>
+              <td><select class="table-input"><option>Cash</option><option selected>Bank Transfer</option><option>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." value="" /></td>
+            </tr>
+            <!-- Row 11 - UNPAID -->
+            <tr data-class="12" data-section="A">
+              <td class="ps-3">11</td>
+              <td class="fw-bold">111</td>
+              <td class="fw-semibold">Faisal Khan</td>
+              <td>Khan Bahadur</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" disabled /></td>
+              <td><select class="table-input" disabled><option>Cash</option><option>Bank Transfer</option><option>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." disabled /></td>
+            </tr>
+            <!-- Row 12 - PAID -->
+            <tr class="fee-paid-row" data-class="12" data-section="A">
+              <td class="ps-3">12</td>
+              <td class="fw-bold">112</td>
+              <td class="fw-semibold">Nida Ansari</td>
+              <td>Ansari Sahib</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" checked onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" value="2026-05-14" /></td>
+              <td><select class="table-input"><option>Cash</option><option>Bank Transfer</option><option selected>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." value="" /></td>
+            </tr>
+            <!-- Row 13 - UNPAID -->
+            <tr data-class="12" data-section="A">
+              <td class="ps-3">13</td>
+              <td class="fw-bold">113</td>
+              <td class="fw-semibold">Asad Mehmood</td>
+              <td>Mehmood Sahib</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" disabled /></td>
+              <td><select class="table-input" disabled><option>Cash</option><option>Bank Transfer</option><option>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." disabled /></td>
+            </tr>
+            <!-- Row 14 - PAID -->
+            <tr class="fee-paid-row" data-class="12" data-section="A">
+              <td class="ps-3">14</td>
+              <td class="fw-bold">114</td>
+              <td class="fw-semibold">Sana Butt</td>
+              <td>Butt Sahib</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" checked onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" value="2026-05-13" /></td>
+              <td><select class="table-input"><option selected>Cash</option><option>Bank Transfer</option><option>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." value="" /></td>
+            </tr>
+            <!-- Row 15 - UNPAID -->
+            <tr data-class="12" data-section="A">
+              <td class="ps-3">15</td>
+              <td class="fw-bold">115</td>
+              <td class="fw-semibold">Kamran Elahi</td>
+              <td>Elahi Sahib</td>
+              <td class="fw-bold">₨12,000</td>
+              <td style="text-align:center"><input type="checkbox" class="fee-tick" onchange="toggleRow(this)" /></td>
+              <td><input type="date" class="table-input" disabled /></td>
+              <td><select class="table-input" disabled><option>Cash</option><option>Bank Transfer</option><option>Online</option></select></td>
+              <td class="pe-3"><input type="text" class="table-input" placeholder="..." disabled /></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="collection-summary mb-3">
+      <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <h6 class="fw-bold mb-0"><i class="fas fa-chart-pie me-2" style="color:#d97706"></i>Class 12-A Collection Summary — May 2026</h6>
+        <span class="badge" style="background:#fffbeb;color:#92400e;font-size:13px;padding:6px 14px;">8 paid / 15 total</span>
+      </div>
+      <div class="d-flex justify-content-between mb-1" style="font-size:13px;">
+        <span class="fw-semibold">Collection Progress</span>
+        <span class="fw-bold" style="color:#d97706" id="summaryPct">53%</span>
+      </div>
+      <div class="att-bar-wrap mb-3">
+        <div class="att-bar-fill" id="summaryBar" style="width:53%;background:#d97706"></div>
+      </div>
+      <div class="row g-3 text-center">
+        <div class="col-4">
+          <div style="font-size:22px;font-weight:700;color:#059669" id="paidAmt">₨96,000</div>
+          <div style="font-size:11px;color:#64748b">Amount Collected</div>
+        </div>
+        <div class="col-4">
+          <div style="font-size:22px;font-weight:700;color:#ef4444" id="unpaidAmt">₨84,000</div>
+          <div style="font-size:11px;color:#64748b">Amount Pending</div>
+        </div>
+        <div class="col-4">
+          <div style="font-size:22px;font-weight:700;color:#1d4ed8">₨1,80,000</div>
+          <div style="font-size:11px;color:#64748b">Total Fee Due</div>
+        </div>
+      </div>
+      <div class="mt-3 pt-3 border-top d-flex gap-2 justify-content-end">
+        <button class="btn btn-sm btn-outline-secondary" onclick="alert('Printing summary...')"><i class="fas fa-print me-1"></i>Print Sheet</button>
+        <button class="btn btn-sm btn-warning text-white" onclick="saveAll()"><i class="fas fa-save me-1"></i>Save All</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
+  function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
+
+  function toggleRow(cb){
+    const row=cb.closest('tr');
+    const inputs=row.querySelectorAll('input[type="date"],select,input[type="text"]');
+    if(cb.checked){
+      row.classList.add('fee-paid-row');
+      inputs.forEach(i=>i.disabled=false);
+      const dateIn=row.querySelector('input[type="date"]');
+      if(!dateIn.value){const d=new Date();dateIn.value=d.toISOString().split('T')[0];}
+    } else {
+      row.classList.remove('fee-paid-row');
+      inputs.forEach(i=>{i.disabled=true;});
+    }
+    updateSummary();
+  }
+
+  function updateSummary(){
+    const rows=document.querySelectorAll('#collectionTable tbody tr');
+    let paid=0,total=rows.length;
+    rows.forEach(r=>{if(r.querySelector('.fee-tick').checked)paid++;});
+    const pct=Math.round(paid/total*100);
+    document.getElementById('paidCount').textContent=paid;
+    document.getElementById('totalCount').textContent=total;
+    document.getElementById('summaryPct').textContent=pct+'%';
+    document.getElementById('summaryBar').style.width=pct+'%';
+    const feePerStudent=12000;
+    document.getElementById('paidAmt').textContent='₨'+formatNum(paid*feePerStudent);
+    document.getElementById('unpaidAmt').textContent='₨'+formatNum((total-paid)*feePerStudent);
+  }
+
+  function formatNum(n){return n.toLocaleString('en-PK');}
+
+  function selectClass(cls,btn){
+    document.querySelectorAll('.class-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const rows=document.querySelectorAll('#collectionTable tbody tr');
+    rows.forEach(r=>{
+      r.style.display=(cls==='all'||r.dataset.class===cls)?'':'none';
+    });
+    document.getElementById('sectionTabs').style.display=(cls==='all')?'none':'flex';
+    const lbl=cls==='all'?'All Classes':('Class '+cls+' — Section A');
+    document.getElementById('currentLabel').textContent=lbl;
+  }
+
+  function selectSection(sec,btn){
+    document.querySelectorAll('.section-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const rows=document.querySelectorAll('#collectionTable tbody tr');
+    const activeClass=document.querySelector('.class-tab.active').textContent.replace('Class ','').trim();
+    rows.forEach(r=>{
+      const matchClass=(activeClass==='All')||r.dataset.class===activeClass;
+      const matchSec=r.dataset.section===sec;
+      r.style.display=(matchClass&&matchSec)?'':'none';
+    });
+    const clsLabel=activeClass==='All'?'All Classes':'Class '+activeClass;
+    document.getElementById('currentLabel').textContent=clsLabel+' — Section '+sec;
+  }
+
+  function saveAll(){alert('Fee collection data saved successfully!');}
+
+  // Init
+  updateSummary();
+</script>
+</body>
+</html>
