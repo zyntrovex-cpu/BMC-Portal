@@ -3,122 +3,227 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BMC Portal — Bahria Model College</title>
+  <title>BMC Portal — Login</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
   <style>
-    * { box-sizing: border-box; }
-    body {
-      min-height: 100vh;
-      background: linear-gradient(145deg, #050d1a 0%, #0d2137 40%, #0d47a1 100%);
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Segoe UI', sans-serif; padding: 20px;
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+    .login-wrap { display: flex; min-height: 100vh; }
+
+    /* Left panel */
+    .login-panel {
+      width: 400px; flex-shrink: 0;
+      background: #1c3054;
+      display: flex; flex-direction: column;
+      padding: 36px 32px;
+      color: #fff;
     }
-    .login-wrap {
-      width: 100%; max-width: 500px;
-      background: #fff; border-radius: 20px;
-      box-shadow: 0 30px 80px rgba(0,0,0,.5); overflow: hidden;
+    .lp-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 44px; }
+    .lp-icon {
+      width: 42px; height: 42px; background: rgba(255,255,255,.12); border-radius: 6px;
+      display: flex; align-items: center; justify-content: center; font-size: 19px;
     }
-    .lh { background: linear-gradient(145deg, #0d2137 0%, #1565c0 100%); padding: 38px 30px; text-align: center; color: #fff; }
-    .lh .logo { width: 70px; height: 70px; background: rgba(255,255,255,.15); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 14px; }
-    .lh h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
-    .lh p  { font-size: 12px; opacity: .8; margin: 0; }
-    .lb { padding: 30px; }
-    .role-label { font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
-    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
-    .rc {
-      border: 2px solid #e2e8f0; border-radius: 12px; padding: 14px 8px;
-      text-align: center; cursor: pointer; transition: .2s;
+    .lp-name h4 { margin: 0; font-size: 15px; font-weight: 700; }
+    .lp-name p { margin: 0; font-size: 10px; opacity: .45; }
+
+    .lp-title { font-size: 24px; font-weight: 700; line-height: 1.35; margin-bottom: 8px; }
+    .lp-sub { font-size: 12.5px; opacity: .5; margin-bottom: 36px; }
+
+    .lp-portals { display: flex; flex-direction: column; gap: 9px; }
+    .lp-portal-btn {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 5px; padding: 10px 13px;
+      color: rgba(255,255,255,.7); font-size: 12px; cursor: pointer;
+      transition: .13s; text-decoration: none;
     }
-    .rc:hover { border-color: #1565c0; background: #eff6ff; }
-    .rc.active { border-color: #1565c0; background: #eff6ff; }
-    .rc i { font-size: 22px; display: block; margin-bottom: 6px; }
-    .rc span { font-size: 12px; font-weight: 600; color: #1e293b; }
-    .rc.s i { color: #1565c0; } .rc.t i { color: #059669; } .rc.a i { color: #7c3aed; } .rc.f i { color: #d97706; }
-    .form-control, .input-group-text {
-      border-radius: 10px; border: 2px solid #e2e8f0; font-size: 14px;
+    .lp-portal-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
+    .lp-portal-btn i { width: 16px; text-align: center; font-size: 14px; flex-shrink: 0; }
+    .lp-portal-btn .pbl { font-weight: 600; display: block; font-size: 12.5px; }
+    .lp-portal-btn .pbs { font-size: 10px; opacity: .48; display: block; margin-top: 1px; }
+
+    .lp-footer { margin-top: auto; padding-top: 24px; font-size: 10px; opacity: .28; }
+
+    /* Right panel */
+    .login-form-area {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 36px 20px;
     }
-    .input-group .form-control { border-left: none; border-radius: 0 10px 10px 0; }
-    .input-group-text { border-right: none; border-radius: 10px 0 0 10px; background: #f8fafc; color: #64748b; }
-    .form-control:focus { border-color: #1565c0; box-shadow: 0 0 0 3px rgba(21,101,192,.1); }
+    .login-card {
+      background: #fff; border-radius: 6px;
+      border: 1px solid #d5dde8;
+      padding: 32px 32px 26px;
+      width: 100%; max-width: 400px;
+    }
+    .lc-head { margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid #edf1f7; }
+    .lc-head h5 { font-size: 17px; font-weight: 700; color: #1a2332; margin-bottom: 4px; }
+    .lc-head p { font-size: 12px; color: #6b7a8d; margin: 0; }
+
+    .form-label { font-size: 11px; font-weight: 700; color: #4a5c70; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 5px; }
+    .form-control, .form-select { border: 1px solid #c6d0dc; border-radius: 4px; font-size: 13px; height: 37px; }
+    .form-control:focus, .form-select:focus { border-color: #1c5db5; box-shadow: 0 0 0 2px rgba(28,93,181,.1); outline: none; }
+
     .btn-login {
-      background: linear-gradient(135deg, #1565c0, #0d47a1); color: #fff; border: none;
-      border-radius: 10px; padding: 13px; font-size: 15px; font-weight: 600;
-      width: 100%; cursor: pointer; transition: opacity .2s; margin-top: 18px;
+      background: #1c3054; color: #fff; border: none;
+      width: 100%; height: 38px; border-radius: 4px;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: .13s;
+      margin-top: 4px;
     }
-    .btn-login:hover { opacity: .9; }
-    .demo-box {
-      background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px;
-      padding: 12px 15px; margin-top: 18px; font-size: 11.5px; color: #0369a1;
+    .btn-login:hover { background: #162645; }
+
+    .demo-section { margin-top: 22px; padding-top: 18px; border-top: 1px solid #edf1f7; }
+    .demo-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; }
+    .demo-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .demo-btn {
+      padding: 7px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;
+      cursor: pointer; border: 1px solid; transition: .12s; background: transparent; text-align: left;
     }
-    .demo-box b { display: block; font-weight: 700; margin-bottom: 6px; }
-    .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
-    .foot { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 14px; }
+    .demo-btn:hover { opacity: .75; }
+
+    .error-msg {
+      display: none; background: #fee2e2; color: #991b1b; border-radius: 4px;
+      padding: 8px 12px; font-size: 12px; margin-bottom: 14px;
+      border-left: 3px solid #ef4444;
+    }
+    .error-msg.show { display: block; }
+
+    .pwd-wrap { position: relative; }
+    .pwd-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #8a9ab0; cursor: pointer; padding: 0; font-size: 13px; }
+
+    @media (max-width: 768px) {
+      .login-panel { display: none; }
+      .login-form-area { background: #fff; min-height: 100vh; align-items: flex-start; padding-top: 50px; }
+      .login-card { border: none; box-shadow: none; padding: 0 16px; }
+    }
   </style>
 </head>
 <body>
 <div class="login-wrap">
-  <div class="lh">
-    <div class="logo"><i class="fas fa-university"></i></div>
-    <h1>BMC Portal</h1>
-    <p>Bahria Model College &nbsp;·&nbsp; Academic &amp; Administrative Management System</p>
+
+  <!-- Left panel -->
+  <div class="login-panel">
+    <div class="lp-logo">
+      <div class="lp-icon"><i class="fas fa-school"></i></div>
+      <div class="lp-name">
+        <h4>BMC Portal</h4>
+        <p>Bahria Model College</p>
+      </div>
+    </div>
+
+    <div class="lp-title">Student Information<br>Management System</div>
+    <div class="lp-sub">Bahria Education System &nbsp;·&nbsp; Academic Session 2025–26</div>
+
+    <div class="lp-portals">
+      <a href="#" class="lp-portal-btn" onclick="setRole('student');return false;">
+        <i class="fas fa-user-graduate" style="color:#60a5fa"></i>
+        <div><span class="pbl">Student Portal</span><span class="pbs">Results, Attendance, Timetable</span></div>
+      </a>
+      <a href="#" class="lp-portal-btn" onclick="setRole('teacher');return false;">
+        <i class="fas fa-chalkboard-teacher" style="color:#34d399"></i>
+        <div><span class="pbl">Teacher Portal</span><span class="pbs">Marks Entry, Attendance, Timetable</span></div>
+      </a>
+      <a href="#" class="lp-portal-btn" onclick="setRole('admin');return false;">
+        <i class="fas fa-shield-alt" style="color:#c084fc"></i>
+        <div><span class="pbl">Admin Panel</span><span class="pbs">Users, Classes, Results, Settings</span></div>
+      </a>
+      <a href="#" class="lp-portal-btn" onclick="setRole('finance');return false;">
+        <i class="fas fa-coins" style="color:#fb923c"></i>
+        <div><span class="pbl">Finance Portal</span><span class="pbs">Fee Collection, Records, Reports</span></div>
+      </a>
+    </div>
+
+    <div class="lp-footer">© 2026 Bahria Model College · All rights reserved</div>
   </div>
-  <div class="lb">
-    <div class="role-label">Select Your Role</div>
-    <div class="role-grid">
-      <div class="rc s active" onclick="pick('student',this)"><i class="fas fa-user-graduate"></i><span>Student</span></div>
-      <div class="rc t"        onclick="pick('teacher',this)"><i class="fas fa-chalkboard-teacher"></i><span>Teacher</span></div>
-      <div class="rc a"        onclick="pick('admin',this)"><i class="fas fa-shield-alt"></i><span>Admin</span></div>
-      <div class="rc f"        onclick="pick('finance',this)"><i class="fas fa-coins"></i><span>Finance</span></div>
-    </div>
-    <div class="mb-3">
-      <div class="input-group">
-        <span class="input-group-text"><i class="fas fa-user"></i></span>
-        <input type="text" class="form-control" id="uname" placeholder="Username / Roll Number" />
+
+  <!-- Right panel: Login form -->
+  <div class="login-form-area">
+    <div class="login-card">
+      <div class="lc-head">
+        <h5>Sign In to Portal</h5>
+        <p>Enter your credentials to continue</p>
+      </div>
+
+      <div id="errorMsg" class="error-msg"><i class="fas fa-exclamation-circle me-1"></i>Invalid credentials. Please try again.</div>
+
+      <div class="mb-3">
+        <label class="form-label">Portal / Role</label>
+        <select class="form-select" id="roleSelect" onchange="updatePlaceholder()">
+          <option value="student">Student</option>
+          <option value="teacher">Teacher</option>
+          <option value="admin">Administrator</option>
+          <option value="finance">Finance Officer</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Username / Email</label>
+        <input type="text" class="form-control" id="username" placeholder="ahmed@bmc.edu.pk" />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <div class="pwd-wrap">
+          <input type="password" class="form-control" id="password" placeholder="Enter your password" style="padding-right:36px" />
+          <button class="pwd-toggle" onclick="togglePwd()" type="button"><i class="fas fa-eye" id="pwdIcon"></i></button>
+        </div>
+      </div>
+
+      <button class="btn-login" onclick="doLogin()"><i class="fas fa-sign-in-alt me-2"></i>Sign In</button>
+
+      <div class="demo-section">
+        <div class="demo-label">Quick Demo Access</div>
+        <div class="demo-btns">
+          <button class="demo-btn" style="color:#1d4ed8;border-color:#bfdbfe" onclick="quickLogin('student')"><i class="fas fa-user-graduate me-1"></i>Student</button>
+          <button class="demo-btn" style="color:#059669;border-color:#a7f3d0" onclick="quickLogin('teacher')"><i class="fas fa-chalkboard-teacher me-1"></i>Teacher</button>
+          <button class="demo-btn" style="color:#7c3aed;border-color:#ddd6fe" onclick="quickLogin('admin')"><i class="fas fa-shield-alt me-1"></i>Admin</button>
+          <button class="demo-btn" style="color:#d97706;border-color:#fde68a" onclick="quickLogin('finance')"><i class="fas fa-coins me-1"></i>Finance</button>
+        </div>
       </div>
     </div>
-    <div class="mb-2">
-      <div class="input-group">
-        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-        <input type="password" class="form-control" id="upass" placeholder="Password" />
-      </div>
-    </div>
-    <button class="btn-login" onclick="doLogin()"><i class="fas fa-sign-in-alt me-2"></i>Login to Portal</button>
-    <div class="demo-box">
-      <b><i class="fas fa-info-circle me-1"></i>Demo Credentials (click role to auto-fill)</b>
-      <div class="demo-grid">
-        <span>Student: <b>student / demo123</b></span>
-        <span>Teacher: <b>teacher / demo123</b></span>
-        <span>Admin: <b>admin / demo123</b></span>
-        <span>Finance: <b>finance / demo123</b></span>
-      </div>
-    </div>
-    <div class="foot">Powered by <strong>Zyntrovex Technologies</strong> &nbsp;·&nbsp; © 2026 All Rights Reserved</div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  const routes = { student:'student-dashboard.html', teacher:'teacher-dashboard.html', admin:'admin-dashboard.html', finance:'finance-dashboard.html' };
-  const creds  = { student:{u:'student',p:'demo123'}, teacher:{u:'teacher',p:'demo123'}, admin:{u:'admin',p:'demo123'}, finance:{u:'finance',p:'demo123'} };
-  let role = 'student';
+  const creds = {
+    student: { user: 'ahmed@bmc.edu.pk',   pass: 'student123', page: 'student-dashboard.html' },
+    teacher: { user: 'sarah@bmc.edu.pk',   pass: 'teacher123', page: 'teacher-dashboard.html' },
+    admin:   { user: 'admin@bmc.edu.pk',   pass: 'admin123',   page: 'admin-dashboard.html' },
+    finance: { user: 'finance@bmc.edu.pk', pass: 'finance123', page: 'finance-dashboard.html' },
+  };
 
-  function pick(r, el) {
-    document.querySelectorAll('.rc').forEach(c => c.classList.remove('active'));
-    el.classList.add('active'); role = r;
-    document.getElementById('uname').value = creds[r].u;
-    document.getElementById('upass').value = creds[r].p;
+  function setRole(r) {
+    document.getElementById('roleSelect').value = r;
+    updatePlaceholder();
+    document.getElementById('username').focus();
+  }
+  function updatePlaceholder() {
+    const r = document.getElementById('roleSelect').value;
+    document.getElementById('username').placeholder = creds[r].user;
+  }
+  function quickLogin(r) {
+    document.getElementById('roleSelect').value = r;
+    document.getElementById('username').value = creds[r].user;
+    document.getElementById('password').value = creds[r].pass;
+    document.getElementById('errorMsg').classList.remove('show');
+    setTimeout(() => window.location.href = creds[r].page, 150);
   }
   function doLogin() {
-    const u = document.getElementById('uname').value.trim();
-    const p = document.getElementById('upass').value.trim();
-    if (!u || !p) { alert('Please enter credentials.'); return; }
-    window.location.href = routes[role];
+    const r = document.getElementById('roleSelect').value;
+    const u = document.getElementById('username').value.trim().toLowerCase();
+    const p = document.getElementById('password').value;
+    if (u === creds[r].user && p === creds[r].pass) {
+      document.getElementById('errorMsg').classList.remove('show');
+      window.location.href = creds[r].page;
+    } else {
+      document.getElementById('errorMsg').classList.add('show');
+    }
   }
-  // Auto-fill student on load
-  document.getElementById('uname').value = 'student';
-  document.getElementById('upass').value = 'demo123';
+  function togglePwd() {
+    const f = document.getElementById('password'), ic = document.getElementById('pwdIcon');
+    if (f.type === 'password') { f.type = 'text'; ic.className = 'fas fa-eye-slash'; }
+    else { f.type = 'password'; ic.className = 'fas fa-eye'; }
+  }
+  document.addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
 </script>
 </body>
 </html>

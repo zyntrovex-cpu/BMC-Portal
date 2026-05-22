@@ -8,16 +8,14 @@
   <link href="portal.css" rel="stylesheet" />
   <style>
     .sb-link.active{border-color:#1d4ed8;} .sb-logo{background:#1d4ed8;} .sb-av{background:#1d4ed8;}
-    .tt-slot{flex:0 0 130px;background:#f8fafc;border-radius:10px;padding:12px;border-left:4px solid #1d4ed8;}
-    .tt-slot.break{border-color:#f59e0b;background:#fffbeb;}
-    .tt-time{font-size:10px;color:#64748b;margin-bottom:4px;}
+    .tt-slot{flex:0 0 136px;background:#f8fafc;border-radius:8px;padding:12px 10px;border-left:4px solid #1d4ed8;border:1px solid var(--border);border-left:4px solid #1d4ed8;}
+    .tt-slot.brk{border-left-color:#f59e0b;background:#fffbeb;}
+    .tt-time{font-size:10px;color:#64748b;margin-bottom:4px;font-weight:600;}
     .tt-subj{font-size:13px;font-weight:700;color:#0f172a;}
-    .tt-room{font-size:11px;color:#94a3b8;margin-top:2px;}
-    .notice-item{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid #f1f5f9;}
-    .notice-item:last-child{border:none;}
-    .notice-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
-    .asgn-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9;}
-    .asgn-item:last-child{border:none;}
+    .tt-room{font-size:11px;color:#94a3b8;margin-top:3px;}
+    .notice-item{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);}
+    .notice-item:last-child{border:none;padding-bottom:0;}
+    .notice-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
   </style>
 </head>
 <body>
@@ -30,8 +28,7 @@
     <a class="sb-link" href="student-results.html"><i class="fas fa-chart-bar"></i> My Results</a>
     <a class="sb-link" href="student-attendance.html"><i class="fas fa-calendar-check"></i> Attendance</a>
     <a class="sb-link" href="student-timetable.html"><i class="fas fa-clock"></i> Timetable</a>
-    <a class="sb-link" href="student-assignments.html"><i class="fas fa-book-open"></i> Assignments</a>
-    <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notices <span class="badge bg-danger ms-auto">3</span></a>
+    <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notices</a>
     <div class="sb-section">Account</div>
     <a class="sb-link" href="student-profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
     <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -55,36 +52,38 @@
   </div>
 
   <div class="content">
-    <div class="alert mb-4" style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);color:#fff;border:none;border-radius:14px;padding:20px 24px;">
-      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <!-- Portal Banner -->
+    <div class="portal-banner mb-4" style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
         <div>
-          <h5 class="mb-1 fw-bold">Good Morning, Ahmed!</h5>
-          <small style="opacity:.85">Wednesday, 21 May 2026 &nbsp;·&nbsp; Class 12-A &nbsp;·&nbsp; Roll No. 101</small>
+          <h5 class="mb-1 fw-bold" style="color:#fff">Good Morning, Ahmed!</h5>
+          <small style="color:rgba(255,255,255,.82)">Thursday, 22 May 2026 &nbsp;&middot;&nbsp; Class 12-A &nbsp;&middot;&nbsp; Roll No. 101</small>
         </div>
         <a href="student-results.html" class="btn btn-light btn-sm fw-semibold">View Report Card</a>
       </div>
     </div>
 
+    <!-- Stats Row -->
     <div class="row g-3 mb-4">
       <div class="col-6 col-lg-3">
         <div class="stat-card">
-          <div class="stat-icon" style="background:#eff6ff"><i class="fas fa-star" style="color:#1d4ed8"></i></div>
-          <div class="stat-val" style="color:#1d4ed8">3.7</div>
-          <div class="stat-lbl">Current GPA <span class="badge" style="background:#eff6ff;color:#1d4ed8;font-size:10px">Grade A</span></div>
+          <div class="stat-icon" style="background:#eff6ff"><i class="fas fa-calendar-check" style="color:#1d4ed8"></i></div>
+          <div class="stat-val" style="color:#1d4ed8">82%</div>
+          <div class="stat-lbl">Attendance</div>
         </div>
       </div>
       <div class="col-6 col-lg-3">
         <div class="stat-card">
-          <div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-calendar-check" style="color:#059669"></i></div>
-          <div class="stat-val" style="color:#059669">82%</div>
-          <div class="stat-lbl">Overall Attendance</div>
+          <div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-chart-bar" style="color:#059669"></i></div>
+          <div class="stat-val" style="color:#059669">82.5%</div>
+          <div class="stat-lbl">Overall Result</div>
         </div>
       </div>
       <div class="col-6 col-lg-3">
         <div class="stat-card">
-          <div class="stat-icon" style="background:#fffbeb"><i class="fas fa-tasks" style="color:#d97706"></i></div>
-          <div class="stat-val" style="color:#d97706">3</div>
-          <div class="stat-lbl">Assignments Due</div>
+          <div class="stat-icon" style="background:#fdf4ff"><i class="fas fa-trophy" style="color:#7c3aed"></i></div>
+          <div class="stat-val" style="color:#7c3aed">5th</div>
+          <div class="stat-lbl">Rank in Class</div>
         </div>
       </div>
       <div class="col-6 col-lg-3">
@@ -97,47 +96,70 @@
     </div>
 
     <div class="row g-3">
+      <!-- Left column -->
       <div class="col-lg-8">
+
+        <!-- Result Summary -->
         <div class="sec-card">
           <div class="sec-head">
-            <h5><i class="fas fa-chart-bar me-2 text-primary"></i>Latest Results — Mid-Term 2026</h5>
-            <a href="student-results.html" class="btn btn-sm btn-outline-primary">View All</a>
+            <h5><i class="fas fa-chart-bar me-2" style="color:#1d4ed8"></i>Mid-Term Results — 2026</h5>
+            <a href="student-results.html" class="btn btn-sm btn-outline-primary">Full Results</a>
           </div>
           <div class="table-responsive">
             <table class="data-table">
-              <thead><tr><th class="ps-4">Subject</th><th>Quiz (10%)</th><th>Mid (30%)</th><th>Assign (10%)</th><th>Total</th><th>Grade</th></tr></thead>
+              <thead>
+                <tr>
+                  <th class="ps-4">Subject</th>
+                  <th>Max Marks</th>
+                  <th>Obtained</th>
+                  <th>Percentage</th>
+                  <th>Grade</th>
+                </tr>
+              </thead>
               <tbody>
-                <tr><td class="ps-4 fw-semibold">English</td><td>8.5/10</td><td>27/30</td><td>9/10</td><td class="fw-bold">88%</td><td><span class="grade grade-a">A</span></td></tr>
-                <tr><td class="ps-4 fw-semibold">Physics</td><td>7/10</td><td>24/30</td><td>8/10</td><td class="fw-bold">79%</td><td><span class="grade grade-bplus">B+</span></td></tr>
-                <tr><td class="ps-4 fw-semibold">Chemistry</td><td>9/10</td><td>28/30</td><td>9.5/10</td><td class="fw-bold">92%</td><td><span class="grade grade-aplus">A+</span></td></tr>
-                <tr><td class="ps-4 fw-semibold">Mathematics</td><td>6/10</td><td>20/30</td><td>7/10</td><td class="fw-bold">66%</td><td><span class="grade grade-b">B</span></td></tr>
-                <tr><td class="ps-4 fw-semibold">Biology</td><td>8/10</td><td>25/30</td><td>8.5/10</td><td class="fw-bold">83%</td><td><span class="grade grade-a">A</span></td></tr>
-                <tr><td class="ps-4 fw-semibold">Computer Sc.</td><td>10/10</td><td>29/30</td><td>10/10</td><td class="fw-bold">97%</td><td><span class="grade grade-aplus">A+</span></td></tr>
+                <tr><td class="ps-4 fw-semibold">Physics</td><td>40</td><td>34</td><td class="fw-bold">85%</td><td><span class="grade grade-a">A</span></td></tr>
+                <tr><td class="ps-4 fw-semibold">Mathematics</td><td>40</td><td>30</td><td class="fw-bold">75%</td><td><span class="grade grade-bplus">B+</span></td></tr>
+                <tr><td class="ps-4 fw-semibold">English</td><td>40</td><td>36</td><td class="fw-bold">90%</td><td><span class="grade grade-aplus">A+</span></td></tr>
+                <tr><td class="ps-4 fw-semibold">Chemistry</td><td>40</td><td>28</td><td class="fw-bold">70%</td><td><span class="grade grade-bplus">B+</span></td></tr>
+                <tr><td class="ps-4 fw-semibold">Biology</td><td>40</td><td>32</td><td class="fw-bold">80%</td><td><span class="grade grade-a">A</span></td></tr>
+                <tr><td class="ps-4 fw-semibold">Computer Sc.</td><td>40</td><td>38</td><td class="fw-bold">95%</td><td><span class="grade grade-aplus">A+</span></td></tr>
               </tbody>
+              <tfoot>
+                <tr>
+                  <td class="ps-4 fw-bold" colspan="2">Overall</td>
+                  <td class="fw-bold">198 / 240</td>
+                  <td class="fw-bold" style="color:#1d4ed8">82.5%</td>
+                  <td><span class="grade grade-a">A</span></td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>
 
+        <!-- Today's Timetable -->
         <div class="sec-card">
           <div class="sec-head">
-            <h5><i class="fas fa-clock me-2 text-primary"></i>Today's Timetable — Wednesday</h5>
+            <h5><i class="fas fa-clock me-2" style="color:#1d4ed8"></i>Today's Timetable — Thursday</h5>
             <a href="student-timetable.html" class="btn btn-sm btn-outline-primary">Full Timetable</a>
           </div>
           <div class="p-3">
             <div class="d-flex gap-2" style="overflow-x:auto;padding-bottom:6px">
-              <div class="tt-slot"><div class="tt-time">07:30 – 08:15</div><div class="tt-subj">English</div><div class="tt-room"><i class="fas fa-door-open me-1"></i>Room 201</div></div>
-              <div class="tt-slot" style="border-color:#059669"><div class="tt-time">08:15 – 09:00</div><div class="tt-subj">Physics</div><div class="tt-room"><i class="fas fa-flask me-1"></i>Lab-A</div></div>
-              <div class="tt-slot" style="border-color:#7c3aed"><div class="tt-time">09:00 – 09:45</div><div class="tt-subj">Chemistry</div><div class="tt-room"><i class="fas fa-flask me-1"></i>Lab-B</div></div>
-              <div class="tt-slot break"><div class="tt-time">09:45 – 10:15</div><div class="tt-subj">Break</div><div class="tt-room">Canteen</div></div>
-              <div class="tt-slot" style="border-color:#dc2626"><div class="tt-time">10:15 – 11:00</div><div class="tt-subj">Mathematics</div><div class="tt-room"><i class="fas fa-door-open me-1"></i>Room 305</div></div>
-              <div class="tt-slot" style="border-color:#059669"><div class="tt-time">11:00 – 11:45</div><div class="tt-subj">Biology</div><div class="tt-room"><i class="fas fa-door-open me-1"></i>Room 212</div></div>
-              <div class="tt-slot" style="border-color:#0891b2"><div class="tt-time">11:45 – 12:30</div><div class="tt-subj">Computer Sc.</div><div class="tt-room"><i class="fas fa-desktop me-1"></i>Lab-C</div></div>
+              <div class="tt-slot" style="border-left-color:#7c3aed"><div class="tt-time">07:30 – 08:15</div><div class="tt-subj">Chemistry</div><div class="tt-room"><i class="fas fa-flask me-1"></i>Lab-B</div></div>
+              <div class="tt-slot" style="border-left-color:#0891b2"><div class="tt-time">08:15 – 09:00</div><div class="tt-subj">Computer Sc.</div><div class="tt-room"><i class="fas fa-desktop me-1"></i>Lab-C</div></div>
+              <div class="tt-slot" style="border-left-color:#ef4444"><div class="tt-time">09:00 – 09:45</div><div class="tt-subj">Mathematics</div><div class="tt-room"><i class="fas fa-door-open me-1"></i>Room 305</div></div>
+              <div class="tt-slot brk"><div class="tt-time">09:45 – 10:15</div><div class="tt-subj">Break</div><div class="tt-room">Canteen</div></div>
+              <div class="tt-slot" style="border-left-color:#ea580c"><div class="tt-time">10:15 – 11:00</div><div class="tt-subj">Biology</div><div class="tt-room"><i class="fas fa-door-open me-1"></i>Room 212</div></div>
+              <div class="tt-slot" style="border-left-color:#059669"><div class="tt-time">11:00 – 11:45</div><div class="tt-subj">Physics</div><div class="tt-room"><i class="fas fa-flask me-1"></i>Lab-A</div></div>
+              <div class="tt-slot" style="border-left-color:#1d4ed8"><div class="tt-time">11:45 – 12:30</div><div class="tt-subj">English</div><div class="tt-room"><i class="fas fa-door-open me-1"></i>Room 201</div></div>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Right column -->
       <div class="col-lg-4">
+
+        <!-- Attendance -->
         <div class="sec-card mb-3">
           <div class="sec-head">
             <h5><i class="fas fa-calendar-check me-2 text-success"></i>Attendance</h5>
@@ -156,22 +178,11 @@
             <div class="att-bar-wrap mb-2"><div class="att-bar-fill" style="width:84%;background:#059669"></div></div>
             <div class="d-flex justify-content-between mb-1"><span style="font-size:13px">Computer Sc.</span><span class="fw-bold" style="font-size:13px;color:#059669">95%</span></div>
             <div class="att-bar-wrap mb-3"><div class="att-bar-fill" style="width:95%;background:#059669"></div></div>
-            <div class="alert alert-warning p-2 mb-0" style="font-size:12px"><i class="fas fa-exclamation-triangle me-1"></i>Mathematics attendance is below 75%!</div>
+            <div class="alert alert-warning p-2 mb-0" style="font-size:12px"><i class="fas fa-exclamation-triangle me-1"></i>Mathematics attendance below 75%!</div>
           </div>
         </div>
 
-        <div class="sec-card mb-3">
-          <div class="sec-head">
-            <h5><i class="fas fa-tasks me-2 text-warning"></i>Assignments Due</h5>
-            <a href="student-assignments.html" class="btn btn-sm btn-outline-warning">All</a>
-          </div>
-          <div class="p-3">
-            <div class="asgn-item"><div><div class="fw-semibold" style="font-size:13px">Physics Lab Report</div><small class="text-muted">Due: 23 May 2026</small></div><span class="badge bg-danger">Urgent</span></div>
-            <div class="asgn-item"><div><div class="fw-semibold" style="font-size:13px">Math Problem Set 4</div><small class="text-muted">Due: 25 May 2026</small></div><span class="badge bg-warning text-dark">Pending</span></div>
-            <div class="asgn-item"><div><div class="fw-semibold" style="font-size:13px">English Essay</div><small class="text-muted">Due: 28 May 2026</small></div><span class="badge bg-secondary">Open</span></div>
-          </div>
-        </div>
-
+        <!-- Notices -->
         <div class="sec-card">
           <div class="sec-head">
             <h5><i class="fas fa-bullhorn me-2 text-danger"></i>Latest Notices</h5>
@@ -180,7 +191,7 @@
           <div class="p-3">
             <div class="notice-item">
               <div class="notice-icon" style="background:#fef2f2;color:#ef4444"><i class="fas fa-exclamation"></i></div>
-              <div><div class="fw-semibold" style="font-size:13px">Final Exam Schedule Released</div><small class="text-muted">19 May 2026 · PDF Attached</small></div>
+              <div><div class="fw-semibold" style="font-size:13px">Final Exam Schedule Released</div><small class="text-muted">19 May 2026 &middot; PDF Attached</small></div>
             </div>
             <div class="notice-item">
               <div class="notice-icon" style="background:#eff6ff;color:#1d4ed8"><i class="fas fa-info"></i></div>
@@ -192,6 +203,7 @@
             </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>
