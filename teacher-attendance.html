@@ -9,23 +9,26 @@
   <link href="portal.css" rel="stylesheet" />
   <style>
     .sb-link.active{border-color:#059669;} .sb-logo{background:#059669;} .sb-av{background:#059669;}
-    .att-btn-grp button{width:36px;height:30px;border-radius:6px;border:1.5px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:11.5px;font-weight:700;margin-right:3px;transition:.15s;}
-    .att-btn-grp button:hover{opacity:.85;}
-    .att-btn-grp button.p{background:#dcfce7;border-color:#059669;color:#166534;}
-    .att-btn-grp button.a{background:#fee2e2;border-color:#ef4444;color:#991b1b;}
-    .att-btn-grp button.l{background:#fef9c3;border-color:#d97706;color:#854d0e;}
-    .att-btn-grp button.hd{background:#e0f2fe;border-color:#0284c7;color:#075985;}
-    .summary-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;}
+
+    .att-btn{display:inline-block;padding:3px 10px;border-radius:3px;font-size:12px;font-weight:600;border:1px solid #d5dde8;background:#f8f9fa;color:#6c757d;user-select:none;transition:.12s;}
+
+    .status-badge{display:inline-block;padding:3px 10px;border-radius:3px;font-size:12px;font-weight:600;}
+    .status-submitted{background:#dcfce7;color:#166534;}
+
+    .live-count{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:4px;font-size:13px;font-weight:600;}
   </style>
 </head>
 <body>
 <div class="overlay" id="ov" onclick="closeSb()"></div>
 <div class="sidebar" id="sb">
-  <div class="sb-brand"><div class="sb-logo"><i class="fas fa-chalkboard-teacher"></i></div><div class="sb-title"><h6>BMC Portal</h6><small>Teacher Portal</small></div></div>
+  <div class="sb-brand">
+    <div class="sb-logo"><i class="fas fa-chalkboard-teacher"></i></div>
+    <div class="sb-title"><h6>BMC Portal</h6><small>Teacher Portal</small></div>
+  </div>
   <div class="sb-menu">
     <div class="sb-section">Main Menu</div>
     <a class="sb-link" href="teacher-dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
-    <a class="sb-link" href="teacher-marks.html"><i class="fas fa-chart-bar"></i> Enter Marks</a>
+    <a class="sb-link" href="teacher-marks.html"><i class="fas fa-edit"></i> Assessments &amp; Marks</a>
     <a class="sb-link active" href="teacher-attendance.html"><i class="fas fa-calendar-check"></i> Attendance</a>
     <a class="sb-link" href="teacher-timetable.html"><i class="fas fa-clock"></i> My Timetable</a>
     <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notices</a>
@@ -33,7 +36,10 @@
     <a class="sb-link" href="teacher-profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
     <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
   </div>
-  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user"></i></div><div class="sb-foot-info"><h6>Dr. Sarah Khan</h6><small>Physics Teacher</small></div></div>
+  <div class="sb-foot">
+    <div class="sb-av"><i class="fas fa-user"></i></div>
+    <div class="sb-foot-info"><h6>Dr. Sarah Khan</h6><small>Physics Teacher</small></div>
+  </div>
 </div>
 
 <div class="main">
@@ -43,96 +49,376 @@
       <span class="topbar-title"><i class="fas fa-calendar-check me-2" style="color:#059669"></i>Mark Attendance</span>
     </div>
     <div class="topbar-right">
-      <img src="https://ui-avatars.com/api/?name=Sarah+Khan&background=059669&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
+      <img src="https://ui-avatars.com/api/?name=Sarah+Khan&background=059669&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" alt="Dr. Sarah Khan" />
     </div>
   </div>
 
   <div class="content">
-    <!-- Filters -->
-    <div class="sec-card">
-      <div class="sec-head"><h5><i class="fas fa-filter me-2 text-primary"></i>Select Class & Date</h5></div>
-      <div class="p-4">
-        <div class="row g-3 align-items-end">
-          <div class="col-md-3">
-            <label class="form-label fw-semibold" style="font-size:12px">Class</label>
-            <select class="form-select form-select-sm">
-              <option selected>Class 12-A (Physics)</option>
-              <option>Class 11-A (Physics)</option>
-              <option>Class 11-B (Physics)</option>
-              <option>Class 12-B (Physics)</option>
-            </select>
+
+    <!-- Section 1: Stats Row -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-calendar-day" style="color:#059669"></i></div>
+          <div class="stat-val" style="color:#059669">3</div>
+          <div class="stat-lbl">Today's Classes</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#eff6ff"><i class="fas fa-check-circle" style="color:#1d4ed8"></i></div>
+          <div class="stat-val" style="color:#1d4ed8">2</div>
+          <div class="stat-lbl">Attendance Marked</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fffbeb"><i class="fas fa-hourglass-half" style="color:#d97706"></i></div>
+          <div class="stat-val" style="color:#d97706">1</div>
+          <div class="stat-lbl">Pending</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f5f3ff"><i class="fas fa-calendar-alt" style="color:#7c3aed"></i></div>
+          <div class="stat-val" style="color:#7c3aed">18</div>
+          <div class="stat-lbl">Working Days (May)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Mark Attendance -->
+    <div class="sec-card mb-4">
+      <div class="sec-head">
+        <h5><i class="fas fa-users me-2" style="color:#059669"></i>Mark Attendance</h5>
+      </div>
+      <div class="sec-body">
+        <!-- Filter Row -->
+        <form id="filterForm">
+          <div class="row g-3 align-items-end mb-4">
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label fw-semibold" style="font-size:12px">Class</label>
+              <select class="form-select form-select-sm" name="att_class" id="classSelect">
+                <option value="12-A" selected>12-A</option>
+                <option value="12-B">12-B</option>
+                <option value="11-A">11-A</option>
+                <option value="11-B">11-B</option>
+              </select>
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label fw-semibold" style="font-size:12px">Date</label>
+              <input type="date" class="form-control form-control-sm" name="att_date" id="attDate" value="2026-05-23" />
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label fw-semibold" style="font-size:12px">Subject</label>
+              <select class="form-select form-select-sm" name="att_subject" id="subjectSelect">
+                <option value="Physics" selected>Physics</option>
+                <option value="Mathematics">Mathematics</option>
+                <option value="Chemistry">Chemistry</option>
+              </select>
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <button type="button" class="btn btn-primary btn-sm w-100" onclick="loadAttendance()">
+                <i class="fas fa-search me-1"></i>Load
+              </button>
+            </div>
           </div>
-          <div class="col-md-3">
-            <label class="form-label fw-semibold" style="font-size:12px">Date</label>
-            <input type="date" class="form-control form-control-sm" value="2026-05-21" />
+        </form>
+
+        <!-- Attendance Table -->
+        <div class="table-responsive">
+          <table class="data-table" id="attTable">
+            <thead>
+              <tr>
+                <th style="width:60px">Roll No</th>
+                <th>Student Name</th>
+                <th style="width:140px">Attendance</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="attBody">
+              <tr>
+                <td>101</td>
+                <td>Ahmed Ali</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_101" value="P" checked style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_101" value="A" style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_101" value="L" style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_101" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+              <tr>
+                <td>102</td>
+                <td>Bilal Ahmed</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_102" value="P" checked style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_102" value="A" style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_102" value="L" style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_102" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+              <tr>
+                <td>103</td>
+                <td>Fatima Noor</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_103" value="P" style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_103" value="A" checked style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_103" value="L" style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_103" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+              <tr>
+                <td>104</td>
+                <td>Hassan Raza</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_104" value="P" checked style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_104" value="A" style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_104" value="L" style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_104" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+              <tr>
+                <td>105</td>
+                <td>Iqra Shah</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_105" value="P" checked style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_105" value="A" style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_105" value="L" style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_105" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+              <tr>
+                <td>106</td>
+                <td>Junaid Malik</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_106" value="P" checked style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_106" value="A" style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_106" value="L" style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_106" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+              <tr>
+                <td>107</td>
+                <td>Kiran Baig</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_107" value="P" style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_107" value="A" checked style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_107" value="L" style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_107" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+              <tr>
+                <td>108</td>
+                <td>Laiba Qureshi</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_108" value="P" checked style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_108" value="A" style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_108" value="L" style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_108" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+              <tr>
+                <td>109</td>
+                <td>Muhammad Usman</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_109" value="P" style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_109" value="A" style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_109" value="L" checked style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_109" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+              <tr>
+                <td>110</td>
+                <td>Nida Farooq</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_110" value="P" checked style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_110" value="A" style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_110" value="L" style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_110" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+              <tr>
+                <td>111</td>
+                <td>Omar Siddiqui</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_111" value="P" checked style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_111" value="A" style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_111" value="L" style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_111" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+              <tr>
+                <td>112</td>
+                <td>Rabia Tariq</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_112" value="P" checked style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_112" value="A" style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_112" value="L" style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_112" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+              <tr>
+                <td>113</td>
+                <td>Saad Hassan</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_113" value="P" checked style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_113" value="A" style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_113" value="L" style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_113" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+              <tr>
+                <td>114</td>
+                <td>Tania Iqbal</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_114" value="P" checked style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_114" value="A" style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_114" value="L" style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_114" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+              <tr>
+                <td>115</td>
+                <td>Zain Ul Abideen</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <label style="cursor:pointer"><input type="radio" name="att_115" value="P" checked style="display:none" class="att-radio"><span class="att-btn att-p">P</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_115" value="A" style="display:none" class="att-radio"><span class="att-btn att-a">A</span></label>
+                    <label style="cursor:pointer"><input type="radio" name="att_115" value="L" style="display:none" class="att-radio"><span class="att-btn att-l">L</span></label>
+                  </div>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="rem_115" placeholder="optional" style="max-width:160px" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Live Count + Buttons -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-3 pt-3" style="border-top:1px solid var(--border)">
+          <div class="d-flex flex-wrap gap-2">
+            <span class="live-count" style="background:#dcfce7;color:#166534" id="pCount">P: 12</span>
+            <span class="live-count" style="background:#fee2e2;color:#991b1b" id="aCount">A: 2</span>
+            <span class="live-count" style="background:#fef9c3;color:#854d0e" id="lCount">L: 1</span>
+            <span class="live-count" style="background:#f0f2f5;color:#374151" id="totalCount">Total: 15</span>
           </div>
-          <div class="col-md-3">
-            <label class="form-label fw-semibold" style="font-size:12px">Period</label>
-            <select class="form-select form-select-sm">
-              <option selected>Period 1 · 07:30–08:15</option>
-              <option>Period 2 · 08:15–09:00</option>
-            </select>
-          </div>
-          <div class="col-md-3">
-            <button class="btn btn-primary btn-sm w-100">Load Class</button>
+          <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-sm btn-outline-secondary" onclick="clearAll()">
+              <i class="fas fa-undo me-1"></i>Clear All
+            </button>
+            <button class="btn btn-sm btn-outline-success" onclick="markAllPresent()">
+              <i class="fas fa-check me-1"></i>Mark All Present
+            </button>
+            <button class="btn btn-sm btn-success" onclick="submitAttendance()">
+              <i class="fas fa-paper-plane me-1"></i>Submit Attendance
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Bulk Actions -->
-    <div class="d-flex gap-2 flex-wrap mb-3">
-      <button class="btn btn-sm btn-success" onclick="markAll('p')"><i class="fas fa-check me-1"></i>Mark All Present</button>
-      <button class="btn btn-sm btn-danger" onclick="markAll('a')"><i class="fas fa-times me-1"></i>Mark All Absent</button>
-      <div class="ms-auto d-flex gap-2">
-        <span class="summary-pill" style="background:#dcfce7;color:#166534" id="pCount">Present: 0</span>
-        <span class="summary-pill" style="background:#fee2e2;color:#991b1b" id="aCount">Absent: 0</span>
-        <span class="summary-pill" style="background:#fef9c3;color:#854d0e" id="lCount">Late: 0</span>
-      </div>
-    </div>
-
-    <!-- Attendance Table -->
+    <!-- Section 3: Attendance History -->
     <div class="sec-card">
       <div class="sec-head">
-        <h5><i class="fas fa-users me-2" style="color:#059669"></i>Class 12-A — Physics · 21 May 2026</h5>
-        <span class="badge bg-warning text-dark">29 Students</span>
+        <h5><i class="fas fa-history me-2" style="color:#059669"></i>Attendance History</h5>
       </div>
       <div class="table-responsive">
-        <table class="table mb-0">
-          <thead><tr>
-            <th class="ps-4">#</th><th>Roll No</th><th>Student Name</th>
-            <th>Status</th><th>Overall Att%</th><th class="pe-4">Remark</th>
-          </tr></thead>
-          <tbody id="attBody">
-            <tr data-status="p"><td class="ps-4">1</td><td>101</td><td>Ahmed Ali</td>
-              <td><div class="att-btn-grp"><button class="p" onclick="setRow(this,'p')">P</button><button onclick="setRow(this,'a')">A</button><button onclick="setRow(this,'l')">L</button><button onclick="setRow(this,'hd')">HD</button></div></td>
-              <td><span style="color:#059669;font-weight:600">82%</span></td><td class="pe-4"><input class="form-control form-control-sm" placeholder="Optional..." style="max-width:140px" /></td></tr>
-            <tr data-status="p"><td class="ps-4">2</td><td>102</td><td>Bilal Ahmed</td>
-              <td><div class="att-btn-grp"><button class="p" onclick="setRow(this,'p')">P</button><button onclick="setRow(this,'a')">A</button><button onclick="setRow(this,'l')">L</button><button onclick="setRow(this,'hd')">HD</button></div></td>
-              <td><span style="color:#059669;font-weight:600">89%</span></td><td class="pe-4"><input class="form-control form-control-sm" placeholder="Optional..." style="max-width:140px" /></td></tr>
-            <tr data-status="a"><td class="ps-4">3</td><td>103</td><td>Fatima Noor</td>
-              <td><div class="att-btn-grp"><button onclick="setRow(this,'p')">P</button><button class="a" onclick="setRow(this,'a')">A</button><button onclick="setRow(this,'l')">L</button><button onclick="setRow(this,'hd')">HD</button></div></td>
-              <td><span style="color:#d97706;font-weight:600">74%</span></td><td class="pe-4"><input class="form-control form-control-sm" placeholder="Optional..." style="max-width:140px" /></td></tr>
-            <tr data-status="p"><td class="ps-4">4</td><td>104</td><td>Hassan Raza</td>
-              <td><div class="att-btn-grp"><button class="p" onclick="setRow(this,'p')">P</button><button onclick="setRow(this,'a')">A</button><button onclick="setRow(this,'l')">L</button><button onclick="setRow(this,'hd')">HD</button></div></td>
-              <td><span style="color:#059669;font-weight:600">85%</span></td><td class="pe-4"><input class="form-control form-control-sm" placeholder="Optional..." style="max-width:140px" /></td></tr>
-            <tr data-status="l"><td class="ps-4">5</td><td>105</td><td>Iqra Shah</td>
-              <td><div class="att-btn-grp"><button onclick="setRow(this,'p')">P</button><button onclick="setRow(this,'a')">A</button><button class="l" onclick="setRow(this,'l')">L</button><button onclick="setRow(this,'hd')">HD</button></div></td>
-              <td><span style="color:#ef4444;font-weight:600">71%</span></td><td class="pe-4"><input class="form-control form-control-sm" placeholder="Optional..." style="max-width:140px" /></td></tr>
-            <tr data-status="p"><td class="ps-4">6</td><td>106</td><td>Junaid Malik</td>
-              <td><div class="att-btn-grp"><button class="p" onclick="setRow(this,'p')">P</button><button onclick="setRow(this,'a')">A</button><button onclick="setRow(this,'l')">L</button><button onclick="setRow(this,'hd')">HD</button></div></td>
-              <td><span style="color:#059669;font-weight:600">91%</span></td><td class="pe-4"><input class="form-control form-control-sm" placeholder="Optional..." style="max-width:140px" /></td></tr>
-            <tr data-status="p"><td class="ps-4">7</td><td>107</td><td>Kiran Baig</td>
-              <td><div class="att-btn-grp"><button class="p" onclick="setRow(this,'p')">P</button><button onclick="setRow(this,'a')">A</button><button onclick="setRow(this,'l')">L</button><button onclick="setRow(this,'hd')">HD</button></div></td>
-              <td><span style="color:#059669;font-weight:600">87%</span></td><td class="pe-4"><input class="form-control form-control-sm" placeholder="Optional..." style="max-width:140px" /></td></tr>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Class</th>
+              <th>Subject</th>
+              <th>Present</th>
+              <th>Absent</th>
+              <th>Leave</th>
+              <th>Total</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>22 May 2026</td>
+              <td>12-A</td>
+              <td>Physics</td>
+              <td><span style="color:#166534;font-weight:600">13</span></td>
+              <td><span style="color:#991b1b;font-weight:600">1</span></td>
+              <td><span style="color:#854d0e;font-weight:600">1</span></td>
+              <td>15</td>
+              <td><span class="status-badge status-submitted"><i class="fas fa-check me-1"></i>Submitted</span></td>
+            </tr>
+            <tr>
+              <td>22 May 2026</td>
+              <td>11-B</td>
+              <td>Physics</td>
+              <td><span style="color:#166534;font-weight:600">28</span></td>
+              <td><span style="color:#991b1b;font-weight:600">2</span></td>
+              <td><span style="color:#854d0e;font-weight:600">0</span></td>
+              <td>30</td>
+              <td><span class="status-badge status-submitted"><i class="fas fa-check me-1"></i>Submitted</span></td>
+            </tr>
+            <tr>
+              <td>21 May 2026</td>
+              <td>12-A</td>
+              <td>Physics</td>
+              <td><span style="color:#166534;font-weight:600">14</span></td>
+              <td><span style="color:#991b1b;font-weight:600">0</span></td>
+              <td><span style="color:#854d0e;font-weight:600">1</span></td>
+              <td>15</td>
+              <td><span class="status-badge status-submitted"><i class="fas fa-check me-1"></i>Submitted</span></td>
+            </tr>
+            <tr>
+              <td>21 May 2026</td>
+              <td>11-B</td>
+              <td>Physics</td>
+              <td><span style="color:#166534;font-weight:600">27</span></td>
+              <td><span style="color:#991b1b;font-weight:600">2</span></td>
+              <td><span style="color:#854d0e;font-weight:600">1</span></td>
+              <td>30</td>
+              <td><span class="status-badge status-submitted"><i class="fas fa-check me-1"></i>Submitted</span></td>
+            </tr>
+            <tr>
+              <td>20 May 2026</td>
+              <td>12-A</td>
+              <td>Physics</td>
+              <td><span style="color:#166534;font-weight:600">12</span></td>
+              <td><span style="color:#991b1b;font-weight:600">2</span></td>
+              <td><span style="color:#854d0e;font-weight:600">1</span></td>
+              <td>15</td>
+              <td><span class="status-badge status-submitted"><i class="fas fa-check me-1"></i>Submitted</span></td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <div class="p-3 d-flex justify-content-between align-items-center border-top" style="background:#f8fafc">
-        <small class="text-muted">Showing 7 of 29 students</small>
-        <button class="btn btn-success btn-sm" onclick="alert('Attendance saved! Absentees will be notified.')"><i class="fas fa-save me-1"></i>Save Attendance</button>
-      </div>
     </div>
+
   </div>
 </div>
 
@@ -141,34 +427,80 @@
   function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
   function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
 
-  function setRow(btn, type){
-    const grp = btn.closest('.att-btn-grp');
-    grp.querySelectorAll('button').forEach(b=>b.className='');
-    btn.className=type;
-    const row = btn.closest('tr');
-    row.dataset.status = type;
-    updateCounts();
+  function getAttColor(v) {
+    if (v === 'P') return {bg:'#dcfce7', fg:'#166534', border:'#86efac'};
+    if (v === 'A') return {bg:'#fee2e2', fg:'#991b1b', border:'#fca5a5'};
+    return {bg:'#fef9c3', fg:'#854d0e', border:'#fde047'};
   }
 
-  function markAll(type){
-    document.querySelectorAll('#attBody tr').forEach(row=>{
-      row.dataset.status=type;
-      row.querySelectorAll('.att-btn-grp button').forEach(b=>{
-        b.className='';
-        const map={'p':'P','a':'A','l':'L','hd':'HD'};
-        if(b.textContent===map[type]) b.className=type;
-      });
+  function syncAttBtns() {
+    document.querySelectorAll('.att-radio').forEach(r => {
+      const label = r.parentElement;
+      const btn = label.querySelector('.att-btn');
+      if (r.checked) {
+        const c = getAttColor(r.value);
+        btn.style.background = c.bg;
+        btn.style.color = c.fg;
+        btn.style.borderColor = c.border;
+      } else {
+        btn.style.background = '#f8f9fa';
+        btn.style.color = '#6c757d';
+        btn.style.borderColor = '#d5dde8';
+      }
     });
-    updateCounts();
+    updateLiveCount();
   }
 
-  function updateCounts(){
-    const rows=[...document.querySelectorAll('#attBody tr')];
-    document.getElementById('pCount').textContent='Present: '+rows.filter(r=>r.dataset.status==='p').length;
-    document.getElementById('aCount').textContent='Absent: '+rows.filter(r=>r.dataset.status==='a').length;
-    document.getElementById('lCount').textContent='Late: '+rows.filter(r=>r.dataset.status==='l').length;
+  function updateLiveCount() {
+    let p = 0, a = 0, l = 0;
+    document.querySelectorAll('#attBody tr').forEach(row => {
+      const checked = row.querySelector('.att-radio:checked');
+      if (checked) {
+        if (checked.value === 'P') p++;
+        else if (checked.value === 'A') a++;
+        else if (checked.value === 'L') l++;
+      }
+    });
+    const total = p + a + l;
+    document.getElementById('pCount').textContent = 'P: ' + p;
+    document.getElementById('aCount').textContent = 'A: ' + a;
+    document.getElementById('lCount').textContent = 'L: ' + l;
+    document.getElementById('totalCount').textContent = 'Total: ' + total;
   }
-  updateCounts();
+
+  function markAllPresent() {
+    document.querySelectorAll('#attBody tr').forEach(row => {
+      const pRadio = row.querySelector('.att-radio[value="P"]');
+      if (pRadio) pRadio.checked = true;
+    });
+    syncAttBtns();
+  }
+
+  function clearAll() {
+    document.querySelectorAll('#attBody .att-radio').forEach(r => r.checked = false);
+    syncAttBtns();
+  }
+
+  function submitAttendance() {
+    const cls = document.getElementById('classSelect').value;
+    const subj = document.getElementById('subjectSelect').value;
+    const date = document.getElementById('attDate').value;
+    const d = new Date(date);
+    const formatted = d.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+    alert('Attendance submitted for Class ' + cls + ', ' + subj + ' — ' + formatted);
+  }
+
+  function loadAttendance() {
+    syncAttBtns();
+  }
+
+  // Attach change listeners
+  document.querySelectorAll('.att-radio').forEach(r => {
+    r.addEventListener('change', syncAttBtns);
+  });
+
+  // Initial sync on page load
+  syncAttBtns();
 </script>
 </body>
 </html>
