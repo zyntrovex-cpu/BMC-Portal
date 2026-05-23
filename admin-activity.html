@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Activity — BMC Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="portal.css" rel="stylesheet" />
+  <style>
+    .sb-link.active{border-color:#7c3aed;} .sb-logo{background:#7c3aed;} .sb-av{background:#7c3aed;}
+    .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+    .status-dot.online{background:#059669;}
+    .status-dot.offline{background:#94a3b8;}
+    .ts-today{color:#1e293b;}
+    .ts-yesterday{color:#94a3b8;}
+    .ts-old{color:#d97706;}
+    .ts-never{color:#ef4444;}
+  </style>
+</head>
+<body>
+<div class="overlay" id="ov" onclick="closeSb()"></div>
+<div class="sidebar" id="sb">
+  <div class="sb-brand"><div class="sb-logo"><i class="fas fa-shield-alt"></i></div><div class="sb-title"><h6>BMC Portal</h6><small>Admin Panel</small></div></div>
+  <div class="sb-menu">
+    <div class="sb-section">Main Menu</div>
+    <a class="sb-link" href="admin-dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a class="sb-link" href="admin-users.html"><i class="fas fa-users"></i> User Management</a>
+    <a class="sb-link" href="admin-classes.html"><i class="fas fa-school"></i> Classes &amp; Subjects</a>
+    <a class="sb-link" href="admin-results.html"><i class="fas fa-chart-bar"></i> Results Management</a>
+    <a class="sb-link" href="admin-attendance.html"><i class="fas fa-calendar-check"></i> Attendance Reports</a>
+    <a class="sb-link" href="admin-timetable.html"><i class="fas fa-table"></i> Timetable Management</a>
+    <a class="sb-link active" href="admin-activity.html"><i class="fas fa-history"></i> Teacher Activity</a>
+    <a class="sb-link" href="admin-analytics.html"><i class="fas fa-chart-line"></i> Analytics</a>
+    <a class="sb-link" href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
+    <a class="sb-link" href="finance-dashboard.html"><i class="fas fa-coins"></i> Finance Portal</a>
+    <div class="sb-section">System</div>
+    <a class="sb-link" href="admin-settings.html"><i class="fas fa-cog"></i> Settings</a>
+    <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user-shield"></i></div><div class="sb-foot-info"><h6>Mr. Tariq Mehmood</h6><small>System Administrator</small></div></div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="toggle-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <span class="topbar-title"><i class="fas fa-history" style="color:#7c3aed"></i> Teacher Activity Log</span>
+    </div>
+    <div class="topbar-right">
+      <img src="https://ui-avatars.com/api/?name=Tariq+Mehmood&background=7c3aed&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-user-check" style="color:#059669"></i></div>
+          <div class="stat-val" style="color:#059669">12</div>
+          <div class="stat-lbl">Active Teachers Today</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#eff6ff"><i class="fas fa-pen" style="color:#1d4ed8"></i></div>
+          <div class="stat-val" style="color:#1d4ed8">47</div>
+          <div class="stat-lbl">Marks Entries (This Week)</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fdf4ff"><i class="fas fa-calendar-check" style="color:#7c3aed"></i></div>
+          <div class="stat-val" style="color:#7c3aed">38</div>
+          <div class="stat-lbl">Attendance Submissions (This Week)</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fef2f2"><i class="fas fa-exclamation-circle" style="color:#ef4444"></i></div>
+          <div class="stat-val" style="color:#ef4444">14</div>
+          <div class="stat-lbl">Pending Marks (Not Entered)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 1: Teacher Activity Summary -->
+    <div class="sec-card mb-3">
+      <div class="sec-head">
+        <h5><i class="fas fa-chalkboard-teacher me-2" style="color:#7c3aed"></i>Teacher Activity Summary</h5>
+        <small class="text-muted">Live portal activity</small>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="ps-4">Teacher</th>
+              <th>Employee ID</th>
+              <th>Subject</th>
+              <th>Last Login</th>
+              <th>Marks Last Updated</th>
+              <th>Attendance Last Submitted</th>
+              <th>Assessments Created</th>
+              <th>Status</th>
+              <th class="pe-4">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="ps-4 fw-semibold">Dr. Sarah Khan</td>
+              <td>T001</td>
+              <td>Physics</td>
+              <td><span class="ts-today">Today 09:15 AM</span></td>
+              <td><span class="ts-today">Today 10:30 AM</span></td>
+              <td><span class="ts-today">Today 08:45 AM</span></td>
+              <td>6</td>
+              <td><span class="status-dot online"></span><span class="text-success fw-semibold" style="font-size:13px">Online</span></td>
+              <td class="pe-4"><button class="btn btn-sm btn-outline-primary" style="font-size:11px;padding:3px 10px" onclick="openDetails('Dr. Sarah Khan','T001','Physics',8,12,9,6)">View Details</button></td>
+            </tr>
+            <tr>
+              <td class="ps-4 fw-semibold">Mr. Hasan Ali</td>
+              <td>T002</td>
+              <td>Mathematics</td>
+              <td><span class="ts-today">Today 08:30 AM</span></td>
+              <td><span class="ts-today">Today 09:15 AM</span></td>
+              <td><span class="ts-today">Today 08:30 AM</span></td>
+              <td>5</td>
+              <td><span class="status-dot online"></span><span class="text-success fw-semibold" style="font-size:13px">Online</span></td>
+              <td class="pe-4"><button class="btn btn-sm btn-outline-primary" style="font-size:11px;padding:3px 10px" onclick="openDetails('Mr. Hasan Ali','T002','Mathematics',6,10,8,5)">View Details</button></td>
+            </tr>
+            <tr>
+              <td class="ps-4 fw-semibold">Ms. Nadia Raza</td>
+              <td>T003</td>
+              <td>English</td>
+              <td><span class="ts-yesterday">Yesterday 04:15 PM</span></td>
+              <td><span class="ts-yesterday">Yesterday 04:30 PM</span></td>
+              <td><span class="ts-yesterday">Yesterday 09:00 AM</span></td>
+              <td>4</td>
+              <td><span class="status-dot offline"></span><span style="color:#64748b;font-size:13px;font-weight:600">Offline</span></td>
+              <td class="pe-4"><button class="btn btn-sm btn-outline-primary" style="font-size:11px;padding:3px 10px" onclick="openDetails('Ms. Nadia Raza','T003','English',7,9,8,4)">View Details</button></td>
+            </tr>
+            <tr>
+              <td class="ps-4 fw-semibold">Dr. Amina Siddiqui</td>
+              <td>T004</td>
+              <td>Chemistry</td>
+              <td><span class="ts-today">Today 11:00 AM</span></td>
+              <td><span class="ts-today">Today 11:30 AM</span></td>
+              <td><span class="ts-today">Today 09:00 AM</span></td>
+              <td>6</td>
+              <td><span class="status-dot online"></span><span class="text-success fw-semibold" style="font-size:13px">Online</span></td>
+              <td class="pe-4"><button class="btn btn-sm btn-outline-primary" style="font-size:11px;padding:3px 10px" onclick="openDetails('Dr. Amina Siddiqui','T004','Chemistry',9,11,10,6)">View Details</button></td>
+            </tr>
+            <tr>
+              <td class="ps-4 fw-semibold">Mr. Imran Hassan</td>
+              <td>T005</td>
+              <td>Biology</td>
+              <td><span class="ts-yesterday">Yesterday 02:30 PM</span></td>
+              <td><span class="ts-old">3 days ago</span></td>
+              <td><span class="ts-yesterday">Yesterday 08:45 AM</span></td>
+              <td>3</td>
+              <td><span class="status-dot offline"></span><span style="color:#64748b;font-size:13px;font-weight:600">Offline</span></td>
+              <td class="pe-4"><button class="btn btn-sm btn-outline-primary" style="font-size:11px;padding:3px 10px" onclick="openDetails('Mr. Imran Hassan','T005','Biology',5,4,7,3)">View Details</button></td>
+            </tr>
+            <tr>
+              <td class="ps-4 fw-semibold">Mr. Farhan Ahmed</td>
+              <td>T006</td>
+              <td>Comp. Sc.</td>
+              <td><span class="ts-today">Today 07:45 AM</span></td>
+              <td><span class="ts-today">Today 08:00 AM</span></td>
+              <td><span class="ts-today">Today 07:50 AM</span></td>
+              <td>5</td>
+              <td><span class="status-dot online"></span><span class="text-success fw-semibold" style="font-size:13px">Online</span></td>
+              <td class="pe-4"><button class="btn btn-sm btn-outline-primary" style="font-size:11px;padding:3px 10px" onclick="openDetails('Mr. Farhan Ahmed','T006','Comp. Sc.',7,10,9,5)">View Details</button></td>
+            </tr>
+            <tr>
+              <td class="ps-4 fw-semibold">Mr. Ali Hassan</td>
+              <td>T007</td>
+              <td>Urdu</td>
+              <td><span class="ts-old">2 days ago</span></td>
+              <td><span class="ts-old">2 days ago</span></td>
+              <td><span class="ts-old">2 days ago</span></td>
+              <td>2</td>
+              <td><span class="status-dot offline"></span><span style="color:#64748b;font-size:13px;font-weight:600">Offline</span></td>
+              <td class="pe-4"><button class="btn btn-sm btn-outline-primary" style="font-size:11px;padding:3px 10px" onclick="openDetails('Mr. Ali Hassan','T007','Urdu',3,3,4,2)">View Details</button></td>
+            </tr>
+            <tr>
+              <td class="ps-4 fw-semibold">Ms. Kiran Malik</td>
+              <td>T008</td>
+              <td>Islamiat</td>
+              <td><span class="ts-old">3 days ago</span></td>
+              <td><span class="ts-never">— (never)</span></td>
+              <td><span class="ts-yesterday">Yesterday 09:30 AM</span></td>
+              <td>0</td>
+              <td><span class="status-dot offline"></span><span style="color:#64748b;font-size:13px;font-weight:600">Offline</span></td>
+              <td class="pe-4"><button class="btn btn-sm btn-outline-primary" style="font-size:11px;padding:3px 10px" onclick="openDetails('Ms. Kiran Malik','T008','Islamiat',2,0,3,0)">View Details</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 2: Activity Log -->
+    <div class="sec-card mb-3">
+      <div class="sec-head">
+        <h5><i class="fas fa-list-alt me-2" style="color:#7c3aed"></i>Activity Log</h5>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-sm btn-outline-danger" onclick="alert('Generating PDF export...')"><i class="fas fa-file-pdf me-1"></i>Export Log PDF</button>
+          <button class="btn btn-sm btn-outline-success" onclick="alert('Generating CSV export...')"><i class="fas fa-file-csv me-1"></i>Export CSV</button>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="p-3 border-bottom" style="background:#f8fafc">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold mb-1" style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#64748b">Teacher</label>
+            <select class="form-select form-select-sm">
+              <option>All Teachers</option>
+              <option>Dr. Sarah Khan</option>
+              <option>Mr. Hasan Ali</option>
+              <option>Ms. Nadia Raza</option>
+              <option>Dr. Amina Siddiqui</option>
+              <option>Mr. Imran Hassan</option>
+              <option>Mr. Farhan Ahmed</option>
+              <option>Mr. Ali Hassan</option>
+              <option>Ms. Kiran Malik</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold mb-1" style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#64748b">Date Range</label>
+            <input type="date" class="form-control form-control-sm" value="2026-05-20" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold mb-1" style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#64748b">Action Type</label>
+            <select class="form-select form-select-sm">
+              <option>All</option>
+              <option>Login</option>
+              <option>Marks Entered</option>
+              <option>Attendance Submitted</option>
+              <option>Assessment Created</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <button class="btn btn-primary btn-sm w-100">Apply Filters</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="ps-4">Timestamp</th>
+              <th>Teacher</th>
+              <th>Action</th>
+              <th>Details</th>
+              <th class="pe-4">IP Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">23 May 2026 11:32 AM</td>
+              <td class="fw-semibold">Dr. Sarah Khan</td>
+              <td><span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span></td>
+              <td style="font-size:12.5px">Physics Mid Term — Class 12-A (15 students)</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">23 May 2026 11:02 AM</td>
+              <td class="fw-semibold">Dr. Amina Siddiqui</td>
+              <td><span class="badge" style="background:#ede9fe;color:#6d28d9">Assessment Created</span></td>
+              <td style="font-size:12.5px">Chemistry Quiz 3 — Class 12-A (Max:10)</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">23 May 2026 10:30 AM</td>
+              <td class="fw-semibold">Dr. Sarah Khan</td>
+              <td><span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span></td>
+              <td style="font-size:12.5px">Physics Quiz 2 — Class 11-B (30 students)</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">23 May 2026 09:20 AM</td>
+              <td class="fw-semibold">Mr. Hasan Ali</td>
+              <td><span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span></td>
+              <td style="font-size:12.5px">Mathematics — Class 12-A (P:13 A:1 L:1)</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">23 May 2026 09:00 AM</td>
+              <td class="fw-semibold">Dr. Amina Siddiqui</td>
+              <td><span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span></td>
+              <td style="font-size:12.5px">Chemistry — Class 12-A (P:14 A:1 L:0)</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">23 May 2026 08:45 AM</td>
+              <td class="fw-semibold">Dr. Sarah Khan</td>
+              <td><span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span></td>
+              <td style="font-size:12.5px">Physics — Class 12-A (P:12 A:2 L:1)</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">23 May 2026 07:50 AM</td>
+              <td class="fw-semibold">Mr. Farhan Ahmed</td>
+              <td><span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span></td>
+              <td style="font-size:12.5px">Computer Sc. — Class 12-A (P:15 A:0 L:0)</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">22 May 2026 04:30 PM</td>
+              <td class="fw-semibold">Ms. Nadia Raza</td>
+              <td><span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span></td>
+              <td style="font-size:12.5px">English Assignment 1 — Class 12-A</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">22 May 2026 04:15 PM</td>
+              <td class="fw-semibold">Ms. Nadia Raza</td>
+              <td><span class="badge bg-secondary">Login</span></td>
+              <td style="font-size:12.5px">—</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">22 May 2026 02:30 PM</td>
+              <td class="fw-semibold">Mr. Imran Hassan</td>
+              <td><span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span></td>
+              <td style="font-size:12.5px">Biology Practical — Class 12-A</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">22 May 2026 09:15 AM</td>
+              <td class="fw-semibold">Mr. Hasan Ali</td>
+              <td><span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span></td>
+              <td style="font-size:12.5px">Math Quiz 2 — Class 11-A</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">22 May 2026 08:30 AM</td>
+              <td class="fw-semibold">Ms. Nadia Raza</td>
+              <td><span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span></td>
+              <td style="font-size:12.5px">English — Class 12-A (P:14 A:1 L:0)</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">21 May 2026 03:00 PM</td>
+              <td class="fw-semibold">Dr. Sarah Khan</td>
+              <td><span class="badge" style="background:#ede9fe;color:#6d28d9">Assessment Created</span></td>
+              <td style="font-size:12.5px">Physics Final Term — Class 12-A (Max:100)</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">21 May 2026 11:45 AM</td>
+              <td class="fw-semibold">Dr. Amina Siddiqui</td>
+              <td><span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span></td>
+              <td style="font-size:12.5px">Chemistry Assignment 2 — Class 11-A</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+            <tr>
+              <td class="ps-4" style="font-size:12.5px;white-space:nowrap">20 May 2026 10:00 AM</td>
+              <td class="fw-semibold">Mr. Farhan Ahmed</td>
+              <td><span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span></td>
+              <td style="font-size:12.5px">CS Mid Term — Class 12-A (15 students)</td>
+              <td class="pe-4" style="font-size:12px;color:#94a3b8">192.168.1.x</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 3: Pending Marks -->
+    <div class="sec-card">
+      <div class="sec-head">
+        <h5><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Teachers with Pending Marks</h5>
+        <button class="btn btn-sm btn-warning text-white" onclick="alert('Reminder emails sent to all teachers with pending marks!')"><i class="fas fa-envelope me-1"></i>Send All Reminders</button>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="ps-4">Teacher</th>
+              <th>Subject</th>
+              <th>Assessment</th>
+              <th>Due Date</th>
+              <th>Days Overdue</th>
+              <th class="pe-4">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="ps-4 fw-semibold">Mr. Imran Hassan</td>
+              <td>Biology</td>
+              <td>Mid Term</td>
+              <td>15 Mar 2026</td>
+              <td><span class="fw-bold text-danger">69 days overdue</span></td>
+              <td class="pe-4"><button class="btn btn-sm btn-outline-warning" style="font-size:11px;padding:3px 10px" onclick="alert('Reminder email sent!')"><i class="fas fa-envelope me-1"></i>Send Reminder</button></td>
+            </tr>
+            <tr>
+              <td class="ps-4 fw-semibold">Ms. Kiran Malik</td>
+              <td>Islamiat</td>
+              <td>Quiz 1</td>
+              <td>28 Feb 2026</td>
+              <td><span class="fw-bold text-danger">84 days overdue</span></td>
+              <td class="pe-4"><button class="btn btn-sm btn-outline-warning" style="font-size:11px;padding:3px 10px" onclick="alert('Reminder email sent!')"><i class="fas fa-envelope me-1"></i>Send Reminder</button></td>
+            </tr>
+            <tr>
+              <td class="ps-4 fw-semibold">Mr. Ali Hassan</td>
+              <td>Urdu</td>
+              <td>Assignment 2</td>
+              <td>10 Apr 2026</td>
+              <td><span class="fw-bold" style="color:#d97706">43 days overdue</span></td>
+              <td class="pe-4"><button class="btn btn-sm btn-outline-warning" style="font-size:11px;padding:3px 10px" onclick="alert('Reminder email sent!')"><i class="fas fa-envelope me-1"></i>Send Reminder</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- View Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content border-0" style="border-radius:16px">
+      <div class="modal-header" style="background:linear-gradient(135deg,#2e1065,#7c3aed);color:#fff;border-radius:16px 16px 0 0">
+        <div>
+          <h5 class="modal-title fw-bold mb-0"><i class="fas fa-user-circle me-2"></i><span id="mdName"></span></h5>
+          <small style="opacity:.85"><span id="mdId"></span> &nbsp;·&nbsp; <span id="mdSubject"></span></small>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <!-- Monthly Stats -->
+        <div class="row g-3 mb-4">
+          <div class="col-4">
+            <div class="text-center p-3" style="background:#f8fafc;border-radius:12px;border:1.5px solid var(--border)">
+              <div style="font-size:26px;font-weight:700;color:#1d4ed8" id="mdLogins">—</div>
+              <div style="font-size:12px;color:#64748b">Logins This Month</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="text-center p-3" style="background:#f8fafc;border-radius:12px;border:1.5px solid var(--border)">
+              <div style="font-size:26px;font-weight:700;color:#7c3aed" id="mdMarks">—</div>
+              <div style="font-size:12px;color:#64748b">Marks Entries This Month</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="text-center p-3" style="background:#f8fafc;border-radius:12px;border:1.5px solid var(--border)">
+              <div style="font-size:26px;font-weight:700;color:#059669" id="mdAttSubs">—</div>
+              <div style="font-size:12px;color:#64748b">Attendance Submissions This Month</div>
+            </div>
+          </div>
+        </div>
+        <!-- Recent Activity -->
+        <h6 class="fw-bold mb-3" style="font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:#64748b">Recent Activity (Last 5 Actions)</h6>
+        <div class="table-responsive">
+          <table class="data-table" style="font-size:12.5px">
+            <thead>
+              <tr><th class="ps-3">Timestamp</th><th>Action</th><th class="pe-3">Details</th></tr>
+            </thead>
+            <tbody id="mdRecentBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
+  function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
+
+  const recentActivities = {
+    'Dr. Sarah Khan': [
+      ['23 May 2026 11:32 AM','<span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span>','Physics Mid Term — Class 12-A (15 students)'],
+      ['23 May 2026 10:30 AM','<span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span>','Physics Quiz 2 — Class 11-B (30 students)'],
+      ['23 May 2026 08:45 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','Physics — Class 12-A (P:12 A:2 L:1)'],
+      ['21 May 2026 03:00 PM','<span class="badge" style="background:#ede9fe;color:#6d28d9">Assessment Created</span>','Physics Final Term — Class 12-A (Max:100)'],
+      ['20 May 2026 09:10 AM','<span class="badge bg-secondary">Login</span>','—'],
+    ],
+    'Mr. Hasan Ali': [
+      ['23 May 2026 09:20 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','Mathematics — Class 12-A (P:13 A:1 L:1)'],
+      ['23 May 2026 09:15 AM','<span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span>','Math Quiz 2 — Class 12-A'],
+      ['22 May 2026 09:15 AM','<span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span>','Math Quiz 2 — Class 11-A'],
+      ['22 May 2026 08:30 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','Mathematics — Class 11-A (P:29 A:1 L:0)'],
+      ['21 May 2026 08:30 AM','<span class="badge bg-secondary">Login</span>','—'],
+    ],
+    'Ms. Nadia Raza': [
+      ['22 May 2026 04:30 PM','<span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span>','English Assignment 1 — Class 12-A'],
+      ['22 May 2026 04:15 PM','<span class="badge bg-secondary">Login</span>','—'],
+      ['22 May 2026 08:30 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','English — Class 12-A (P:14 A:1 L:0)'],
+      ['21 May 2026 09:00 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','English — Class 11-A (P:29 A:1 L:0)'],
+      ['20 May 2026 03:45 PM','<span class="badge" style="background:#ede9fe;color:#6d28d9">Assessment Created</span>','English Essay Assessment — Class 12-A'],
+    ],
+    'Dr. Amina Siddiqui': [
+      ['23 May 2026 11:02 AM','<span class="badge" style="background:#ede9fe;color:#6d28d9">Assessment Created</span>','Chemistry Quiz 3 — Class 12-A (Max:10)'],
+      ['23 May 2026 11:30 AM','<span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span>','Chemistry Quiz 3 — Class 12-A'],
+      ['23 May 2026 09:00 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','Chemistry — Class 12-A (P:14 A:1 L:0)'],
+      ['21 May 2026 11:45 AM','<span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span>','Chemistry Assignment 2 — Class 11-A'],
+      ['20 May 2026 08:00 AM','<span class="badge bg-secondary">Login</span>','—'],
+    ],
+    'Mr. Imran Hassan': [
+      ['22 May 2026 02:30 PM','<span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span>','Biology Practical — Class 12-A'],
+      ['22 May 2026 08:45 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','Biology — Class 12-A (P:13 A:2 L:0)'],
+      ['21 May 2026 08:50 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','Biology — Class 11-B (P:30 A:1 L:0)'],
+      ['20 May 2026 02:00 PM','<span class="badge bg-secondary">Login</span>','—'],
+      ['19 May 2026 09:00 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','Biology — Class 12-A (P:14 A:1 L:0)'],
+    ],
+    'Mr. Farhan Ahmed': [
+      ['23 May 2026 08:00 AM','<span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span>','CS Quiz — Class 12-A'],
+      ['23 May 2026 07:50 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','Computer Sc. — Class 12-A (P:15 A:0 L:0)'],
+      ['23 May 2026 07:45 AM','<span class="badge bg-secondary">Login</span>','—'],
+      ['20 May 2026 10:00 AM','<span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span>','CS Mid Term — Class 12-A (15 students)'],
+      ['19 May 2026 08:00 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','Computer Sc. — Class 11-A (P:29 A:1 L:0)'],
+    ],
+    'Mr. Ali Hassan': [
+      ['21 May 2026 10:30 AM','<span class="badge" style="background:#dbeafe;color:#1d4ed8">Marks Entered</span>','Urdu Assignment — Class 12-A'],
+      ['21 May 2026 09:00 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','Urdu — Class 12-A (P:14 A:1 L:0)'],
+      ['21 May 2026 08:45 AM','<span class="badge bg-secondary">Login</span>','—'],
+      ['20 May 2026 09:00 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','Urdu — Class 11-A (P:28 A:2 L:0)'],
+      ['19 May 2026 11:00 AM','<span class="badge" style="background:#ede9fe;color:#6d28d9">Assessment Created</span>','Urdu Essay — Class 12-A (Max:20)'],
+    ],
+    'Ms. Kiran Malik': [
+      ['22 May 2026 09:30 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','Islamiat — Class 12-A (P:13 A:2 L:0)'],
+      ['20 May 2026 09:00 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','Islamiat — Class 11-A (P:29 A:1 L:0)'],
+      ['20 May 2026 08:50 AM','<span class="badge bg-secondary">Login</span>','—'],
+      ['19 May 2026 09:10 AM','<span class="badge" style="background:#dcfce7;color:#166534">Attendance Submitted</span>','Islamiat — Class 12-A (P:14 A:1 L:0)'],
+      ['18 May 2026 08:55 AM','<span class="badge bg-secondary">Login</span>','—'],
+    ],
+  };
+
+  function openDetails(name, id, subject, logins, marks, attSubs, assessments) {
+    document.getElementById('mdName').textContent = name;
+    document.getElementById('mdId').textContent = id;
+    document.getElementById('mdSubject').textContent = subject;
+    document.getElementById('mdLogins').textContent = logins;
+    document.getElementById('mdMarks').textContent = marks;
+    document.getElementById('mdAttSubs').textContent = attSubs;
+
+    const tbody = document.getElementById('mdRecentBody');
+    const rows = recentActivities[name] || [];
+    tbody.innerHTML = rows.map(r =>
+      `<tr><td class="ps-3" style="white-space:nowrap">${r[0]}</td><td>${r[1]}</td><td class="pe-3">${r[2]}</td></tr>`
+    ).join('');
+
+    new bootstrap.Modal(document.getElementById('detailsModal')).show();
+  }
+</script>
+</body>
+</html>
