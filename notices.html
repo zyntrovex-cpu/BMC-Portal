@@ -7,179 +7,372 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
   <link href="portal.css" rel="stylesheet" />
   <style>
-    .sb-link.active{border-color:#ef4444;} .sb-logo{background:#ef4444;} .sb-av{background:#ef4444;}
-    .notice-card{background:#fff;border-radius:14px;box-shadow:var(--shadow-sm);margin-bottom:16px;overflow:hidden;border-left:5px solid #ef4444;transition:.2s;}
+    .sb-link.active{border-color:var(--accent);} .sb-logo{background:var(--accent);} .sb-av{background:var(--accent);}
+    .notice-card{background:#fff;border-radius:14px;box-shadow:var(--shadow-sm);margin-bottom:16px;overflow:hidden;transition:.2s;}
     .notice-card:hover{box-shadow:var(--shadow);}
-    .notice-card.info{border-color:#1d4ed8;}
-    .notice-card.green{border-color:#059669;}
-    .notice-card.orange{border-color:#d97706;}
-    .notice-card.purple{border-color:#7c3aed;}
     .notice-card.unread .nc-head{background:#fffbeb;}
     .nc-head{padding:16px 20px;display:flex;align-items:flex-start;gap:14px;}
     .nc-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
     .nc-body{padding:0 20px 16px;}
     .nc-foot{padding:10px 20px 14px;background:#f8fafc;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
     .pin-badge{background:#fef9c3;color:#854d0e;border-radius:6px;padding:2px 10px;font-size:11px;font-weight:700;}
+    .portal-header-banner{border-radius:14px;padding:18px 24px;margin-bottom:20px;color:#fff;}
+    .filter-btn{border-radius:20px;font-size:12.5px;padding:5px 14px;}
+    .filter-btn.active-filter{color:#fff;}
+    #noticesContainer .notice-card{display:block;}
+    #noticesContainer .notice-card.hidden{display:none;}
   </style>
 </head>
 <body>
 <div class="overlay" id="ov" onclick="closeSb()"></div>
 <div class="sidebar" id="sb">
-  <div class="sb-brand"><div class="sb-logo"><i class="fas fa-bullhorn"></i></div><div class="sb-title"><h6>BMC Portal</h6><small>Notice Board</small></div></div>
+  <div class="sb-brand">
+    <div class="sb-logo" id="sbLogo"><i class="fas fa-bullhorn"></i></div>
+    <div class="sb-title"><h6>BMC Portal</h6><small id="portalLabel">Notice Board</small></div>
+  </div>
   <div class="sb-menu">
-    <div class="sb-section">Portals</div>
-    <a class="sb-link" href="student-dashboard.html"><i class="fas fa-user-graduate"></i> Student Portal</a>
-    <a class="sb-link" href="teacher-dashboard.html"><i class="fas fa-chalkboard-teacher"></i> Teacher Portal</a>
-    <a class="sb-link" href="admin-dashboard.html"><i class="fas fa-shield-alt"></i> Admin Panel</a>
-    <a class="sb-link" href="finance-dashboard.html"><i class="fas fa-coins"></i> Finance Portal</a>
-    <div class="sb-section">Quick Links</div>
-    <a class="sb-link active" href="notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
-    <a class="sb-link" href="student-results.html"><i class="fas fa-chart-bar"></i> Results</a>
-    <a class="sb-link" href="student-attendance.html"><i class="fas fa-calendar-check"></i> Attendance</a>
+    <div class="sb-section" id="sbSection">Navigation</div>
+    <a class="sb-link" href="#" id="backLink"><i class="fas fa-arrow-left"></i> Back to Portal</a>
+    <a class="sb-link active" href="#"><i class="fas fa-bullhorn"></i> Notice Board</a>
+    <div class="sb-section" id="sbSection2" style="display:none">Manage</div>
+    <a class="sb-link" href="admin-notices.html" id="manageLink" style="display:none"><i class="fas fa-pen-to-square"></i> Manage Notices</a>
+    <div class="sb-section">Account</div>
     <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
   </div>
-  <div class="sb-foot"><div class="sb-av" style="background:#ef4444"><i class="fas fa-user"></i></div><div class="sb-foot-info"><h6>Ahmed Ali</h6><small>Student · 12-A</small></div></div>
+  <div class="sb-foot">
+    <div class="sb-av" id="sbAv"><i class="fas fa-user"></i></div>
+    <div class="sb-foot-info"><h6 id="footName">User</h6><small id="footRole">BMC Portal</small></div>
+  </div>
 </div>
 
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
       <button class="toggle-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
-      <span class="topbar-title"><i class="fas fa-bullhorn text-danger"></i> Notice Board</span>
+      <span class="topbar-title" id="topbarTitle"><i class="fas fa-bullhorn"></i> Notice Board</span>
     </div>
     <div class="topbar-right">
-      <span class="badge bg-danger" style="font-size:12px">3 Unread</span>
-      <img src="https://ui-avatars.com/api/?name=Ahmed+Ali&background=1d4ed8&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
+      <span class="badge" id="unreadBadge" style="font-size:12px;background:#ef4444;color:#fff">3 Unread</span>
+      <img id="topAvatar" src="https://ui-avatars.com/api/?name=User&background=7c3aed&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
     </div>
   </div>
 
   <div class="content">
-    <div class="d-flex gap-2 flex-wrap mb-4">
-      <button class="btn btn-sm btn-danger" onclick="filter('all',this)">All Notices</button>
-      <button class="btn btn-sm btn-outline-secondary" onclick="filter('exam',this)">Exams</button>
-      <button class="btn btn-sm btn-outline-secondary" onclick="filter('holiday',this)">Holidays</button>
-      <button class="btn btn-sm btn-outline-secondary" onclick="filter('general',this)">General</button>
-      <button class="btn btn-sm btn-outline-secondary" onclick="filter('urgent',this)">Urgent</button>
-      <div class="ms-auto"><input type="text" class="form-control form-control-sm" placeholder="Search notices..." oninput="searchNotices(this.value)" style="max-width:200px" /></div>
-    </div>
-
-    <div class="notice-card unread" data-cat="exam">
-      <div class="nc-head">
-        <div class="nc-icon" style="background:#fef2f2;color:#ef4444"><i class="fas fa-exclamation-triangle"></i></div>
-        <div style="flex:1">
-          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-            <span class="pin-badge"><i class="fas fa-thumbtack me-1"></i>Pinned</span>
-            <span class="badge bg-danger">Urgent</span>
-            <span class="badge bg-secondary">All Students</span>
-            <span class="badge bg-warning text-dark" style="font-size:11px">Unread</span>
-          </div>
-          <h6 class="fw-bold mb-0" style="font-size:15px">Final Examination Schedule — June 2026</h6>
+    <!-- Portal identity banner -->
+    <div class="portal-header-banner" id="portalBanner">
+      <div class="d-flex align-items-center gap-3">
+        <div id="bannerIcon" style="width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0"></div>
+        <div>
+          <div class="fw-bold" id="bannerName" style="font-size:16px"></div>
+          <div style="font-size:12.5px;opacity:.85" id="bannerSub"></div>
         </div>
-        <div style="font-size:11px;color:#94a3b8;white-space:nowrap">19 May 2026</div>
-      </div>
-      <div class="nc-body"><p style="font-size:13.5px;color:#475569;margin:0">The Final Examination for Term 2 (2025–26) will commence from <strong>10 June 2026</strong>. All students must report 30 minutes before the exam. Please download the complete date sheet below. Roll number slips will be distributed by class teachers this week.</p></div>
-      <div class="nc-foot">
-        <div class="d-flex gap-2 flex-wrap">
-          <button class="btn btn-sm btn-danger" onclick="alert('Downloading PDF...')"><i class="fas fa-download me-1"></i>Download Date Sheet</button>
-          <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-share me-1"></i>Share</button>
-        </div>
-        <div style="font-size:12px;color:#94a3b8">Posted by: Principal's Office &nbsp;·&nbsp; Expires: 10 Jun 2026</div>
       </div>
     </div>
 
-    <div class="notice-card info unread" data-cat="general">
-      <div class="nc-head">
-        <div class="nc-icon" style="background:#eff6ff;color:#1d4ed8"><i class="fas fa-users"></i></div>
-        <div style="flex:1">
-          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-            <span class="badge bg-primary">PTM</span>
-            <span class="badge bg-secondary">All</span>
-            <span class="badge bg-warning text-dark" style="font-size:11px">Unread</span>
-          </div>
-          <h6 class="fw-bold mb-0" style="font-size:15px">Parent-Teacher Meeting — 27 May 2026</h6>
-        </div>
-        <div style="font-size:11px;color:#94a3b8;white-space:nowrap">18 May 2026</div>
-      </div>
-      <div class="nc-body"><p style="font-size:13.5px;color:#475569;margin:0">Parent-Teacher Meeting (PTM) is scheduled for <strong>Wednesday, 27 May 2026</strong> from <strong>09:00 AM – 01:00 PM</strong>. Parents/guardians are requested to meet their respective class teachers to discuss Mid-Term results and student progress.</p></div>
-      <div class="nc-foot">
-        <div style="font-size:12px;color:#475569"><i class="fas fa-map-marker-alt me-1"></i>Main Hall &nbsp;·&nbsp; <i class="fas fa-clock me-1"></i>09:00 AM – 01:00 PM</div>
-        <div style="font-size:12px;color:#94a3b8">Posted by: Administration</div>
-      </div>
+    <!-- Filter bar -->
+    <div class="d-flex gap-2 flex-wrap align-items-center mb-4" id="filterBar">
+      <button class="btn btn-sm filter-btn active-filter" id="filterAll" onclick="setFilter('all',this)" style="background:var(--accent);border-color:var(--accent)">All Notices</button>
+      <button class="btn btn-sm btn-outline-secondary filter-btn" onclick="setFilter('pinned',this)"><i class="fas fa-thumbtack me-1"></i>Pinned</button>
+      <!-- dynamic category buttons injected by JS -->
+      <div class="ms-auto"><input type="text" class="form-control form-control-sm" placeholder="Search notices..." oninput="handleSearch(this.value)" style="max-width:210px" /></div>
     </div>
 
-    <div class="notice-card green unread" data-cat="holiday">
-      <div class="nc-head">
-        <div class="nc-icon" style="background:#f0fdf4;color:#059669"><i class="fas fa-star-and-crescent"></i></div>
-        <div style="flex:1">
-          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-            <span class="badge bg-success">Holiday</span>
-            <span class="badge bg-secondary">All Staff &amp; Students</span>
-            <span class="badge bg-warning text-dark" style="font-size:11px">Unread</span>
-          </div>
-          <h6 class="fw-bold mb-0" style="font-size:15px">Eid-ul-Adha Holidays — 30 May to 3 June 2026</h6>
-        </div>
-        <div style="font-size:11px;color:#94a3b8;white-space:nowrap">17 May 2026</div>
-      </div>
-      <div class="nc-body"><p style="font-size:13.5px;color:#475569;margin:0">Bahria Model College will remain <strong>closed from 30 May to 3 June 2026</strong> on account of Eid-ul-Adha. College will resume on <strong>4 June 2026</strong>. Eid Mubarak to all students, parents, and staff from the management!</p></div>
-      <div class="nc-foot">
-        <div style="font-size:12px;color:#059669;font-weight:600"><i class="fas fa-check-circle me-1"></i>College reopens: 4 June 2026</div>
-        <div style="font-size:12px;color:#94a3b8">Posted by: Principal's Office</div>
-      </div>
-    </div>
+    <div id="noticesContainer"></div>
 
-    <div class="notice-card orange" data-cat="general">
-      <div class="nc-head">
-        <div class="nc-icon" style="background:#fffbeb;color:#d97706"><i class="fas fa-trophy"></i></div>
-        <div style="flex:1">
-          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-            <span class="badge bg-warning text-dark">Sports</span>
-            <span class="badge bg-secondary">All Students</span>
-          </div>
-          <h6 class="fw-bold mb-0" style="font-size:15px">Annual Sports Day — 7 June 2026</h6>
-        </div>
-        <div style="font-size:11px;color:#94a3b8;white-space:nowrap">15 May 2026</div>
-      </div>
-      <div class="nc-body"><p style="font-size:13.5px;color:#475569;margin:0">Annual Sports Day will be held on <strong>7 June 2026</strong> at the college grounds. Students interested in participating must register with their House In-Charge by <strong>28 May 2026</strong>. Events include Athletics, Cricket, Football, Table Tennis, and Badminton.</p></div>
-      <div class="nc-foot">
-        <div class="d-flex gap-2">
-          <button class="btn btn-sm btn-warning text-white" onclick="alert('Registration open!')">Register for Events</button>
-          <button class="btn btn-sm btn-outline-secondary" onclick="alert('Downloading schedule...')"><i class="fas fa-download me-1"></i>Schedule PDF</button>
-        </div>
-        <div style="font-size:12px;color:#94a3b8">Posted by: Sports Department</div>
-      </div>
-    </div>
-
-    <div class="notice-card purple" data-cat="general">
-      <div class="nc-head">
-        <div class="nc-icon" style="background:#fdf4ff;color:#7c3aed"><i class="fas fa-book"></i></div>
-        <div style="flex:1">
-          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-            <span class="badge bg-secondary">General</span>
-            <span class="badge bg-secondary">All Students</span>
-          </div>
-          <h6 class="fw-bold mb-0" style="font-size:15px">Library New Arrivals — May 2026</h6>
-        </div>
-        <div style="font-size:11px;color:#94a3b8;white-space:nowrap">13 May 2026</div>
-      </div>
-      <div class="nc-body"><p style="font-size:13.5px;color:#475569;margin:0">The library has received new textbooks and reference materials for Class 11 and 12. Students can borrow up to 2 books for 14 days. Please visit the library during break time or after school hours. <strong>Library card is required.</strong></p></div>
-      <div class="nc-foot">
-        <div style="font-size:12px;color:#475569"><i class="fas fa-clock me-1"></i>Library Hours: 07:00 AM – 03:00 PM</div>
-        <div style="font-size:12px;color:#94a3b8">Posted by: Library Department</div>
-      </div>
-    </div>
-
-    <div class="text-center mt-2">
-      <button class="btn btn-outline-secondary btn-sm">Load More Notices</button>
+    <div id="emptyState" style="display:none;text-align:center;padding:48px 0;color:#94a3b8">
+      <i class="fas fa-bell-slash" style="font-size:48px;margin-bottom:16px;display:block"></i>
+      <div style="font-size:15px">No notices found</div>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
-  function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
-  function filter(cat,btn){document.querySelectorAll('.notice-card').forEach(c=>{c.style.display=(cat==='all'||c.dataset.cat===cat)?'':'none';});}
-  function searchNotices(q){document.querySelectorAll('.notice-card').forEach(c=>{c.style.display=c.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';});}
+// ─── Notice data ────────────────────────────────────────────────────────────
+const allNotices = [
+  { id:1,  title:'Final Examination Schedule — June 2026',       body:'Term 2 Finals commence 10 June 2026. All students must report 30 minutes early. Roll number slips will be distributed by class teachers.',                                                                                                                   category:'exam',     audience:'students', priority:'urgent',    date:'19 May 2026', author:"Principal's Office",  pinned:true  },
+  { id:2,  title:'Parent-Teacher Meeting — 27 May 2026',         body:'PTM scheduled Wednesday 27 May, 09:00 AM–01:00 PM in Main Hall. Parents are requested to meet their class teachers to discuss Mid-Term results.',                                                                                                                  category:'general',  audience:'all',      priority:'normal',    date:'18 May 2026', author:'Administration',       pinned:false },
+  { id:3,  title:'Eid-ul-Adha Holidays — 30 May to 3 June 2026', body:'College closed 30 May–3 June 2026. Resumes 4 June 2026. Eid Mubarak to all students, parents, and staff!',                                                                                                                                                        category:'holiday',  audience:'all',      priority:'normal',    date:'17 May 2026', author:"Principal's Office",  pinned:true  },
+  { id:4,  title:'Annual Sports Day — 7 June 2026',              body:'Register with your House In-Charge by 28 May 2026. Events: Athletics, Cricket, Football, Table Tennis, Badminton.',                                                                                                                                                category:'sports',   audience:'students', priority:'normal',    date:'15 May 2026', author:'Sports Department',    pinned:false },
+  { id:5,  title:'Fee Submission Deadline — May 2026',           body:'Monthly fee for May 2026 must be submitted by 31 May 2026. Late fee fine of Rs. 500 applies after the deadline. Contact the finance office for installment plans.',                                                                                                category:'finance',  audience:'students', priority:'important', date:'14 May 2026', author:'Finance Office',        pinned:false },
+  { id:6,  title:'Library New Arrivals — May 2026',              body:'New textbooks for Class 11 &amp; 12. Borrow up to 2 books for 14 days. Library card required. Hours: 07:00 AM–03:00 PM.',                                                                                                                                         category:'general',  audience:'students', priority:'normal',    date:'13 May 2026', author:'Library Department',    pinned:false },
+  { id:7,  title:'Staff Meeting — 26 May 2026 (Monday)',         body:'All teaching staff are required to attend the monthly staff meeting on Monday 26 May at 02:00 PM in the Conference Room. Agenda: Result submission, timetable revision, PTM preparation.',                                                                        category:'staff',    audience:'teachers', priority:'important', date:'20 May 2026', author:'Vice Principal',         pinned:true  },
+  { id:8,  title:'Mid-Term Result Submission Deadline',          body:'All subject teachers must submit Mid-Term marks on the portal by 25 May 2026. Late submissions will not be accepted. Contact the Academic Office for queries.',                                                                                                     category:'academic', audience:'teachers', priority:'urgent',    date:'19 May 2026', author:'Academic Office',        pinned:false },
+  { id:9,  title:'Professional Development Workshop — 29 May',   body:'A one-day training workshop on "Effective Use of Technology in Teaching" is scheduled for 29 May 2026. All teachers are encouraged to attend. Venue: IT Lab.',                                                                                                     category:'training', audience:'teachers', priority:'normal',    date:'16 May 2026', author:'HR Department',          pinned:false },
+  { id:10, title:'Curriculum Review Meeting — Science Dept.',    body:'Science department teachers (Physics, Chemistry, Biology) are required to attend a curriculum review meeting on 27 May 2026 at 11:00 AM in Room 301.',                                                                                                             category:'academic', audience:'teachers', priority:'normal',    date:'15 May 2026', author:'Academic Coordinator',   pinned:false },
+  { id:11, title:'Monthly Fee Collection Report — April 2026',   body:'April 2026 fee collection has been completed with 89% collection rate. Defaulter notices have been sent. Finance team to finalize reconciliation by 25 May 2026.',                                                                                                 category:'finance',  audience:'finance',  priority:'important', date:'21 May 2026', author:'Finance Manager',        pinned:true  },
+  { id:12, title:'Annual Audit Preparation — June 2026',         body:'Annual financial audit scheduled for 15 June 2026. All finance staff must ensure records are up to date. Required documents: fee ledgers, expense vouchers, bank statements for FY 2025-26.',                                                                      category:'finance',  audience:'finance',  priority:'urgent',    date:'18 May 2026', author:'Finance Manager',        pinned:false },
+  { id:13, title:'Scholarship Disbursements — May 2026',         body:'Merit scholarship payments for 24 students are due by 31 May 2026. List has been approved by the principal. Finance office to process payments via bank transfer.',                                                                                                category:'finance',  audience:'finance',  priority:'normal',    date:'15 May 2026', author:'Finance Manager',        pinned:false },
+  { id:14, title:'System Maintenance — 25 May 2026 (Night)',     body:'Portal scheduled maintenance from 11:00 PM to 02:00 AM on 25–26 May. The system will be unavailable during this window. Please inform relevant staff.',                                                                                                           category:'system',   audience:'admin',    priority:'important', date:'22 May 2026', author:'IT Department',          pinned:true  },
+  { id:15, title:'New Student Enrollment — June Batch',          body:'Registration for June 2026 batch opens 5 June 2026. Admin staff to prepare enrollment forms, fee schedules, and class allocation sheets. Estimated enrollment: 180 students.',                                                                                      category:'admin',    audience:'admin',    priority:'normal',    date:'20 May 2026', author:'Administration',        pinned:false },
+];
+
+// ─── Portal config ───────────────────────────────────────────────────────────
+const params = new URLSearchParams(window.location.search);
+const p = (params.get('p') || 'admin').toLowerCase();
+
+const portalConfig = {
+  student: {
+    accent:       '#1d4ed8',
+    name:         'Student Portal',
+    backLink:     'student-dashboard.html',
+    backLabel:    'Student Portal',
+    footName:     'Ahmed Ali',
+    footRole:     'Class 12-A · Roll 101',
+    avatarBg:     '1d4ed8',
+    avatarName:   'Ahmed+Ali',
+    bannerGrad:   'linear-gradient(135deg,#1e3a8a,#1d4ed8)',
+    bannerIcon:   'fas fa-user-graduate',
+    bannerName:   'Ahmed Ali',
+    bannerSub:    'Class 12-A · Roll 101 · Student Portal',
+    topTitle:     'Notice Board — Student Portal',
+    topColor:     '#1d4ed8',
+    audienceFilter: n => n.audience === 'students' || n.audience === 'all',
+    categories:   ['exam','holiday','sports','finance','general'],
+    catLabels:    {exam:'Exams', holiday:'Holidays', sports:'Sports', finance:'Fees', general:'General'},
+    showAdmin:    false,
+  },
+  teacher: {
+    accent:       '#059669',
+    name:         'Teacher Portal',
+    backLink:     'teacher-dashboard.html',
+    backLabel:    'Teacher Portal',
+    footName:     'Dr. Sarah Khan',
+    footRole:     'Physics Teacher',
+    avatarBg:     '059669',
+    avatarName:   'Sarah+Khan',
+    bannerGrad:   'linear-gradient(135deg,#064e3b,#059669)',
+    bannerIcon:   'fas fa-chalkboard-teacher',
+    bannerName:   'Dr. Sarah Khan',
+    bannerSub:    'Physics · Teacher Portal',
+    topTitle:     'Notice Board — Teacher Portal',
+    topColor:     '#059669',
+    audienceFilter: n => n.audience === 'teachers' || n.audience === 'all' || n.audience === 'staff',
+    categories:   ['staff','academic','training','holiday','general'],
+    catLabels:    {staff:'Staff', academic:'Academic', training:'Training', holiday:'Holidays', general:'General'},
+    showAdmin:    false,
+  },
+  finance: {
+    accent:       '#d97706',
+    name:         'Finance Portal',
+    backLink:     'finance-dashboard.html',
+    backLabel:    'Finance Portal',
+    footName:     'Ms. Ayesha Rizvi',
+    footRole:     'Finance Officer',
+    avatarBg:     'd97706',
+    avatarName:   'Ayesha+Rizvi',
+    bannerGrad:   'linear-gradient(135deg,#78350f,#d97706)',
+    bannerIcon:   'fas fa-coins',
+    bannerName:   'Ms. Ayesha Rizvi',
+    bannerSub:    'Finance Officer · Finance Portal',
+    topTitle:     'Notice Board — Finance Portal',
+    topColor:     '#d97706',
+    audienceFilter: n => n.audience === 'finance' || n.audience === 'all',
+    categories:   ['finance','holiday','general'],
+    catLabels:    {finance:'Finance', holiday:'Holidays', general:'General'},
+    showAdmin:    false,
+  },
+  admin: {
+    accent:       '#7c3aed',
+    name:         'Admin Panel',
+    backLink:     'admin-dashboard.html',
+    backLabel:    'Admin Panel',
+    footName:     'Mr. Tariq Mehmood',
+    footRole:     'System Administrator',
+    avatarBg:     '7c3aed',
+    avatarName:   'Tariq+Mehmood',
+    bannerGrad:   'linear-gradient(135deg,#2e1065,#7c3aed)',
+    bannerIcon:   'fas fa-shield-alt',
+    bannerName:   'Mr. Tariq Mehmood',
+    bannerSub:    'System Administrator · Admin Panel',
+    topTitle:     'Notice Board — Admin Panel',
+    topColor:     '#7c3aed',
+    audienceFilter: () => true,
+    categories:   ['exam','general','holiday','sports','finance','staff','academic','training','system','admin'],
+    catLabels:    {exam:'Exams', general:'General', holiday:'Holidays', sports:'Sports', finance:'Finance', staff:'Staff', academic:'Academic', training:'Training', system:'System', admin:'Admin'},
+    showAdmin:    true,
+  },
+};
+
+const cfg = portalConfig[p] || portalConfig.admin;
+
+// ─── Category icon/color map ─────────────────────────────────────────────────
+const catMeta = {
+  exam:     { color:'#ef4444', bg:'#fef2f2', icon:'fas fa-file-alt',         label:'Exam'     },
+  general:  { color:'#1d4ed8', bg:'#eff6ff', icon:'fas fa-info-circle',       label:'General'  },
+  holiday:  { color:'#059669', bg:'#f0fdf4', icon:'fas fa-star-and-crescent', label:'Holiday'  },
+  sports:   { color:'#d97706', bg:'#fffbeb', icon:'fas fa-trophy',            label:'Sports'   },
+  finance:  { color:'#d97706', bg:'#fffbeb', icon:'fas fa-coins',             label:'Finance'  },
+  staff:    { color:'#7c3aed', bg:'#fdf4ff', icon:'fas fa-users',             label:'Staff'    },
+  academic: { color:'#0891b2', bg:'#ecfeff', icon:'fas fa-book-open',         label:'Academic' },
+  training: { color:'#059669', bg:'#f0fdf4', icon:'fas fa-graduation-cap',    label:'Training' },
+  system:   { color:'#475569', bg:'#f1f5f9', icon:'fas fa-server',            label:'System'   },
+  admin:    { color:'#7c3aed', bg:'#fdf4ff', icon:'fas fa-shield-alt',        label:'Admin'    },
+};
+
+// ─── Apply portal config to DOM ──────────────────────────────────────────────
+function applyConfig() {
+  document.documentElement.style.setProperty('--accent', cfg.accent);
+  document.title = 'Notice Board — ' + cfg.name;
+
+  document.getElementById('portalLabel').textContent   = cfg.name;
+  document.getElementById('backLink').href             = cfg.backLink;
+  document.getElementById('backLink').innerHTML        = '<i class="fas fa-arrow-left"></i> ' + cfg.backLabel;
+  document.getElementById('footName').textContent      = cfg.footName;
+  document.getElementById('footRole').textContent      = cfg.footRole;
+  document.getElementById('topAvatar').src             = 'https://ui-avatars.com/api/?name=' + cfg.avatarName + '&background=' + cfg.avatarBg + '&color=fff&size=36';
+
+  const topTitle = document.getElementById('topbarTitle');
+  topTitle.innerHTML = '<i class="fas fa-bullhorn" style="color:' + cfg.accent + '"></i> ' + cfg.topTitle;
+
+  const banner = document.getElementById('portalBanner');
+  banner.style.background = cfg.bannerGrad;
+  document.getElementById('bannerIcon').innerHTML = '<i class="' + cfg.bannerIcon + '"></i>';
+  document.getElementById('bannerName').textContent = cfg.bannerName;
+  document.getElementById('bannerSub').textContent  = cfg.bannerSub;
+
+  if (cfg.showAdmin) {
+    document.getElementById('sbSection2').style.display = '';
+    document.getElementById('manageLink').style.display  = '';
+  }
+
+  // Inject category filter buttons
+  const bar = document.getElementById('filterBar');
+  const searchDiv = bar.querySelector('.ms-auto');
+  cfg.categories.forEach(cat => {
+    const m = catMeta[cat] || { color:'#64748b', label: cat };
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-sm btn-outline-secondary filter-btn';
+    btn.setAttribute('data-cat', cat);
+    btn.textContent = cfg.catLabels[cat] || m.label;
+    btn.onclick = function(){ setFilter(cat, this); };
+    bar.insertBefore(btn, searchDiv);
+  });
+}
+
+// ─── Render notices ──────────────────────────────────────────────────────────
+let visibleNotices = [];
+let currentFilter  = 'all';
+let currentSearch  = '';
+
+function renderNotices() {
+  const container = document.getElementById('noticesContainer');
+  container.innerHTML = '';
+
+  let filtered = visibleNotices.filter(n => {
+    const matchFilter =
+      currentFilter === 'all'    ? true :
+      currentFilter === 'pinned' ? n.pinned :
+      n.category === currentFilter;
+
+    const matchSearch = currentSearch === '' ||
+      n.title.toLowerCase().includes(currentSearch) ||
+      n.body.toLowerCase().includes(currentSearch)  ||
+      n.author.toLowerCase().includes(currentSearch);
+
+    return matchFilter && matchSearch;
+  });
+
+  const emptyState = document.getElementById('emptyState');
+  if (filtered.length === 0) {
+    emptyState.style.display = '';
+    document.getElementById('unreadBadge').style.display = 'none';
+    return;
+  }
+  emptyState.style.display = 'none';
+
+  // Sort: pinned first, then by id desc
+  filtered.sort((a,b) => (b.pinned - a.pinned) || (b.id - a.id));
+
+  let unreadCount = 0;
+  filtered.forEach((n, idx) => {
+    const isUnread = idx < 3;
+    if (isUnread) unreadCount++;
+
+    const m = catMeta[n.category] || { color:'#64748b', bg:'#f1f5f9', icon:'fas fa-info-circle', label: n.category };
+
+    const priorityBadge =
+      n.priority === 'urgent'    ? '<span class="badge bg-danger">Urgent</span>'  :
+      n.priority === 'important' ? '<span class="badge bg-primary">Important</span>' :
+                                   '<span class="badge bg-secondary">Normal</span>';
+
+    const pinnedBadge = n.pinned ? '<span class="pin-badge"><i class="fas fa-thumbtack me-1"></i>Pinned</span>' : '';
+    const unreadBadge = isUnread ? '<span class="badge bg-warning text-dark" style="font-size:11px">Unread</span>' : '';
+    const catBadge    = '<span class="badge" style="background:' + m.bg + ';color:' + m.color + ';border:1px solid ' + m.color + '33">' + (m.label) + '</span>';
+
+    const card = document.createElement('div');
+    card.className = 'notice-card' + (isUnread ? ' unread' : '');
+    card.setAttribute('data-cat', n.category);
+    card.style.borderLeft = '5px solid ' + m.color;
+    card.innerHTML = `
+      <div class="nc-head">
+        <div class="nc-icon" style="background:${m.bg};color:${m.color}"><i class="${m.icon}"></i></div>
+        <div style="flex:1">
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+            ${pinnedBadge}${priorityBadge}${catBadge}${unreadBadge}
+          </div>
+          <h6 class="fw-bold mb-0" style="font-size:15px">${n.title}</h6>
+        </div>
+        <div style="font-size:11px;color:#94a3b8;white-space:nowrap">${n.date}</div>
+      </div>
+      <div class="nc-body"><p style="font-size:13.5px;color:#475569;margin:0">${n.body}</p></div>
+      <div class="nc-foot">
+        <div style="font-size:12px;color:#94a3b8">Posted by: ${n.author}</div>
+        ${cfg.showAdmin ? `<div class="d-flex gap-1"><button class="btn btn-sm btn-outline-secondary" style="font-size:11px" onclick="alert('Edit notice #${n.id}')"><i class="fas fa-edit me-1"></i>Edit</button><button class="btn btn-sm btn-outline-danger" style="font-size:11px" onclick="alert('Delete notice #${n.id}')"><i class="fas fa-trash me-1"></i>Delete</button></div>` : ''}
+      </div>`;
+    container.appendChild(card);
+  });
+
+  const badge = document.getElementById('unreadBadge');
+  if (unreadCount > 0) {
+    badge.style.display = '';
+    badge.textContent   = unreadCount + ' Unread';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// ─── Filter / search handlers ────────────────────────────────────────────────
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.remove('active-filter');
+    b.style.background    = '';
+    b.style.borderColor   = '';
+    b.style.color         = '';
+    b.classList.remove('btn-secondary');
+    b.classList.add('btn-outline-secondary');
+  });
+  btn.classList.add('active-filter');
+  btn.classList.remove('btn-outline-secondary');
+  btn.classList.add('btn-secondary');
+  btn.style.background  = cfg.accent;
+  btn.style.borderColor = cfg.accent;
+  btn.style.color       = '#fff';
+  renderNotices();
+}
+
+function handleSearch(q) {
+  currentSearch = q.toLowerCase();
+  renderNotices();
+}
+
+// ─── Sidebar toggle ──────────────────────────────────────────────────────────
+function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
+function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+applyConfig();
+visibleNotices = allNotices.filter(cfg.audienceFilter);
+renderNotices();
+
+// Activate the "All" button styling on load
+(function(){
+  const b = document.getElementById('filterAll');
+  b.style.background  = cfg.accent;
+  b.style.borderColor = cfg.accent;
+  b.style.color       = '#fff';
+})();
 </script>
 </body>
 </html>

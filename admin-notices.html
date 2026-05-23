@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notice Management — BMC Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="portal.css" rel="stylesheet" />
+  <style>
+    .sb-link.active{border-color:#7c3aed;} .sb-logo{background:#7c3aed;} .sb-av{background:#7c3aed;}
+    .form-label{font-size:13px;font-weight:600;color:#374151;margin-bottom:4px;}
+    .form-control,.form-select{font-size:13.5px;border-color:#d5dde8;}
+    .form-control:focus,.form-select:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.12);}
+    .aud-check{display:flex;align-items:center;gap:8px;padding:8px 14px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;transition:.15s;font-size:13px;}
+    .aud-check:has(input:checked){border-color:#7c3aed;background:#fdf4ff;}
+    .aud-check input{accent-color:#7c3aed;}
+    .cat-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+    .pri-urgent{background:#fef2f2;color:#ef4444;}
+    .pri-important{background:#eff6ff;color:#1d4ed8;}
+    .pri-normal{background:#f1f5f9;color:#475569;}
+    .status-active{background:#dcfce7;color:#166534;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600;}
+    .status-expired{background:#f1f5f9;color:#475569;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600;}
+    .aud-icon{font-size:13px;margin-right:2px;}
+    #successAlert{display:none;position:fixed;top:70px;right:24px;z-index:9999;min-width:280px;border-radius:10px;}
+  </style>
+</head>
+<body>
+<div class="overlay" id="ov" onclick="closeSb()"></div>
+<div class="sidebar" id="sb">
+  <div class="sb-brand"><div class="sb-logo"><i class="fas fa-shield-alt"></i></div><div class="sb-title"><h6>BMC Portal</h6><small>Admin Panel</small></div></div>
+  <div class="sb-menu">
+    <div class="sb-section">Main Menu</div>
+    <a class="sb-link" href="admin-dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a class="sb-link" href="admin-users.html"><i class="fas fa-users"></i> User Management</a>
+    <a class="sb-link" href="admin-classes.html"><i class="fas fa-school"></i> Classes &amp; Subjects</a>
+    <a class="sb-link" href="admin-results.html"><i class="fas fa-chart-bar"></i> Results Management</a>
+    <a class="sb-link" href="admin-attendance.html"><i class="fas fa-calendar-check"></i> Attendance Reports</a>
+    <a class="sb-link" href="admin-timetable.html"><i class="fas fa-table"></i> Timetable Management</a>
+    <a class="sb-link" href="admin-activity.html"><i class="fas fa-history"></i> Teacher Activity</a>
+    <a class="sb-link" href="admin-analytics.html"><i class="fas fa-chart-line"></i> Analytics</a>
+    <div class="sb-section">Communication</div>
+    <a class="sb-link active" href="admin-notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
+    <a class="sb-link" href="notices.html?p=admin"><i class="fas fa-eye"></i> View All Notices</a>
+    <div class="sb-section">Finance</div>
+    <a class="sb-link" href="finance-dashboard.html"><i class="fas fa-coins"></i> Finance Portal</a>
+    <div class="sb-section">System</div>
+    <a class="sb-link" href="admin-settings.html"><i class="fas fa-cog"></i> Settings</a>
+    <a class="sb-link" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+  <div class="sb-foot"><div class="sb-av"><i class="fas fa-user-shield"></i></div><div class="sb-foot-info"><h6>Mr. Tariq Mehmood</h6><small>System Administrator</small></div></div>
+</div>
+
+<!-- Success alert -->
+<div class="alert alert-success shadow" id="successAlert" role="alert">
+  <i class="fas fa-check-circle me-2"></i><span id="successMsg">Notice sent!</span>
+  <button type="button" class="btn-close btn-sm float-end" onclick="document.getElementById('successAlert').style.display='none'"></button>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="toggle-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <span class="topbar-title"><i class="fas fa-bullhorn" style="color:#7c3aed"></i> Notice Management</span>
+    </div>
+    <div class="topbar-right">
+      <div class="position-relative" style="cursor:pointer">
+        <i class="fas fa-bell" style="font-size:18px;color:#475569"></i>
+        <span style="background:#ef4444;color:#fff;border-radius:50%;width:17px;height:17px;font-size:10px;display:flex;align-items:center;justify-content:center;position:absolute;top:-6px;right:-6px">5</span>
+      </div>
+      <img src="https://ui-avatars.com/api/?name=Tariq+Mehmood&background=7c3aed&color=fff&size=36" style="width:36px;height:36px;border-radius:50%;" />
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Stats row -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fdf4ff"><i class="fas fa-bullhorn" style="color:#7c3aed"></i></div>
+          <div class="stat-val" style="color:#7c3aed" id="statTotal">15</div>
+          <div class="stat-lbl">Total Posted</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f0fdf4"><i class="fas fa-check-circle" style="color:#059669"></i></div>
+          <div class="stat-val" style="color:#059669" id="statActive">12</div>
+          <div class="stat-lbl">Active</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f1f5f9"><i class="fas fa-clock" style="color:#475569"></i></div>
+          <div class="stat-val" style="color:#475569">3</div>
+          <div class="stat-lbl">Expired</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fffbeb"><i class="fas fa-file-alt" style="color:#d97706"></i></div>
+          <div class="stat-val" style="color:#d97706">2</div>
+          <div class="stat-lbl">Drafts</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Notice Form -->
+    <div class="sec-card mb-4">
+      <div class="sec-head">
+        <h5><i class="fas fa-plus-circle me-2" style="color:#7c3aed"></i>Create &amp; Send Notice</h5>
+        <span class="badge" style="background:#fdf4ff;color:#7c3aed;border:1px solid #ede9fe">Admin Only</span>
+      </div>
+      <div class="p-4">
+        <form id="noticeForm" novalidate>
+          <div class="row g-3">
+            <!-- Title -->
+            <div class="col-12">
+              <label class="form-label" for="fTitle"><i class="fas fa-heading me-1 text-muted"></i>Notice Title <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="fTitle" name="title" placeholder="e.g. Term 2 Examination Schedule — June 2026" required />
+              <div class="invalid-feedback">Please enter a notice title.</div>
+            </div>
+            <!-- Body -->
+            <div class="col-12">
+              <label class="form-label" for="fBody"><i class="fas fa-align-left me-1 text-muted"></i>Message / Body <span class="text-danger">*</span></label>
+              <textarea class="form-control" id="fBody" name="body" rows="4" placeholder="Write the full notice content here..." required></textarea>
+              <div class="invalid-feedback">Please enter the notice message.</div>
+            </div>
+            <!-- Category & Priority -->
+            <div class="col-md-6">
+              <label class="form-label" for="fCategory"><i class="fas fa-tag me-1 text-muted"></i>Category</label>
+              <select class="form-select" id="fCategory" name="category">
+                <option value="general">General</option>
+                <option value="exam">Exam</option>
+                <option value="holiday">Holiday</option>
+                <option value="sports">Sports</option>
+                <option value="finance">Finance</option>
+                <option value="academic">Academic</option>
+                <option value="staff">Staff</option>
+                <option value="system">System</option>
+                <option value="training">Training</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="fPriority"><i class="fas fa-exclamation-circle me-1 text-muted"></i>Priority</label>
+              <select class="form-select" id="fPriority" name="priority">
+                <option value="normal">Normal</option>
+                <option value="important">Important</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+            <!-- Target Audience -->
+            <div class="col-12">
+              <label class="form-label"><i class="fas fa-users me-1 text-muted"></i>Target Audience</label>
+              <div class="d-flex gap-2 flex-wrap">
+                <label class="aud-check"><input type="checkbox" name="audience_students" checked /> <i class="fas fa-user-graduate aud-icon text-primary"></i> Students</label>
+                <label class="aud-check"><input type="checkbox" name="audience_teachers" checked /> <i class="fas fa-chalkboard-teacher aud-icon text-success"></i> Teachers</label>
+                <label class="aud-check"><input type="checkbox" name="audience_finance"  checked /> <i class="fas fa-coins aud-icon text-warning"></i> Finance Staff</label>
+                <label class="aud-check"><input type="checkbox" name="audience_admin"    checked /> <i class="fas fa-shield-alt aud-icon" style="color:#7c3aed"></i> Admin</label>
+              </div>
+            </div>
+            <!-- Expiry Date & Pin -->
+            <div class="col-md-6">
+              <label class="form-label" for="fExpiry"><i class="fas fa-calendar-times me-1 text-muted"></i>Expiry Date</label>
+              <input type="date" class="form-control" id="fExpiry" name="expiry_date" />
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+              <label class="aud-check" style="border-color:#d5dde8;gap:10px;padding:10px 16px;width:100%">
+                <input type="checkbox" name="pinned" id="fPinned" />
+                <i class="fas fa-thumbtack text-warning"></i>
+                <div>
+                  <div style="font-size:13px;font-weight:600">Pin to Top</div>
+                  <div style="font-size:11px;color:#64748b">Appears at the top of the notice board</div>
+                </div>
+              </label>
+            </div>
+            <!-- Buttons -->
+            <div class="col-12 d-flex gap-2 flex-wrap pt-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="saveDraft()"><i class="fas fa-save me-2"></i>Save as Draft</button>
+              <button type="button" class="btn btn-sm" style="background:#7c3aed;color:#fff;border:none" onclick="sendNotice()"><i class="fas fa-paper-plane me-2"></i>Send Notice</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- All Notices Table -->
+    <div class="sec-card">
+      <div class="sec-head">
+        <h5><i class="fas fa-list me-2" style="color:#7c3aed"></i>All Notices</h5>
+        <span class="badge" style="background:#fdf4ff;color:#7c3aed;border:1px solid #ede9fe" id="noticeCountBadge">8 notices</span>
+      </div>
+
+      <!-- Filter row -->
+      <div class="px-4 pt-3 pb-2 d-flex gap-2 flex-wrap align-items-center border-bottom">
+        <input type="text" class="form-control form-control-sm" id="tblSearch" placeholder="Search notices..." oninput="filterTable()" style="max-width:200px" />
+        <select class="form-select form-select-sm" id="tblCat" onchange="filterTable()" style="max-width:140px">
+          <option value="">All Categories</option>
+          <option value="exam">Exam</option>
+          <option value="general">General</option>
+          <option value="holiday">Holiday</option>
+          <option value="sports">Sports</option>
+          <option value="finance">Finance</option>
+          <option value="academic">Academic</option>
+          <option value="staff">Staff</option>
+          <option value="system">System</option>
+          <option value="training">Training</option>
+          <option value="admin">Admin</option>
+        </select>
+        <select class="form-select form-select-sm" id="tblAud" onchange="filterTable()" style="max-width:150px">
+          <option value="">All Audiences</option>
+          <option value="all">All</option>
+          <option value="students">Students</option>
+          <option value="teachers">Teachers</option>
+          <option value="finance">Finance</option>
+          <option value="admin">Admin</option>
+        </select>
+        <select class="form-select form-select-sm" id="tblStatus" onchange="filterTable()" style="max-width:130px">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="expired">Expired</option>
+        </select>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table" id="noticesTable">
+          <thead>
+            <tr>
+              <th class="ps-4">#</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Priority</th>
+              <th>Audience</th>
+              <th>Date Posted</th>
+              <th>Expiry</th>
+              <th>Status</th>
+              <th class="pe-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="noticesTbody">
+            <!-- pre-filled by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
+function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
+
+// ─── Category meta ───────────────────────────────────────────────────────────
+const catColors = {
+  exam:     '#ef4444', general:'#1d4ed8', holiday:'#059669', sports:'#d97706',
+  finance:  '#d97706', staff:  '#7c3aed', academic:'#0891b2', training:'#059669',
+  system:   '#475569', admin:  '#7c3aed',
+};
+const catBg = {
+  exam:'#fef2f2', general:'#eff6ff', holiday:'#f0fdf4', sports:'#fffbeb',
+  finance:'#fffbeb', staff:'#fdf4ff', academic:'#ecfeff', training:'#f0fdf4',
+  system:'#f1f5f9', admin:'#fdf4ff',
+};
+
+// ─── Audience icons ──────────────────────────────────────────────────────────
+const audIcons = {
+  students: '<i class="fas fa-user-graduate text-primary" title="Students"></i>',
+  teachers: '<i class="fas fa-chalkboard-teacher text-success" title="Teachers"></i>',
+  finance:  '<i class="fas fa-coins text-warning" title="Finance"></i>',
+  admin:    '<i class="fas fa-shield-alt" style="color:#7c3aed" title="Admin"></i>',
+  all:      '<i class="fas fa-globe text-secondary" title="All"></i>',
+  staff:    '<i class="fas fa-users text-secondary" title="Staff"></i>',
+};
+
+function audIconHtml(audience) {
+  return audIcons[audience] || ('<span class="text-muted" style="font-size:11px">' + audience + '</span>');
+}
+
+function catBadgeHtml(cat) {
+  const color = catColors[cat] || '#64748b';
+  const bg    = catBg[cat]     || '#f1f5f9';
+  const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+  return `<span class="cat-badge" style="background:${bg};color:${color}">${label}</span>`;
+}
+
+function priBadgeHtml(pri) {
+  if (pri === 'urgent')    return '<span class="badge pri-urgent">Urgent</span>';
+  if (pri === 'important') return '<span class="badge pri-important">Important</span>';
+  return '<span class="badge pri-normal">Normal</span>';
+}
+
+// ─── Pre-filled notices (IDs 1-8) ───────────────────────────────────────────
+let tableNotices = [
+  { id:1,  title:'Final Examination Schedule — June 2026',       category:'exam',     priority:'urgent',    audience:'students', date:'19 May 2026', expiry:'10 Jun 2026', status:'active'  },
+  { id:2,  title:'Parent-Teacher Meeting — 27 May 2026',         category:'general',  priority:'normal',    audience:'all',      date:'18 May 2026', expiry:'27 May 2026', status:'active'  },
+  { id:3,  title:'Eid-ul-Adha Holidays — 30 May to 3 June 2026', category:'holiday',  priority:'normal',    audience:'all',      date:'17 May 2026', expiry:'4 Jun 2026',  status:'active'  },
+  { id:4,  title:'Annual Sports Day — 7 June 2026',              category:'sports',   priority:'normal',    audience:'students', date:'15 May 2026', expiry:'7 Jun 2026',  status:'active'  },
+  { id:5,  title:'Fee Submission Deadline — May 2026',           category:'finance',  priority:'important', audience:'students', date:'14 May 2026', expiry:'31 May 2026', status:'active'  },
+  { id:6,  title:'Library New Arrivals — May 2026',              category:'general',  priority:'normal',    audience:'students', date:'13 May 2026', expiry:'—',           status:'expired' },
+  { id:7,  title:'Staff Meeting — 26 May 2026 (Monday)',         category:'staff',    priority:'important', audience:'teachers', date:'20 May 2026', expiry:'26 May 2026', status:'active'  },
+  { id:8,  title:'Mid-Term Result Submission Deadline',          category:'academic', priority:'urgent',    audience:'teachers', date:'19 May 2026', expiry:'25 May 2026', status:'expired' },
+];
+
+let nextId = 16;
+
+function renderTableRow(n) {
+  return `<tr data-id="${n.id}" data-cat="${n.category}" data-aud="${n.audience}" data-status="${n.status}">
+    <td class="ps-4 text-muted" style="font-size:12px">#${n.id}</td>
+    <td style="max-width:220px;font-size:13px;font-weight:600">${n.title}</td>
+    <td>${catBadgeHtml(n.category)}</td>
+    <td>${priBadgeHtml(n.priority)}</td>
+    <td>${audIconHtml(n.audience)}</td>
+    <td style="font-size:12.5px;white-space:nowrap">${n.date}</td>
+    <td style="font-size:12.5px;white-space:nowrap;color:#64748b">${n.expiry || '—'}</td>
+    <td><span class="status-${n.status}">${n.status === 'active' ? 'Active' : 'Expired'}</span></td>
+    <td class="pe-4">
+      <div class="d-flex gap-1">
+        <button class="btn btn-sm btn-outline-primary" style="font-size:11px;padding:2px 9px" onclick="editRow(${n.id})"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger"  style="font-size:11px;padding:2px 9px" onclick="deleteRow(${n.id})"><i class="fas fa-trash"></i></button>
+        <a class="btn btn-sm btn-outline-secondary" style="font-size:11px;padding:2px 9px" href="notices.html?p=admin" title="View"><i class="fas fa-eye"></i></a>
+      </div>
+    </td>
+  </tr>`;
+}
+
+function renderTable() {
+  const tbody = document.getElementById('noticesTbody');
+  tbody.innerHTML = tableNotices.map(renderTableRow).join('');
+  updateBadge();
+}
+
+function updateBadge() {
+  document.getElementById('noticeCountBadge').textContent = tableNotices.length + ' notice' + (tableNotices.length !== 1 ? 's' : '');
+  document.getElementById('statTotal').textContent  = tableNotices.length;
+  document.getElementById('statActive').textContent = tableNotices.filter(n => n.status === 'active').length;
+}
+
+function filterTable() {
+  const q      = document.getElementById('tblSearch').value.toLowerCase();
+  const cat    = document.getElementById('tblCat').value;
+  const aud    = document.getElementById('tblAud').value;
+  const status = document.getElementById('tblStatus').value;
+
+  document.querySelectorAll('#noticesTbody tr').forEach(row => {
+    const title  = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+    const rCat   = row.dataset.cat;
+    const rAud   = row.dataset.aud;
+    const rStat  = row.dataset.status;
+
+    const ok = (!q || title.includes(q))
+            && (!cat    || rCat  === cat)
+            && (!aud    || rAud  === aud)
+            && (!status || rStat === status);
+    row.style.display = ok ? '' : 'none';
+  });
+}
+
+function deleteRow(id) {
+  if (!confirm('Delete this notice?')) return;
+  tableNotices = tableNotices.filter(n => n.id !== id);
+  renderTable();
+  showSuccess('Notice deleted.');
+}
+
+function editRow(id) {
+  const n = tableNotices.find(x => x.id === id);
+  if (!n) return;
+  document.getElementById('fTitle').value    = n.title;
+  document.getElementById('fCategory').value = n.category;
+  document.getElementById('fPriority').value = n.priority;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ─── Send Notice ─────────────────────────────────────────────────────────────
+function getAudiences() {
+  const labels = [];
+  if (document.querySelector('[name=audience_students]').checked) labels.push('Students');
+  if (document.querySelector('[name=audience_teachers]').checked) labels.push('Teachers');
+  if (document.querySelector('[name=audience_finance]').checked)  labels.push('Finance Staff');
+  if (document.querySelector('[name=audience_admin]').checked)    labels.push('Admin');
+  return labels;
+}
+
+function getAudienceKey() {
+  const s = document.querySelector('[name=audience_students]').checked;
+  const t = document.querySelector('[name=audience_teachers]').checked;
+  const f = document.querySelector('[name=audience_finance]').checked;
+  const a = document.querySelector('[name=audience_admin]').checked;
+  if (s && t && f && a) return 'all';
+  if (s) return 'students';
+  if (t) return 'teachers';
+  if (f) return 'finance';
+  if (a) return 'admin';
+  return 'all';
+}
+
+function sendNotice() {
+  const form  = document.getElementById('noticeForm');
+  const title = document.getElementById('fTitle').value.trim();
+  const body  = document.getElementById('fBody').value.trim();
+
+  if (!title || !body) {
+    form.classList.add('was-validated');
+    if (!title) document.getElementById('fTitle').classList.add('is-invalid');
+    if (!body)  document.getElementById('fBody').classList.add('is-invalid');
+    return;
+  }
+
+  form.classList.remove('was-validated');
+  document.getElementById('fTitle').classList.remove('is-invalid');
+  document.getElementById('fBody').classList.remove('is-invalid');
+
+  const expInput  = document.getElementById('fExpiry').value;
+  const expDisplay = expInput ? new Date(expInput).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
+  const audiences = getAudiences();
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+
+  const newNotice = {
+    id:       nextId++,
+    title:    title,
+    category: document.getElementById('fCategory').value,
+    priority: document.getElementById('fPriority').value,
+    audience: getAudienceKey(),
+    date:     dateStr,
+    expiry:   expDisplay,
+    status:   'active',
+  };
+
+  tableNotices.unshift(newNotice);
+  renderTable();
+
+  const msg = audiences.length > 0
+    ? 'Notice sent to: ' + audiences.join(', ') + '!'
+    : 'Notice sent!';
+  showSuccess(msg);
+  form.reset();
+}
+
+function saveDraft() {
+  const title = document.getElementById('fTitle').value.trim();
+  if (!title) {
+    document.getElementById('fTitle').classList.add('is-invalid');
+    return;
+  }
+  showSuccess('Draft saved: "' + title.substring(0, 40) + (title.length > 40 ? '…' : '') + '"');
+}
+
+function showSuccess(msg) {
+  const el = document.getElementById('successAlert');
+  document.getElementById('successMsg').textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+renderTable();
+</script>
+</body>
+</html>
