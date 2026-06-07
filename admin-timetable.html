@@ -50,6 +50,7 @@
     <a class="sb-link" href="admin-attendance.html"><i class="fas fa-calendar-check"></i> Attendance Reports</a>
     <a class="sb-link active" href="admin-timetable.html"><i class="fas fa-table"></i> Timetable Management</a>
     <a class="sb-link" href="admin-activity.html"><i class="fas fa-history"></i> Teacher Activity</a>
+    <a class="sb-link" href="admin-teachers.html"><i class="fas fa-chalkboard-teacher"></i> Teacher Accounts</a>
     <a class="sb-link" href="admin-analytics.html"><i class="fas fa-chart-line"></i> Analytics</a>
     <a class="sb-link" href="admin-notices.html"><i class="fas fa-bullhorn"></i> Notice Board</a>
     <a class="sb-link" href="notices.html?p=admin"><i class="fas fa-eye"></i> View All Notices</a>
@@ -129,6 +130,7 @@
         <div class="d-flex gap-2 align-items-center flex-wrap">
           <span class="badge" style="background:#fdf4ff;color:#7c3aed">19–23 May 2026</span>
           <span class="badge bg-primary">Current Week</span>
+          <button class="btn btn-sm btn-outline-warning fw-semibold" data-bs-toggle="modal" data-bs-target="#editTimingsModal" style="font-size:12px;padding:3px 10px"><i class="fas fa-clock me-1"></i>Edit Period Timings</button>
         </div>
       </div>
 
@@ -245,6 +247,34 @@
   </div>
 </div>
 
+
+<!-- Edit Period Timings Modal -->
+<div class="modal fade" id="editTimingsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content border-0" style="border-radius:16px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#78350f,#d97706);color:#fff;border-radius:16px 16px 0 0">
+      <h5 class="modal-title fw-bold"><i class="fas fa-clock me-2"></i>Edit Period Timings</h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body p-4">
+      <p class="text-muted mb-3" style="font-size:13px">Adjust start and end times for each period. Changes apply to all classes for the selected week.</p>
+      <div id="timingsTable">
+        <div class="row g-2 mb-2 fw-semibold text-muted" style="font-size:12px"><div class="col-4">Period</div><div class="col-4">Start Time</div><div class="col-4">End Time</div></div>
+        <div class="row g-2 mb-2 align-items-center"><div class="col-4 fw-semibold" style="font-size:13px"><i class="fas fa-circle me-2" style="color:#7c3aed;font-size:8px"></i>Period 1</div><div class="col-4"><input type="time" class="form-control form-control-sm" value="07:30" /></div><div class="col-4"><input type="time" class="form-control form-control-sm" value="08:15" /></div></div>
+        <div class="row g-2 mb-2 align-items-center"><div class="col-4 fw-semibold" style="font-size:13px"><i class="fas fa-circle me-2" style="color:#7c3aed;font-size:8px"></i>Period 2</div><div class="col-4"><input type="time" class="form-control form-control-sm" value="08:15" /></div><div class="col-4"><input type="time" class="form-control form-control-sm" value="09:00" /></div></div>
+        <div class="row g-2 mb-2 align-items-center"><div class="col-4 fw-semibold" style="font-size:13px"><i class="fas fa-circle me-2" style="color:#7c3aed;font-size:8px"></i>Period 3</div><div class="col-4"><input type="time" class="form-control form-control-sm" value="09:00" /></div><div class="col-4"><input type="time" class="form-control form-control-sm" value="09:45" /></div></div>
+        <div class="row g-2 mb-2 align-items-center"><div class="col-4 fw-semibold" style="font-size:13px"><i class="fas fa-coffee me-2" style="color:#f59e0b"></i>Break</div><div class="col-4"><input type="time" class="form-control form-control-sm" value="09:45" /></div><div class="col-4"><input type="time" class="form-control form-control-sm" value="10:15" /></div></div>
+        <div class="row g-2 mb-2 align-items-center"><div class="col-4 fw-semibold" style="font-size:13px"><i class="fas fa-circle me-2" style="color:#7c3aed;font-size:8px"></i>Period 4</div><div class="col-4"><input type="time" class="form-control form-control-sm" value="10:15" /></div><div class="col-4"><input type="time" class="form-control form-control-sm" value="11:00" /></div></div>
+        <div class="row g-2 mb-2 align-items-center"><div class="col-4 fw-semibold" style="font-size:13px"><i class="fas fa-circle me-2" style="color:#7c3aed;font-size:8px"></i>Period 5</div><div class="col-4"><input type="time" class="form-control form-control-sm" value="11:00" /></div><div class="col-4"><input type="time" class="form-control form-control-sm" value="11:45" /></div></div>
+        <div class="row g-2 mb-2 align-items-center"><div class="col-4 fw-semibold" style="font-size:13px"><i class="fas fa-circle me-2" style="color:#7c3aed;font-size:8px"></i>Period 6</div><div class="col-4"><input type="time" class="form-control form-control-sm" value="11:45" /></div><div class="col-4"><input type="time" class="form-control form-control-sm" value="12:30" /></div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button type="button" class="btn btn-sm btn-warning fw-semibold text-dark" onclick="saveTimings()"><i class="fas fa-save me-1"></i>Save Timings</button>
+    </div>
+  </div></div>
+</div>
+
 <!-- Edit Cell Modal -->
 <div class="modal fade" id="editCellModal" tabindex="-1">
   <div class="modal-dialog"><div class="modal-content border-0" style="border-radius:16px">
@@ -254,6 +284,10 @@
     </div>
     <div class="modal-body p-4">
       <div class="row g-3">
+        <div class="row g-2 mb-1">
+          <div class="col-6"><label class="form-label fw-semibold" style="font-size:12px">Start Time</label><input type="time" class="form-control form-control-sm" id="editStartTime" /></div>
+          <div class="col-6"><label class="form-label fw-semibold" style="font-size:12px">End Time</label><input type="time" class="form-control form-control-sm" id="editEndTime" /></div>
+        </div>
         <div class="col-12">
           <label class="form-label fw-semibold" style="font-size:12px">Subject</label>
           <select class="form-select form-select-sm" id="editSubject">
@@ -294,28 +328,47 @@
   </div></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">
+  function saveTimings() {
+    alert('Period timings updated successfully!\nChanges will reflect in the timetable view. Remember to publish for students and teachers to see the updated schedule.');
+    bootstrap.Modal.getInstance(document.getElementById('editTimingsModal')).hide();
+  }
+</script>
 <script>
   function toggleSb(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show');}
   function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
+
+  // Parse time range string like "07:30–08:15" into [start, end]
+  function parsePeriodTime(periodLabel, day) {
+    const timeMap = {
+      'Period 1': ['07:30','08:15'],
+      'Period 2': ['08:15','09:00'],
+      'Period 3': ['09:00','09:45'],
+      'Period 4': ['10:15','11:00'],
+      'Period 5': ['11:00','11:45'],
+      'Period 6': ['11:45','12:30'],
+    };
+    return timeMap[periodLabel] || ['',''];
+  }
 
   function openEdit(day, period, subject, teacher, room) {
     document.getElementById('editLabel').textContent = day + ' · ' + period;
     const subSel = document.getElementById('editSubject');
     const teachSel = document.getElementById('editTeacher');
-    // Pre-select subject
     for (let i = 0; i < subSel.options.length; i++) {
       if (subSel.options[i].value === subject || subSel.options[i].text === subject) {
         subSel.selectedIndex = i; break;
       }
     }
-    // Pre-select teacher
     for (let i = 0; i < teachSel.options.length; i++) {
       if (teachSel.options[i].value === teacher || teachSel.options[i].text === teacher) {
         teachSel.selectedIndex = i; break;
       }
     }
     document.getElementById('editRoom').value = room || '';
+    const [start, end] = parsePeriodTime(period, day);
+    document.getElementById('editStartTime').value = start;
+    document.getElementById('editEndTime').value = end;
     new bootstrap.Modal(document.getElementById('editCellModal')).show();
   }
 
@@ -323,8 +376,16 @@
     const sub = document.getElementById('editSubject').value;
     const teach = document.getElementById('editTeacher').value;
     const room = document.getElementById('editRoom').value;
-    alert('Saved: ' + sub + ' · ' + teach + ' · ' + room + '\n\nDon\'t forget to publish the timetable when all changes are done.');
+    const startT = document.getElementById('editStartTime').value;
+    const endT = document.getElementById('editEndTime').value;
+    const timeStr = (startT && endT) ? ' · ' + startT + '–' + endT : '';
+    alert('Saved: ' + sub + ' · ' + teach + ' · ' + room + timeStr + "\n\nDon't forget to publish the timetable when all changes are done.");
     bootstrap.Modal.getInstance(document.getElementById('editCellModal')).hide();
+  }
+
+  function saveTimings() {
+    alert('Period timings updated successfully!\nChanges will reflect in the timetable view. Remember to publish for students and teachers to see the updated schedule.');
+    bootstrap.Modal.getInstance(document.getElementById('editTimingsModal')).hide();
   }
 </script>
 </body>

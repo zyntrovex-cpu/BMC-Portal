@@ -18,6 +18,57 @@
   </style>
 </head>
 <body>
+
+<!-- Admin Impersonate Banner — shown only when admin_impersonate=1 is in URL -->
+<div id="adminImpersonateBanner" style="display:none;position:sticky;top:0;z-index:1100;background:linear-gradient(90deg,#2e1065,#7c3aed);color:#fff;padding:10px 20px;display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow:0 2px 12px rgba(124,58,237,.35);">
+  <div class="d-flex align-items-center gap-2" style="font-size:13.5px;font-weight:600">
+    <i class="fas fa-user-shield" style="font-size:16px;opacity:.9"></i>
+    <span>Admin View &mdash; You are viewing as <strong id="impersonateName">Teacher</strong></span>
+    <span class="badge" style="background:rgba(255,255,255,.2);font-size:11px;font-weight:500">Read-only override</span>
+  </div>
+  <button onclick="exitAdminImpersonate()" style="background:#fff;color:#7c3aed;border:none;border-radius:8px;padding:6px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap">
+    <i class="fas fa-arrow-left"></i> Exit &amp; Return to Admin
+  </button>
+</div>
+
+<script>
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var isImpersonating = params.get('admin_impersonate') === '1';
+  if (isImpersonating) {
+    var banner = document.getElementById('adminImpersonateBanner');
+    if (banner) {
+      banner.style.display = 'flex';
+      var nameEl = document.getElementById('impersonateName');
+      var tName = params.get('teacher');
+      if (nameEl && tName) nameEl.textContent = decodeURIComponent(tName);
+    }
+    // Intercept all internal teacher links to carry the impersonate flag forward
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('a[href]').forEach(function(a) {
+        var href = a.getAttribute('href');
+        if (href && href.startsWith('teacher-') && href.indexOf('admin_impersonate') === -1) {
+          var sep = href.indexOf('?') === -1 ? '?' : '&';
+          var tParam = params.get('teacher') ? '&teacher=' + encodeURIComponent(params.get('teacher')) : '';
+          a.setAttribute('href', href + sep + 'admin_impersonate=1' + tParam);
+        }
+        // Block any admin links — teacher pages shouldn't have them but just in case
+        if (href && href.startsWith('admin-')) {
+          a.setAttribute('href', '#');
+          a.setAttribute('title', 'Admin navigation disabled during impersonation');
+          a.style.opacity = '0.4';
+          a.style.pointerEvents = 'none';
+        }
+      });
+    });
+  }
+})();
+
+function exitAdminImpersonate() {
+  window.location.href = 'admin-teachers.html';
+}
+</script>
+
 <div class="overlay" id="ov" onclick="closeSb()"></div>
 <div class="sidebar" id="sb">
   <div class="sb-brand">
