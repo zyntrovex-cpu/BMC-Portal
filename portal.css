@@ -226,6 +226,65 @@ img { max-width: 100%; }
 .portal-banner h5 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
 .portal-banner p  { font-size: 12.5px; opacity: .88; margin: 0; }
 
+/* ── sec-head: card inner header with title + optional action ───── */
+.sec-head {
+  padding: 11px 16px; border-bottom: 1px solid var(--border);
+  background: #f7f9fb;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+}
+.sec-head h5, .sec-head h6 {
+  font-size: 13px; font-weight: 700; color: var(--t1); margin: 0;
+  display: flex; align-items: center; gap: 6px;
+}
+.sec-head .btn { flex-shrink: 0; }
+
+/* ── data-table: lightweight table used in student/teacher portals ─ */
+.data-table {
+  width: 100%; border-collapse: collapse; font-size: 13px; color: var(--t1);
+}
+.data-table thead th {
+  background: #f7f9fb; border-bottom: 1px solid var(--border);
+  padding: 8px 12px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .4px; color: var(--t2);
+  white-space: nowrap;
+}
+.data-table tbody td {
+  padding: 9px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle;
+}
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover td { background: #f8fafc; }
+
+/* ── Attendance bar ──────────────────────────────────────────────── */
+.att-bar-wrap {
+  height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden;
+}
+.att-bar-fill {
+  height: 100%; border-radius: 4px; transition: width .3s;
+}
+
+/* ── Quick-action buttons (admin dashboard) ──────────────────────── */
+.qa-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: #f8fafc; border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 18px 12px; text-decoration: none; color: var(--t1);
+  transition: .2s; text-align: center; gap: 6px;
+}
+.qa-btn:hover { border-color: #7c3aed; background: #fdf4ff; color: #7c3aed; }
+.qa-btn i { font-size: 22px; }
+.qa-btn span { font-size: 12px; font-weight: 600; }
+
+/* ── Activity log items ──────────────────────────────────────────── */
+.act-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 11px 18px; border-bottom: 1px solid #f1f5f9;
+}
+.act-item:last-child { border: none; }
+.act-dot {
+  width: 9px; height: 9px; border-radius: 50%; margin-top: 5px;
+  flex-shrink: 0; background: #7c3aed;
+}
+
 /* ================================================================
    RESPONSIVE
    ================================================================ */

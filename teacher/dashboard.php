@@ -104,7 +104,7 @@ pageHead('Dashboard', 'teacher');
 <?php sidebar('teacher', 'dashboard', $links, $user); ?>
 <div class="main-area">
 <?php topbar('Dashboard', $user); ?>
-<div class="page-content content">
+<div class="page-content">
 
 <?= flashHtml() ?>
 

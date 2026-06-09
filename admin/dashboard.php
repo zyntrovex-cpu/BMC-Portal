@@ -42,15 +42,6 @@ $links = [
     ['href'=>'/admin/activity.php','icon'=>'<i class="fas fa-history"></i>','label'=>'Activity Log','key'=>'activity'],
 ];
 ?>
-<style>
-.qa-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8fafc;border:1.5px solid var(--border);border-radius:10px;padding:18px 12px;text-decoration:none;color:var(--t1);transition:.2s;text-align:center;gap:6px;}
-.qa-btn:hover{border-color:#7c3aed;background:#fdf4ff;color:#7c3aed;}
-.qa-btn i{font-size:22px;}
-.qa-btn span{font-size:12px;font-weight:600;}
-.act-item{display:flex;align-items:flex-start;gap:12px;padding:11px 18px;border-bottom:1px solid #f1f5f9;}
-.act-item:last-child{border:none;}
-.act-dot{width:9px;height:9px;border-radius:50%;margin-top:5px;flex-shrink:0;background:#7c3aed;}
-</style>
 <?php
 echo '<div class="portal-wrap">';
 sidebar('admin', 'dashboard', $links, $user);
