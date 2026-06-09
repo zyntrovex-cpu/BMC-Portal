@@ -7,8 +7,17 @@ function h(mixed $v): string {
 }
 
 function redirect(string $url): never {
+    // Prepend BASE_URL for site-relative paths so subdirectory installs work
+    if (str_starts_with($url, '/') && defined('BASE_URL') && BASE_URL !== '') {
+        $url = BASE_URL . $url;
+    }
     header('Location: ' . $url);
     exit;
+}
+
+// Returns a URL with BASE_URL prepended (for use in HTML href/src attributes)
+function url(string $path): string {
+    return (defined('BASE_URL') ? BASE_URL : '') . $path;
 }
 
 function jsonResponse(mixed $data, int $code = 200): never {

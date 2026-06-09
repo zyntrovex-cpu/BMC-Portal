@@ -2,11 +2,17 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/functions.php';
 
+// Stores the last SMTP error so callers can show a helpful message
+$GLOBALS['_smtp_last_error'] = '';
+
+function getSmtpError(): string { return $GLOBALS['_smtp_last_error'] ?? ''; }
+
 /**
  * Send email via SMTP using PHP streams (no Composer required).
- * Falls back to mail() if SMTP is not configured.
+ * When SMTP is disabled/unconfigured, logs to logs/mail.log and returns true.
  */
 function sendMail(string $toEmail, string $toName, string $subject, string $htmlBody, string $textBody = ''): bool {
+    $GLOBALS['_smtp_last_error'] = '';
     $enabled  = getSetting('smtp_enabled', '0');
     $host     = getSetting('smtp_host',    'localhost');
     $port     = (int)getSetting('smtp_port',  '587');
@@ -31,6 +37,7 @@ function sendMail(string $toEmail, string $toName, string $subject, string $html
     try {
         return _smtpSend($host, $port, $user, $pass, $from, $fromName, $toEmail, $toName, $subject, $htmlBody, $textBody);
     } catch (Exception $e) {
+        $GLOBALS['_smtp_last_error'] = $e->getMessage();
         error_log('SMTP Error: ' . $e->getMessage());
         return false;
     }
@@ -43,26 +50,27 @@ function _smtpSend(
     string $toEmail, string $toName,
     string $subject, string $htmlBody, string $textBody
 ): bool {
-    $context = stream_context_create(['ssl' => [
+    $sslOpts = ['ssl' => [
         'verify_peer'       => false,
         'verify_peer_name'  => false,
         'allow_self_signed' => true,
-    ]]);
+    ]];
+    $context = stream_context_create($sslOpts);
 
-    // Use STARTTLS on port 587, SSL on 465
+    // Port 465 = implicit SSL, port 587/25 = plain TCP then STARTTLS
     if ($port === 465) {
         $socket = @stream_socket_client("ssl://$host:$port", $errno, $errstr, 15, STREAM_CLIENT_CONNECT, $context);
     } else {
         $socket = @stream_socket_client("tcp://$host:$port", $errno, $errstr, 15);
     }
 
-    if (!$socket) throw new Exception("SMTP connect failed: $errstr ($errno)");
+    if (!$socket) throw new Exception("Cannot connect to $host:$port — $errstr ($errno). Check host/port and firewall.");
 
     $read = function() use ($socket): string {
         $data = '';
         while ($line = fgets($socket, 512)) {
             $data .= $line;
-            if ($line[3] === ' ') break;
+            if (strlen($line) >= 4 && $line[3] === ' ') break;
         }
         return $data;
     };
@@ -72,19 +80,27 @@ function _smtpSend(
         return $read();
     };
 
-    $read(); // banner
-    $cmd("EHLO " . gethostname());
+    $banner = $read();
+    if (!str_starts_with($banner, '2')) throw new Exception("Bad SMTP banner: $banner");
+
+    $cmd("EHLO " . (gethostname() ?: 'localhost'));
 
     if ($port === 587) {
-        $cmd("STARTTLS");
-        stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
-        $cmd("EHLO " . gethostname());
+        $stls = $cmd("STARTTLS");
+        if (!str_starts_with($stls, '220')) throw new Exception("STARTTLS rejected: $stls");
+        // Apply SSL options to the existing socket before upgrading
+        stream_context_set_option($socket, $sslOpts);
+        if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+            throw new Exception("TLS upgrade failed. Try port 465 with SSL instead.");
+        }
+        $cmd("EHLO " . (gethostname() ?: 'localhost'));
     }
 
-    $r = $cmd("AUTH LOGIN");
+    $authResp = $cmd("AUTH LOGIN");
+    if (!str_starts_with($authResp, '334')) throw new Exception("AUTH LOGIN rejected: $authResp");
     $cmd(base64_encode($user));
     $r = $cmd(base64_encode($pass));
-    if (!str_starts_with($r, '235')) throw new Exception("SMTP auth failed: $r");
+    if (!str_starts_with($r, '235')) throw new Exception("Authentication failed. Check username/password. For Gmail use an App Password (not your Google password). Response: $r");
 
     $cmd("MAIL FROM:<$from>");
     $cmd("RCPT TO:<$toEmail>");

@@ -68,14 +68,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $user) {
         <div style="font-size:3rem;color:#059669;margin-bottom:12px">✅</div>
         <h5>Password Reset Successfully</h5>
         <p style="font-size:.87rem;color:#6b7280">Your password has been updated. You can now log in with your new password.</p>
-        <a href="/index.php" class="btn btn-success w-100 mt-2">Go to Login</a>
+        <a href="<?= BASE_URL ?>/index.php" class="btn btn-success w-100 mt-2">Go to Login</a>
       </div>
     <?php elseif (!$token || !$user): ?>
       <div class="alert alert-danger" style="font-size:.87rem;border-radius:6px">
         <strong>Invalid or expired link.</strong><br>
         Password reset links expire after 30 minutes.
       </div>
-      <a href="/forgot-password.php" class="btn btn-outline-primary w-100">Request New Link</a>
+      <a href="<?= BASE_URL ?>/forgot-password.php" class="btn btn-outline-primary w-100">Request New Link</a>
     <?php else: ?>
       <?php if ($error): ?>
         <div class="alert alert-danger" style="font-size:.87rem;border-radius:6px"><?= h($error) ?></div>
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $user) {
 
     <?php if (!$done): ?>
     <div class="text-center mt-3">
-      <a href="/index.php" style="font-size:.84rem;color:#6b7280;text-decoration:none">← Back to Login</a>
+      <a href="<?= BASE_URL ?>/index.php" style="font-size:.84rem;color:#6b7280;text-decoration:none">← Back to Login</a>
     </div>
     <?php endif; ?>
   </div>

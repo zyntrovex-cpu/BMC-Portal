@@ -46,7 +46,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             require_once __DIR__ . '/../includes/mailer.php';
             $body = mailTemplate('SMTP Test', '<p>This is a test email from BMC Portal. SMTP is configured correctly! ✅</p>');
             $ok = sendMail($testEmail, 'Test', 'BMC Portal — SMTP Test', $body);
-            setFlash($ok ? 'success' : 'danger', $ok ? 'Test email sent successfully!' : 'Failed to send. Check SMTP settings.');
+            if ($ok) {
+                setFlash('success', 'Test email sent to ' . htmlspecialchars($testEmail) . ' — check your inbox!');
+            } else {
+                $err = getSmtpError();
+                setFlash('danger', 'SMTP send failed' . ($err ? ': ' . $err : '. Check host/port/credentials.'));
+            }
         }
     }
 
@@ -182,8 +187,13 @@ $links = [
           </div>
           <div class="mb-3"><label class="form-label fw-semibold" style="font-size:.82rem">SMTP Username</label>
             <input type="email" name="smtp_user" class="form-control form-control-sm" value="<?= h($settings['smtp_user'] ?? '') ?>" placeholder="your@gmail.com"></div>
-          <div class="mb-3"><label class="form-label fw-semibold" style="font-size:.82rem">SMTP Password / App Password</label>
-            <input type="password" name="smtp_pass" class="form-control form-control-sm" value="<?= h($settings['smtp_pass'] ?? '') ?>" placeholder="App password for Gmail"></div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.82rem">SMTP Password / App Password</label>
+            <input type="password" name="smtp_pass" class="form-control form-control-sm" value="<?= h($settings['smtp_pass'] ?? '') ?>" placeholder="App password for Gmail">
+            <div style="font-size:.75rem;color:#6b7280;margin-top:4px">
+              <i class="fas fa-info-circle"></i> For Gmail: enable 2FA, then create an App Password at <strong>myaccount.google.com → Security → App passwords</strong>. Do NOT use your regular Google password.
+            </div>
+          </div>
           <div class="mb-3"><label class="form-label fw-semibold" style="font-size:.82rem">From Email</label>
             <input type="email" name="smtp_from" class="form-control form-control-sm" value="<?= h($settings['smtp_from'] ?? '') ?>" placeholder="noreply@bmcollege.edu.pk"></div>
           <div class="mb-3"><label class="form-label fw-semibold" style="font-size:.82rem">From Name</label>

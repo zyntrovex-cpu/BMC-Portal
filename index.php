@@ -1,15 +1,16 @@
 <?php
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/auth.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 // Already logged in → redirect
 if (!empty($_SESSION['user'])) {
     $role = $_SESSION['user']['role'];
-    $map  = ['student'=>'student/dashboard.php','teacher'=>'teacher/dashboard.php','admin'=>'admin/dashboard.php','finance'=>'finance/dashboard.php'];
-    header('Location: /' . ($map[$role] ?? 'index.php'));
-    exit;
+    $map  = ['student'=>'/student/dashboard.php','teacher'=>'/teacher/dashboard.php','admin'=>'/admin/dashboard.php','finance'=>'/finance/dashboard.php'];
+    redirect($map[$role] ?? '/index.php');
 }
 
 $error = '';
@@ -49,9 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    ->execute([$user['id'], 'login', 'Logged in', $ip]);
             } catch (Exception $e) {}
 
-            $map = ['student'=>'student/dashboard.php','teacher'=>'teacher/dashboard.php','admin'=>'admin/dashboard.php','finance'=>'finance/dashboard.php'];
-            header('Location: /' . $map[$role]);
-            exit;
+            $map = ['student'=>'/student/dashboard.php','teacher'=>'/teacher/dashboard.php','admin'=>'/admin/dashboard.php','finance'=>'/finance/dashboard.php'];
+            redirect($map[$role] ?? '/index.php');
         } else {
             $error = 'Invalid credentials. Please check your ID and password.';
         }

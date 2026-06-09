@@ -9,12 +9,14 @@ if (session_status() === PHP_SESSION_NONE) {
 // ── Require a logged-in session of a specific role ──────────────
 function requireAuth(string ...$roles): array {
     if (empty($_SESSION['user'])) {
-        header('Location: /index.php?msg=login');
+        $base = defined('BASE_URL') ? BASE_URL : '';
+        header('Location: ' . $base . '/index.php?msg=login');
         exit;
     }
     $user = $_SESSION['user'];
     if (!empty($roles) && !in_array($user['role'], $roles, true)) {
-        header('Location: /index.php?msg=unauthorized');
+        $base = defined('BASE_URL') ? BASE_URL : '';
+        header('Location: ' . $base . '/index.php?msg=unauthorized');
         exit;
     }
     return $user;

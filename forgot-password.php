@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <div class="text-center mt-3">
-      <a href="/index.php" style="font-size:.84rem;color:#6b7280;text-decoration:none">← Back to Login</a>
+      <a href="<?= BASE_URL ?>/index.php" style="font-size:.84rem;color:#6b7280;text-decoration:none">← Back to Login</a>
     </div>
   </div>
 </div>

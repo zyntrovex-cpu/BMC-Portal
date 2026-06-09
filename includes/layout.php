@@ -9,6 +9,7 @@ function pageHead(string $title, string $portal = ''): void {
         'finance' => '#d97706',
     ];
     $accent = $accents[$portal] ?? '#1c3054';
+    $base = defined('BASE_URL') ? BASE_URL : '';
     echo '<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +18,7 @@ function pageHead(string $title, string $portal = ''): void {
 <title>' . htmlspecialchars($title) . ' — BMC Portal</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="/portal.css">
+<link rel="stylesheet" href="' . $base . '/portal.css">
 <style>:root { --accent: ' . $accent . '; --accent-rgb: ' . implode(',', sscanf($accent, '#%02x%02x%02x')) . '; }</style>
 ';
 }
@@ -33,13 +34,15 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
     // Fallback to session
     if (empty($user) && !empty($_SESSION['user'])) $user = $_SESSION['user'];
 
+    $base = defined('BASE_URL') ? BASE_URL : '';
+
     $portalLabels = ['student'=>'Student Portal','teacher'=>'Teacher Portal','admin'=>'Admin Panel','finance'=>'Finance Portal'];
     $portalLabel  = $portalLabels[$portal] ?? 'Portal';
 
     $profileMap = [
-        'student' => ['href'=>'/student/profile.php', 'label'=>'My Profile',  'key'=>'profile',  'icon'=>'fas fa-user'],
-        'teacher' => ['href'=>'/teacher/profile.php', 'label'=>'My Profile',  'key'=>'profile',  'icon'=>'fas fa-user'],
-        'admin'   => ['href'=>'/admin/settings.php',  'label'=>'Settings',    'key'=>'settings', 'icon'=>'fas fa-cog'],
+        'student' => ['href'=>$base.'/student/profile.php', 'label'=>'My Profile',  'key'=>'profile',  'icon'=>'fas fa-user'],
+        'teacher' => ['href'=>$base.'/teacher/profile.php', 'label'=>'My Profile',  'key'=>'profile',  'icon'=>'fas fa-user'],
+        'admin'   => ['href'=>$base.'/admin/settings.php',  'label'=>'Settings',    'key'=>'settings', 'icon'=>'fas fa-cog'],
         'finance' => null,
     ];
 
@@ -67,8 +70,9 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
             echo '<div class="sb-section-label">' . htmlspecialchars($link['divider']) . '</div>';
             continue;
         }
-        $cls = str_contains($active, $link['key'] ?? '') ? ' active' : '';
-        echo '<li><a class="sb-link' . $cls . '" href="' . htmlspecialchars($link['href']) . '">
+        $cls  = str_contains($active, $link['key'] ?? '') ? ' active' : '';
+        $href = $base . $link['href'];
+        echo '<li><a class="sb-link' . $cls . '" href="' . htmlspecialchars($href) . '">
           <span class="sb-icon">' . ($link['icon'] ?? '') . '</span>
           <span>' . htmlspecialchars($link['label']) . '</span>
         </a></li>';
@@ -87,7 +91,7 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
           <span>' . $profItem['label'] . '</span>
         </a></li>';
     }
-    echo '<li><a class="sb-link" href="/logout.php">
+    echo '<li><a class="sb-link" href="' . $base . '/logout.php">
         <span class="sb-icon"><i class="fas fa-sign-out-alt"></i></span>
         <span>Logout</span>
       </a></li>';
