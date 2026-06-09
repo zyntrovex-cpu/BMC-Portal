@@ -98,7 +98,7 @@ $links = [
           <td><?= $months[$r['month']] ?> <?= $r['year'] ?></td>
           <td>PKR <?= number_format($r['amount']) ?></td>
           <td><?= $r['paid'] ? '<span class="badge bg-success">Paid</span>' : '<span class="badge bg-danger">Unpaid</span>' ?></td>
-          <td><?= $r['paid_date'] ? fDate($r['paid_date']) : '—' ?></td>
+          <td><?= $r['payment_date'] ? fDate($r['payment_date']) : '—' ?></td>
           <td><?= h($r['payment_mode'] ?: '—') ?></td>
           <td style="font-size:.78rem"><?= h($r['remarks'] ?: '—') ?></td>
         </tr>

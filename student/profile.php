@@ -17,13 +17,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (in_array($field, $allowed) && $newValue) {
         // Check no pending request for same field
-        $check = $db->prepare("SELECT id FROM profile_change_requests WHERE student_id = ? AND field_name = ? AND status = 'pending'");
+        $check = $db->prepare("SELECT id FROM profile_change_requests WHERE student_id = ? AND field = ? AND status = 'pending'");
         $check->execute([$student['id'], $field]);
         if ($check->fetch()) {
             setFlash('warning','A pending request for this field already exists.');
         } else {
             $old = $student[$field] ?? '';
-            $db->prepare('INSERT INTO profile_change_requests (student_id, field_name, old_value, new_value, status) VALUES (?,?,?,?,?)')
+            $db->prepare('INSERT INTO profile_change_requests (student_id, field, old_value, new_value, status) VALUES (?,?,?,?,?)')
                ->execute([$student['id'], $field, $old, $newValue, 'pending']);
             logActivity($user['id'], 'profile_change_request', "Requested change: $field");
             setFlash('success','Change request submitted. Pending admin approval.');
@@ -124,7 +124,7 @@ $links = [
           </label>
           <div class="input-group input-group-sm">
             <input type="<?= $meta['type'] ?>" name="new_value" class="form-control"
-                   placeholder="Current: <?= h($student[$field] ?: 'Not set') ?>"
+                   placeholder="Current: <?= h(($student[$field] ?? '') ?: 'Not set') ?>"
                    <?= $isPending ? 'disabled' : '' ?>>
             <?php if (!$isPending): ?>
               <button type="submit" class="btn btn-outline-primary">Request Change</button>
@@ -133,7 +133,7 @@ $links = [
             <?php endif; ?>
           </div>
           <?php if (!$isPending): ?>
-            <div style="font-size:.75rem;color:#9ca3af;margin-top:3px">Current: <?= h($student[$field] ?: 'Not set') ?></div>
+            <div style="font-size:.75rem;color:#9ca3af;margin-top:3px">Current: <?= h(($student[$field] ?? '') ?: 'Not set') ?></div>
           <?php endif; ?>
         </form>
         <?php endforeach; ?>

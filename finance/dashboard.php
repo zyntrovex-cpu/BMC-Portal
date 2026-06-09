@@ -49,7 +49,7 @@ $defaulters = $db->prepare(
     'SELECT s.id, u.name, s.roll_no, c.name AS class_name,
             s.parent_phone,
             COUNT(f.id) AS unpaid_months,
-            MAX(f2.paid_date) AS last_payment
+            MAX(f2.payment_date) AS last_payment
      FROM students s
      JOIN users u ON s.user_id=u.id
      LEFT JOIN classes c ON s.class_id=c.id

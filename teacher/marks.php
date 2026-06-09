@@ -27,9 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $validTypes = ['Quiz','Assignment','Mid Term','Final Term','Practical'];
         if (!in_array($type, $validTypes)) $type = 'Quiz';
         if ($classId && $subjectId && $title && $maxMarks) {
-            $db->prepare('INSERT INTO assessments (class_id, subject_id, teacher_id, title, type, max_marks, weight, date)
-                          VALUES (?,?,?,?,?,?,?,?)')
-               ->execute([$classId, $subjectId, $teacher['id'], $title, $type, $maxMarks, $weight, $date]);
+            $db->prepare('INSERT INTO assessments (class_id, subject_id, teacher_id, title, name, type, max_marks, weight, date)
+                          VALUES (?,?,?,?,?,?,?,?,?)')
+               ->execute([$classId, $subjectId, $teacher['id'], $title, $title, $type, $maxMarks, $weight, $date]);
             logActivity($user['id'], 'assessment_create', "Created: $title");
             setFlash('success', 'Assessment created.');
         } else {

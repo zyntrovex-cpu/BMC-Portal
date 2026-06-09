@@ -1,18 +1,16 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/config.php';
 
-// ── HTML escape shorthand ────────────────────────────────────────
 function h(mixed $v): string {
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 
-// ── Redirect helper ──────────────────────────────────────────────
 function redirect(string $url): never {
     header('Location: ' . $url);
     exit;
 }
 
-// ── JSON response for API endpoints ─────────────────────────────
 function jsonResponse(mixed $data, int $code = 200): never {
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
@@ -20,17 +18,14 @@ function jsonResponse(mixed $data, int $code = 200): never {
     exit;
 }
 
-// ── Get all classes ──────────────────────────────────────────────
 function getAllClasses(): array {
     return getDB()->query('SELECT * FROM classes ORDER BY grade, section')->fetchAll();
 }
 
-// ── Get all subjects ─────────────────────────────────────────────
 function getAllSubjects(): array {
     return getDB()->query('SELECT * FROM subjects ORDER BY name')->fetchAll();
 }
 
-// ── Get subjects for a class ─────────────────────────────────────
 function getClassSubjects(int $classId): array {
     $st = getDB()->prepare(
         'SELECT s.*, t.emp_id, u.name AS teacher_name
@@ -45,7 +40,6 @@ function getClassSubjects(int $classId): array {
     return $st->fetchAll();
 }
 
-// ── Get students in a class ──────────────────────────────────────
 function getClassStudents(int $classId): array {
     $st = getDB()->prepare(
         'SELECT s.*, u.name, u.status, u.user_id AS roll_no_login
@@ -58,7 +52,6 @@ function getClassStudents(int $classId): array {
     return $st->fetchAll();
 }
 
-// ── Get student record by user.id ────────────────────────────────
 function getStudentByUserId(int $userId): ?array {
     $st = getDB()->prepare(
         'SELECT s.*, u.name, u.email, u.user_id AS login_id, c.name AS class_name
@@ -71,7 +64,6 @@ function getStudentByUserId(int $userId): ?array {
     return $st->fetch() ?: null;
 }
 
-// ── Get teacher record by user.id ────────────────────────────────
 function getTeacherByUserId(int $userId): ?array {
     $st = getDB()->prepare(
         'SELECT t.*, u.name, u.email, u.user_id AS emp_id_login, sb.name AS subject_name, sb.code AS subject_code
@@ -84,7 +76,6 @@ function getTeacherByUserId(int $userId): ?array {
     return $st->fetch() ?: null;
 }
 
-// ── Attendance summary for a student (per subject) ───────────────
 function getStudentAttendanceSummary(int $studentId): array {
     $st = getDB()->prepare(
         'SELECT sb.name AS subject, sb.code,
@@ -102,7 +93,6 @@ function getStudentAttendanceSummary(int $studentId): array {
     return $st->fetchAll();
 }
 
-// ── Timetable for a class ────────────────────────────────────────
 function getClassTimetable(int $classId): array {
     $st = getDB()->prepare(
         'SELECT tt.day, tt.period, tt.room,
@@ -117,7 +107,6 @@ function getClassTimetable(int $classId): array {
     );
     $st->execute([$classId]);
     $rows = $st->fetchAll();
-    // Index by [day][period]
     $grid = [];
     foreach ($rows as $r) {
         $grid[$r['day']][$r['period']] = $r;
@@ -125,33 +114,38 @@ function getClassTimetable(int $classId): array {
     return $grid;
 }
 
-// ── Notices for a portal ─────────────────────────────────────────
+// audience column is a SET type; FIND_IN_SET works for SET and CSV alike
 function getNoticesForPortal(string $portal): array {
-    // portal: student, teacher, finance, admin
-    $audienceMap = [
-        'student' => ['students'],
-        'teacher' => ['teachers', 'admin'],
-        'finance' => ['finance'],
-        'admin'   => ['students', 'teachers', 'finance', 'admin'],
-    ];
-    $audiences = $audienceMap[$portal] ?? ['students'];
-
-    // Build FIND_IN_SET conditions
-    $conditions = array_map(fn($a) => "FIND_IN_SET(?, audience)", $audiences);
-    $sql = 'SELECT n.*, u.name AS author_name
-            FROM notices n
-            LEFT JOIN users u ON n.author_id = u.id
-            WHERE (' . implode(' OR ', $conditions) . ')
-              AND (expiry_date IS NULL OR expiry_date >= CURDATE())
-            ORDER BY pinned DESC, created_at DESC';
-
-    $st = getDB()->prepare($sql);
-    $st->execute($audiences);
+    $map = ['student'=>'students','teacher'=>'teachers','finance'=>'finance','admin'=>'admin'];
+    $audience = $map[$portal] ?? 'students';
+    $st = getDB()->prepare(
+        'SELECT n.*, u.name AS author_name
+         FROM notices n
+         LEFT JOIN users u ON n.author_id = u.id
+         WHERE FIND_IN_SET(?, audience)
+           AND (expiry_date IS NULL OR expiry_date >= CURDATE())
+         ORDER BY pinned DESC, created_at DESC'
+    );
+    $st->execute([$audience]);
     return $st->fetchAll();
 }
 
-// ── Format date nicely ───────────────────────────────────────────
+function getSetting(string $key, string $default = ''): string {
+    static $cache = [];
+    if (isset($cache[$key])) return $cache[$key];
+    $st = getDB()->prepare('SELECT value FROM settings WHERE key_name = ?');
+    $st->execute([$key]);
+    $row = $st->fetch();
+    $cache[$key] = $row ? (string)$row['value'] : $default;
+    return $cache[$key];
+}
+
 function fDate(?string $d): string {
     if (!$d) return '—';
     return date('d M Y', strtotime($d));
+}
+
+function fDateTime(?string $d): string {
+    if (!$d) return '—';
+    return date('d M Y H:i', strtotime($d));
 }

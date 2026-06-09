@@ -187,6 +187,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <button type="submit" class="btn-login">Sign In</button>
     </form>
 
+    <div class="text-center mt-3">
+      <a href="/forgot-password.php" style="font-size:.82rem;color:#6b7280;text-decoration:none">Forgot password?</a>
+    </div>
+
     <div class="footer-note">
       BMC Portal &copy; 2025 &mdash; Bahria Model College<br>
       <small>For support contact admin</small>

@@ -28,9 +28,9 @@ foreach ($fees as $studentId => $row) {
     $remarks  = trim($row['remarks'] ?? '');
 
     $db->prepare(
-        'INSERT INTO fees (student_id, month, year, amount, paid, paid_date, payment_mode, remarks)
+        'INSERT INTO fees (student_id, month, year, amount, paid, payment_date, payment_mode, remarks)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE paid=VALUES(paid), paid_date=VALUES(paid_date),
+         ON DUPLICATE KEY UPDATE paid=VALUES(paid), payment_date=VALUES(payment_date),
          payment_mode=VALUES(payment_mode), amount=VALUES(amount), remarks=VALUES(remarks)'
     )->execute([(int)$studentId, $month, $year, $amount, $paid, $paidDate, $mode, $remarks]);
     $saved++;

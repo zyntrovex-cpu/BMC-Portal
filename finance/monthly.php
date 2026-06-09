@@ -36,7 +36,7 @@ $modeReport = $modeSt->fetchAll();
 
 // Date-wise collection
 $dateSt = $db->prepare(
-    'SELECT paid_date, COUNT(*) AS cnt, SUM(amount) AS total FROM fees WHERE month=? AND year=? AND paid=1 GROUP BY paid_date ORDER BY paid_date'
+    'SELECT payment_date, COUNT(*) AS cnt, SUM(amount) AS total FROM fees WHERE month=? AND year=? AND paid=1 GROUP BY payment_date ORDER BY payment_date'
 );
 $dateSt->execute([$month, $year]);
 $dateReport = $dateSt->fetchAll();
@@ -153,7 +153,7 @@ $links = [
           <thead class="table-light"><tr><th>Date</th><th>Payments</th><th>Amount (PKR)</th></tr></thead>
           <tbody>
             <?php foreach ($dateReport as $dr): ?>
-            <tr><td><?= fDate($dr['paid_date']) ?></td><td><?= $dr['cnt'] ?></td><td><?= number_format($dr['total']) ?></td></tr>
+            <tr><td><?= fDate($dr['payment_date']) ?></td><td><?= $dr['cnt'] ?></td><td><?= number_format($dr['total']) ?></td></tr>
             <?php endforeach; ?>
             <?php if (empty($dateReport)): ?><tr><td colspan="3" class="text-muted text-center">No payments recorded</td></tr><?php endif; ?>
           </tbody>

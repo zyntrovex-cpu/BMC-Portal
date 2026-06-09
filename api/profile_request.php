@@ -24,10 +24,10 @@ if ($action === 'approve' || $action === 'reject') {
 
     if ($action === 'approve') {
         $allowedFields = ['phone','address','parent_name','parent_phone'];
-        if (!in_array($req['field_name'], $allowedFields)) {
+        if (!in_array($req['field'], $allowedFields)) {
             jsonResponse(['error' => 'Invalid field'], 400);
         }
-        $db->prepare("UPDATE students SET {$req['field_name']} = ? WHERE id = ?")
+        $db->prepare("UPDATE students SET {$req['field']} = ? WHERE id = ?")
            ->execute([$req['new_value'], $req['student_id']]);
         $db->prepare("UPDATE profile_change_requests SET status = 'approved' WHERE id = ?")
            ->execute([$requestId]);
@@ -68,14 +68,14 @@ $row = $st->fetch();
 $oldValue = $row[$fieldName] ?? '';
 
 // Check no pending request for same field
-$st = $db->prepare("SELECT id FROM profile_change_requests WHERE student_id = ? AND field_name = ? AND status = 'pending'");
+$st = $db->prepare("SELECT id FROM profile_change_requests WHERE student_id = ? AND field = ? AND status = 'pending'");
 $st->execute([$studentId, $fieldName]);
 if ($st->fetch()) {
     jsonResponse(['error' => 'A pending request for this field already exists'], 409);
 }
 
 $db->prepare(
-    'INSERT INTO profile_change_requests (student_id, field_name, old_value, new_value, status) VALUES (?,?,?,?,?)'
+    'INSERT INTO profile_change_requests (student_id, field, old_value, new_value, status) VALUES (?,?,?,?,?)'
 )->execute([$studentId, $fieldName, $oldValue, $newValue, 'pending']);
 
 logActivity($user['id'], 'profile_change_request', "Requested change: $fieldName");

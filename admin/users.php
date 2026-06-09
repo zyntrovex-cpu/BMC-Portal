@@ -64,8 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $req = $db->prepare('SELECT * FROM profile_change_requests WHERE id = ?');
         $req->execute([$reqId]);
         $r = $req->fetch();
-        if ($r && in_array($r['field_name'], ['phone','address','parent_name','parent_phone'])) {
-            $db->prepare("UPDATE students SET {$r['field_name']} = ? WHERE id = ?")->execute([$r['new_value'], $r['student_id']]);
+        if ($r && in_array($r['field'], ['phone','address','parent_name','parent_phone'])) {
+            $db->prepare("UPDATE students SET {$r['field']} = ? WHERE id = ?")->execute([$r['new_value'], $r['student_id']]);
             $db->prepare("UPDATE profile_change_requests SET status='approved' WHERE id = ?")->execute([$reqId]);
             setFlash('success','Profile change approved.');
         }

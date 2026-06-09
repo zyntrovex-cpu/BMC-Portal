@@ -24,7 +24,7 @@ $defaultersSt = $db->prepare(
             GROUP_CONCAT(f.month ORDER BY f.month) AS unpaid_months,
             COUNT(f.id) AS unpaid_count,
             SUM(f.amount) AS unpaid_amount,
-            (SELECT MAX(f2.paid_date) FROM fees f2 WHERE f2.student_id = s.id AND f2.paid = 1) AS last_paid
+            (SELECT MAX(f2.payment_date) FROM fees f2 WHERE f2.student_id = s.id AND f2.paid = 1) AS last_paid
      FROM students s
      JOIN users u ON s.user_id = u.id
      JOIN classes c ON s.class_id = c.id
