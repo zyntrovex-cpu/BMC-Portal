@@ -46,15 +46,14 @@ foreach ($pending as $r) {
 pageHead('My Profile', 'student');
 $links = [
     ['href'=>'/student/dashboard.php','icon'=>'<i class="fas fa-home"></i>','label'=>'Dashboard','key'=>'dashboard'],
-    ['href'=>'/student/results.php','icon'=>'<i class="fas fa-chart-bar"></i>','label'=>'Results','key'=>'results'],
+    ['href'=>'/student/results.php','icon'=>'<i class="fas fa-chart-bar"></i>','label'=>'My Results','key'=>'results'],
     ['href'=>'/student/attendance.php','icon'=>'<i class="fas fa-calendar-check"></i>','label'=>'Attendance','key'=>'attendance'],
-    ['href'=>'/student/timetable.php','icon'=>'<i class="fas fa-table"></i>','label'=>'Timetable','key'=>'timetable'],
+    ['href'=>'/student/timetable.php','icon'=>'<i class="fas fa-table"></i>','label'=>'My Timetable','key'=>'timetable'],
     ['href'=>'/student/notices.php','icon'=>'<i class="fas fa-bell"></i>','label'=>'Notices','key'=>'notices'],
-    ['href'=>'/student/profile.php','icon'=>'<i class="fas fa-user"></i>','label'=>'Profile','key'=>'profile'],
 ];
 ?>
 <div class="portal-wrap">
-<?php sidebar('student', 'profile', $links); ?>
+<?php sidebar('student', 'profile', $links, $user); ?>
 <div class="main-area">
 <?php topbar('My Profile', $user); ?>
 <div class="page-content">

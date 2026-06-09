@@ -89,12 +89,11 @@ $notices = array_slice(getNoticesForPortal('teacher'), 0, 3);
 
 // ── Sidebar setup ────────────────────────────────────────────────
 $links = [
-    ['href' => '/teacher/dashboard.php',  'icon' => '<i class="fas fa-home"></i>',           'label' => 'Dashboard',  'key' => 'dashboard'],
-    ['href' => '/teacher/marks.php',      'icon' => '<i class="fas fa-pen-alt"></i>',         'label' => 'Marks',      'key' => 'marks'],
-    ['href' => '/teacher/attendance.php', 'icon' => '<i class="fas fa-calendar-check"></i>', 'label' => 'Attendance', 'key' => 'attendance'],
-    ['href' => '/teacher/timetable.php',  'icon' => '<i class="fas fa-table"></i>',           'label' => 'Timetable',  'key' => 'timetable'],
-    ['href' => '/teacher/notices.php',    'icon' => '<i class="fas fa-bell"></i>',            'label' => 'Notices',    'key' => 'notices'],
-    ['href' => '/teacher/profile.php',    'icon' => '<i class="fas fa-user"></i>',            'label' => 'Profile',    'key' => 'profile'],
+    ['href'=>'/teacher/dashboard.php','icon'=>'<i class="fas fa-home"></i>','label'=>'Dashboard','key'=>'dashboard'],
+    ['href'=>'/teacher/marks.php','icon'=>'<i class="fas fa-pen-alt"></i>','label'=>'Assessments & Marks','key'=>'marks'],
+    ['href'=>'/teacher/attendance.php','icon'=>'<i class="fas fa-calendar-check"></i>','label'=>'Attendance','key'=>'attendance'],
+    ['href'=>'/teacher/timetable.php','icon'=>'<i class="fas fa-table"></i>','label'=>'My Timetable','key'=>'timetable'],
+    ['href'=>'/teacher/notices.php','icon'=>'<i class="fas fa-bell"></i>','label'=>'Notices','key'=>'notices'],
 ];
 
 pageHead('Dashboard', 'teacher');
@@ -102,7 +101,7 @@ pageHead('Dashboard', 'teacher');
 </head>
 <body>
 <div class="portal-wrap">
-<?php sidebar('teacher', 'dashboard', $links); ?>
+<?php sidebar('teacher', 'dashboard', $links, $user); ?>
 <div class="main-area">
 <?php topbar('Dashboard', $user); ?>
 <div class="page-content content">
@@ -353,19 +352,6 @@ pageHead('Dashboard', 'teacher');
 </div><!-- /main-area -->
 </div><!-- /portal-wrap -->
 
-<div class="overlay" id="overlay" onclick="document.getElementById('sidebar').classList.remove('open'); this.classList.remove('show');"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const toggleBtn = document.querySelector('.topbar-toggle');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', function () {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('overlay').classList.toggle('show');
-        });
-    }
-});
-</script>
 </body>
 </html>

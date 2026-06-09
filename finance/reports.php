@@ -53,7 +53,7 @@ $links = [
 ];
 ?>
 <div class="portal-wrap">
-<?php sidebar('finance', 'reports', $links); ?>
+<?php sidebar('finance', 'reports', $links, $user); ?>
 <div class="main-area">
 <?php topbar('Annual Fee Reports', $user); ?>
 <div class="page-content">

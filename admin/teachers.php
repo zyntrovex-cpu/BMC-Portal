@@ -74,18 +74,17 @@ $subjects = getAllSubjects();
 pageHead('Teachers', 'admin');
 $links = [
     ['href'=>'/admin/dashboard.php','icon'=>'<i class="fas fa-home"></i>','label'=>'Dashboard','key'=>'dashboard'],
-    ['href'=>'/admin/users.php','icon'=>'<i class="fas fa-users"></i>','label'=>'Users','key'=>'users'],
-    ['href'=>'/admin/classes.php','icon'=>'<i class="fas fa-chalkboard"></i>','label'=>'Classes','key'=>'classes'],
-    ['href'=>'/admin/teachers.php','icon'=>'<i class="fas fa-chalkboard-teacher"></i>','label'=>'Teachers','key'=>'teachers'],
-    ['href'=>'/admin/notices.php','icon'=>'<i class="fas fa-bell"></i>','label'=>'Notices','key'=>'notices'],
+    ['href'=>'/admin/users.php','icon'=>'<i class="fas fa-users"></i>','label'=>'User Management','key'=>'users'],
+    ['href'=>'/admin/classes.php','icon'=>'<i class="fas fa-chalkboard"></i>','label'=>'Classes & Subjects','key'=>'classes'],
+    ['href'=>'/admin/teachers.php','icon'=>'<i class="fas fa-chalkboard-teacher"></i>','label'=>'Teacher Accounts','key'=>'teachers'],
+    ['href'=>'/admin/notices.php','icon'=>'<i class="fas fa-bell"></i>','label'=>'Notice Board','key'=>'notices'],
     ['href'=>'/admin/timetable.php','icon'=>'<i class="fas fa-table"></i>','label'=>'Timetable','key'=>'timetable'],
     ['href'=>'/admin/results.php','icon'=>'<i class="fas fa-chart-bar"></i>','label'=>'Results','key'=>'results'],
     ['href'=>'/admin/activity.php','icon'=>'<i class="fas fa-history"></i>','label'=>'Activity Log','key'=>'activity'],
-    ['href'=>'/admin/settings.php','icon'=>'<i class="fas fa-cog"></i>','label'=>'Settings','key'=>'settings'],
 ];
 ?>
 <div class="portal-wrap">
-<?php sidebar('admin', 'teachers', $links); ?>
+<?php sidebar('admin', 'teachers', $links, $user); ?>
 <div class="main-area">
 <?php topbar('Teacher Management', $user); ?>
 <div class="page-content">

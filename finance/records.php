@@ -52,7 +52,7 @@ $links = [
 ];
 ?>
 <div class="portal-wrap">
-<?php sidebar('finance', 'records', $links); ?>
+<?php sidebar('finance', 'records', $links, $user); ?>
 <div class="main-area">
 <?php topbar('Fee Records', $user); ?>
 <div class="page-content">

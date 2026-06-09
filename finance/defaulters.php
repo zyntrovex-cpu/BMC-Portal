@@ -48,7 +48,7 @@ $links = [
 ];
 ?>
 <div class="portal-wrap">
-<?php sidebar('finance', 'defaulters', $links); ?>
+<?php sidebar('finance', 'defaulters', $links, $user); ?>
 <div class="main-area">
 <?php topbar('Fee Defaulters', $user); ?>
 <div class="page-content">

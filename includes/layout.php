@@ -2,13 +2,13 @@
 // Shared layout helpers
 
 function pageHead(string $title, string $portal = ''): void {
-    $colors = [
+    $accents = [
         'student' => '#1d4ed8',
         'teacher' => '#059669',
         'admin'   => '#7c3aed',
         'finance' => '#d97706',
     ];
-    $accent = $colors[$portal] ?? '#1c3054';
+    $accent = $accents[$portal] ?? '#1c3054';
     echo '<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,65 +18,119 @@ function pageHead(string $title, string $portal = ''): void {
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="/portal.css">
-<style>
-:root { --accent: ' . $accent . '; }
-.sidebar .nav-link.active, .sidebar .nav-link:hover { background: rgba(255,255,255,.12); }
-.topbar { background: var(--accent); }
-.sidebar { background: var(--sb-bg); }
-</style>
+<style>:root { --accent: ' . $accent . '; --accent-rgb: ' . implode(',', sscanf($accent, '#%02x%02x%02x')) . '; }</style>
 ';
 }
 
-function sidebar(string $portal, string $active, array $links): void {
-    $icons = ['student'=>'👨‍🎓','teacher'=>'👨‍🏫','admin'=>'🛡️','finance'=>'💰'];
-    $portalName = ['student'=>'Student Portal','teacher'=>'Teacher Portal','admin'=>'Admin Panel','finance'=>'Finance Portal'];
-    $icon = $icons[$portal] ?? '🎓';
-    $name = $portalName[$portal] ?? 'BMC Portal';
+function _initials(string $name): string {
+    $parts = array_filter(explode(' ', trim($name)));
+    $ini   = '';
+    foreach (array_slice($parts, 0, 2) as $p) $ini .= strtoupper($p[0]);
+    return $ini ?: '?';
+}
 
+function sidebar(string $portal, string $active, array $links, array $user = []): void {
+    // Fallback to session
+    if (empty($user) && !empty($_SESSION['user'])) $user = $_SESSION['user'];
+
+    $portalLabels = ['student'=>'Student Portal','teacher'=>'Teacher Portal','admin'=>'Admin Panel','finance'=>'Finance Portal'];
+    $portalLabel  = $portalLabels[$portal] ?? 'Portal';
+
+    $profileMap = [
+        'student' => ['href'=>'/student/profile.php', 'label'=>'My Profile',  'key'=>'profile',  'icon'=>'fas fa-user'],
+        'teacher' => ['href'=>'/teacher/profile.php', 'label'=>'My Profile',  'key'=>'profile',  'icon'=>'fas fa-user'],
+        'admin'   => ['href'=>'/admin/settings.php',  'label'=>'Settings',    'key'=>'settings', 'icon'=>'fas fa-cog'],
+        'finance' => null,
+    ];
+
+    $userInitials = $user ? _initials($user['name'] ?? '') : '?';
+    $userName     = htmlspecialchars($user['name'] ?? '');
+    $roleLabels   = ['student'=>'Student','teacher'=>'Teacher','admin'=>'Administrator','finance'=>'Finance Staff'];
+    $userRole     = $roleLabels[$user['role'] ?? ''] ?? ucfirst($user['role'] ?? '');
+
+    echo '<div id="sidebarOverlay" onclick="document.getElementById(\'sidebar\').classList.remove(\'open\');this.classList.remove(\'show\')"></div>';
     echo '<nav class="sidebar" id="sidebar">
-    <div class="sb-brand">
-      <span style="font-size:1.6rem">' . $icon . '</span>
-      <div>
-        <div class="fw-bold text-white" style="font-size:.85rem">BMC Portal</div>
-        <div style="font-size:.72rem; opacity:.6; color:#fff">' . $name . '</div>
-      </div>
+
+  <div class="sb-brand">
+    <div class="sb-brand-mark">' . strtoupper($portal[0]) . '</div>
+    <div>
+      <div style="font-size:.88rem;font-weight:700;color:#fff;line-height:1.2">BMC Portal</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.5);line-height:1.3">' . $portalLabel . '</div>
     </div>
-    <ul class="sb-nav">';
+  </div>
+
+  <div class="sb-section-label">Main Menu</div>
+  <ul class="sb-nav">';
 
     foreach ($links as $link) {
         if (isset($link['divider'])) {
-            echo '<li class="sb-divider">' . htmlspecialchars($link['divider']) . '</li>';
+            echo '<div class="sb-section-label">' . htmlspecialchars($link['divider']) . '</div>';
             continue;
         }
-        $cls = (str_contains($active, $link['key'] ?? '')) ? ' active' : '';
+        $cls = str_contains($active, $link['key'] ?? '') ? ' active' : '';
         echo '<li><a class="sb-link' . $cls . '" href="' . htmlspecialchars($link['href']) . '">
           <span class="sb-icon">' . ($link['icon'] ?? '') . '</span>
           <span>' . htmlspecialchars($link['label']) . '</span>
         </a></li>';
     }
 
+    // Account section
     echo '</ul>
-    <div class="sb-footer">
-      <a href="/logout.php" class="sb-link text-danger">
+  <div class="sb-section-label">Account</div>
+  <ul class="sb-nav">';
+
+    $profItem = $profileMap[$portal] ?? null;
+    if ($profItem) {
+        $pCls = ($active === $profItem['key']) ? ' active' : '';
+        echo '<li><a class="sb-link' . $pCls . '" href="' . $profItem['href'] . '">
+          <span class="sb-icon"><i class="' . $profItem['icon'] . '"></i></span>
+          <span>' . $profItem['label'] . '</span>
+        </a></li>';
+    }
+    echo '<li><a class="sb-link" href="/logout.php">
         <span class="sb-icon"><i class="fas fa-sign-out-alt"></i></span>
         <span>Logout</span>
-      </a>
+      </a></li>';
+
+    echo '</ul>
+
+  <div class="sb-user">
+    <div class="sb-user-avatar">' . $userInitials . '</div>
+    <div class="sb-user-info">
+      <div class="sb-user-name">' . $userName . '</div>
+      <div class="sb-user-role">' . $userRole . '</div>
     </div>
-  </nav>';
+  </div>
+
+</nav>';
 }
 
-function topbar(string $pageTitle, array $user): void {
+function topbar(string $pageTitle, array $user, string $badge = ''): void {
+    $portalLabels = ['student'=>'Student Portal','teacher'=>'Teacher Portal','admin'=>'Admin Panel','finance'=>'Finance Portal'];
+    $portal       = $user['role'] ?? '';
+    $portalLabel  = $portalLabels[$portal] ?? 'Portal';
+    $initials     = _initials($user['name'] ?? '');
+    $today        = date('D, d M Y');
+
+    $badgeHtml = $badge
+        ? '<span class="topbar-badge">' . htmlspecialchars($badge) . '</span>'
+        : '';
+
     echo '<header class="topbar" id="topbar">
-    <button class="topbar-toggle" onclick="document.getElementById(\'sidebar\').classList.toggle(\'open\')">
-      <i class="fas fa-bars"></i>
-    </button>
-    <span class="topbar-title">' . htmlspecialchars($pageTitle) . '</span>
-    <div class="topbar-right">
-      <span class="topbar-user">
-        <i class="fas fa-user-circle me-1"></i>
-        ' . htmlspecialchars($user['name']) . '
-        <small class="ms-1 opacity-75">(' . htmlspecialchars($user['user_id']) . ')</small>
-      </span>
-    </div>
-  </header>';
+  <button class="topbar-toggle" onclick="
+    document.getElementById(\'sidebar\').classList.toggle(\'open\');
+    document.getElementById(\'sidebarOverlay\').classList.toggle(\'show\')
+  "><i class="fas fa-bars"></i></button>
+
+  <div class="topbar-brand">
+    <div class="topbar-brand-main">BMC Portal</div>
+    <div class="topbar-brand-sub">' . $portalLabel . '</div>
+  </div>
+
+  <div class="topbar-right">
+    <span class="topbar-date"><i class="far fa-calendar me-1"></i>' . $today . '</span>
+    ' . $badgeHtml . '
+    <div class="topbar-avatar" title="' . htmlspecialchars($user['name'] ?? '') . '">' . $initials . '</div>
+  </div>
+</header>';
 }

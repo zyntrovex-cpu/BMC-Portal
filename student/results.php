@@ -38,19 +38,18 @@ foreach ($rows as $r) {
 // ── Page render ───────────────────────────────────────────────────
 pageHead('Results', 'student');
 $links = [
-    ['href' => '/student/dashboard.php',  'icon' => '<i class="fas fa-home"></i>',          'label' => 'Dashboard',  'key' => 'dashboard'],
-    ['href' => '/student/results.php',    'icon' => '<i class="fas fa-chart-bar"></i>',      'label' => 'Results',    'key' => 'results'],
-    ['href' => '/student/attendance.php', 'icon' => '<i class="fas fa-calendar-check"></i>', 'label' => 'Attendance', 'key' => 'attendance'],
-    ['href' => '/student/timetable.php',  'icon' => '<i class="fas fa-table"></i>',          'label' => 'Timetable',  'key' => 'timetable'],
-    ['href' => '/student/notices.php',    'icon' => '<i class="fas fa-bell"></i>',           'label' => 'Notices',    'key' => 'notices'],
-    ['href' => '/student/profile.php',    'icon' => '<i class="fas fa-user"></i>',           'label' => 'Profile',    'key' => 'profile'],
+    ['href'=>'/student/dashboard.php','icon'=>'<i class="fas fa-home"></i>','label'=>'Dashboard','key'=>'dashboard'],
+    ['href'=>'/student/results.php','icon'=>'<i class="fas fa-chart-bar"></i>','label'=>'My Results','key'=>'results'],
+    ['href'=>'/student/attendance.php','icon'=>'<i class="fas fa-calendar-check"></i>','label'=>'Attendance','key'=>'attendance'],
+    ['href'=>'/student/timetable.php','icon'=>'<i class="fas fa-table"></i>','label'=>'My Timetable','key'=>'timetable'],
+    ['href'=>'/student/notices.php','icon'=>'<i class="fas fa-bell"></i>','label'=>'Notices','key'=>'notices'],
 ];
 ?>
-<div class="overlay" id="overlay" onclick="this.classList.remove('show');document.getElementById('sidebar').classList.remove('open')"></div>
-<?php sidebar('student', 'results', $links); ?>
-<div class="main">
+<div class="portal-wrap">
+<?php sidebar('student', 'results', $links, $user); ?>
+<div class="main-area">
 <?php topbar('Results', $user); ?>
-<div class="content">
+<div class="page-content">
 
 <?= flashHtml() ?>
 
@@ -173,8 +172,9 @@ $links = [
 </div>
 <?php endforeach; endif; ?>
 
-</div><!-- /content -->
-</div><!-- /main -->
+</div><!-- /page-content -->
+</div><!-- /main-area -->
+</div><!-- /portal-wrap -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
