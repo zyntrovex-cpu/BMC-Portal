@@ -24,7 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'save_smtp') {
-        $smtpKeys = ['smtp_host','smtp_port','smtp_user','smtp_pass','smtp_from','smtp_from_name','smtp_enabled','app_url'];
+        // smtp_enabled handled separately below — do NOT include it in the loop
+        // (checkbox is absent from POST when unchecked, so the loop would write '' instead of '0')
+        $smtpKeys = ['smtp_host','smtp_port','smtp_user','smtp_pass','smtp_from','smtp_from_name','app_url'];
         foreach ($smtpKeys as $key) {
             $val = trim($_POST[$key] ?? '');
             $db->prepare('INSERT INTO settings (key_name, value) VALUES (?,?) ON DUPLICATE KEY UPDATE value=VALUES(value)')

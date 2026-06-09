@@ -261,8 +261,8 @@ sidebar('student', 'dashboard', $links);
           <p class="text-muted text-center mb-0" style="font-size:13px">No notices.</p>
         <?php else: foreach ($topNotices as $n):
           $pinHtml = $n['pinned'] ? '<i class="fas fa-thumbtack text-danger me-1"></i>' : '';
-          $priorityColors = ['high' => '#ef4444', 'medium' => '#d97706', 'low' => '#059669'];
-          $pColor = $priorityColors[$n['priority'] ?? 'low'] ?? '#6b7280';
+          $priorityColors = ['Urgent' => '#ef4444', 'Important' => '#d97706', 'Normal' => '#059669'];
+          $pColor = $priorityColors[$n['priority'] ?? 'Normal'] ?? '#6b7280';
         ?>
         <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
           <div style="width:34px;height:34px;border-radius:6px;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -271,7 +271,7 @@ sidebar('student', 'dashboard', $links);
           <div>
             <div class="fw-semibold" style="font-size:13px"><?= $pinHtml ?><?= h($n['title']) ?></div>
             <small class="text-muted"><?= fDate($n['created_at']) ?></small>
-            <span class="badge ms-1" style="background:<?= $pColor ?>;font-size:9px"><?= h(ucfirst($n['priority'] ?? 'low')) ?></span>
+            <span class="badge ms-1" style="background:<?= $pColor ?>;font-size:9px"><?= ($n['priority'] ?? 'Normal') ?></span>
           </div>
         </div>
         <?php endforeach; endif; ?>

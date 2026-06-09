@@ -23,10 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $saved = 0;
     foreach ($attInput as $studentId => $status) {
         if (!in_array($status, ['P','A','L'])) continue;
-        $db->prepare('INSERT INTO attendance (student_id, subject_id, date, status, teacher_id)
-                      VALUES (?,?,?,?,?)
-                      ON DUPLICATE KEY UPDATE status=VALUES(status), teacher_id=VALUES(teacher_id)')
-           ->execute([(int)$studentId, $pSubjectId, $pDate, $status, $teacher['id']]);
+        $db->prepare('INSERT INTO attendance (student_id, class_id, subject_id, date, status, teacher_id)
+                      VALUES (?,?,?,?,?,?)
+                      ON DUPLICATE KEY UPDATE status=VALUES(status), teacher_id=VALUES(teacher_id), class_id=VALUES(class_id)')
+           ->execute([(int)$studentId, $pClassId, $pSubjectId, $pDate, $status, $teacher['id']]);
         $saved++;
     }
     logActivity($user['id'], 'attendance_save', "Attendance for class #$pClassId, date $pDate ($saved students)");
@@ -39,6 +39,11 @@ $classesSt = $db->prepare('SELECT DISTINCT c.id, c.name FROM class_subjects cs J
 $classesSt->execute([$teacher['id']]);
 $assignedClasses = $classesSt->fetchAll();
 
+// Get subjects assigned to this teacher across all their classes
+$subjectsSt = $db->prepare('SELECT DISTINCT s.id, s.name FROM class_subjects cs JOIN subjects s ON cs.subject_id = s.id WHERE cs.teacher_id = ? ORDER BY s.name');
+$subjectsSt->execute([$teacher['id']]);
+$assignedSubjects = $subjectsSt->fetchAll();
+
 // Get students if class selected
 $students      = [];
 $existingAttendance = [];
@@ -46,8 +51,8 @@ if ($classId && $tab === 'take') {
     $students = getClassStudents($classId);
     // Load existing attendance for this date/subject
     if ($subjectId && $date) {
-        $attSt = $db->prepare('SELECT student_id, status FROM attendance WHERE subject_id = ? AND date = ?');
-        $attSt->execute([$subjectId, $date]);
+        $attSt = $db->prepare('SELECT student_id, status FROM attendance WHERE class_id = ? AND subject_id = ? AND date = ?');
+        $attSt->execute([$classId, $subjectId, $date]);
         foreach ($attSt->fetchAll() as $r) {
             $existingAttendance[$r['student_id']] = $r['status'];
         }
@@ -114,8 +119,12 @@ $links = [
     </div>
     <div class="col-sm-3">
       <label class="form-label fw-semibold" style="font-size:.82rem">Subject</label>
-      <input type="hidden" name="subject_id" value="<?= (int)$teacher['subject_id'] ?>">
-      <input type="text" class="form-control form-control-sm" value="<?= h($teacher['subject_name']) ?>" disabled>
+      <select name="subject_id" class="form-select form-select-sm" required>
+        <option value="">Select subject</option>
+        <?php foreach ($assignedSubjects as $s): ?>
+          <option value="<?= $s['id'] ?>" <?= $subjectId===$s['id']?'selected':'' ?>><?= h($s['name']) ?></option>
+        <?php endforeach; ?>
+      </select>
     </div>
     <div class="col-sm-3">
       <label class="form-label fw-semibold" style="font-size:.82rem">Date</label>

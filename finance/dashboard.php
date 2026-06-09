@@ -49,12 +49,11 @@ $defaulters = $db->prepare(
     'SELECT s.id, u.name, s.roll_no, c.name AS class_name,
             s.parent_phone,
             COUNT(f.id) AS unpaid_months,
-            MAX(f2.payment_date) AS last_payment
+            (SELECT MAX(f2.payment_date) FROM fees f2 WHERE f2.student_id=s.id AND f2.paid=1) AS last_payment
      FROM students s
      JOIN users u ON s.user_id=u.id
      LEFT JOIN classes c ON s.class_id=c.id
      JOIN fees f ON f.student_id=s.id AND f.paid=0
-     LEFT JOIN fees f2 ON f2.student_id=s.id AND f2.paid=1
      GROUP BY s.id, u.name, s.roll_no, c.name, s.parent_phone
      HAVING COUNT(f.id) >= 2
      ORDER BY unpaid_months DESC
@@ -80,11 +79,11 @@ $links = [
     ['href'=>'/finance/reports.php',    'icon'=>'<i class="fas fa-chart-pie"></i>',               'label'=>'Reports',       'key'=>'reports'],
 ];
 ?>
-<div class="overlay" id="overlay" onclick="this.classList.remove('show');document.getElementById('sidebar').classList.remove('open')"></div>
+<div class="portal-wrap">
 <?php sidebar('finance', 'dashboard', $links); ?>
-<div class="main">
+<div class="main-area">
 <?php topbar('Dashboard', $user); ?>
-<div class="content">
+<div class="page-content">
 
 <?= flashHtml() ?>
 
@@ -268,8 +267,8 @@ $links = [
           <p class="text-muted text-center mb-0" style="font-size:13px">No notices.</p>
         <?php else: foreach ($topNotices as $n):
           $pinHtml = $n['pinned'] ? '<i class="fas fa-thumbtack text-danger me-1"></i>' : '';
-          $priorityColors = ['high'=>'#ef4444','medium'=>'#d97706','low'=>'#059669'];
-          $pColor = $priorityColors[$n['priority'] ?? 'low'] ?? '#6b7280';
+          $priorityColors = ['Urgent'=>'#ef4444','Important'=>'#d97706','Normal'=>'#059669'];
+          $pColor = $priorityColors[$n['priority'] ?? 'Normal'] ?? '#6b7280';
         ?>
         <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
           <div style="width:34px;height:34px;border-radius:6px;background:#fff7ed;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -325,8 +324,9 @@ $links = [
   </div><!-- /col-lg-4 -->
 </div><!-- /row -->
 
-</div><!-- /content -->
-</div><!-- /main -->
+</div><!-- /page-content -->
+</div><!-- /main-area -->
+</div><!-- /portal-wrap -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

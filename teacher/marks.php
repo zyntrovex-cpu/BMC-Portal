@@ -106,6 +106,15 @@ $classesSt = $db->prepare('SELECT DISTINCT c.id, c.name FROM class_subjects cs J
 $classesSt->execute([$teacher['id']]);
 $assignedClasses = $classesSt->fetchAll();
 
+// Subjects assigned to this teacher across all their classes
+$subjectsSt = $db->prepare('SELECT DISTINCT s.id, s.name FROM class_subjects cs JOIN subjects s ON cs.subject_id = s.id WHERE cs.teacher_id = ? ORDER BY s.name');
+$subjectsSt->execute([$teacher['id']]);
+$assignedSubjects = $subjectsSt->fetchAll();
+// Fall back to teacher's home subject if not in class_subjects yet
+if (empty($assignedSubjects) && !empty($teacher['subject_id'])) {
+    $assignedSubjects = [['id' => $teacher['subject_id'], 'name' => $teacher['subject_name'] ?? '']];
+}
+
 pageHead('Marks', 'teacher');
 $links = [
     ['href'=>'/teacher/dashboard.php','icon'=>'<i class="fas fa-home"></i>','label'=>'Dashboard','key'=>'dashboard'],
@@ -148,8 +157,12 @@ $links = [
         </div>
         <div class="col-md-3">
           <label class="form-label fw-semibold" style="font-size:.82rem">Subject</label>
-          <input type="hidden" name="subject_id" value="<?= (int)$teacher['subject_id'] ?>">
-          <input type="text" class="form-control form-control-sm" value="<?= h($teacher['subject_name']) ?>" disabled>
+          <select name="subject_id" class="form-select form-select-sm" required>
+            <option value="">Select subject</option>
+            <?php foreach ($assignedSubjects as $s): ?>
+              <option value="<?= $s['id'] ?>"><?= h($s['name']) ?></option>
+            <?php endforeach; ?>
+          </select>
         </div>
         <div class="col-md-4">
           <label class="form-label fw-semibold" style="font-size:.82rem">Title</label>
@@ -194,7 +207,7 @@ $links = [
       <tbody>
         <?php foreach ($assessments as $a): ?>
         <tr>
-          <td class="fw-semibold"><?= h($a['title']) ?></td>
+          <td class="fw-semibold"><?= h($a['title'] ?: $a['name']) ?></td>
           <td><span class="badge bg-secondary"><?= h($a['type']) ?></span></td>
           <td><?= h($a['class_name']) ?></td>
           <td><?= h($a['subject_name']) ?></td>
@@ -228,7 +241,7 @@ $links = [
     <div class="list-group">
       <?php foreach ($assessments as $a): ?>
         <a href="?tab=marks&assessment_id=<?= $a['id'] ?>" class="list-group-item list-group-item-action d-flex justify-content-between">
-          <div><strong><?= h($a['title']) ?></strong> — <?= h($a['class_name']) ?> / <?= h($a['subject_name']) ?></div>
+          <div><strong><?= h($a['title'] ?: $a['name']) ?></strong> — <?= h($a['class_name']) ?> / <?= h($a['subject_name']) ?></div>
           <span class="text-muted" style="font-size:.82rem"><?= fDate($a['date']) ?> | Max: <?= $a['max_marks'] ?></span>
         </a>
       <?php endforeach; ?>
@@ -237,7 +250,7 @@ $links = [
 <?php else: ?>
   <div class="sec-card mb-3">
     <div class="sec-card-header d-flex justify-content-between">
-      <span><i class="fas fa-pen-alt me-2"></i><?= h($currentAssessment['title']) ?> — <?= h($currentAssessment['class_name']) ?> / <?= h($currentAssessment['subject_name']) ?></span>
+      <span><i class="fas fa-pen-alt me-2"></i><?= h($currentAssessment['title'] ?: $currentAssessment['name']) ?> — <?= h($currentAssessment['class_name']) ?> / <?= h($currentAssessment['subject_name']) ?></span>
       <span class="text-muted" style="font-size:.82rem">Max Marks: <?= $currentAssessment['max_marks'] ?> | <?= h($currentAssessment['type']) ?></span>
     </div>
     <form method="POST">

@@ -64,6 +64,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $viewClassId = (int)($_GET['view'] ?? 0);
 
+// Stat counts
+$totalStudents = (int)$db->query('SELECT COUNT(*) FROM students')->fetchColumn();
+$totalClasses  = (int)$db->query('SELECT COUNT(*) FROM classes')->fetchColumn();
+$totalSubjects = (int)$db->query('SELECT COUNT(*) FROM subjects')->fetchColumn();
+
+// Subject overview (with assigned classes and teacher counts)
+$subjectsSt = $db->query(
+    'SELECT s.id, s.name, s.code,
+            GROUP_CONCAT(DISTINCT c.name ORDER BY c.grade, c.section SEPARATOR ", ") AS class_list,
+            COUNT(DISTINCT cs.class_id) AS class_count,
+            COUNT(DISTINCT cs.teacher_id) AS teacher_count
+     FROM subjects s
+     LEFT JOIN class_subjects cs ON cs.subject_id = s.id
+     LEFT JOIN classes c ON cs.class_id = c.id
+     GROUP BY s.id, s.name, s.code
+     ORDER BY s.name'
+);
+$subjectsWithClasses = $subjectsSt->fetchAll();
+
 // Get all classes with student count
 $classesSt = $db->query(
     'SELECT c.*, COUNT(s.id) AS student_count
@@ -111,6 +130,30 @@ $links = [
 <?php topbar('Class Management', $user); ?>
 <div class="page-content">
 <?= flashHtml() ?>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+      <div class="stat-val"><?= $totalStudents ?></div>
+      <div class="stat-label">Total Students</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="fas fa-chalkboard"></i></div>
+      <div class="stat-val"><?= $totalClasses ?></div>
+      <div class="stat-label">Total Classes</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="fas fa-book"></i></div>
+      <div class="stat-val"><?= $totalSubjects ?></div>
+      <div class="stat-label">Total Subjects</div>
+    </div>
+  </div>
+</div>
 
 <div class="row g-3">
   <div class="col-md-5">
@@ -213,6 +256,27 @@ $links = [
     <?php else: ?>
     <div class="sec-card p-4 text-center text-muted">Select a class to manage its subjects.</div>
     <?php endif; ?>
+  </div>
+</div>
+
+<div class="sec-card mt-3">
+  <div class="sec-card-header"><i class="fas fa-book me-2"></i>Subject Overview</div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0" style="font-size:.85rem">
+      <thead class="table-light">
+        <tr><th>Subject</th><th>Code</th><th>Assigned Classes</th><th>Teachers</th></tr>
+      </thead>
+      <tbody>
+        <?php foreach ($subjectsWithClasses as $sv): ?>
+        <tr>
+          <td class="fw-semibold"><?= h($sv['name']) ?></td>
+          <td><span class="badge bg-secondary"><?= h($sv['code']) ?></span></td>
+          <td><?= h($sv['class_list'] ?: '—') ?></td>
+          <td><?= $sv['teacher_count'] ?></td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
   </div>
 </div>
 

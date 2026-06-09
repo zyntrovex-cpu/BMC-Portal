@@ -16,13 +16,13 @@ $offset  = ($page - 1) * $perPage;
 
 $where  = [];
 $params = [];
-if ($filterUser) { $where[] = 'u.user_id LIKE ?'; $params[] = "%$filterUser%"; }
+if ($filterUser) { $where[] = '(u.user_id LIKE ? OR al.user_id IS NULL)'; $params[] = "%$filterUser%"; }
 if ($filterAction) { $where[] = 'al.action LIKE ?'; $params[] = "%$filterAction%"; }
 if ($filterDate) { $where[] = 'DATE(al.created_at) = ?'; $params[] = $filterDate; }
 
 $whereStr = $where ? 'WHERE '.implode(' AND ', $where) : '';
 
-$countSt = $db->prepare("SELECT COUNT(*) FROM activity_log al JOIN users u ON al.user_id = u.id $whereStr");
+$countSt = $db->prepare("SELECT COUNT(*) FROM activity_log al LEFT JOIN users u ON al.user_id = u.id $whereStr");
 $countSt->execute($params);
 $total = (int)$countSt->fetchColumn();
 $pages = max(1, (int)ceil($total / $perPage));
@@ -30,7 +30,7 @@ $pages = max(1, (int)ceil($total / $perPage));
 $logSt = $db->prepare(
     "SELECT al.*, u.name, u.user_id AS uid, u.role
      FROM activity_log al
-     JOIN users u ON al.user_id = u.id
+     LEFT JOIN users u ON al.user_id = u.id
      $whereStr
      ORDER BY al.created_at DESC
      LIMIT $perPage OFFSET $offset"
@@ -130,12 +130,12 @@ $links = [
       <thead class="table-light"><tr><th>Time</th><th>User</th><th>Role</th><th>Action</th><th>Details</th><th>IP</th></tr></thead>
       <tbody>
         <?php foreach ($logs as $l):
-          $roleBadge = match($l['role']) {'teacher'=>'success','student'=>'primary','finance'=>'warning',default=>'secondary'};
+          $roleBadge = match($l['role'] ?? '') {'teacher'=>'success','student'=>'primary','finance'=>'warning',default=>'secondary'};
         ?>
         <tr>
           <td style="white-space:nowrap;font-size:.78rem"><?= date('d M y H:i', strtotime($l['created_at'])) ?></td>
-          <td><strong><?= h($l['uid']) ?></strong><div style="font-size:.76rem;color:#9ca3af"><?= h($l['name']) ?></div></td>
-          <td><span class="badge bg-<?= $roleBadge ?>"><?= $l['role'] ?></span></td>
+          <td><strong><?= h($l['uid'] ?? '[deleted]') ?></strong><div style="font-size:.76rem;color:#9ca3af"><?= h($l['name'] ?? '—') ?></div></td>
+          <td><span class="badge bg-<?= $roleBadge ?>"><?= $l['role'] ?? 'deleted' ?></span></td>
           <td><code style="font-size:.78rem"><?= h($l['action']) ?></code></td>
           <td style="max-width:250px;font-size:.79rem"><?= h($l['details']) ?></td>
           <td style="font-size:.76rem;color:#9ca3af"><?= h($l['ip_address']) ?></td>

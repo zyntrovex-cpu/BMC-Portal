@@ -33,8 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $db->prepare('INSERT INTO students (user_id, roll_no, class_id, admission_date) VALUES (?,?,?,CURDATE())')
                        ->execute([$newId, $userId, $_POST['class_id'] ?: null]);
                 } elseif ($role === 'teacher') {
-                    $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification) VALUES (?,?,?,?)')
-                       ->execute([$newId, $userId, $_POST['subject_id'] ?: null, trim($_POST['qualification'] ?? '')]);
+                    $phone    = trim($_POST['phone'] ?? '');
+                    $joinDate = $_POST['join_date'] ?? date('Y-m-d');
+                    $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification, phone, join_date) VALUES (?,?,?,?,?,?)')
+                       ->execute([$newId, $userId, $_POST['subject_id'] ?: null, trim($_POST['qualification'] ?? ''), $phone ?: null, $joinDate]);
                 }
                 logActivity($user['id'], 'user_create', "Created $userId ($role)");
                 setFlash('success', "User $userId created.");
@@ -218,6 +220,14 @@ $links = [
             <label class="form-label fw-semibold" style="font-size:.82rem">Qualification</label>
             <input type="text" name="qualification" class="form-control form-control-sm">
           </div>
+          <div id="teacherPhoneField" class="col-md-2 d-none">
+            <label class="form-label fw-semibold" style="font-size:.82rem">Phone</label>
+            <input type="tel" name="phone" class="form-control form-control-sm" placeholder="+92...">
+          </div>
+          <div id="teacherJoinDateField" class="col-md-2 d-none">
+            <label class="form-label fw-semibold" style="font-size:.82rem">Join Date</label>
+            <input type="date" name="join_date" class="form-control form-control-sm" value="<?= date('Y-m-d') ?>">
+          </div>
           <div class="col-md-2 d-flex align-items-end">
             <button type="submit" class="btn btn-sm btn-success w-100">Create User</button>
           </div>
@@ -305,6 +315,8 @@ function toggleRoleFields(role) {
     document.getElementById('studentFields').classList.toggle('d-none', role !== 'student');
     document.getElementById('teacherFields').classList.toggle('d-none', role !== 'teacher');
     document.getElementById('qualFields').classList.toggle('d-none', role !== 'teacher');
+    document.getElementById('teacherPhoneField').classList.toggle('d-none', role !== 'teacher');
+    document.getElementById('teacherJoinDateField').classList.toggle('d-none', role !== 'teacher');
 }
 document.getElementById('resetModal').addEventListener('show.bs.modal', e => {
     document.getElementById('resetUserId').value  = e.relatedTarget.dataset.uid;

@@ -28,11 +28,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fee'])) {
         $remarks  = trim($data['remarks'] ?? '');
 
         $db->prepare(
-            'INSERT INTO fees (student_id, month, year, amount, paid, payment_date, payment_mode, remarks)
-             VALUES (?,?,?,?,?,?,?,?)
+            'INSERT INTO fees (student_id, month, year, amount, paid, payment_date, payment_mode, remarks, recorded_by)
+             VALUES (?,?,?,?,?,?,?,?,?)
              ON DUPLICATE KEY UPDATE paid=VALUES(paid), payment_date=VALUES(payment_date),
-             payment_mode=VALUES(payment_mode), amount=VALUES(amount), remarks=VALUES(remarks)'
-        )->execute([(int)$studentId, $pMonth, $pYear, $amount, $paid, $paidDate, $mode, $remarks]);
+             payment_mode=VALUES(payment_mode), amount=VALUES(amount), remarks=VALUES(remarks), recorded_by=VALUES(recorded_by)'
+        )->execute([(int)$studentId, $pMonth, $pYear, $amount, $paid, $paidDate, $mode, $remarks, $user['id']]);
     }
 
     logActivity($user['id'], 'fees_save', "Fee collection saved for class #$pClassId, {$pMonth}/{$pYear}");
@@ -159,7 +159,7 @@ $links = [
             <td>
               <select name="fee[<?= $st['id'] ?>][mode]" class="form-select form-select-sm fee-detail" id="mode<?= $st['id'] ?>">
                 <?php foreach (['Cash','Bank','Online','Cheque'] as $m): ?>
-                  <option <?= ($fee['payment_mode']??'Cash')===$m?'selected':'' ?>><?= $m ?></option>
+                  <option <?= (($fee ? $fee['payment_mode'] : 'Cash') === $m ? 'selected' : '') ?>><?= $m ?></option>
                 <?php endforeach; ?>
               </select>
             </td>

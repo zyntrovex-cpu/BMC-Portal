@@ -100,7 +100,7 @@ $links = [
         <tr>
           <th>Roll</th><th>Name</th>
           <?php foreach ($assessments as $a): ?>
-            <th class="text-center" style="white-space:nowrap"><?= h($a['title']) ?><br><small><?= $a['max_marks'] ?> mks</small></th>
+            <th class="text-center" style="white-space:nowrap"><?= h($a['title'] ?: $a['name']) ?><br><small><?= $a['max_marks'] ?> mks</small></th>
           <?php endforeach; ?>
           <th class="text-center">Overall%</th>
           <th class="text-center">Grade</th>

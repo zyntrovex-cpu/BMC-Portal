@@ -333,8 +333,8 @@ pageHead('Dashboard', 'teacher');
                                 <i class="fas fa-thumbtack" style="color:#d97706; font-size:11px;"></i>
                             <?php endif; ?>
                             <span class="fw-semibold" style="font-size:13px;"><?= h($n['title']) ?></span>
-                            <?php if ($n['priority'] === 'high' || $n['priority'] === 'urgent'): ?>
-                                <span class="badge bg-danger ms-auto" style="font-size:10px;"><?= h(ucfirst($n['priority'])) ?></span>
+                            <?php if ($n['priority'] === 'Important' || $n['priority'] === 'Urgent'): ?>
+                                <span class="badge bg-danger ms-auto" style="font-size:10px;"><?= h($n['priority']) ?></span>
                             <?php endif; ?>
                         </div>
                         <div class="text-muted" style="font-size:11.5px;">

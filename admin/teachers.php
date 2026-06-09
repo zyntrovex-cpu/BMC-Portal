@@ -24,12 +24,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($check->fetch()) {
                 setFlash('danger', 'Employee ID already exists.');
             } else {
+                $phone    = trim($_POST['phone'] ?? '');
+                $joinDate = $_POST['join_date'] ?? date('Y-m-d');
                 $hash = password_hash($password, PASSWORD_BCRYPT);
                 $db->prepare('INSERT INTO users (user_id, name, email, password, role, status) VALUES (?,?,?,?,?,?)')
                    ->execute([$empId, $name, $email ?: null, $hash, 'teacher', 'active']);
                 $newId = (int)$db->lastInsertId();
-                $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification) VALUES (?,?,?,?)')
-                   ->execute([$newId, $empId, $subjectId ?: null, $qual]);
+                $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification, phone, join_date) VALUES (?,?,?,?,?,?)')
+                   ->execute([$newId, $empId, $subjectId ?: null, $qual, $phone ?: null, $joinDate]);
                 logActivity($user['id'], 'teacher_create', "Created teacher $empId");
                 setFlash('success', "Teacher $name created.");
             }
@@ -110,6 +112,8 @@ $links = [
             </select>
           </div>
           <div class="col-md-4"><label class="form-label fw-semibold" style="font-size:.82rem">Qualification</label><input type="text" name="qualification" class="form-control form-control-sm" placeholder="e.g. M.Phil Chemistry"></div>
+          <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:.82rem">Phone</label><input type="tel" name="phone" class="form-control form-control-sm" placeholder="+92..."></div>
+          <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:.82rem">Join Date</label><input type="date" name="join_date" class="form-control form-control-sm" value="<?= date('Y-m-d') ?>"></div>
           <div class="col-md-2 d-flex align-items-end"><button type="submit" class="btn btn-sm btn-success w-100">Add Teacher</button></div>
         </div>
       </form>

@@ -73,16 +73,22 @@ function getTeacherByUserId(int $userId): ?array {
          WHERE t.user_id = ?'
     );
     $st->execute([$userId]);
-    return $st->fetch() ?: null;
+    $teacher = $st->fetch() ?: null;
+    if ($teacher) {
+        $subSt = getDB()->prepare('SELECT DISTINCT s.id, s.name FROM class_subjects cs JOIN subjects s ON cs.subject_id=s.id WHERE cs.teacher_id = ? ORDER BY s.name');
+        $subSt->execute([$teacher['id']]);
+        $teacher['assigned_subjects'] = $subSt->fetchAll();
+    }
+    return $teacher;
 }
 
 function getStudentAttendanceSummary(int $studentId): array {
     $st = getDB()->prepare(
         'SELECT sb.name AS subject, sb.code,
-                COUNT(*) AS total,
-                SUM(a.status="P") AS present,
-                SUM(a.status="A") AS absent,
-                SUM(a.status="L") AS `leave`
+                COALESCE(COUNT(a.id), 0) AS total,
+                COALESCE(SUM(a.status="P"), 0) AS present,
+                COALESCE(SUM(a.status="A"), 0) AS absent,
+                COALESCE(SUM(a.status="L"), 0) AS `leave`
          FROM attendance a
          JOIN subjects sb ON a.subject_id = sb.id
          WHERE a.student_id = ?
@@ -132,7 +138,7 @@ function getNoticesForPortal(string $portal): array {
 
 function getSetting(string $key, string $default = ''): string {
     static $cache = [];
-    if (isset($cache[$key])) return $cache[$key];
+    if (array_key_exists($key, $cache)) return $cache[$key];
     $st = getDB()->prepare('SELECT value FROM settings WHERE key_name = ?');
     $st->execute([$key]);
     $row = $st->fetch();

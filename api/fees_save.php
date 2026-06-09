@@ -21,18 +21,18 @@ $db    = getDB();
 $saved = 0;
 
 foreach ($fees as $studentId => $row) {
-    $paid     = isset($row['paid']) ? 1 : 0;
+    $paid     = !empty($row['paid']) ? 1 : 0;
     $paidDate = ($paid && !empty($row['paid_date'])) ? $row['paid_date'] : ($paid ? date('Y-m-d') : null);
     $mode     = in_array($row['mode'] ?? '', ['Cash','Bank','Online','Cheque']) ? $row['mode'] : 'Cash';
     $amount   = (float)($row['amount'] ?? 0);
     $remarks  = trim($row['remarks'] ?? '');
 
     $db->prepare(
-        'INSERT INTO fees (student_id, month, year, amount, paid, payment_date, payment_mode, remarks)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        'INSERT INTO fees (student_id, month, year, amount, paid, payment_date, payment_mode, remarks, recorded_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE paid=VALUES(paid), payment_date=VALUES(payment_date),
-         payment_mode=VALUES(payment_mode), amount=VALUES(amount), remarks=VALUES(remarks)'
-    )->execute([(int)$studentId, $month, $year, $amount, $paid, $paidDate, $mode, $remarks]);
+         payment_mode=VALUES(payment_mode), amount=VALUES(amount), remarks=VALUES(remarks), recorded_by=VALUES(recorded_by)'
+    )->execute([(int)$studentId, $month, $year, $amount, $paid, $paidDate, $mode, $remarks, $user['id']]);
     $saved++;
 }
 

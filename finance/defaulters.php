@@ -13,7 +13,7 @@ $classes = getAllClasses();
 $months  = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // Find defaulters: students with unpaid fees in current year
-$where  = ['(f.paid = 0 OR f.paid IS NULL)', 'f.year = ?'];
+$where  = ['f.paid = 0', 'f.year = ?'];
 $params = [$year];
 if ($classId) { $where[] = 's.class_id = ?'; $params[] = $classId; }
 $whereStr = implode(' AND ', $where);
