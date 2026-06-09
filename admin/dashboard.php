@@ -13,9 +13,6 @@ $totalTeachers = (int)$db->query('SELECT COUNT(*) FROM users WHERE role="teacher
 $activeClasses = (int)$db->query('SELECT COUNT(*) FROM classes')->fetchColumn();
 $month = (int)date('n');
 $year  = (int)date('Y');
-$feesThisMonth = (float)$db->prepare('SELECT COALESCE(SUM(amount),0) FROM fees WHERE paid=1 AND month=? AND year=?')
-    ->execute([$month, $year]) ? $db->prepare('SELECT COALESCE(SUM(amount),0) FROM fees WHERE paid=1 AND month=? AND year=?')
-    ->execute([$month, $year]) : 0;
 $stFees = $db->prepare('SELECT COALESCE(SUM(amount),0) FROM fees WHERE paid=1 AND month=? AND year=?');
 $stFees->execute([$month, $year]);
 $feesThisMonth = (float)$stFees->fetchColumn();

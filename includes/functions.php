@@ -101,7 +101,7 @@ function getStudentAttendanceSummary(int $studentId): array {
 
 function getClassTimetable(int $classId): array {
     $st = getDB()->prepare(
-        'SELECT tt.day, tt.period, tt.room,
+        'SELECT tt.day, tt.period, tt.room, tt.subject_id, tt.teacher_id,
                 sb.name AS subject_name, sb.code AS subject_code,
                 u.name AS teacher_name
          FROM timetable tt

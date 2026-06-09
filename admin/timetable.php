@@ -171,8 +171,17 @@ function openEdit(classId, day, period, cell) {
     document.getElementById('editDay').value = day;
     document.getElementById('editPeriod').value = period;
     document.getElementById('editSlotLabel').textContent = day.charAt(0).toUpperCase()+day.slice(1) + ', Period ' + period;
-    if (cell && cell.subject_name) {
-        // Try to find subject option
+    const subjectSel = document.querySelector('select[name="subject_id"]');
+    const teacherSel = document.getElementById('teacherSelect');
+    if (cell && cell.subject_id) {
+        subjectSel.value = cell.subject_id;
+    } else {
+        subjectSel.selectedIndex = 0;
+    }
+    if (cell && cell.teacher_id) {
+        teacherSel.value = cell.teacher_id;
+    } else {
+        teacherSel.value = '';
     }
     document.getElementById('editRoom').value = cell && cell.room ? cell.room : '';
     new bootstrap.Modal(document.getElementById('editModal')).show();

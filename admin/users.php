@@ -154,7 +154,7 @@ $links = [
         <?php foreach ($pendingRequests as $r): ?>
         <tr>
           <td><?= h($r['student_name']) ?> <span class="text-muted">(<?= h($r['student_roll']) ?>)</span></td>
-          <td><?= h(ucwords(str_replace('_',' ',$r['field_name']))) ?></td>
+          <td><?= h(ucwords(str_replace('_',' ',$r['field']))) ?></td>
           <td><?= h($r['old_value'] ?: '—') ?></td>
           <td class="fw-semibold"><?= h($r['new_value']) ?></td>
           <td><?= fDate($r['created_at']) ?></td>

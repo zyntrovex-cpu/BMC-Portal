@@ -40,7 +40,7 @@ $pendingSt->execute([$student['id']]);
 $pending = $pendingSt->fetchAll();
 $pendingFields = [];
 foreach ($pending as $r) {
-    if ($r['status'] === 'pending') $pendingFields[] = $r['field_name'];
+    if ($r['status'] === 'pending') $pendingFields[] = $r['field'];
 }
 
 pageHead('My Profile', 'student');
@@ -85,7 +85,7 @@ $links = [
         ?>
         <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="font-size:.84rem">
           <div>
-            <strong><?= h(ucwords(str_replace('_',' ',$r['field_name']))) ?></strong>
+            <strong><?= h(ucwords(str_replace('_',' ',$r['field']))) ?></strong>
             <div style="color:#6b7280;font-size:.78rem"><?= h($r['new_value']) ?></div>
           </div>
           <span class="badge bg-<?= $statusClass ?>"><?= ucfirst($r['status']) ?></span>

@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? 'save_settings';
 
     if ($action === 'save_settings') {
-        $keys = ['school_name','session_year','fee_amount','admin_email','phone','app_url'];
+        $keys = ['school_name','session_year','fee_per_month','admin_email','phone','app_url'];
         foreach ($keys as $key) {
             if (isset($_POST[$key])) {
                 $db->prepare('INSERT INTO settings (key_name, value) VALUES (?,?) ON DUPLICATE KEY UPDATE value=VALUES(value)')
@@ -130,7 +130,7 @@ $links = [
           <div class="mb-3"><label class="form-label fw-semibold" style="font-size:.85rem">Session Year</label>
             <input type="text" name="session_year" class="form-control" value="<?= h($settings['session_year'] ?? SESSION_YEAR) ?>"></div>
           <div class="mb-3"><label class="form-label fw-semibold" style="font-size:.85rem">Default Monthly Fee (PKR)</label>
-            <input type="number" name="fee_amount" class="form-control" value="<?= h($settings['fee_amount'] ?? '5000') ?>"></div>
+            <input type="number" name="fee_per_month" class="form-control" value="<?= h($settings['fee_per_month'] ?? '5000') ?>"></div>
           <div class="mb-3"><label class="form-label fw-semibold" style="font-size:.85rem">Admin Email</label>
             <input type="email" name="admin_email" class="form-control" value="<?= h($settings['admin_email'] ?? '') ?>"></div>
           <div class="mb-3"><label class="form-label fw-semibold" style="font-size:.85rem">Contact Phone</label>
