@@ -14,9 +14,13 @@ $done  = false;
 $user = null;
 if ($token) {
     $db = getDB();
-    $st = $db->prepare('SELECT id, name, role FROM users WHERE reset_token = ? AND reset_expires > NOW() AND status = "active"');
+    // Use PHP for expiry check to avoid MySQL/PHP timezone mismatch
+    $st = $db->prepare('SELECT id, name, role, reset_expires FROM users WHERE reset_token = ? AND status = "active"');
     $st->execute([$token]);
-    $user = $st->fetch() ?: null;
+    $row = $st->fetch() ?: null;
+    if ($row && $row['reset_expires'] && strtotime($row['reset_expires']) > time()) {
+        $user = $row;
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $user) {
