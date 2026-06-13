@@ -225,6 +225,17 @@ $links = [
           <tr><th style="color:#6b7280">Session</th><td><?= h($settings['session_year'] ?? SESSION_YEAR) ?></td></tr>
           <tr><th style="color:#6b7280">App URL</th><td style="font-size:.78rem"><?= h($settings['app_url'] ?? 'Not set') ?></td></tr>
           <tr><th style="color:#6b7280">SMTP Status</th><td><span class="badge <?= ($settings['smtp_enabled']??'0')==='1' ? 'bg-success' : 'bg-secondary' ?>"><?= ($settings['smtp_enabled']??'0')==='1' ? 'Enabled' : 'Disabled' ?></span></td></tr>
+          <tr>
+            <th style="color:#6b7280">OpenSSL</th>
+            <td>
+              <?php if (extension_loaded('openssl')): ?>
+                <span class="badge bg-success">Enabled ✓</span>
+              <?php else: ?>
+                <span class="badge bg-danger">Disabled ✗</span>
+                <div style="font-size:.75rem;color:#dc2626;margin-top:3px">SMTP requires OpenSSL. In XAMPP: open <strong>php.ini</strong>, find <code>;extension=openssl</code>, remove the semicolon, restart Apache.</div>
+              <?php endif; ?>
+            </td>
+          </tr>
         </table>
       </div>
     </div>

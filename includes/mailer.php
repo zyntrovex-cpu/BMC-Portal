@@ -3,16 +3,20 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/functions.php';
 
 // Stores the last SMTP error so callers can show a helpful message
-$GLOBALS['_smtp_last_error'] = '';
+$GLOBALS['_smtp_last_error']  = '';
+$GLOBALS['_smtp_not_configured'] = false;
 
-function getSmtpError(): string { return $GLOBALS['_smtp_last_error'] ?? ''; }
+function getSmtpError(): string  { return $GLOBALS['_smtp_last_error']  ?? ''; }
+function smtpNotConfigured(): bool { return $GLOBALS['_smtp_not_configured'] ?? false; }
 
 /**
  * Send email via SMTP using PHP streams (no Composer required).
- * When SMTP is disabled/unconfigured, logs to logs/mail.log and returns true.
+ * Returns false (not true) when SMTP is disabled so callers know to show a fallback.
  */
 function sendMail(string $toEmail, string $toName, string $subject, string $htmlBody, string $textBody = ''): bool {
-    $GLOBALS['_smtp_last_error'] = '';
+    $GLOBALS['_smtp_last_error']     = '';
+    $GLOBALS['_smtp_not_configured'] = false;
+
     $enabled  = getSetting('smtp_enabled', '0');
     $host     = getSetting('smtp_host',    'localhost');
     $port     = (int)getSetting('smtp_port',  '587');
@@ -26,12 +30,20 @@ function sendMail(string $toEmail, string $toName, string $subject, string $html
     }
 
     if (!$enabled || $enabled === '0' || !$from) {
-        // Log to file instead of sending
+        // Log to file for reference
         $logFile = __DIR__ . '/../logs/mail.log';
         @mkdir(dirname($logFile), 0755, true);
         $entry = date('Y-m-d H:i:s') . " | To: $toEmail | Subject: $subject\n";
         @file_put_contents($logFile, $entry, FILE_APPEND);
-        return true; // pretend success when not configured
+        $GLOBALS['_smtp_not_configured'] = true;
+        $GLOBALS['_smtp_last_error'] = 'SMTP is not configured. Enable it in Admin → Settings → SMTP.';
+        return false; // Let caller show fallback
+    }
+
+    // Check OpenSSL is available for TLS
+    if (!extension_loaded('openssl') && in_array($port, [465, 587])) {
+        $GLOBALS['_smtp_last_error'] = 'OpenSSL PHP extension is not enabled. In XAMPP, open php.ini and uncomment: extension=openssl';
+        return false;
     }
 
     try {
