@@ -8,20 +8,19 @@ require_once __DIR__ . '/includes/mailer.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 if (!empty($_SESSION['user'])) redirect('/index.php');
 
-$sent  = false;
-$error = '';
+$sent   = false;
+$error  = '';
+$sentTo = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
+    $userId = trim($_POST['user_id'] ?? '');
 
-    if (!$email) {
-        $error = 'Please enter your email address.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Please enter a valid email address.';
+    if (!$userId) {
+        $error = 'Please enter your User ID.';
     } else {
         $db = getDB();
-        $st = $db->prepare('SELECT id, name, email FROM users WHERE email = ? AND status = "active"');
-        $st->execute([$email]);
+        $st = $db->prepare('SELECT id, name, email, user_id FROM users WHERE user_id = ? AND status = "active"');
+        $st->execute([$userId]);
         $found = $st->fetch();
 
         if ($found) {
@@ -31,7 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare('UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?')
                ->execute([$token, $expires, $found['id']]);
 
-            // Build reset link
             $appUrl = getSetting('app_url', '');
             if (!$appUrl) {
                 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
@@ -39,33 +37,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $resetLink = rtrim($appUrl, '/') . '/reset-password.php?token=' . $token;
 
-            $body = mailTemplate('Reset Your Password',
-                "<p>Hi <strong>" . h($found['name']) . "</strong>,</p>
-                <p>We received a request to reset your BMC Portal password.</p>
-                <p>Click the button below to choose a new password. This link expires in <strong>30 minutes</strong>.</p>
-                <p><a class='btn' href='$resetLink'>Reset My Password</a></p>
-                <p style='color:#9ca3af;font-size:.85rem'>If you didn't request this, you can safely ignore this email — your password won't change.</p>"
-            );
-            $ok = sendMail($found['email'], $found['name'], 'Reset Your BMC Portal Password', $body);
+            if ($found['email']) {
+                $body = mailTemplate('Reset Your Password',
+                    "<p>Hi <strong>" . h($found['name']) . "</strong>,</p>
+                    <p>We received a request to reset your BMC Portal password.</p>
+                    <p>Click the button below to choose a new password. This link expires in <strong>30 minutes</strong>.</p>
+                    <p><a class='btn' href='$resetLink'>Reset My Password</a></p>
+                    <p style='color:#9ca3af;font-size:.85rem'>If you didn't request this, you can safely ignore this email.</p>"
+                );
+                $ok = sendMail($found['email'], $found['name'], 'Reset Your BMC Portal Password', $body);
 
-            if ($ok) {
-                $sent = true;
+                if ($ok) {
+                    $sent   = true;
+                    $sentTo = $found['email'];
+                } else {
+                    $_SESSION['pr_direct_link'] = $resetLink;
+                    $_SESSION['pr_smtp_error']  = smtpNotConfigured()
+                        ? 'SMTP email is not configured.'
+                        : 'Email could not be sent: ' . getSmtpError();
+                    redirect('/forgot-password.php?fallback=1');
+                }
             } else {
-                // SMTP not set up — show link directly so admin can share it
+                // No email on account — show link for admin
                 $_SESSION['pr_direct_link'] = $resetLink;
-                $_SESSION['pr_smtp_error']  = smtpNotConfigured()
-                    ? 'SMTP email is not configured.'
-                    : 'Email could not be sent: ' . getSmtpError();
+                $_SESSION['pr_smtp_error']  = 'This account has no email address on file.';
                 redirect('/forgot-password.php?fallback=1');
             }
         } else {
-            // Don't reveal if account exists — always show the same success message
+            // Don't reveal if account exists
             $sent = true;
         }
     }
 }
 
-$fallback  = isset($_GET['fallback']) && !empty($_SESSION['pr_direct_link']);
+$fallback   = isset($_GET['fallback']) && !empty($_SESSION['pr_direct_link']);
 $directLink = $fallback ? $_SESSION['pr_direct_link'] : null;
 $smtpError  = $fallback ? ($_SESSION['pr_smtp_error'] ?? '') : '';
 if ($fallback) {
@@ -101,23 +106,24 @@ if ($fallback) {
   <div class="card-body">
 
     <?php if ($sent): ?>
-      <!-- Email sent -->
       <div class="text-center py-2">
         <div style="font-size:3rem;margin-bottom:12px">📧</div>
         <h6 style="font-weight:700;margin-bottom:8px">Check your email</h6>
-        <p style="font-size:.87rem;color:#6b7280;margin-bottom:20px">
-          If an account exists for <strong><?= h($_POST['email'] ?? '') ?></strong>, we've sent a password reset link. It expires in 30 minutes.
+        <p style="font-size:.87rem;color:#6b7280;margin-bottom:8px">
+          A password reset link has been sent to the email address on your account.
+          <?php if ($sentTo): ?>
+            <br><strong><?= h($sentTo) ?></strong>
+          <?php endif; ?>
         </p>
-        <p style="font-size:.8rem;color:#9ca3af">Didn't get it? Check your spam folder.</p>
+        <p style="font-size:.8rem;color:#9ca3af;margin-bottom:20px">It expires in 30 minutes. Check your spam folder if you don't see it.</p>
         <hr class="my-3">
-        <a href="<?= BASE_URL ?>/forgot-password.php" class="btn btn-outline-secondary w-100" style="border-radius:8px;font-weight:600">Try a different email</a>
+        <a href="<?= BASE_URL ?>/forgot-password.php" class="btn btn-outline-secondary w-100" style="border-radius:8px;font-weight:600">Try again</a>
       </div>
 
     <?php elseif ($fallback && $directLink): ?>
-      <!-- SMTP not configured — show link for admin to copy -->
       <div class="alert alert-warning" style="font-size:.85rem;border-radius:8px;padding:12px 14px">
         <i class="fas fa-exclamation-triangle me-1"></i> <?= h($smtpError) ?>
-        Copy the reset link below and send it to the user.
+        Copy the reset link below and send it to the user manually.
       </div>
       <div class="link-box mb-3">
         <div style="font-size:.75rem;font-weight:700;color:#0369a1;margin-bottom:8px">
@@ -135,17 +141,16 @@ if ($fallback) {
       <a href="<?= BASE_URL ?>/forgot-password.php" class="btn btn-outline-secondary w-100" style="border-radius:8px;font-weight:600">Generate another link</a>
 
     <?php else: ?>
-      <!-- Default form -->
       <?php if ($error): ?>
-        <div class="alert alert-danger" style="font-size:.87rem;border-radius:8px;padding:10px 14px">
-          <?= h($error) ?>
-        </div>
+        <div class="alert alert-danger" style="font-size:.87rem;border-radius:8px;padding:10px 14px"><?= h($error) ?></div>
       <?php endif; ?>
-      <p style="font-size:.87rem;color:#6b7280;margin-bottom:22px">Enter the email address on your account and we'll send you a link to reset your password.</p>
+      <p style="font-size:.87rem;color:#6b7280;margin-bottom:22px">Enter your User ID and we'll send a password reset link to your registered email address.</p>
       <form method="POST">
         <div class="mb-4">
-          <label class="form-label">Email address</label>
-          <input type="email" name="email" class="form-control" placeholder="you@example.com" value="<?= h($_POST['email'] ?? '') ?>" required autofocus>
+          <label class="form-label">User ID</label>
+          <input type="text" name="user_id" class="form-control" placeholder="e.g. STU001 / T001 / ADM001"
+                 value="<?= h($_POST['user_id'] ?? '') ?>" required autofocus autocomplete="off">
+          <div style="font-size:.78rem;color:#9ca3af;margin-top:6px">Your roll number or staff ID assigned by the college</div>
         </div>
         <button type="submit" class="btn btn-primary w-100">Send reset link</button>
       </form>
