@@ -7,6 +7,32 @@ require_once __DIR__ . '/../config/config.php';
 $user = requireAuth('admin');
 $db   = getDB();
 
+// Converts any common date format to YYYY-MM-DD for MySQL
+function parseDateToSql(string $raw): ?string {
+    if ($raw === '' || strtolower($raw) === 'dob') return null;
+    $formats = [
+        'Y-m-d',     // 2010-03-15  (ISO — template default)
+        'd/m/Y',     // 15/03/2010  (Excel UK/Pakistan)
+        'm/d/Y',     // 03/15/2010  (Excel US)
+        'n/j/Y',     // 3/15/2010   (Excel US no-pad)
+        'j/n/Y',     // 15/3/2010   (Excel UK no-pad)
+        'd-m-Y',     // 15-03-2010
+        'm-d-Y',     // 03-15-2010
+        'j-n-Y',     // 6/8/2010 style with dashes
+        'd.m.Y',     // 15.03.2010
+        'Y/m/d',     // 2010/03/15
+    ];
+    foreach ($formats as $fmt) {
+        $dt = DateTime::createFromFormat($fmt, $raw);
+        if ($dt && $dt->format($fmt) === $raw) {
+            return $dt->format('Y-m-d');
+        }
+    }
+    // Last resort: let PHP parse it naturally
+    $ts = strtotime($raw);
+    return $ts ? date('Y-m-d', $ts) : null;
+}
+
 // ── Download CSV Template ─────────────────────────────────────────
 if (isset($_GET['download_template'])) {
     header('Content-Type: text/csv; charset=utf-8');
@@ -113,6 +139,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
             // Generate random temp password — student sets their own via forgot-password flow
             $hash = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT);
 
+            // Normalise date — Excel can output many formats (8/6/2010, 06-08-2010, 2010-08-06, etc.)
+            $dobSql = null;
+            if (trim($dob) !== '') {
+                $dobSql = parseDateToSql(trim($dob));
+            }
+
             // Insert user
             $db->prepare(
                 'INSERT INTO users (user_id, name, email, password, role, status) VALUES (?,?,?,?,?,?)'
@@ -129,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
                 $classId,
                 $houseId,
                 date('Y-m-d'),
-                $dob ?: null,
+                $dobSql,
                 $phone ?: null,
                 $parentName ?: null,
                 $parentPhone ?: null,
