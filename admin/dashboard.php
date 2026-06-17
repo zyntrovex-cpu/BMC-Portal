@@ -31,16 +31,7 @@ $stActivity = $db->query(
 $activities = $stActivity->fetchAll();
 
 pageHead('Admin Dashboard', 'admin');
-$links = [
-    ['href'=>'/admin/dashboard.php','icon'=>'<i class="fas fa-home"></i>','label'=>'Dashboard','key'=>'dashboard'],
-    ['href'=>'/admin/users.php','icon'=>'<i class="fas fa-users"></i>','label'=>'User Management','key'=>'users'],
-    ['href'=>'/admin/classes.php','icon'=>'<i class="fas fa-chalkboard"></i>','label'=>'Classes & Subjects','key'=>'classes'],
-    ['href'=>'/admin/teachers.php','icon'=>'<i class="fas fa-chalkboard-teacher"></i>','label'=>'Teacher Accounts','key'=>'teachers'],
-    ['href'=>'/admin/notices.php','icon'=>'<i class="fas fa-bell"></i>','label'=>'Notice Board','key'=>'notices'],
-    ['href'=>'/admin/timetable.php','icon'=>'<i class="fas fa-table"></i>','label'=>'Timetable','key'=>'timetable'],
-    ['href'=>'/admin/results.php','icon'=>'<i class="fas fa-chart-bar"></i>','label'=>'Results','key'=>'results'],
-    ['href'=>'/admin/activity.php','icon'=>'<i class="fas fa-history"></i>','label'=>'Activity Log','key'=>'activity'],
-];
+$links = getAdminLinks();
 ?>
 <?php
 echo '<div class="portal-wrap">';
