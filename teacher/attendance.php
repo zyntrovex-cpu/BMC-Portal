@@ -82,13 +82,7 @@ if ($tab === 'history') {
 }
 
 pageHead('Attendance', 'teacher');
-$links = [
-    ['href'=>'/teacher/dashboard.php','icon'=>'<i class="fas fa-home"></i>','label'=>'Dashboard','key'=>'dashboard'],
-    ['href'=>'/teacher/marks.php','icon'=>'<i class="fas fa-pen-alt"></i>','label'=>'Assessments & Marks','key'=>'marks'],
-    ['href'=>'/teacher/attendance.php','icon'=>'<i class="fas fa-calendar-check"></i>','label'=>'Attendance','key'=>'attendance'],
-    ['href'=>'/teacher/timetable.php','icon'=>'<i class="fas fa-table"></i>','label'=>'My Timetable','key'=>'timetable'],
-    ['href'=>'/teacher/notices.php','icon'=>'<i class="fas fa-bell"></i>','label'=>'Notices','key'=>'notices'],
-];
+$links = getTeacherLinks();
 ?>
 <div class="portal-wrap">
 <?php sidebar('teacher', 'attendance', $links, $user); ?>

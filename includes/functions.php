@@ -164,3 +164,34 @@ function fDateTime(?string $d): string {
     if (!$d) return '—';
     return date('d M Y H:i', strtotime($d));
 }
+
+// ── Admin sidebar links ───────────────────────────────────────────
+function getAdminLinks(): array {
+    return [
+        ['href'=>'/admin/dashboard.php',       'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',         'key'=>'dashboard'],
+        ['href'=>'/admin/users.php',            'icon'=>'<i class="fas fa-users"></i>',              'label'=>'User Management',   'key'=>'users'],
+        ['href'=>'/admin/import-students.php',  'icon'=>'<i class="fas fa-file-import"></i>',        'label'=>'Import Students',   'key'=>'import'],
+        ['href'=>'/admin/classes.php',          'icon'=>'<i class="fas fa-chalkboard"></i>',         'label'=>'Classes & Subjects','key'=>'classes'],
+        ['href'=>'/admin/teachers.php',         'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teacher Accounts',  'key'=>'teachers'],
+        ['href'=>'/admin/promote.php',          'icon'=>'<i class="fas fa-level-up-alt"></i>',       'label'=>'Class Promotion',   'key'=>'promote'],
+        ['href'=>'/admin/houses.php',           'icon'=>'<i class="fas fa-shield-alt"></i>',         'label'=>'Houses',            'key'=>'houses'],
+        ['href'=>'/admin/warnings.php',         'icon'=>'<i class="fas fa-exclamation-triangle"></i>','label'=>'Student Warnings', 'key'=>'warnings'],
+        ['href'=>'/admin/notices.php',          'icon'=>'<i class="fas fa-bell"></i>',               'label'=>'Notice Board',      'key'=>'notices'],
+        ['href'=>'/admin/timetable.php',        'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',         'key'=>'timetable'],
+        ['href'=>'/admin/results.php',          'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'Results',           'key'=>'results'],
+        ['href'=>'/admin/activity.php',         'icon'=>'<i class="fas fa-history"></i>',            'label'=>'Activity Log',      'key'=>'activity'],
+        ['href'=>'/admin/settings.php',         'icon'=>'<i class="fas fa-cog"></i>',               'label'=>'Settings',           'key'=>'settings'],
+    ];
+}
+
+// ── Teacher sidebar links ─────────────────────────────────────────
+function getTeacherLinks(): array {
+    return [
+        ['href'=>'/teacher/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',          'key'=>'dashboard'],
+        ['href'=>'/teacher/marks.php',      'icon'=>'<i class="fas fa-pen-alt"></i>',             'label'=>'Assessments & Marks','key'=>'marks'],
+        ['href'=>'/teacher/attendance.php', 'icon'=>'<i class="fas fa-calendar-check"></i>',      'label'=>'Attendance',         'key'=>'attendance'],
+        ['href'=>'/teacher/timetable.php',  'icon'=>'<i class="fas fa-table"></i>',               'label'=>'My Timetable',       'key'=>'timetable'],
+        ['href'=>'/teacher/notices.php',    'icon'=>'<i class="fas fa-bell"></i>',                'label'=>'Notices',            'key'=>'notices'],
+        ['href'=>'/admin/warnings.php',     'icon'=>'<i class="fas fa-exclamation-triangle"></i>','label'=>'Student Warnings',   'key'=>'warnings'],
+    ];
+}
