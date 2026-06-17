@@ -109,6 +109,20 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
 </nav>';
 }
 
+function viewAsBanner(): void {
+    if (empty($_SESSION['view_as_mode'])) return;
+    $u    = $_SESSION['user'];
+    $base = defined('BASE_URL') ? BASE_URL : '';
+    echo '<div style="background:#f59e0b;color:#1c1c1c;padding:8px 20px;font-size:.82rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <i class="fas fa-eye"></i>
+      <span>Admin Preview — viewing as <strong>' . htmlspecialchars($u['name'] ?? '') . '</strong>
+            (' . htmlspecialchars($u['user_id'] ?? '') . ' / ' . ucfirst($u['role'] ?? '') . ')</span>
+      <a href="' . $base . '/admin/exit-view-as.php" class="btn btn-sm btn-dark ms-auto" style="font-size:.78rem;padding:2px 10px">
+        <i class="fas fa-times me-1"></i>Exit Preview
+      </a>
+    </div>';
+}
+
 function topbar(string $pageTitle, array $user, string $badge = ''): void {
     $portalLabels = ['student'=>'Student Portal','teacher'=>'Teacher Portal','admin'=>'Admin Panel','finance'=>'Finance Portal'];
     $portal       = $user['role'] ?? '';
@@ -137,4 +151,5 @@ function topbar(string $pageTitle, array $user, string $badge = ''): void {
     <div class="topbar-avatar" title="' . htmlspecialchars($user['name'] ?? '') . '">' . $initials . '</div>
   </div>
 </header>';
+    viewAsBanner();
 }

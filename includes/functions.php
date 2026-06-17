@@ -179,6 +179,7 @@ function getAdminLinks(): array {
         ['href'=>'/admin/notices.php',          'icon'=>'<i class="fas fa-bell"></i>',               'label'=>'Notice Board',      'key'=>'notices'],
         ['href'=>'/admin/timetable.php',        'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',         'key'=>'timetable'],
         ['href'=>'/admin/results.php',          'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'Results',           'key'=>'results'],
+        ['href'=>'/admin/view-as.php',           'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',      'key'=>'viewas'],
         ['href'=>'/admin/activity.php',         'icon'=>'<i class="fas fa-history"></i>',            'label'=>'Activity Log',      'key'=>'activity'],
         ['href'=>'/admin/settings.php',         'icon'=>'<i class="fas fa-cog"></i>',               'label'=>'Settings',           'key'=>'settings'],
     ];

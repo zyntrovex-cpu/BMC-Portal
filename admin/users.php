@@ -177,7 +177,13 @@ $countSt->execute($params);
 $total = (int)$countSt->fetchColumn();
 $pages = (int)ceil($total / $perPage);
 
-$usersSt = $db->prepare("SELECT * FROM users $where ORDER BY role, name LIMIT $perPage OFFSET $offset");
+$usersSt = $db->prepare(
+    "SELECT u.*, c.name AS class_name
+     FROM users u
+     LEFT JOIN students s ON s.user_id = u.id AND u.role = 'student'
+     LEFT JOIN classes c  ON c.id = s.class_id
+     $where ORDER BY u.role, u.name LIMIT $perPage OFFSET $offset"
+);
 $usersSt->execute($params);
 $users = $usersSt->fetchAll();
 
@@ -325,7 +331,7 @@ $links = getAdminLinks();
   </div>
   <div class="table-responsive">
     <table class="table table-hover mb-0" style="font-size:.84rem">
-      <thead class="table-light"><tr><th>ID</th><th>Name</th><th>Role</th><th>Email</th><th>Status</th><th>Last Login</th><th></th></tr></thead>
+      <thead class="table-light"><tr><th>ID</th><th>Name</th><th>Role</th><th>Class</th><th>Email</th><th>Status</th><th>Last Login</th><th></th></tr></thead>
       <tbody>
         <?php foreach ($users as $u):
           $roleBadge = match($u['role']) {'student'=>'primary','teacher'=>'success','admin'=>'purple','finance'=>'warning',default=>'secondary'};
@@ -334,10 +340,19 @@ $links = getAdminLinks();
           <td class="fw-semibold"><?= h($u['user_id']) ?></td>
           <td><?= h($u['name']) ?></td>
           <td><span class="badge bg-<?= $roleBadge === 'purple' ? 'secondary' : $roleBadge ?>" style="<?= $roleBadge==='purple'?'background:#7c3aed!important':'' ?>"><?= $u['role'] ?></span></td>
+          <td><?= !empty($u['class_name']) ? '<span class="badge bg-secondary">'.h($u['class_name']).'</span>' : '<span class="text-muted" style="font-size:.78rem">—</span>' ?></td>
           <td><?= h($u['email'] ?: '—') ?></td>
           <td><span class="badge <?= $u['status']==='active'?'bg-success':'bg-danger' ?>"><?= $u['status'] ?></span></td>
           <td style="font-size:.78rem"><?= $u['last_login'] ? fDate($u['last_login']) : '—' ?></td>
           <td>
+            <?php if (in_array($u['role'], ['student','teacher']) && $u['status']==='active'): ?>
+            <form method="POST" action="/admin/view-as.php" class="d-inline">
+              <input type="hidden" name="target_id" value="<?= $u['id'] ?>">
+              <button class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px" title="View their portal">
+                <i class="fas fa-eye"></i>
+              </button>
+            </form>
+            <?php endif; ?>
             <form method="POST" class="d-inline">
               <input type="hidden" name="action" value="toggle_status">
               <input type="hidden" name="id" value="<?= $u['id'] ?>">
