@@ -12,18 +12,18 @@ if (isset($_GET['download_template'])) {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="student_import_template.csv"');
     $out = fopen('php://output', 'w');
-    fputcsv($out, ['name','user_id','password','email','class_name','roll_no','dob','phone','parent_name','parent_phone','house_name']);
+    fputcsv($out, ['name','user_id','email','class_name','roll_no','dob','phone','parent_name','parent_phone','house_name']);
     $samples = [
-        ['Ali Hassan',      'STU101', 'pass123', 'ali101@bmc.edu.pk',     '8-A',  'STU101', '2010-03-15', '03001111111', 'Hassan Ali',      '03001111110', 'Iqbal'],
-        ['Fatima Malik',    'STU102', 'pass123', 'fatima102@bmc.edu.pk',  '8-A',  'STU102', '2010-07-22', '03002222222', 'Malik Anwar',     '03002222220', 'Jinnah'],
-        ['Usman Tariq',     'STU103', 'pass123', 'usman103@bmc.edu.pk',   '9-A',  'STU103', '2009-01-10', '03003333333', 'Tariq Mahmood',   '03003333330', 'Liaqat'],
-        ['Zainab Noor',     'STU104', 'pass123', 'zainab104@bmc.edu.pk',  '9-A',  'STU104', '2009-11-05', '03004444444', 'Noor Ahmed',      '03004444440', 'Fatima'],
-        ['Hamza Sheikh',    'STU105', 'pass123', 'hamza105@bmc.edu.pk',   '10-A', 'STU105', '2008-09-18', '03005555555', 'Sheikh Imran',    '03005555550', 'Iqbal'],
-        ['Ayesha Qureshi',  'STU106', 'pass123', 'ayesha106@bmc.edu.pk',  '10-A', 'STU106', '2008-05-30', '03006666666', 'Qureshi Saeed',   '03006666660', 'Jinnah'],
-        ['Bilal Ahmed',     'STU107', 'pass123', 'bilal107@bmc.edu.pk',   '8-A',  'STU107', '2010-08-14', '03007777777', 'Ahmed Bilal Sr',  '03007777770', 'Liaqat'],
-        ['Sana Iqbal',      'STU108', 'pass123', 'sana108@bmc.edu.pk',    '9-A',  'STU108', '2009-02-28', '03008888888', 'Iqbal Rashid',    '03008888880', 'Fatima'],
-        ['Omer Farooq',     'STU109', 'pass123', 'omer109@bmc.edu.pk',    '10-A', 'STU109', '2008-12-01', '03009999999', 'Farooq Javed',    '03009999990', 'Iqbal'],
-        ['Hira Baig',       'STU110', 'pass123', 'hira110@bmc.edu.pk',    '8-A',  'STU110', '2010-06-17', '03010101010', 'Baig Khalid',     '03010101000', 'Jinnah'],
+        ['Ali Hassan',      'STU101', 'ali101@bmc.edu.pk',     '8-A',  'STU101', '2010-03-15', '03001111111', 'Hassan Ali',      '03001111110', 'Iqbal'],
+        ['Fatima Malik',    'STU102', 'fatima102@bmc.edu.pk',  '8-A',  'STU102', '2010-07-22', '03002222222', 'Malik Anwar',     '03002222220', 'Jinnah'],
+        ['Usman Tariq',     'STU103', 'usman103@bmc.edu.pk',   '9-A',  'STU103', '2009-01-10', '03003333333', 'Tariq Mahmood',   '03003333330', 'Liaqat'],
+        ['Zainab Noor',     'STU104', 'zainab104@bmc.edu.pk',  '9-A',  'STU104', '2009-11-05', '03004444444', 'Noor Ahmed',      '03004444440', 'Fatima'],
+        ['Hamza Sheikh',    'STU105', 'hamza105@bmc.edu.pk',   '10-A', 'STU105', '2008-09-18', '03005555555', 'Sheikh Imran',    '03005555550', 'Iqbal'],
+        ['Ayesha Qureshi',  'STU106', 'ayesha106@bmc.edu.pk',  '10-A', 'STU106', '2008-05-30', '03006666666', 'Qureshi Saeed',   '03006666660', 'Jinnah'],
+        ['Bilal Ahmed',     'STU107', 'bilal107@bmc.edu.pk',   '8-A',  'STU107', '2010-08-14', '03007777777', 'Ahmed Bilal Sr',  '03007777770', 'Liaqat'],
+        ['Sana Iqbal',      'STU108', 'sana108@bmc.edu.pk',    '9-A',  'STU108', '2009-02-28', '03008888888', 'Iqbal Rashid',    '03008888880', 'Fatima'],
+        ['Omer Farooq',     'STU109', 'omer109@bmc.edu.pk',    '10-A', 'STU109', '2008-12-01', '03009999999', 'Farooq Javed',    '03009999990', 'Iqbal'],
+        ['Hira Baig',       'STU110', 'hira110@bmc.edu.pk',    '8-A',  'STU110', '2010-06-17', '03010101010', 'Baig Khalid',     '03010101000', 'Jinnah'],
     ];
     foreach ($samples as $row) fputcsv($out, $row);
     fclose($out);
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
     $header = fgetcsv($handle); // skip header row
 
     // Normalise header names
-    $expectedCols = ['name','user_id','password','email','class_name','roll_no','dob','phone','parent_name','parent_phone','house_name'];
+    $expectedCols = ['name','user_id','email','class_name','roll_no','dob','phone','parent_name','parent_phone','house_name'];
 
     $imported = 0;
     $skipped  = [];
@@ -62,21 +62,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
                 $skipped[] = "Row $rowNum: Too few columns.";
                 continue;
             }
-            // Map by position (matches template order)
-            [$name, $userId, $password, $email, $className,
+            // Map by position (matches template order — no password column)
+            [$name, $userId, $email, $className,
              $rollNo, $dob, $phone, $parentName, $parentPhone, $houseName]
-                = array_pad($row, 11, '');
+                = array_pad($row, 10, '');
 
             $name      = trim($name);
             $userId    = trim($userId);
-            $password  = trim($password);
             $email     = trim($email);
             $className = trim($className);
             $rollNo    = trim($rollNo);
             $houseName = trim($houseName);
 
-            if (!$name || !$userId || !$password) {
-                $skipped[] = "Row $rowNum ($userId): Name, user_id, and password are required.";
+            if (!$name || !$userId) {
+                $skipped[] = "Row $rowNum ($userId): Name and user_id are required.";
                 continue;
             }
 
@@ -111,8 +110,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
                 // If not found, just leave null — not fatal
             }
 
-            // Hash password
-            $hash = password_hash($password, PASSWORD_BCRYPT);
+            // Generate random temp password — student sets their own via forgot-password flow
+            $hash = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT);
 
             // Insert user
             $db->prepare(
@@ -229,7 +228,10 @@ $links = getAdminLinks();
         </a>
         <div class="mt-3" style="font-size:.8rem;color:var(--t2)">
           <strong>Required columns:</strong>
-          <code>name, user_id, password, email, class_name, roll_no, dob, phone, parent_name, parent_phone, house_name</code>
+          <code>name, user_id, email, class_name, roll_no, dob, phone, parent_name, parent_phone, house_name</code>
+          <div class="alert alert-info mt-2 mb-0" style="font-size:.8rem;padding:8px 12px">
+            <i class="fas fa-info-circle me-1"></i> No password column — students set their own password using Forgot Password → enter User ID → email link.
+          </div>
           <ul class="mt-2 mb-0">
             <li><code>class_name</code> must exactly match an existing class (e.g. 8-A, 9-A, 10-A)</li>
             <li><code>house_name</code> is optional; must match an existing house name if provided</li>
