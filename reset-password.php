@@ -18,7 +18,7 @@ if ($token) {
     $st = $db->prepare('SELECT id, name, role, reset_expires FROM users WHERE reset_token = ? AND status = "active"');
     $st->execute([$token]);
     $row = $st->fetch() ?: null;
-    if ($row && $row['reset_expires'] && strtotime($row['reset_expires']) > time()) {
+    if ($row && $row['reset_expires'] && strtotime($row['reset_expires'] . ' UTC') > time()) {
         $user = $row;
     }
 }

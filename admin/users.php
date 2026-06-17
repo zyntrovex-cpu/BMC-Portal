@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Generate set-password link and send welcome email
                 $token   = bin2hex(random_bytes(32));
-                $expires = date('Y-m-d H:i:s', time() + 86400); // 24 hours
+                $expires = gmdate('Y-m-d H:i:s', time() + 86400); // 24 hours — stored as UTC
                 $db->prepare('UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?')
                    ->execute([$token, $expires, $newId]);
 
@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $u = $uSt->fetch();
         if ($u) {
             $token   = bin2hex(random_bytes(32));
-            $expires = date('Y-m-d H:i:s', time() + 1800);
+            $expires = gmdate('Y-m-d H:i:s', time() + 1800); // stored as UTC
             $db->prepare('UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?')
                ->execute([$token, $expires, $id]);
 

@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($found) {
             $token   = bin2hex(random_bytes(32));
-            $expires = date('Y-m-d H:i:s', time() + 1800); // 30 minutes
+            $expires = gmdate('Y-m-d H:i:s', time() + 1800); // 30 minutes — stored as UTC
 
             $db->prepare('UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?')
                ->execute([$token, $expires, $found['id']]);
