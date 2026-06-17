@@ -9,12 +9,13 @@ $db   = getDB();
 
 $classes = getAllClasses();
 
-$preview   = [];
-$sourceId  = 0;
-$targetId  = 0;
+$preview    = [];
+$sourceId   = 0;
+$targetId   = 0;
 $sourceName = '';
 $targetName = '';
-$promoted  = 0;
+$promoted   = 0;
+$showPreview = false;
 
 // ── POST Handler ──────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -74,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     );
     $stPrev->execute([$sourceId]);
     $preview = $stPrev->fetchAll();
+    $showPreview = true;
 }
 
 pageHead('Class Promotion', 'admin');
@@ -88,7 +90,7 @@ $links = getAdminLinks();
 <div class="page-content">
 <?= flashHtml() ?>
 
-<?php if (empty($preview)): ?>
+<?php if (!$showPreview): ?>
 <!-- Step 1: Select Classes -->
 <div class="row justify-content-center">
   <div class="col-lg-6">
@@ -154,6 +156,12 @@ $links = getAdminLinks();
           Review the list below before confirming.
         </div>
       </div>
+      <?php if (empty($preview)): ?>
+      <div style="padding:24px;text-align:center;color:var(--t2)">
+        <i class="fas fa-users-slash fa-2x mb-2"></i>
+        <p class="mb-0">No students found in <strong><?= h($sourceName) ?></strong>.</p>
+      </div>
+      <?php else: ?>
       <div class="table-responsive">
         <table class="table table-hover mb-0">
           <thead>
@@ -178,6 +186,7 @@ $links = getAdminLinks();
           </tbody>
         </table>
       </div>
+      <?php endif; ?>
       <div style="padding:16px;border-top:1px solid var(--border);background:#f7f9fb">
         <div class="d-flex gap-2 justify-content-between">
           <a href="/admin/promote.php" class="btn btn-outline-secondary">
