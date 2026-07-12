@@ -9,7 +9,16 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 // Already logged in → redirect
 if (!empty($_SESSION['user'])) {
     $role = $_SESSION['user']['role'];
-    $map  = ['student'=>'/student/dashboard.php','teacher'=>'/teacher/dashboard.php','admin'=>'/admin/dashboard.php','finance'=>'/finance/dashboard.php'];
+    $map  = [
+        'student'        => '/student/dashboard.php',
+        'teacher'        => '/teacher/dashboard.php',
+        'admin'          => '/admin/dashboard.php',
+        'finance'        => '/finance/dashboard.php',
+        'ilc_vp'         => '/ilc/dashboard.php',
+        'student_affairs'=> '/student-affairs/dashboard.php',
+        'vp_main'        => '/vp/dashboard.php',
+        'wing_head'      => '/wing-head/dashboard.php',
+    ];
     redirect($map[$role] ?? '/index.php');
 }
 
@@ -50,7 +59,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    ->execute([$user['id'], 'login', 'Logged in', $ip]);
             } catch (Exception $e) {}
 
-            $map = ['student'=>'/student/dashboard.php','teacher'=>'/teacher/dashboard.php','admin'=>'/admin/dashboard.php','finance'=>'/finance/dashboard.php'];
+            $map = [
+                'student'        => '/student/dashboard.php',
+                'teacher'        => '/teacher/dashboard.php',
+                'admin'          => '/admin/dashboard.php',
+                'finance'        => '/finance/dashboard.php',
+                'ilc_vp'         => '/ilc/dashboard.php',
+                'student_affairs'=> '/student-affairs/dashboard.php',
+                'vp_main'        => '/vp/dashboard.php',
+                'wing_head'      => '/wing-head/dashboard.php',
+            ];
             redirect($map[$role] ?? '/index.php');
         } else {
             $error = 'Invalid credentials. Please check your ID and password.';
@@ -106,10 +124,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   .role-btn span.icon { font-size: 1.4rem; }
   .role-btn span.lbl { font-size: 0.75rem; font-weight: 600; color: #4a5c70; }
   .role-btn span.idlbl { font-size: 0.68rem; color: #8a9ab0; }
-  .role-btn.active[data-role="student"]  { border-color: #1d4ed8; background: #eff6ff; }
-  .role-btn.active[data-role="teacher"]  { border-color: #059669; background: #f0fdf4; }
-  .role-btn.active[data-role="admin"]    { border-color: #7c3aed; background: #f5f3ff; }
-  .role-btn.active[data-role="finance"]  { border-color: #d97706; background: #fffbeb; }
+  .role-btn.active[data-role="student"]         { border-color: #1d4ed8; background: #eff6ff; }
+  .role-btn.active[data-role="teacher"]         { border-color: #059669; background: #f0fdf4; }
+  .role-btn.active[data-role="admin"]           { border-color: #7c3aed; background: #f5f3ff; }
+  .role-btn.active[data-role="finance"]         { border-color: #d97706; background: #fffbeb; }
+  .role-btn.active[data-role="ilc_vp"]          { border-color: #0891b2; background: #ecfeff; }
+  .role-btn.active[data-role="student_affairs"] { border-color: #be185d; background: #fdf2f8; }
+  .role-btn.active[data-role="vp_main"]         { border-color: #0369a1; background: #eff6ff; }
+  .role-btn.active[data-role="wing_head"]       { border-color: #c2410c; background: #fff7ed; }
   .role-btn:hover { border-color: #94a3b8; }
   .form-label { font-size: .82rem; font-weight: 600; color: #374151; }
   .form-control { border-radius: 6px; border: 1.5px solid #d5dde8; font-size: .9rem; }
@@ -170,6 +192,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <span class="lbl">Finance</span>
             <span class="idlbl">Finance ID</span>
           </button>
+          <button type="button" class="role-btn" data-role="ilc_vp">
+            <span class="icon">🏫</span>
+            <span class="lbl">ILC VP</span>
+            <span class="idlbl">ILC ID</span>
+          </button>
+          <button type="button" class="role-btn" data-role="student_affairs">
+            <span class="icon">📋</span>
+            <span class="lbl">Student Affairs</span>
+            <span class="idlbl">SA ID</span>
+          </button>
+          <button type="button" class="role-btn" data-role="vp_main">
+            <span class="icon">🏛️</span>
+            <span class="lbl">VP Main</span>
+            <span class="idlbl">VP ID</span>
+          </button>
+          <button type="button" class="role-btn" data-role="wing_head">
+            <span class="icon">🌿</span>
+            <span class="lbl">Wing Head</span>
+            <span class="idlbl">WH ID</span>
+          </button>
         </div>
         <input type="hidden" name="role" id="roleInput" value="<?= htmlspecialchars($_POST['role'] ?? '') ?>">
       </div>
@@ -200,8 +242,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script>
-const idLabels = { student:'Roll Number', teacher:'Employee ID', admin:'Admin ID', finance:'Finance ID' };
-const demos    = { student:'101', teacher:'T001', admin:'ADM001', finance:'FIN001' };
+const idLabels = {
+  student:'Roll Number', teacher:'Employee ID', admin:'Admin ID', finance:'Finance ID',
+  ilc_vp:'ILC ID', student_affairs:'SA ID', vp_main:'VP ID', wing_head:'WH ID'
+};
+const demos = { student:'101', teacher:'T001', admin:'ADM001', finance:'FIN001', ilc_vp:'ILC001', student_affairs:'SA001', vp_main:'VP001', wing_head:'WH001' };
 let selected   = '<?= htmlspecialchars($_POST['role'] ?? '') ?>';
 
 function selectRole(role) {
