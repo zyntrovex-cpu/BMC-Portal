@@ -3,10 +3,12 @@
 
 function pageHead(string $title, string $portal = ''): void {
     $accents = [
-        'student' => '#1d4ed8',
-        'teacher' => '#059669',
-        'admin'   => '#7c3aed',
-        'finance' => '#d97706',
+        'student'         => '#1d4ed8',
+        'teacher'         => '#059669',
+        'admin'           => '#7c3aed',
+        'finance'         => '#d97706',
+        'ilc_vp'          => '#0891b2',
+        'student_affairs' => '#be185d',
     ];
     $accent = $accents[$portal] ?? '#1c3054';
     $base = defined('BASE_URL') ? BASE_URL : '';
@@ -36,19 +38,35 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
 
     $base = defined('BASE_URL') ? BASE_URL : '';
 
-    $portalLabels = ['student'=>'Student Portal','teacher'=>'Teacher Portal','admin'=>'Admin Panel','finance'=>'Finance Portal'];
+    $portalLabels = [
+        'student'         => 'Student Portal',
+        'teacher'         => 'Teacher Portal',
+        'admin'           => 'Admin Panel',
+        'finance'         => 'Finance Portal',
+        'ilc_vp'          => 'ILC VP Portal',
+        'student_affairs' => 'Student Affairs',
+    ];
     $portalLabel  = $portalLabels[$portal] ?? 'Portal';
 
     $profileMap = [
-        'student' => ['href'=>$base.'/student/profile.php', 'label'=>'My Profile',  'key'=>'profile',  'icon'=>'fas fa-user'],
-        'teacher' => ['href'=>$base.'/teacher/profile.php', 'label'=>'My Profile',  'key'=>'profile',  'icon'=>'fas fa-user'],
-        'admin'   => ['href'=>$base.'/admin/settings.php',  'label'=>'Settings',    'key'=>'settings', 'icon'=>'fas fa-cog'],
-        'finance' => null,
+        'student'         => ['href'=>$base.'/student/profile.php',          'label'=>'My Profile', 'key'=>'profile',   'icon'=>'fas fa-user'],
+        'teacher'         => ['href'=>$base.'/teacher/profile.php',          'label'=>'My Profile', 'key'=>'profile',   'icon'=>'fas fa-user'],
+        'admin'           => ['href'=>$base.'/admin/settings.php',           'label'=>'Settings',   'key'=>'settings',  'icon'=>'fas fa-cog'],
+        'finance'         => null,
+        'ilc_vp'          => ['href'=>$base.'/ilc/dashboard.php',            'label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
+        'student_affairs' => ['href'=>$base.'/student-affairs/dashboard.php','label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
     ];
 
     $userInitials = $user ? _initials($user['name'] ?? '') : '?';
     $userName     = htmlspecialchars($user['name'] ?? '');
-    $roleLabels   = ['student'=>'Student','teacher'=>'Teacher','admin'=>'Administrator','finance'=>'Finance Staff'];
+    $roleLabels   = [
+        'student'         => 'Student',
+        'teacher'         => 'Teacher',
+        'admin'           => 'Administrator',
+        'finance'         => 'Finance Staff',
+        'ilc_vp'          => 'VP — ILC',
+        'student_affairs' => 'Student Affairs',
+    ];
     $userRole     = $roleLabels[$user['role'] ?? ''] ?? ucfirst($user['role'] ?? '');
 
     echo '<div id="sidebarOverlay" onclick="document.getElementById(\'sidebar\').classList.remove(\'open\');this.classList.remove(\'show\')"></div>';
@@ -112,19 +130,32 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
 function viewAsBanner(): void {
     if (empty($_SESSION['view_as_mode'])) return;
     $u    = $_SESSION['user'];
-    $base = defined('BASE_URL') ? BASE_URL : '';
-    echo '<div style="background:#f59e0b;color:#1c1c1c;padding:8px 20px;font-size:.82rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    $base        = defined('BASE_URL') ? BASE_URL : '';
+    $adminRole   = $_SESSION['admin_backup']['role'] ?? 'admin';
+    $exitUrl     = $adminRole === 'ilc_vp'
+                   ? $base . '/ilc/exit-view-as.php'
+                   : $base . '/admin/exit-view-as.php';
+    $roleLabelsB = ['student_affairs'=>'Student Affairs','ilc_vp'=>'VP ILC','admin'=>'Admin','teacher'=>'Teacher','finance'=>'Finance'];
+    $rLabel      = $roleLabelsB[$u['role'] ?? ''] ?? ucfirst($u['role'] ?? '');
+    echo '<div style="background:#f59e0b;color:#1c1c1c;padding:8px 20px;font-size:.82rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;z-index:1100;position:relative">
       <i class="fas fa-eye"></i>
-      <span>Admin Preview — viewing as <strong>' . htmlspecialchars($u['name'] ?? '') . '</strong>
-            (' . htmlspecialchars($u['user_id'] ?? '') . ' / ' . ucfirst($u['role'] ?? '') . ')</span>
-      <a href="' . $base . '/admin/exit-view-as.php" class="btn btn-sm btn-dark ms-auto" style="font-size:.78rem;padding:2px 10px">
+      <span>Preview Mode — viewing as <strong>' . htmlspecialchars($u['name'] ?? '') . '</strong>
+            (' . htmlspecialchars($u['user_id'] ?? '') . ' / ' . $rLabel . ')</span>
+      <a href="' . $exitUrl . '" class="btn btn-sm btn-dark ms-auto" style="font-size:.78rem;padding:2px 10px">
         <i class="fas fa-times me-1"></i>Exit Preview
       </a>
     </div>';
 }
 
 function topbar(string $pageTitle, array $user, string $badge = ''): void {
-    $portalLabels = ['student'=>'Student Portal','teacher'=>'Teacher Portal','admin'=>'Admin Panel','finance'=>'Finance Portal'];
+    $portalLabels = [
+        'student'         => 'Student Portal',
+        'teacher'         => 'Teacher Portal',
+        'admin'           => 'Admin Panel',
+        'finance'         => 'Finance Portal',
+        'ilc_vp'          => 'ILC VP Portal',
+        'student_affairs' => 'Student Affairs',
+    ];
     $portal       = $user['role'] ?? '';
     $portalLabel  = $portalLabels[$portal] ?? 'Portal';
     $initials     = _initials($user['name'] ?? '');

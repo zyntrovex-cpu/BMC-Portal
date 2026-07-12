@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email  = trim($_POST['email']   ?? '');
         $role   = $_POST['role'] ?? '';
 
-        if ($name && $userId && in_array($role, ['student','teacher','admin','finance'])) {
+        if ($name && $userId && in_array($role, ['student','teacher','admin','finance','ilc_vp','student_affairs'])) {
             $check = $db->prepare('SELECT id FROM users WHERE user_id = ?');
             $check->execute([$userId]);
             if ($check->fetch()) {
@@ -281,6 +281,8 @@ $links = getAdminLinks();
               <option value="teacher">Teacher</option>
               <option value="admin">Admin</option>
               <option value="finance">Finance</option>
+              <option value="ilc_vp">ILC VP</option>
+              <option value="student_affairs">Student Affairs</option>
             </select>
           </div>
           <div class="col-md-3"><label class="form-label fw-semibold" style="font-size:.82rem">Email <small class="text-muted">(for set-password link)</small></label><input type="email" name="email" class="form-control form-control-sm"></div>
@@ -334,7 +336,15 @@ $links = getAdminLinks();
       <thead class="table-light"><tr><th>ID</th><th>Name</th><th>Role</th><th>Class</th><th>Email</th><th>Status</th><th>Last Login</th><th></th></tr></thead>
       <tbody>
         <?php foreach ($users as $u):
-          $roleBadge = match($u['role']) {'student'=>'primary','teacher'=>'success','admin'=>'purple','finance'=>'warning',default=>'secondary'};
+          $roleBadge = match($u['role']) {
+              'student'         => 'primary',
+              'teacher'         => 'success',
+              'admin'           => 'purple',
+              'finance'         => 'warning',
+              'ilc_vp'          => 'info',
+              'student_affairs' => 'danger',
+              default           => 'secondary'
+          };
         ?>
         <tr>
           <td class="fw-semibold"><?= h($u['user_id']) ?></td>

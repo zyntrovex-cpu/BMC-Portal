@@ -185,6 +185,24 @@ function getAdminLinks(): array {
     ];
 }
 
+function getIlcLinks(): array {
+    return [
+        ['href'=>'/ilc/dashboard.php',          'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',          'key'=>'dashboard'],
+        ['href'=>'/ilc/students.php',            'icon'=>'<i class="fas fa-user-graduate"></i>',      'label'=>'ILC Students',       'key'=>'students'],
+        ['href'=>'/ilc/teachers.php',            'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'ILC Teachers',       'key'=>'teachers'],
+        ['href'=>'/ilc/disabilities.php',        'icon'=>'<i class="fas fa-heartbeat"></i>',          'label'=>'Disability Records', 'key'=>'disabilities'],
+        ['href'=>'/ilc/admission-requests.php',  'icon'=>'<i class="fas fa-file-medical-alt"></i>',   'label'=>'Admission Requests', 'key'=>'admissions'],
+        ['href'=>'/ilc/view-as.php',             'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',       'key'=>'viewas'],
+    ];
+}
+
+function getStudentAffairsLinks(): array {
+    return [
+        ['href'=>'/student-affairs/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',             'label'=>'Dashboard',          'key'=>'dashboard'],
+        ['href'=>'/student-affairs/admissions.php', 'icon'=>'<i class="fas fa-file-medical-alt"></i>', 'label'=>'Admission Requests', 'key'=>'admissions'],
+    ];
+}
+
 // ── Teacher sidebar links ─────────────────────────────────────────
 function getTeacherLinks(): array {
     return [
