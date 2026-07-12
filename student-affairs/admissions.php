@@ -79,6 +79,8 @@ $links = getStudentAffairsLinks();
         <div style="font-size:.8rem;color:var(--t2)">
           Requested by <strong><?= h($r['requested_by_name']) ?></strong> · <?= fDate($r['created_at']) ?>
           <?php if ($r['requested_class']): ?> · Class: <strong><?= h($r['requested_class']) ?></strong><?php endif; ?>
+          <?php if (!empty($r['student_category'])): ?> · <span class="badge bg-info text-dark" style="font-size:.7rem"><?= strtoupper(h($r['student_category'])) ?></span><?php endif; ?>
+          <?php if (!empty($r['wing'])): ?> · Wing: <strong><?= ucfirst(h($r['wing'])) ?></strong><?php endif; ?>
         </div>
         <div class="row g-2 mt-1" style="font-size:.82rem">
           <?php if ($r['parent_name']): ?><div class="col-auto">Parent: <?= h($r['parent_name']) ?></div><?php endif; ?>

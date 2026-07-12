@@ -12,22 +12,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
     $parentName    = trim($_POST['parent_name']     ?? '');
     $parentPhone   = trim($_POST['parent_phone']    ?? '');
     $dob           = $_POST['dob']                  ?? '';
-    $reqClass      = trim($_POST['requested_class'] ?? '');
+    $reqClass      = trim($_POST['requested_class']  ?? '');
     $disNotes      = trim($_POST['disability_notes'] ?? '');
+    $stuCat        = in_array($_POST['student_category']??'', ['civilian','cpo','sailor']) ? $_POST['student_category'] : null;
 
     if (!$studentName) {
         setFlash('danger', 'Student name is required.');
     } else {
         $db->prepare(
             'INSERT INTO admission_requests
-             (student_name, parent_name, parent_phone, dob, requested_class, disability_notes, requested_by)
-             VALUES (?,?,?,?,?,?,?)'
+             (student_name, parent_name, parent_phone, dob, requested_class, student_category, wing, disability_notes, requested_by)
+             VALUES (?,?,?,?,?,?,?,?,?)'
         )->execute([
             $studentName,
             $parentName   ?: null,
             $parentPhone  ?: null,
             $dob          ?: null,
             $reqClass     ?: null,
+            $stuCat,
+            'ilc',
             $disNotes     ?: null,
             $user['id'],
         ]);
@@ -92,7 +95,16 @@ $links = getIlcLinks();
             <label class="form-label fw-semibold" style="font-size:.82rem">Requested Class</label>
             <input type="text" name="requested_class" class="form-control form-control-sm" placeholder="e.g. ILC-A">
           </div>
-          <div class="col-md-6">
+          <div class="col-md-2">
+            <label class="form-label fw-semibold" style="font-size:.82rem">Category</label>
+            <select name="student_category" class="form-select form-select-sm">
+              <option value="">—</option>
+              <option value="civilian">Civilian</option>
+              <option value="cpo">CPO</option>
+              <option value="sailor">Sailor</option>
+            </select>
+          </div>
+          <div class="col-md-4">
             <label class="form-label fw-semibold" style="font-size:.82rem">Disability / Special Notes</label>
             <textarea name="disability_notes" class="form-control form-control-sm" rows="2" placeholder="Brief description of student's needs…"></textarea>
           </div>

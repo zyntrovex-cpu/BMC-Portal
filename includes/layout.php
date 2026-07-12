@@ -9,6 +9,8 @@ function pageHead(string $title, string $portal = ''): void {
         'finance'         => '#d97706',
         'ilc_vp'          => '#0891b2',
         'student_affairs' => '#be185d',
+        'vp_main'         => '#0369a1',
+        'wing_head'       => '#c2410c',
     ];
     $accent = $accents[$portal] ?? '#1c3054';
     $base = defined('BASE_URL') ? BASE_URL : '';
@@ -45,6 +47,8 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
         'finance'         => 'Finance Portal',
         'ilc_vp'          => 'ILC VP Portal',
         'student_affairs' => 'Student Affairs',
+        'vp_main'         => 'VP — Main & Montessori',
+        'wing_head'       => 'Montessori Wing Head',
     ];
     $portalLabel  = $portalLabels[$portal] ?? 'Portal';
 
@@ -55,6 +59,8 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
         'finance'         => null,
         'ilc_vp'          => ['href'=>$base.'/ilc/dashboard.php',            'label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
         'student_affairs' => ['href'=>$base.'/student-affairs/dashboard.php','label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
+        'vp_main'         => ['href'=>$base.'/vp/dashboard.php',             'label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
+        'wing_head'       => ['href'=>$base.'/wing-head/dashboard.php',      'label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
     ];
 
     $userInitials = $user ? _initials($user['name'] ?? '') : '?';
@@ -66,6 +72,8 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
         'finance'         => 'Finance Staff',
         'ilc_vp'          => 'VP — ILC',
         'student_affairs' => 'Student Affairs',
+        'vp_main'         => 'VP — Main & Montessori',
+        'wing_head'       => 'Wing Head',
     ];
     $userRole     = $roleLabels[$user['role'] ?? ''] ?? ucfirst($user['role'] ?? '');
 
@@ -132,9 +140,11 @@ function viewAsBanner(): void {
     $u    = $_SESSION['user'];
     $base        = defined('BASE_URL') ? BASE_URL : '';
     $adminRole   = $_SESSION['admin_backup']['role'] ?? 'admin';
-    $exitUrl     = $adminRole === 'ilc_vp'
-                   ? $base . '/ilc/exit-view-as.php'
-                   : $base . '/admin/exit-view-as.php';
+    $exitUrl     = match($adminRole) {
+        'ilc_vp'  => $base . '/ilc/exit-view-as.php',
+        'vp_main' => $base . '/vp/exit-view-as.php',
+        default   => $base . '/admin/exit-view-as.php',
+    };
     $roleLabelsB = ['student_affairs'=>'Student Affairs','ilc_vp'=>'VP ILC','admin'=>'Admin','teacher'=>'Teacher','finance'=>'Finance'];
     $rLabel      = $roleLabelsB[$u['role'] ?? ''] ?? ucfirst($u['role'] ?? '');
     echo '<div style="background:#f59e0b;color:#1c1c1c;padding:8px 20px;font-size:.82rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;z-index:1100;position:relative">
@@ -155,6 +165,8 @@ function topbar(string $pageTitle, array $user, string $badge = ''): void {
         'finance'         => 'Finance Portal',
         'ilc_vp'          => 'ILC VP Portal',
         'student_affairs' => 'Student Affairs',
+        'vp_main'         => 'VP — Main & Montessori',
+        'wing_head'       => 'Montessori Wing Head',
     ];
     $portal       = $user['role'] ?? '';
     $portalLabel  = $portalLabels[$portal] ?? 'Portal';

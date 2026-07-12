@@ -198,8 +198,29 @@ function getIlcLinks(): array {
 
 function getStudentAffairsLinks(): array {
     return [
-        ['href'=>'/student-affairs/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',             'label'=>'Dashboard',          'key'=>'dashboard'],
-        ['href'=>'/student-affairs/admissions.php', 'icon'=>'<i class="fas fa-file-medical-alt"></i>', 'label'=>'Admission Requests', 'key'=>'admissions'],
+        ['href'=>'/student-affairs/dashboard.php',       'icon'=>'<i class="fas fa-home"></i>',             'label'=>'Dashboard',          'key'=>'dashboard'],
+        ['href'=>'/student-affairs/admissions.php',      'icon'=>'<i class="fas fa-file-medical-alt"></i>', 'label'=>'Admission Requests', 'key'=>'admissions'],
+        ['href'=>'/student-affairs/medical-records.php', 'icon'=>'<i class="fas fa-notes-medical"></i>',    'label'=>'Medical Records',    'key'=>'medical'],
+    ];
+}
+
+function getVpLinks(): array {
+    return [
+        ['href'=>'/vp/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',    'key'=>'dashboard'],
+        ['href'=>'/vp/teachers.php',   'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teachers',     'key'=>'teachers'],
+        ['href'=>'/vp/students.php',   'icon'=>'<i class="fas fa-user-graduate"></i>',      'label'=>'Students',     'key'=>'students'],
+        ['href'=>'/vp/attendance.php', 'icon'=>'<i class="fas fa-calendar-check"></i>',     'label'=>'Attendance',   'key'=>'attendance'],
+        ['href'=>'/vp/results.php',    'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'Results',      'key'=>'results'],
+        ['href'=>'/vp/timetable.php',  'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',    'key'=>'timetable'],
+        ['href'=>'/vp/view-as.php',    'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User', 'key'=>'viewas'],
+    ];
+}
+
+function getWingHeadLinks(): array {
+    return [
+        ['href'=>'/wing-head/dashboard.php', 'icon'=>'<i class="fas fa-home"></i>',          'label'=>'Dashboard', 'key'=>'dashboard'],
+        ['href'=>'/wing-head/students.php',  'icon'=>'<i class="fas fa-user-graduate"></i>', 'label'=>'Students',  'key'=>'students'],
+        ['href'=>'/wing-head/classes.php',   'icon'=>'<i class="fas fa-chalkboard"></i>',    'label'=>'Classes',   'key'=>'classes'],
     ];
 }
 
