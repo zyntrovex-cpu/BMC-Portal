@@ -68,7 +68,7 @@ $links = getWingHeadLinks();
           <span class="badge" style="background:#c2410c"><?= $c['cnt'] ?> students</span>
         </div>
         <?php endforeach; ?>
-        <a href="/wing-head/classes.php" class="btn btn-sm btn-outline-secondary w-100 mt-1" style="font-size:.8rem">Manage Classes</a>
+        <a href="<?= url('/wing-head/classes.php') ?>" class="btn btn-sm btn-outline-secondary w-100 mt-1" style="font-size:.8rem">Manage Classes</a>
       </div>
     </div>
   </div>
@@ -86,7 +86,7 @@ $links = getWingHeadLinks();
         </div>
         <?php endforeach; ?>
         <?php endif; ?>
-        <a href="/wing-head/students.php" class="btn btn-sm btn-outline-secondary w-100 mt-2" style="font-size:.8rem">View All Students</a>
+        <a href="<?= url('/wing-head/students.php') ?>" class="btn btn-sm btn-outline-secondary w-100 mt-2" style="font-size:.8rem">View All Students</a>
       </div>
     </div>
   </div>

@@ -98,10 +98,10 @@ $links = [
       </small>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-      <a href="/finance/collection.php" class="btn btn-light btn-sm fw-semibold">
+      <a href="<?= url('/finance/collection.php') ?>" class="btn btn-light btn-sm fw-semibold">
         <i class="fas fa-hand-holding-usd me-1"></i>Collect Fee
       </a>
-      <a href="/finance/monthly.php" class="btn btn-outline-light btn-sm fw-semibold">
+      <a href="<?= url('/finance/monthly.php') ?>" class="btn btn-outline-light btn-sm fw-semibold">
         <i class="fas fa-calendar-alt me-1"></i>Monthly Report
       </a>
     </div>
@@ -143,17 +143,17 @@ $links = [
 <!-- Quick Actions -->
 <div class="row g-2 mb-4">
   <div class="col-auto">
-    <a href="/finance/collection.php" class="btn btn-warning fw-semibold">
+    <a href="<?= url('/finance/collection.php') ?>" class="btn btn-warning fw-semibold">
       <i class="fas fa-hand-holding-usd me-2"></i>Collect Fee
     </a>
   </div>
   <div class="col-auto">
-    <a href="/finance/monthly.php" class="btn btn-outline-secondary fw-semibold">
+    <a href="<?= url('/finance/monthly.php') ?>" class="btn btn-outline-secondary fw-semibold">
       <i class="fas fa-calendar-alt me-2"></i>Monthly Report
     </a>
   </div>
   <div class="col-auto">
-    <a href="/finance/defaulters.php" class="btn btn-outline-danger fw-semibold">
+    <a href="<?= url('/finance/defaulters.php') ?>" class="btn btn-outline-danger fw-semibold">
       <i class="fas fa-exclamation-triangle me-2"></i>View Defaulters
     </a>
   </div>
@@ -167,7 +167,7 @@ $links = [
     <div class="sec-card mb-3">
       <div class="sec-head">
         <h5><i class="fas fa-table me-2" style="color:#d97706"></i>Class-wise Fee Summary — <?= h($monthNames[$curMonth] . ' ' . $curYear) ?></h5>
-        <a href="/finance/collection.php" class="btn btn-sm btn-outline-warning">Collect Fee</a>
+        <a href="<?= url('/finance/collection.php') ?>" class="btn btn-sm btn-outline-warning">Collect Fee</a>
       </div>
       <div class="table-responsive">
         <table class="data-table">
@@ -220,7 +220,7 @@ $links = [
     <div class="sec-card">
       <div class="sec-head">
         <h5><i class="fas fa-exclamation-triangle me-2 text-danger"></i>Top Defaulters (2+ Unpaid Months)</h5>
-        <a href="/finance/defaulters.php" class="btn btn-sm btn-outline-danger">View All</a>
+        <a href="<?= url('/finance/defaulters.php') ?>" class="btn btn-sm btn-outline-danger">View All</a>
       </div>
       <div class="table-responsive">
         <table class="data-table">
@@ -315,7 +315,7 @@ $links = [
           </div>
         </div>
         <hr class="my-2">
-        <a href="/finance/reports.php" class="btn btn-warning btn-sm w-100 fw-semibold">
+        <a href="<?= url('/finance/reports.php') ?>" class="btn btn-warning btn-sm w-100 fw-semibold">
           <i class="fas fa-chart-pie me-1"></i>Full Reports
         </a>
       </div>

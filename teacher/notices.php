@@ -33,7 +33,7 @@ $links = getTeacherLinks();
     <?php endforeach; ?>
   </select>
   <button type="submit" class="btn btn-sm btn-outline-secondary">Filter</button>
-  <?php if ($cat || $q): ?><a href="/teacher/notices.php" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
+  <?php if ($cat || $q): ?><a href="<?= url('/teacher/notices.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
 </form>
 
 <?php if (empty($notices)): ?>

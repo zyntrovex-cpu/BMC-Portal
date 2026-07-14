@@ -179,7 +179,7 @@ $links = getAdminLinks();
               <td><?= $c['student_count'] ?></td>
               <td>
                 <a href="?view=<?= $c['id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px">Manage</a>
-                <a href="/admin/users.php?role=student" class="btn btn-xs btn-outline-info" style="font-size:.74rem;padding:2px 7px">Students</a>
+                <a href="<?= url('/admin/users.php?role=student') ?>" class="btn btn-xs btn-outline-info" style="font-size:.74rem;padding:2px 7px">Students</a>
                 <form method="POST" class="d-inline" onsubmit="return confirm('Delete class?')">
                   <input type="hidden" name="action" value="delete_class">
                   <input type="hidden" name="id" value="<?= $c['id'] ?>">

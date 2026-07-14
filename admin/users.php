@@ -392,7 +392,7 @@ $links = getAdminLinks();
           <td style="font-size:.78rem"><?= $u['last_login'] ? fDate($u['last_login']) : '—' ?></td>
           <td>
             <?php if (in_array($u['role'], ['student','teacher']) && $u['status']==='active'): ?>
-            <form method="POST" action="/admin/view-as.php" class="d-inline">
+            <form method="POST" action="<?= url('/admin/view-as.php') ?>" class="d-inline">
               <input type="hidden" name="target_id" value="<?= $u['id'] ?>">
               <button class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px" title="View their portal">
                 <i class="fas fa-eye"></i>

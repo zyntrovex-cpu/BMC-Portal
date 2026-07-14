@@ -147,7 +147,7 @@ $links = getStudentAffairsLinks();
           <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
                  placeholder="Search…" style="width:130px">
           <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search"></i></button>
-          <?php if ($studentId||$search): ?><a href="/student-affairs/medical-records.php" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
+          <?php if ($studentId||$search): ?><a href="<?= url('/student-affairs/medical-records.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
         </form>
       </div>
 

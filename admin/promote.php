@@ -189,7 +189,7 @@ $links = getAdminLinks();
       <?php endif; ?>
       <div style="padding:16px;border-top:1px solid var(--border);background:#f7f9fb">
         <div class="d-flex gap-2 justify-content-between">
-          <a href="/admin/promote.php" class="btn btn-outline-secondary">
+          <a href="<?= url('/admin/promote.php') ?>" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-1"></i>Go Back
           </a>
           <form method="POST">

@@ -129,7 +129,7 @@ $links = getIlcLinks();
           <tr><td class="text-muted">Parent Ph.</td><td><?= h($student['parent_phone'] ?: '—') ?></td></tr>
           <tr><td class="text-muted">Email</td><td><?= h($student['email'] ?: '—') ?></td></tr>
         </table>
-        <a href="/ilc/students.php" class="btn btn-sm btn-outline-secondary w-100">
+        <a href="<?= url('/ilc/students.php') ?>" class="btn btn-sm btn-outline-secondary w-100">
           <i class="fas fa-arrow-left me-1"></i>Back to List
         </a>
       </div>

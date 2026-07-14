@@ -47,7 +47,7 @@ $links = [
   </select>
   <button type="submit" class="btn btn-sm btn-outline-secondary">Filter</button>
   <?php if ($cat || $q): ?>
-    <a href="/student/notices.php" class="btn btn-sm btn-outline-danger">Clear</a>
+    <a href="<?= url('/student/notices.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a>
   <?php endif; ?>
 </form>
 

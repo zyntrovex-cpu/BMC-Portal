@@ -40,7 +40,7 @@ $links = getWingHeadLinks();
         <div class="mt-3">
           <span class="badge" style="background:#c2410c;font-size:.88rem"><?= $c['student_count'] ?> students</span>
         </div>
-        <a href="/wing-head/students.php?class_id=<?= $c['id'] ?>" class="btn btn-sm btn-outline-secondary w-100 mt-3" style="font-size:.82rem">
+        <a href="<?= url('/wing-head/students.php') ?>?class_id=<?= $c['id'] ?>" class="btn btn-sm btn-outline-secondary w-100 mt-3" style="font-size:.82rem">
           <i class="fas fa-users me-1"></i>View Students
         </a>
       </div>

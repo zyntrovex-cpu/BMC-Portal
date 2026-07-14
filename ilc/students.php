@@ -68,7 +68,7 @@ $links = getIlcLinks();
       </select>
       <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search"></i></button>
       <?php if ($search || $catFilter): ?>
-      <a href="/ilc/students.php" class="btn btn-sm btn-outline-danger">Clear</a>
+      <a href="<?= url('/ilc/students.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a>
       <?php endif; ?>
     </form>
   </div>
@@ -100,7 +100,7 @@ $links = getIlcLinks();
             <?php endif; ?>
           </td>
           <td>
-            <a href="/ilc/student-profile.php?id=<?= $s['student_id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 8px">
+            <a href="<?= url('/ilc/student-profile.php') ?>?id=<?= $s['student_id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 8px">
               <i class="fas fa-user me-1"></i>Profile
             </a>
           </td>

@@ -137,7 +137,7 @@ $prios     = ['Normal','Important','Urgent'];
         </div>
       </div>
       <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-save me-1"></i><?= $editNotice ? 'Update' : 'Post' ?> Notice</button>
-      <?php if ($editNotice): ?><a href="/admin/notices.php" class="btn btn-sm btn-outline-secondary ms-2">Cancel</a><?php endif; ?>
+      <?php if ($editNotice): ?><a href="<?= url('/admin/notices.php') ?>" class="btn btn-sm btn-outline-secondary ms-2">Cancel</a><?php endif; ?>
     </form>
   </div>
 </div>

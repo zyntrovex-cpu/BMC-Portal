@@ -65,7 +65,7 @@ $links = getStudentAffairsLinks();
 <div class="sec-card">
   <div class="sec-card-header d-flex justify-content-between">
     <span><i class="fas fa-file-medical-alt me-2"></i>Recent Admission Requests</span>
-    <a href="/student-affairs/admissions.php" class="btn btn-xs btn-outline-primary" style="font-size:.75rem;padding:2px 8px">View All</a>
+    <a href="<?= url('/student-affairs/admissions.php') ?>" class="btn btn-xs btn-outline-primary" style="font-size:.75rem;padding:2px 8px">View All</a>
   </div>
   <?php if (empty($recent)): ?>
   <div style="padding:32px;text-align:center;color:var(--t2);font-size:.85rem">No requests yet.</div>
@@ -83,7 +83,7 @@ $links = getStudentAffairsLinks();
           <td><?= h($r['requested_class'] ?: '—') ?></td>
           <td style="font-size:.78rem"><?= fDate($r['created_at']) ?></td>
           <td><span class="badge bg-<?= $sc ?>"><?= $r['status'] ?></span></td>
-          <td><a href="/student-affairs/admissions.php?id=<?= $r['id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px">Review</a></td>
+          <td><a href="<?= url('/student-affairs/admissions.php') ?>?id=<?= $r['id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px">Review</a></td>
         </tr>
         <?php endforeach; ?>
       </tbody>

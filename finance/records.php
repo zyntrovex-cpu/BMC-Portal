@@ -79,7 +79,7 @@ $links = [
     </select>
   </div>
   <button type="submit" class="btn btn-sm btn-primary">Filter</button>
-  <?php if ($q||$classId||$paid!==''): ?><a href="/finance/records.php" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
+  <?php if ($q||$classId||$paid!==''): ?><a href="<?= url('/finance/records.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
 </form>
 
 <div class="sec-card">

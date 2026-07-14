@@ -31,7 +31,7 @@ body { background: linear-gradient(135deg,#0f1f3d 0%,#1c3054 50%,#0d2847 100%); 
   <?php if ($isLoggedIn): ?>
     <a href="<?= $dashUrl ?>" class="btn btn-primary me-2"><i class="fas fa-home me-1"></i>Go to Dashboard</a>
   <?php else: ?>
-    <a href="/index.php" class="btn btn-primary"><i class="fas fa-sign-in-alt me-1"></i>Back to Login</a>
+    <a href="<?= url('/index.php') ?>" class="btn btn-primary"><i class="fas fa-sign-in-alt me-1"></i>Back to Login</a>
   <?php endif; ?>
 </div>
 </body>

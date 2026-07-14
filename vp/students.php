@@ -94,7 +94,7 @@ $links = getVpLinks();
           <td><?= h($s['parent_name'] ?: '—') ?></td>
           <td><?= h($s['phone'] ?: '—') ?></td>
           <td>
-            <form method="POST" action="/vp/view-as.php" class="d-inline">
+            <form method="POST" action="<?= url('/vp/view-as.php') ?>" class="d-inline">
               <input type="hidden" name="target_id" value="<?= $s['id'] ?>">
               <button class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px" title="View student portal">
                 <i class="fas fa-eye"></i>

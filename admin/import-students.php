@@ -231,10 +231,10 @@ $links = getAdminLinks();
         </div>
         <?php endif; ?>
         <div class="d-flex gap-2 mt-3">
-          <a href="/admin/import-students.php" class="btn btn-primary btn-sm">
+          <a href="<?= url('/admin/import-students.php') ?>" class="btn btn-primary btn-sm">
             <i class="fas fa-upload me-1"></i>Import More
           </a>
-          <a href="/admin/users.php" class="btn btn-outline-secondary btn-sm">
+          <a href="<?= url('/admin/users.php') ?>" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-users me-1"></i>View Users
           </a>
         </div>
@@ -255,7 +255,7 @@ $links = getAdminLinks();
           Download the CSV template with the required columns and 10 sample Pakistani student rows.
           Fill in your data and upload it in Step 2.
         </p>
-        <a href="/admin/import-students.php?download_template=1" class="btn btn-outline-success btn-sm">
+        <a href="<?= url('/admin/import-students.php?download_template=1') ?>" class="btn btn-outline-success btn-sm">
           <i class="fas fa-file-csv me-1"></i>Download CSV Template
         </a>
         <div class="mt-3" style="font-size:.8rem;color:var(--t2)">
