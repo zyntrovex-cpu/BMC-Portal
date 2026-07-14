@@ -84,6 +84,33 @@ $stPending = $db->prepare(
 $stPending->execute([$teacher['id']]);
 $pendingMarks = $stPending->fetchAll();
 
+// Wing / ILC detection
+$teacherWing = 'main';
+$ilcStudents = [];
+try {
+    $stWing = $db->prepare('SELECT wing FROM teachers WHERE user_id = ?');
+    $stWing->execute([$user['id']]);
+    $teacherWing = $stWing->fetchColumn() ?: 'main';
+    if ($teacherWing === 'ilc') {
+        $stIlc = $db->prepare(
+            'SELECT u.name AS student_name, u.user_id AS student_uid,
+                    c.name AS class_name,
+                    GROUP_CONCAT(CONCAT(dc.name, " – ", dst.name) ORDER BY dc.name SEPARATOR "; ") AS disabilities
+             FROM students s
+             JOIN users u ON s.user_id = u.id
+             JOIN classes c ON s.class_id = c.id
+             LEFT JOIN student_disabilities sd ON sd.student_id = s.id
+             LEFT JOIN disability_subtypes dst ON sd.subtype_id = dst.id
+             LEFT JOIN disability_categories dc ON dst.category_id = dc.id
+             WHERE c.is_ilc = 1
+             GROUP BY s.id, u.name, u.user_id, c.name
+             ORDER BY c.name, u.name'
+        );
+        $stIlc->execute();
+        $ilcStudents = $stIlc->fetchAll();
+    }
+} catch (Exception $e) {}
+
 // ── Notices ──────────────────────────────────────────────────────
 $notices = array_slice(getNoticesForPortal('teacher'), 0, 3);
 
@@ -180,6 +207,40 @@ pageHead('Dashboard', 'teacher');
         </div>
     </div>
 </div>
+
+<?php if ($teacherWing === 'ilc'): ?>
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="sec-card" style="border-left:4px solid #0891b2;">
+            <div class="sec-head">
+                <h5><i class="fas fa-wheelchair me-2" style="color:#0891b2;"></i>ILC Student Accommodation List</h5>
+                <span class="badge" style="background:#ecfeff;color:#0e7490;border:1px solid #a5f3fc;font-size:.75rem">ILC Wing</span>
+            </div>
+            <div class="sec-body p-0">
+                <?php if (empty($ilcStudents)): ?>
+                    <div class="p-3 text-muted" style="font-size:13px;">No ILC students enrolled.</div>
+                <?php else: ?>
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Student</th><th>ID</th><th>Class</th><th>Disabilities / Accommodations</th></tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($ilcStudents as $s): ?>
+                            <tr>
+                                <td class="fw-semibold"><?= h($s['student_name']) ?></td>
+                                <td class="text-muted" style="font-size:12px"><?= h($s['student_uid']) ?></td>
+                                <td><span class="badge bg-secondary"><?= h($s['class_name']) ?></span></td>
+                                <td style="font-size:12px;color:#475569"><?= $s['disabilities'] ? h($s['disabilities']) : '<span class="text-muted">None recorded</span>' ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <div class="row g-3 mb-4">
     <!-- My Classes -->

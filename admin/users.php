@@ -165,24 +165,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $roleFilter = $_GET['role'] ?? '';
+$wingFilter = $_GET['wing'] ?? '';
 $page       = max(1, (int)($_GET['page'] ?? 1));
 $perPage    = 20;
 $offset     = ($page - 1) * $perPage;
 
-$where  = $roleFilter ? 'WHERE role = ?' : '';
-$params = $roleFilter ? [$roleFilter] : [];
+$whereParts = [];
+$params     = [];
+if ($roleFilter) {
+    $whereParts[] = 'u.role = ?';
+    $params[]     = $roleFilter;
+}
+if ($wingFilter) {
+    $whereParts[] = "(CASE WHEN u.role='student' THEN COALESCE(c.wing,'main') WHEN u.role='teacher' THEN COALESCE(t.wing,'main') ELSE 'main' END) = ?";
+    $params[]     = $wingFilter;
+}
+$whereSQL = $whereParts ? ('WHERE ' . implode(' AND ', $whereParts)) : '';
 
-$countSt = $db->prepare("SELECT COUNT(*) FROM users $where");
+$countSt = $db->prepare(
+    "SELECT COUNT(*) FROM users u
+     LEFT JOIN students s ON s.user_id = u.id AND u.role = 'student'
+     LEFT JOIN classes c  ON c.id = s.class_id
+     LEFT JOIN teachers t ON t.user_id = u.id AND u.role = 'teacher'
+     $whereSQL"
+);
 $countSt->execute($params);
 $total = (int)$countSt->fetchColumn();
 $pages = (int)ceil($total / $perPage);
 
 $usersSt = $db->prepare(
-    "SELECT u.*, c.name AS class_name
+    "SELECT u.*, c.name AS class_name,
+            CASE WHEN u.role='student' THEN COALESCE(c.wing,'main')
+                 WHEN u.role='teacher' THEN COALESCE(t.wing,'main')
+                 ELSE 'main'
+            END AS user_wing
      FROM users u
      LEFT JOIN students s ON s.user_id = u.id AND u.role = 'student'
      LEFT JOIN classes c  ON c.id = s.class_id
-     $where ORDER BY u.role, u.name LIMIT $perPage OFFSET $offset"
+     LEFT JOIN teachers t ON t.user_id = u.id AND u.role = 'teacher'
+     $whereSQL ORDER BY u.role, u.name LIMIT $perPage OFFSET $offset"
 );
 $usersSt->execute($params);
 $users = $usersSt->fetchAll();
@@ -325,17 +346,22 @@ $links = getAdminLinks();
 
 <!-- Users table -->
 <div class="sec-card">
-  <div class="sec-card-header d-flex justify-content-between align-items-center">
+  <div class="sec-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
     <span><i class="fas fa-users me-2"></i>All Users (<?= $total ?>)</span>
-    <div class="d-flex gap-1">
-      <?php foreach (['','student','teacher','admin','finance'] as $r): ?>
-        <a href="?role=<?= $r ?>" class="btn btn-xs <?= $roleFilter===$r?'btn-primary':'btn-outline-secondary' ?>" style="font-size:.75rem;padding:2px 8px"><?= $r ?: 'All' ?></a>
+    <div class="d-flex flex-wrap gap-1">
+      <span class="text-muted" style="font-size:.72rem;padding:2px 4px;align-self:center">Role:</span>
+      <?php foreach ([''=>'All','student'=>'Student','teacher'=>'Teacher','admin'=>'Admin','finance'=>'Finance','ilc_vp'=>'ILC VP','student_affairs'=>'Stu. Affairs','vp_main'=>'VP Main','wing_head'=>'Wing Head'] as $r => $lbl): ?>
+        <a href="?role=<?= $r ?>&wing=<?= urlencode($wingFilter) ?>" class="btn btn-xs <?= $roleFilter===$r?'btn-primary':'btn-outline-secondary' ?>" style="font-size:.72rem;padding:2px 7px"><?= $lbl ?></a>
+      <?php endforeach; ?>
+      <span class="text-muted ms-2" style="font-size:.72rem;padding:2px 4px;align-self:center">Wing:</span>
+      <?php foreach ([''=>'All','main'=>'Main','montessori'=>'Montessori','ilc'=>'ILC'] as $w => $wlbl): ?>
+        <a href="?role=<?= urlencode($roleFilter) ?>&wing=<?= $w ?>" class="btn btn-xs <?= $wingFilter===$w?'btn-info':'btn-outline-secondary' ?>" style="font-size:.72rem;padding:2px 7px"><?= $wlbl ?></a>
       <?php endforeach; ?>
     </div>
   </div>
   <div class="table-responsive">
     <table class="table table-hover mb-0" style="font-size:.84rem">
-      <thead class="table-light"><tr><th>ID</th><th>Name</th><th>Role</th><th>Class</th><th>Email</th><th>Status</th><th>Last Login</th><th></th></tr></thead>
+      <thead class="table-light"><tr><th>ID</th><th>Name</th><th>Role</th><th>Wing</th><th>Class</th><th>Email</th><th>Status</th><th>Last Login</th><th></th></tr></thead>
       <tbody>
         <?php foreach ($users as $u):
           $roleBadge = match($u['role']) {
@@ -354,6 +380,12 @@ $links = getAdminLinks();
           <td class="fw-semibold"><?= h($u['user_id']) ?></td>
           <td><?= h($u['name']) ?></td>
           <td><span class="badge bg-<?= $roleBadge === 'purple' ? 'secondary' : $roleBadge ?>" style="<?= $roleBadge==='purple'?'background:#7c3aed!important':'' ?>"><?= $u['role'] ?></span></td>
+          <td><?php
+            $wingColors = ['ilc'=>['bg'=>'#ecfeff','color'=>'#0e7490'],'montessori'=>['bg'=>'#f0fdf4','color'=>'#166534'],'main'=>['bg'=>'#f8fafc','color'=>'#475569']];
+            $wc = $wingColors[$u['user_wing'] ?? 'main'] ?? $wingColors['main'];
+            if (in_array($u['role'], ['student','teacher'])):
+          ?><span class="badge" style="background:<?= $wc['bg'] ?>;color:<?= $wc['color'] ?>;border:1px solid <?= $wc['bg'] ?>"><?= h($u['user_wing'] ?? 'main') ?></span><?php
+            else: ?><span class="text-muted" style="font-size:.78rem">—</span><?php endif; ?></td>
           <td><?= !empty($u['class_name']) ? '<span class="badge bg-secondary">'.h($u['class_name']).'</span>' : '<span class="text-muted" style="font-size:.78rem">—</span>' ?></td>
           <td><?= h($u['email'] ?: '—') ?></td>
           <td><span class="badge <?= $u['status']==='active'?'bg-success':'bg-danger' ?>"><?= $u['status'] ?></span></td>
@@ -393,7 +425,7 @@ $links = getAdminLinks();
   <?php if ($pages > 1): ?>
   <div class="d-flex justify-content-center p-2 gap-1">
     <?php for ($i=1;$i<=$pages;$i++): ?>
-      <a href="?role=<?= $roleFilter ?>&page=<?= $i ?>" class="btn btn-xs <?= $i===$page?'btn-primary':'btn-outline-secondary' ?>" style="font-size:.78rem;padding:2px 8px"><?= $i ?></a>
+      <a href="?role=<?= urlencode($roleFilter) ?>&wing=<?= urlencode($wingFilter) ?>&page=<?= $i ?>" class="btn btn-xs <?= $i===$page?'btn-primary':'btn-outline-secondary' ?>" style="font-size:.78rem;padding:2px 8px"><?= $i ?></a>
     <?php endfor; ?>
   </div>
   <?php endif; ?>

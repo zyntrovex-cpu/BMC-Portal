@@ -74,7 +74,28 @@ $upcomingAss = $stUpcoming->fetchAll();
 // ── Top 3 notices ─────────────────────────────────────────────────
 $topNotices = array_slice($notices, 0, 3);
 
-// ── Page render ───────────────────────────────────────────────────
+// Wing / ILC detection
+$studentWing     = 'main';
+$ilcDisabilities = [];
+try {
+    $stWing = $db->prepare('SELECT wing FROM classes WHERE id = ?');
+    $stWing->execute([$student['class_id']]);
+    $studentWing = $stWing->fetchColumn() ?: 'main';
+    if ($studentWing === 'ilc') {
+        $stDis = $db->prepare(
+            'SELECT dc.name AS category, dst.name AS subtype, sd.notes
+             FROM student_disabilities sd
+             JOIN disability_subtypes dst ON sd.subtype_id = dst.id
+             JOIN disability_categories dc ON dst.category_id = dc.id
+             WHERE sd.student_id = ?
+             ORDER BY dc.name, dst.name'
+        );
+        $stDis->execute([$student['id']]);
+        $ilcDisabilities = $stDis->fetchAll();
+    }
+} catch (Exception $e) {}
+
+// Page render ───────────────────────────────────────────────────
 pageHead('Dashboard', 'student');
 $links = [
     ['href'=>'/student/dashboard.php','icon'=>'<i class="fas fa-home"></i>','label'=>'Dashboard','key'=>'dashboard'],
@@ -137,6 +158,35 @@ $links = [
     </div>
   </div>
 </div>
+
+<?php if ($studentWing === 'ilc'): ?>
+<div class="sec-card mb-3" style="border-left:4px solid #0891b2;">
+  <div class="sec-head">
+    <h5><i class="fas fa-heartbeat me-2" style="color:#0891b2"></i>ILC Accommodation Profile</h5>
+    <span class="badge" style="background:#ecfeff;color:#0e7490;border:1px solid #a5f3fc;font-size:.75rem">ILC Wing</span>
+  </div>
+  <?php if (empty($ilcDisabilities)): ?>
+    <div class="p-3 text-muted" style="font-size:13px">No disability records on file. Contact the ILC office if this is incorrect.</div>
+  <?php else: ?>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr><th>Category</th><th>Subtype</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <?php foreach ($ilcDisabilities as $d): ?>
+          <tr>
+            <td><span class="badge" style="background:#ecfeff;color:#0e7490"><?= h($d['category']) ?></span></td>
+            <td class="fw-semibold"><?= h($d['subtype']) ?></td>
+            <td class="text-muted" style="font-size:12px"><?= $d['notes'] ? h($d['notes']) : '—' ?></td>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  <?php endif; ?>
+</div>
+<?php endif; ?>
 
 <div class="row g-3">
   <!-- Left Column -->
