@@ -76,129 +76,306 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Login — BMC Portal</title>
 <link rel="icon" type="image/png" href="<?= BASE_URL ?>/assets/bmc-logo.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    min-height: 100vh;
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html, body {
+    height: 100%; width: 100%; overflow: hidden;
     background: linear-gradient(135deg, #0f1f3d 0%, #1c3054 50%, #0d2847 100%);
-    display: flex; align-items: center; justify-content: center;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
+  body { display: flex; align-items: center; justify-content: center; }
+
   .login-card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-    width: 420px;
+    width: 400px;
     max-width: 96vw;
+    max-height: 98vh;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.08);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
+
+  /* ── Header ── */
   .login-header {
-    background: linear-gradient(160deg, #0f1f3d 0%, #1c3054 60%, #1e3a8a 100%);
-    color: #fff;
-    padding: 36px 32px 28px;
+    padding: 18px 22px 14px;
     text-align: center;
     position: relative;
     overflow: hidden;
+    flex-shrink: 0;
+    background: var(--hdr-bg, linear-gradient(160deg,#0f1f3d 0%,#1c3054 60%,#1e3a8a 100%));
+    transition: background .35s;
   }
   .login-header::before {
     content: '';
     position: absolute; inset: 0;
-    background: radial-gradient(ellipse at 50% -20%, rgba(37,99,235,.35) 0%, transparent 70%);
+    background: radial-gradient(ellipse at 50% -10%, rgba(255,255,255,.15) 0%, transparent 65%);
     pointer-events: none;
   }
-  .login-header .logo-wrap {
-    width: 104px; height: 104px; border-radius: 50%;
-    background: rgba(255,255,255,0.96);
+  .logo-ring {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(255,255,255,.96);
     display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 14px;
-    box-shadow: 0 4px 24px rgba(0,0,0,.35), 0 0 0 4px rgba(255,255,255,.12);
-    padding: 8px;
+    margin: 0 auto 10px;
+    box-shadow: 0 4px 18px rgba(0,0,0,.3), 0 0 0 3px rgba(255,255,255,.18);
+    padding: 6px;
     position: relative; z-index: 1;
+    transition: box-shadow .3s;
   }
-  .login-header .logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
-  .login-header h1 { font-size: 1.45rem; font-weight: 800; margin: 0; letter-spacing: .3px; position: relative; z-index: 1; }
-  .login-header .subtitle { font-size: 0.82rem; opacity: .75; margin: 5px 0 0; position: relative; z-index: 1; letter-spacing: .2px; }
-  .login-body { padding: 32px; }
-  .form-label { font-size: .82rem; font-weight: 600; color: #374151; }
-  .form-control { border-radius: 6px; border: 1.5px solid #d5dde8; font-size: .9rem; }
-  .form-control:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .logo-ring img { width: 100%; height: 100%; object-fit: contain; }
+  .login-header h1 {
+    font-size: 1.15rem; font-weight: 800; color: #fff;
+    letter-spacing: .3px; position: relative; z-index: 1; margin-bottom: 2px;
+  }
+  .login-header .sub {
+    font-size: .72rem; color: rgba(255,255,255,.72);
+    position: relative; z-index: 1; letter-spacing: .2px;
+  }
+  .wing-badge {
+    display: inline-block; margin-top: 6px;
+    font-size: .65rem; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+    background: rgba(255,255,255,.18); color: rgba(255,255,255,.9);
+    border: 1px solid rgba(255,255,255,.3); border-radius: 20px;
+    padding: 2px 10px; position: relative; z-index: 1;
+    transition: opacity .3s;
+  }
+
+  /* ── Body ── */
+  .login-body {
+    padding: 18px 22px 16px;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .alert-msg {
+    font-size: .8rem; border-radius: 6px; padding: 8px 12px;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 7px;
+  }
+  .alert-success-msg { background:#f0fdf4; border:1px solid #86efac; color:#166534; }
+  .alert-error-msg   { background:#fef2f2; border:1px solid #fca5a5; color:#991b1b; }
+
+  /* Selectors row */
+  .selector-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .sel-group label {
+    display: block; font-size: .72rem; font-weight: 700;
+    color: #6b7280; text-transform: uppercase; letter-spacing: .5px;
+    margin-bottom: 4px;
+  }
+  .sel-group select {
+    width: 100%; padding: 7px 10px; font-size: .82rem;
+    border: 1.5px solid #d5dde8; border-radius: 7px;
+    background: #f8fafc; color: #1e293b;
+    outline: none; cursor: pointer;
+    transition: border-color .2s, box-shadow .2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+  .sel-group select:focus { border-color: var(--accent,#2563eb); box-shadow: 0 0 0 3px var(--accent-glow,rgba(37,99,235,.12)); }
+
+  /* Divider */
+  .form-divider {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px; font-size: .72rem; color: #9ca3af;
+  }
+  .form-divider::before, .form-divider::after {
+    content: ''; flex: 1; height: 1px; background: #e5e7eb;
+  }
+
+  /* Inputs */
+  .field-group { margin-bottom: 10px; }
+  .field-group label {
+    display: block; font-size: .76rem; font-weight: 600;
+    color: #374151; margin-bottom: 4px;
+  }
+  .field-group input {
+    width: 100%; padding: 9px 12px; font-size: .88rem;
+    border: 1.5px solid #d5dde8; border-radius: 7px;
+    outline: none; transition: border-color .2s, box-shadow .2s;
+    color: #1e293b;
+  }
+  .field-group input:focus { border-color: var(--accent,#2563eb); box-shadow: 0 0 0 3px var(--accent-glow,rgba(37,99,235,.12)); }
+
+  /* Button */
   .btn-login {
-    width: 100%; padding: 11px;
-    background: linear-gradient(135deg, #1c3054, #2563eb);
-    border: none; border-radius: 8px; color: #fff; font-weight: 700;
-    font-size: .95rem; cursor: pointer; transition: opacity .15s;
+    width: 100%; padding: 10px;
+    background: var(--btn-bg, linear-gradient(135deg,#1c3054,#2563eb));
+    border: none; border-radius: 8px; color: #fff;
+    font-weight: 700; font-size: .9rem;
+    cursor: pointer; transition: opacity .15s, transform .1s;
+    margin-top: 14px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
   }
-  .btn-login:hover { opacity: .9; }
-  .alert-msg { font-size: .84rem; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; }
-  .alert-success-msg { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
-  .alert-error-msg   { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
-  .hint-box {
-    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
-    padding: 12px 14px; margin-bottom: 20px; font-size: .8rem; color: #64748b;
-    line-height: 1.6;
+  .btn-login:hover { opacity: .88; }
+  .btn-login:active { transform: scale(.98); }
+
+  /* Footer */
+  .login-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid #f1f5f9;
+    font-size: .72rem; color: #9ca3af;
   }
-  .hint-box strong { color: #374151; }
-  .footer-note { text-align: center; margin-top: 18px; font-size: .75rem; color: #8a9ab0; }
+  .login-footer a { color: #6b7280; text-decoration: none; }
+  .login-footer a:hover { color: var(--accent,#2563eb); }
 </style>
 </head>
 <body>
-<div class="login-card">
-  <div class="login-header">
-    <div class="logo-wrap">
-      <img src="<?= BASE_URL ?>/assets/bmc-logo.png" alt="Bahria Model College">
+
+<div class="login-card" id="loginCard">
+  <!-- ── Header ── -->
+  <div class="login-header" id="loginHeader">
+    <div class="logo-ring" id="logoRing">
+      <img src="<?= BASE_URL ?>/assets/bmc-logo.png" alt="BMC" id="portalLogo">
     </div>
-    <h1>BMC Portal</h1>
-    <div class="subtitle">Bahria Model College &mdash; <?= SESSION_YEAR ?></div>
+    <h1 id="portalTitle">BMC Portal</h1>
+    <div class="sub">Bahria Model College &mdash; <?= SESSION_YEAR ?></div>
+    <div class="wing-badge" id="wingBadge">Main Wing</div>
   </div>
+
+  <!-- ── Body ── -->
   <div class="login-body">
+
     <?php if ($msg === 'logout'): ?>
-      <div class="alert-msg alert-success-msg">You have been logged out successfully.</div>
+      <div class="alert-msg alert-success-msg"><i class="fas fa-check-circle"></i>Logged out successfully.</div>
     <?php elseif ($msg === 'login'): ?>
-      <div class="alert-msg alert-error-msg">Please log in to continue.</div>
+      <div class="alert-msg alert-error-msg"><i class="fas fa-lock"></i>Please log in to continue.</div>
     <?php elseif ($msg === 'unauthorized'): ?>
-      <div class="alert-msg alert-error-msg">Access denied. Insufficient permissions.</div>
+      <div class="alert-msg alert-error-msg"><i class="fas fa-ban"></i>Access denied. Insufficient permissions.</div>
     <?php endif; ?>
     <?php if ($error): ?>
-      <div class="alert-msg alert-error-msg"><?= htmlspecialchars($error) ?></div>
+      <div class="alert-msg alert-error-msg"><i class="fas fa-exclamation-circle"></i><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
-    <div class="hint-box">
-      <strong>All portals share this login.</strong><br>
-      Use your assigned ID: Roll No (students), Employee ID (teachers), or portal ID (staff).
+    <!-- Wing + Type selectors -->
+    <div class="selector-row">
+      <div class="sel-group">
+        <label>Wing</label>
+        <select id="wingSelect" name="wing" onchange="updateTheme()">
+          <option value="main">Main Wing</option>
+          <option value="montessori">Montessori</option>
+          <option value="ilc">ILC</option>
+        </select>
+      </div>
+      <div class="sel-group">
+        <label>I am a</label>
+        <select id="typeSelect" name="user_type" onchange="updateTheme()">
+          <option value="student">Student</option>
+          <option value="staff">Staff / Teacher</option>
+        </select>
+      </div>
     </div>
 
-    <form method="POST">
-      <div class="mb-3">
-        <label class="form-label" for="userId">User ID</label>
-        <input type="text" class="form-control" name="user_id" id="userId"
-               placeholder="e.g. STU001, T001, ADM001"
+    <div class="form-divider">enter credentials</div>
+
+    <form method="POST" id="loginForm">
+      <input type="hidden" name="wing"      id="wingHidden"     value="main">
+      <input type="hidden" name="user_type" id="userTypeHidden" value="student">
+
+      <div class="field-group">
+        <label for="userId"><i class="fas fa-id-card" style="margin-right:5px;opacity:.6"></i>User ID</label>
+        <input type="text" name="user_id" id="userId"
+               placeholder="e.g. STU001 · T001 · ADM001"
                value="<?= htmlspecialchars($_POST['user_id'] ?? '') ?>" required autofocus>
       </div>
-      <div class="mb-4">
-        <label class="form-label" for="password">Password</label>
-        <input type="password" class="form-control" name="password" id="password"
-               placeholder="Enter password" required>
+      <div class="field-group">
+        <label for="password"><i class="fas fa-key" style="margin-right:5px;opacity:.6"></i>Password</label>
+        <input type="password" name="password" id="password"
+               placeholder="Enter your password" required>
       </div>
-      <button type="submit" class="btn-login">
-        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+
+      <button type="submit" class="btn-login" id="loginBtn">
+        <i class="fas fa-sign-in-alt"></i>
+        <span id="btnText">Sign In as Student</span>
       </button>
     </form>
 
-    <div class="text-center mt-3">
-      <a href="forgot-password.php" style="font-size:.82rem;color:#6b7280;text-decoration:none">Forgot password?</a>
+    <div class="login-footer">
+      <a href="forgot-password.php"><i class="fas fa-question-circle me-1"></i>Forgot password?</a>
+      <span>&copy; <?= date('Y') ?> BMC</span>
     </div>
 
-    <div class="footer-note">
-      BMC Portal &copy; 2025 &mdash; Bahria Model College<br>
-      <small>For support contact admin</small>
-    </div>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const THEMES = {
+  main: {
+    hdr:   'linear-gradient(160deg,#0f1f3d 0%,#1c3054 60%,#1e3a8a 100%)',
+    btn:   'linear-gradient(135deg,#1c3054,#2563eb)',
+    accent:'#2563eb',
+    glow:  'rgba(37,99,235,.13)',
+    badge: 'Main Wing',
+    logo:  '<?= BASE_URL ?>/assets/bmc-logo.png',
+    title: 'BMC Portal',
+  },
+  montessori: {
+    hdr:   'linear-gradient(160deg,#052e16 0%,#065f46 60%,#059669 100%)',
+    btn:   'linear-gradient(135deg,#065f46,#059669)',
+    accent:'#059669',
+    glow:  'rgba(5,150,105,.13)',
+    badge: 'Montessori',
+    logo:  '<?= BASE_URL ?>/assets/bmc-logo.png',
+    title: 'BMC Portal',
+  },
+  ilc: {
+    hdr:   'linear-gradient(160deg,#0c4a6e 0%,#0369a1 60%,#0891b2 100%)',
+    btn:   'linear-gradient(135deg,#0369a1,#0891b2)',
+    accent:'#0891b2',
+    glow:  'rgba(8,145,178,.13)',
+    badge: 'ILC',
+    logo:  '<?= BASE_URL ?>/assets/ilc-logo.png',
+    title: 'ILC Portal',
+  },
+};
+
+const TYPE_LABELS = {
+  student: 'Student',
+  staff:   'Staff / Teacher',
+};
+
+function updateTheme() {
+  const wing = document.getElementById('wingSelect').value;
+  const type = document.getElementById('typeSelect').value;
+  const t    = THEMES[wing] || THEMES.main;
+
+  // Header gradient
+  document.getElementById('loginHeader').style.background = t.hdr;
+  // Button gradient
+  document.getElementById('loginBtn').style.background = t.btn;
+  // CSS vars for focus rings
+  document.documentElement.style.setProperty('--accent',      t.accent);
+  document.documentElement.style.setProperty('--accent-glow', t.glow);
+  document.documentElement.style.setProperty('--btn-bg',      t.btn);
+  // Logo
+  document.getElementById('portalLogo').src = t.logo;
+  // Title & badge
+  document.getElementById('portalTitle').textContent = t.title;
+  document.getElementById('wingBadge').textContent   = t.badge;
+  // Button label
+  document.getElementById('btnText').textContent = 'Sign In as ' + TYPE_LABELS[type];
+  // Hidden fields
+  document.getElementById('wingHidden').value     = wing;
+  document.getElementById('userTypeHidden').value = type;
+}
+
+// Init
+updateTheme();
+</script>
+
 </body>
 </html>
