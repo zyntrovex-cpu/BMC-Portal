@@ -78,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Login — BMC Portal</title>
+<link rel="icon" type="image/png" href="<?= BASE_URL ?>/assets/bmc-logo.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
@@ -97,13 +98,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     overflow: hidden;
   }
   .login-header {
-    background: linear-gradient(135deg, #1c3054, #2563eb);
+    background: linear-gradient(160deg, #0f1f3d 0%, #1c3054 60%, #1e3a8a 100%);
     color: #fff;
-    padding: 32px 32px 28px;
+    padding: 36px 32px 28px;
     text-align: center;
+    position: relative;
+    overflow: hidden;
   }
-  .login-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
-  .login-header p  { font-size: 0.85rem; opacity: .8; margin: 4px 0 0; }
+  .login-header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% -20%, rgba(37,99,235,.35) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .login-header .logo-wrap {
+    width: 104px; height: 104px; border-radius: 50%;
+    background: rgba(255,255,255,0.96);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.35), 0 0 0 4px rgba(255,255,255,.12);
+    padding: 8px;
+    position: relative; z-index: 1;
+  }
+  .login-header .logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
+  .login-header h1 { font-size: 1.45rem; font-weight: 800; margin: 0; letter-spacing: .3px; position: relative; z-index: 1; }
+  .login-header .subtitle { font-size: 0.82rem; opacity: .75; margin: 5px 0 0; position: relative; z-index: 1; letter-spacing: .2px; }
   .login-body { padding: 32px; }
   .form-label { font-size: .82rem; font-weight: 600; color: #374151; }
   .form-control { border-radius: 6px; border: 1.5px solid #d5dde8; font-size: .9rem; }
@@ -130,9 +149,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 <div class="login-card">
   <div class="login-header">
-    <div style="font-size:3rem; margin-bottom:8px;">🎓</div>
+    <div class="logo-wrap">
+      <img src="<?= BASE_URL ?>/assets/bmc-logo.png" alt="Bahria Model College">
+    </div>
     <h1>BMC Portal</h1>
-    <p>Bahria Model College &mdash; <?= SESSION_YEAR ?></p>
+    <div class="subtitle">Bahria Model College &mdash; <?= SESSION_YEAR ?></div>
   </div>
   <div class="login-body">
     <?php if ($msg === 'logout'): ?>

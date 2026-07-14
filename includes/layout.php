@@ -20,6 +20,7 @@ function pageHead(string $title, string $portal = ''): void {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>' . htmlspecialchars($title) . ' — BMC Portal</title>
+<link rel="icon" type="image/png" href="' . $base . '/assets/bmc-logo.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="' . $base . '/portal.css">
@@ -81,7 +82,9 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
     echo '<nav class="sidebar" id="sidebar">
 
   <div class="sb-brand">
-    <div class="sb-brand-mark">' . strtoupper($portal[0]) . '</div>
+    <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:3px;box-shadow:0 2px 8px rgba(0,0,0,.3);">
+      <img src="' . $base . '/assets/bmc-logo.png" alt="BMC" style="width:100%;height:100%;object-fit:contain;">
+    </div>
     <div>
       <div style="font-size:.88rem;font-weight:700;color:#fff;line-height:1.2">BMC Portal</div>
       <div style="font-size:.7rem;color:rgba(255,255,255,.5);line-height:1.3">' . $portalLabel . '</div>
