@@ -65,6 +65,15 @@ $links = getIlcLinks();
 <div class="page-content">
 <?= flashHtml() ?>
 
+<!-- ILC branding strip -->
+<div class="d-flex align-items-center gap-3 mb-4 p-3" style="background:linear-gradient(90deg,#ecfeff,#f0fdf4);border-radius:10px;border:1px solid #a5f3fc;">
+  <img src="<?= url('/assets/ilc-logo.png') ?>" alt="ILC" style="width:48px;height:48px;object-fit:contain;flex-shrink:0;">
+  <div>
+    <div style="font-size:.72rem;font-weight:700;color:#0891b2;letter-spacing:.8px;text-transform:uppercase">Inclusive Learning Centre</div>
+    <div style="font-size:.8rem;color:#475569">Bahria Model College Bin Qasim</div>
+  </div>
+</div>
+
 <!-- New request form -->
 <div class="sec-card mb-3">
   <div class="sec-card-header" data-bs-toggle="collapse" data-bs-target="#newReqForm" style="cursor:pointer">

@@ -83,10 +83,12 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
 
   <div class="sb-brand">
     <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:3px;box-shadow:0 2px 8px rgba(0,0,0,.3);">
-      <img src="' . $base . '/assets/bmc-logo.png" alt="BMC" style="width:100%;height:100%;object-fit:contain;">
+      <img src="' . $base . (in_array($portal, ['ilc_vp','student_affairs']) ? '/assets/ilc-logo.png' : '/assets/bmc-logo.png') . '"
+           alt="' . (in_array($portal, ['ilc_vp','student_affairs']) ? 'ILC' : 'BMC') . '"
+           style="width:100%;height:100%;object-fit:contain;">
     </div>
     <div>
-      <div style="font-size:.88rem;font-weight:700;color:#fff;line-height:1.2">BMC Portal</div>
+      <div style="font-size:.88rem;font-weight:700;color:#fff;line-height:1.2">' . (in_array($portal, ['ilc_vp','student_affairs']) ? 'ILC Portal' : 'BMC Portal') . '</div>
       <div style="font-size:.7rem;color:rgba(255,255,255,.5);line-height:1.3">' . $portalLabel . '</div>
     </div>
   </div>

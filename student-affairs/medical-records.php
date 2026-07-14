@@ -91,6 +91,15 @@ $links = getStudentAffairsLinks();
 <div class="page-content">
 <?= flashHtml() ?>
 
+<!-- ILC branding strip -->
+<div class="d-flex align-items-center gap-3 mb-4 p-3" style="background:linear-gradient(90deg,#fdf2f8,#fce7f3);border-radius:10px;border:1px solid #fbcfe8;">
+  <img src="<?= url('/assets/ilc-logo.png') ?>" alt="ILC" style="width:48px;height:48px;object-fit:contain;flex-shrink:0;">
+  <div>
+    <div style="font-size:.72rem;font-weight:700;color:#be185d;letter-spacing:.8px;text-transform:uppercase">Student Affairs Office</div>
+    <div style="font-size:.8rem;color:#475569">Inclusive Learning Centre &mdash; Bahria Model College Bin Qasim</div>
+  </div>
+</div>
+
 <div class="row g-3">
   <!-- Add record form -->
   <div class="col-lg-4">
