@@ -14,6 +14,10 @@ $db = getDB();
 
 // ── POST Handlers ─────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try { $db->query('SELECT 1 FROM student_warnings LIMIT 0'); } catch (PDOException $e) {
+        setFlash('danger', 'student_warnings table missing — run warnings-migration.sql first.');
+        redirect('/admin/warnings.php');
+    }
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add') {
@@ -94,9 +98,15 @@ $sql = 'SELECT w.*, u.name AS student_name, s.roll_no, c.name AS class_name,
         WHERE ' . implode(' AND ', $where) . '
         ORDER BY w.created_at DESC';
 
-$stWarn = $db->prepare($sql);
-$stWarn->execute($params);
-$warnings = $stWarn->fetchAll();
+$warnings      = [];
+$tablesMissing = false;
+try {
+    $stWarn = $db->prepare($sql);
+    $stWarn->execute($params);
+    $warnings = $stWarn->fetchAll();
+} catch (PDOException $e) {
+    $tablesMissing = true;
+}
 
 $classes = getAllClasses();
 
@@ -112,6 +122,30 @@ $portal = $user['role'] === 'admin' ? 'admin' : 'teacher';
 <?php topbar('Student Warnings', $user); ?>
 <div class="page-content">
 <?= flashHtml() ?>
+
+<?php if ($tablesMissing): ?>
+<div class="alert alert-warning d-flex gap-3 align-items-start" style="border-radius:8px">
+  <i class="fas fa-database fa-lg mt-1"></i>
+  <div>
+    <strong>Database table missing.</strong>
+    The <code>student_warnings</code> table does not exist yet. Run the SQL below in phpMyAdmin
+    (<strong>SQL</strong> tab) then refresh.
+    <pre class="mt-2 mb-0 p-2" style="background:#f8fafc;border-radius:6px;font-size:.8rem;border:1px solid #e5e7eb">USE bmc_portal;
+
+CREATE TABLE IF NOT EXISTS student_warnings (
+  id         INT PRIMARY KEY AUTO_INCREMENT,
+  student_id INT NOT NULL,
+  given_by   INT NOT NULL,
+  reason     TEXT NOT NULL,
+  severity   ENUM('low','medium','high') NOT NULL DEFAULT 'medium',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+  FOREIGN KEY (given_by)   REFERENCES users(id)
+) ENGINE=InnoDB;</pre>
+    <div class="mt-2" style="font-size:.82rem">Or import <strong>database/warnings-migration.sql</strong> from the project folder.</div>
+  </div>
+</div>
+<?php endif; ?>
 
 <div class="row g-3">
 
