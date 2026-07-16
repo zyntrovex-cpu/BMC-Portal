@@ -226,12 +226,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   /* Footer */
   .login-footer {
     display: flex; justify-content: space-between; align-items: center;
-    margin-top: 12px; padding-top: 10px;
+    margin-top: 10px; padding-top: 8px;
     border-top: 1px solid #f1f5f9;
     font-size: .72rem; color: #9ca3af;
   }
   .login-footer a { color: #6b7280; text-decoration: none; }
   .login-footer a:hover { color: var(--accent,#2563eb); }
+
+  /* Credential helper */
+  .cred-toggle {
+    width: 100%; margin-top: 8px;
+    background: none; border: 1px dashed #d1d5db;
+    border-radius: 7px; padding: 6px 10px;
+    font-size: .73rem; color: #9ca3af; cursor: pointer;
+    text-align: center; transition: border-color .2s, color .2s;
+  }
+  .cred-toggle:hover { border-color: var(--accent,#2563eb); color: var(--accent,#2563eb); }
+  .cred-panel {
+    display: none; margin-top: 6px;
+    background: #f8fafc; border: 1px solid #e5e7eb;
+    border-radius: 8px; padding: 10px 12px;
+    font-size: .76rem;
+  }
+  .cred-panel .cred-title {
+    font-size: .68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: #9ca3af; margin-bottom: 6px;
+  }
+  .cred-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 8px; border-radius: 5px; cursor: pointer;
+    transition: background .15s; margin-bottom: 2px;
+  }
+  .cred-row:hover { background: #e0f2fe; }
+  .cred-badge {
+    font-size: .65rem; padding: 1px 6px; border-radius: 10px;
+    font-weight: 700; white-space: nowrap;
+    background: var(--accent,#2563eb); color: #fff;
+  }
+  .cred-id { font-weight: 700; color: #1e293b; font-size: .78rem; }
+  .cred-name { color: #6b7280; flex: 1; }
+  .cred-pass { font-size: .68rem; color: #94a3b8; font-family: monospace; }
+  .cred-none { color: #9ca3af; font-size: .78rem; text-align: center; padding: 4px 0; }
 </style>
 </head>
 <body>
@@ -304,6 +339,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </button>
     </form>
 
+    <!-- Credential helper -->
+    <button class="cred-toggle" type="button" onclick="toggleCreds()" id="credToggle">
+      <i class="fas fa-key me-1"></i>Show test accounts for this wing
+    </button>
+    <div class="cred-panel" id="credPanel">
+      <div class="cred-title">Click any row to auto-fill &mdash; password is always <strong>student123</strong></div>
+      <div id="credList"></div>
+    </div>
+
     <div class="login-footer">
       <a href="forgot-password.php"><i class="fas fa-question-circle me-1"></i>Forgot password?</a>
       <span>&copy; <?= date('Y') ?> BMC</span>
@@ -371,6 +415,97 @@ function updateTheme() {
   // Hidden fields
   document.getElementById('wingHidden').value     = wing;
   document.getElementById('userTypeHidden').value = type;
+  // Refresh cred list if panel is open
+  if (credOpen) renderCreds();
+}
+
+// Credential data: [userId, name, role/label]
+const CREDS = {
+  main: {
+    student: [
+      ['S901',  'Zubair Ahmed',   'Student'],
+      ['S902',  'Sana Qasim',     'Student'],
+      ['S1001', 'Waqar Ullah',    'Student'],
+    ],
+    staff: [
+      ['ADM001','Mr. Tariq Mehmood','Admin'],
+      ['T001',  'Dr. Sarah Khan', 'Teacher'],
+      ['T002',  'Mr. Hasan Ali',  'Teacher'],
+      ['FIN001','Ms. Ayesha Rizvi','Finance'],
+      ['VP001', 'Mr. Asad Khan',  'VP Main'],
+      ['WH001', 'Ms. Rubina Akhtar','Wing Head'],
+    ],
+  },
+  montessori: {
+    student: [
+      ['M101', 'Ali Raza',       'Student'],
+      ['M201', 'Maryam Khalid',  'Student'],
+      ['M301', 'Hamza Aziz',     'Student'],
+      ['M401', 'Hira Baig',      'Student'],
+    ],
+    staff: [
+      ['T001', 'Dr. Sarah Khan', 'Teacher'],
+      ['T002', 'Mr. Hasan Ali',  'Teacher'],
+      ['WH001','Ms. Rubina Akhtar','Wing Head'],
+    ],
+  },
+  ilc: {
+    student: [
+      ['ILC101','Hamza Tanveer',  'ILC Student'],
+      ['ILC102','Sara Baig',      'ILC Student'],
+      ['ILC201','Dua Waheed',     'ILC Student'],
+    ],
+    staff: [
+      ['ILC001','Dr. Amna Siddiqui','ILC VP'],
+      ['SA001', 'Mr. Tariq Aziz', 'Student Affairs'],
+      ['T007',  'Ms. Asma Riaz',  'ILC Teacher'],
+    ],
+  },
+};
+
+const ROLE_COLORS = {
+  'Admin':'#7c3aed','Teacher':'#059669','Finance':'#d97706',
+  'VP Main':'#0369a1','Wing Head':'#c2410c',
+  'Student':'#1d4ed8','ILC Student':'#0891b2',
+  'ILC VP':'#0891b2','Student Affairs':'#be185d','ILC Teacher':'#059669',
+};
+
+function renderCreds() {
+  const wing = document.getElementById('wingSelect').value;
+  const type = document.getElementById('typeSelect').value === 'student' ? 'student' : 'staff';
+  const list = (CREDS[wing] || {})[type] || [];
+  const el   = document.getElementById('credList');
+  if (!list.length) {
+    el.innerHTML = '<div class="cred-none">No test accounts for this selection.</div>';
+    return;
+  }
+  el.innerHTML = list.map(([id, name, role]) => {
+    const bg = ROLE_COLORS[role] || '#64748b';
+    return `<div class="cred-row" onclick="fillCred('${id}')">
+      <span class="cred-id">${id}</span>
+      <span class="cred-name">${name}</span>
+      <span class="cred-badge" style="background:${bg}">${role}</span>
+      <span class="cred-pass">student123</span>
+    </div>`;
+  }).join('');
+}
+
+function fillCred(userId) {
+  document.getElementById('userId').value   = userId;
+  document.getElementById('password').value = 'student123';
+  document.getElementById('credPanel').style.display = 'none';
+  document.getElementById('credToggle').innerHTML = '<i class="fas fa-key me-1"></i>Show test accounts for this wing';
+}
+
+let credOpen = false;
+function toggleCreds() {
+  credOpen = !credOpen;
+  const panel = document.getElementById('credPanel');
+  panel.style.display = credOpen ? 'block' : 'none';
+  document.getElementById('credToggle').innerHTML = credOpen
+    ? '<i class="fas fa-times me-1"></i>Hide test accounts'
+    : '<i class="fas fa-key me-1"></i>Show test accounts for this wing';
+  if (credOpen) renderCreds();
 }
 
 // Init
