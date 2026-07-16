@@ -84,25 +84,31 @@ $postWing = $_POST['wing']      ?? 'main';
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-html, body {
-  height:100%; overflow:hidden;
+
+html { height:100%; }
+body {
+  min-height:100%;
   background: linear-gradient(135deg,#0f1f3d 0%,#1c3054 50%,#0d2847 100%);
+  background-attachment: fixed;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  display:flex; align-items:center; justify-content:center;
+  display:flex; align-items:flex-start; justify-content:center;
+  padding: 32px 16px 40px;
 }
 
 /* ── Card ── */
 .login-card {
-  width:400px; max-width:96vw; max-height:98vh;
-  background:#fff; border-radius:16px;
+  width: 520px;
+  max-width: 100%;
+  background:#fff; border-radius:18px;
   box-shadow:0 24px 64px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.08);
-  overflow:hidden; display:flex; flex-direction:column;
+  overflow:visible;
+  display:flex; flex-direction:column;
 }
 
 /* ── Header ── */
 .login-header {
-  padding:18px 24px 15px; text-align:center;
-  position:relative; overflow:hidden; flex-shrink:0;
+  padding:28px 32px 22px; text-align:center;
+  position:relative; overflow:hidden; border-radius:18px 18px 0 0;
   background: var(--hdr, linear-gradient(160deg,#0f1f3d 0%,#1c3054 60%,#1e3a8a 100%));
   transition: background .4s ease;
 }
@@ -112,30 +118,26 @@ html, body {
   pointer-events:none;
 }
 .logo-ring {
-  width:66px; height:66px; border-radius:50%;
+  width:88px; height:88px; border-radius:50%;
   background:rgba(255,255,255,.96);
   display:flex; align-items:center; justify-content:center;
-  margin:0 auto 9px;
-  box-shadow:0 4px 18px rgba(0,0,0,.3), 0 0 0 3px rgba(255,255,255,.18);
-  padding:5px; position:relative; z-index:1;
+  margin:0 auto 12px;
+  box-shadow:0 6px 24px rgba(0,0,0,.35), 0 0 0 4px rgba(255,255,255,.2);
+  padding:7px; position:relative; z-index:1;
 }
-.logo-ring img { width:100%; height:100%; object-fit:contain; transition: opacity .3s; }
-.login-header h1 { font-size:1.1rem; font-weight:800; color:#fff; position:relative; z-index:1; margin-bottom:2px; }
-.login-header .sub { font-size:.7rem; color:rgba(255,255,255,.7); position:relative; z-index:1; }
+.logo-ring img { width:100%; height:100%; object-fit:contain; }
+.login-header h1 { font-size:1.35rem; font-weight:800; color:#fff; position:relative; z-index:1; margin-bottom:4px; }
+.login-header .sub { font-size:.78rem; color:rgba(255,255,255,.72); position:relative; z-index:1; }
 .wing-badge {
-  display:inline-block; margin-top:5px;
-  font-size:.62rem; font-weight:700; letter-spacing:.8px; text-transform:uppercase;
-  background:rgba(255,255,255,.18); color:rgba(255,255,255,.9);
+  display:inline-block; margin-top:8px;
+  font-size:.68rem; font-weight:700; letter-spacing:.8px; text-transform:uppercase;
+  background:rgba(255,255,255,.18); color:rgba(255,255,255,.92);
   border:1px solid rgba(255,255,255,.3); border-radius:20px;
-  padding:2px 10px; position:relative; z-index:1;
-  transition:opacity .3s;
+  padding:3px 14px; position:relative; z-index:1; transition:opacity .3s;
 }
 
-/* ── Body viewport — clips the sliding phases ── */
-.card-body {
-  flex:1; overflow:hidden; position:relative;
-  /* height is driven by whichever phase is visible */
-}
+/* ── Card body ── */
+.card-body { border-radius:0 0 18px 18px; overflow:hidden; }
 
 /* ── Phase animations ── */
 @keyframes slideInRight {
@@ -146,115 +148,150 @@ html, body {
   from { transform:translateX(-40px); opacity:0; }
   to   { transform:translateX(0);     opacity:1; }
 }
-.anim-right { animation: slideInRight .32s cubic-bezier(.4,0,.2,1) forwards; }
-.anim-left  { animation: slideInLeft  .32s cubic-bezier(.4,0,.2,1) forwards; }
+.anim-right { animation: slideInRight .3s cubic-bezier(.4,0,.2,1) forwards; }
+.anim-left  { animation: slideInLeft  .3s cubic-bezier(.4,0,.2,1) forwards; }
 
-/* ── Phase 1 — "I am a" ── */
-#phase1 { padding:24px 24px 20px; }
+/* ── Phase 1 — "Who are you?" ── */
+#phase1 { padding:32px 32px 28px; }
 .phase1-title {
-  text-align:center; font-size:.72rem; font-weight:700; color:#9ca3af;
-  text-transform:uppercase; letter-spacing:.6px; margin-bottom:14px;
+  text-align:center; font-size:.76rem; font-weight:700; color:#9ca3af;
+  text-transform:uppercase; letter-spacing:.7px; margin-bottom:18px;
 }
-.type-tiles { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.type-tiles { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 .type-tile {
-  border:2px solid #e5e7eb; border-radius:12px;
-  padding:18px 10px 16px; text-align:center; cursor:pointer;
+  border:2.5px solid #e5e7eb; border-radius:14px;
+  padding:26px 16px 22px; text-align:center; cursor:pointer;
   transition:border-color .2s, background .2s, transform .15s, box-shadow .2s;
-  background:#fafafa;
+  background:#fafafa; user-select:none;
 }
 .type-tile:hover {
-  border-color: var(--accent,#2563eb);
-  background:#eff6ff;
-  transform:translateY(-2px);
-  box-shadow:0 4px 16px rgba(37,99,235,.12);
+  border-color: var(--accent,#2563eb); background:var(--accent-light,#eff6ff);
+  transform:translateY(-3px); box-shadow:0 6px 20px rgba(37,99,235,.14);
 }
+.type-tile:active { transform:translateY(0); }
 .type-tile .tile-icon {
-  font-size:1.8rem; margin-bottom:8px; display:block;
+  font-size:2.4rem; margin-bottom:10px; display:block;
   color: var(--accent,#2563eb);
 }
-.type-tile .tile-label { font-size:.88rem; font-weight:700; color:#1e293b; }
-.type-tile .tile-sub   { font-size:.7rem;  color:#9ca3af; margin-top:3px; }
+.type-tile .tile-label { font-size:1rem; font-weight:800; color:#1e293b; }
+.type-tile .tile-sub   { font-size:.74rem; color:#94a3b8; margin-top:5px; line-height:1.4; }
 
 /* ── Phase 2 — Wing + Credentials ── */
-#phase2 { padding:18px 22px 16px; display:none; }
+#phase2 { padding:24px 32px 26px; display:none; }
 
-/* Wing tiles (student only) */
-.wing-tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-bottom:14px; }
+/* Wing tiles */
+.wing-section-label {
+  font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.6px;
+  color:#94a3b8; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.wing-section-label::after { content:''; flex:1; height:1px; background:#e5e7eb; }
+
+.wing-tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
 .wing-tile {
-  border:2px solid #e5e7eb; border-radius:9px;
-  padding:10px 6px; text-align:center; cursor:pointer;
-  transition:border-color .2s, background .2s;
-  background:#fafafa;
+  border:2px solid #e5e7eb; border-radius:11px;
+  padding:14px 8px 12px; text-align:center; cursor:pointer;
+  transition:border-color .2s, background .2s, box-shadow .2s;
+  background:#fafafa; user-select:none;
 }
-.wing-tile.active { border-color: var(--accent,#2563eb); background: var(--accent-light,#eff6ff); }
-.wing-tile .wt-icon { font-size:1rem; display:block; margin-bottom:4px; }
-.wing-tile .wt-label { font-size:.72rem; font-weight:700; color:#374151; }
+.wing-tile:hover { border-color:var(--accent,#2563eb); box-shadow:0 3px 12px rgba(37,99,235,.1); }
+.wing-tile.active {
+  border-color:var(--accent,#2563eb);
+  background:var(--accent-light,#eff6ff);
+  box-shadow:0 3px 12px rgba(37,99,235,.12);
+}
+.wing-tile .wt-icon  { font-size:1.5rem; display:block; margin-bottom:6px; }
+.wing-tile .wt-label { font-size:.8rem; font-weight:700; color:#374151; }
 
-/* Section label */
-.sec-label {
-  font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px;
-  color:#9ca3af; margin-bottom:8px; display:flex; align-items:center; gap:6px;
+/* Divider */
+.cred-divider {
+  font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.6px;
+  color:#94a3b8; margin-bottom:14px; display:flex; align-items:center; gap:8px;
 }
-.sec-label::after { content:''; flex:1; height:1px; background:#e5e7eb; }
+.cred-divider::after { content:''; flex:1; height:1px; background:#e5e7eb; }
 
 /* Alert */
-.alert-msg { font-size:.8rem; border-radius:6px; padding:8px 12px; margin-bottom:12px; display:flex; align-items:center; gap:7px; }
+.alert-msg { font-size:.83rem; border-radius:8px; padding:10px 14px; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
 .alert-success-msg { background:#f0fdf4; border:1px solid #86efac; color:#166534; }
 .alert-error-msg   { background:#fef2f2; border:1px solid #fca5a5; color:#991b1b; }
 
 /* Fields */
-.field-group { margin-bottom:10px; }
-.field-group label { display:block; font-size:.75rem; font-weight:600; color:#374151; margin-bottom:4px; }
+.field-group { margin-bottom:14px; }
+.field-group label { display:block; font-size:.8rem; font-weight:600; color:#374151; margin-bottom:5px; }
 .field-group input {
-  width:100%; padding:9px 12px; font-size:.88rem;
-  border:1.5px solid #d5dde8; border-radius:7px; outline:none;
+  width:100%; padding:11px 14px; font-size:.92rem;
+  border:1.5px solid #d5dde8; border-radius:8px; outline:none;
   transition:border-color .2s, box-shadow .2s; color:#1e293b;
 }
 .field-group input:focus { border-color:var(--accent,#2563eb); box-shadow:0 0 0 3px var(--accent-glow,rgba(37,99,235,.12)); }
+.field-group input::placeholder { color:#b0bcc8; }
 
 /* Buttons */
 .btn-login {
-  width:100%; padding:10px;
+  width:100%; padding:13px;
   background: var(--btn-bg, linear-gradient(135deg,#1c3054,#2563eb));
-  border:none; border-radius:8px; color:#fff; font-weight:700; font-size:.9rem;
+  border:none; border-radius:10px; color:#fff; font-weight:700; font-size:.96rem;
   cursor:pointer; transition:opacity .15s, transform .1s;
-  display:flex; align-items:center; justify-content:center; gap:8px;
-  margin-top:14px;
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  margin-top:6px; letter-spacing:.2px;
 }
 .btn-login:hover { opacity:.88; }
 .btn-login:active { transform:scale(.98); }
+
 .btn-back {
-  background:none; border:none; color:#9ca3af; font-size:.78rem;
-  cursor:pointer; display:flex; align-items:center; gap:5px;
-  padding:0; margin-bottom:12px; transition:color .2s;
+  background:none; border:none; color:#94a3b8; font-size:.8rem;
+  cursor:pointer; display:flex; align-items:center; gap:6px;
+  padding:0; margin-bottom:16px; transition:color .2s;
 }
 .btn-back:hover { color:#374151; }
 
 /* Footer */
 .login-footer {
   display:flex; justify-content:space-between; align-items:center;
-  margin-top:10px; padding-top:8px;
-  border-top:1px solid #f1f5f9; font-size:.72rem; color:#9ca3af;
+  margin-top:14px; padding-top:12px;
+  border-top:1px solid #f1f5f9; font-size:.75rem; color:#9ca3af;
 }
 .login-footer a { color:#6b7280; text-decoration:none; }
 .login-footer a:hover { color:var(--accent,#2563eb); }
 
 /* Cred helper */
 .cred-toggle {
-  width:100%; margin-top:8px; background:none;
-  border:1px dashed #d1d5db; border-radius:7px;
-  padding:5px 10px; font-size:.72rem; color:#9ca3af;
+  width:100%; margin-top:10px; background:none;
+  border:1px dashed #d1d5db; border-radius:8px;
+  padding:7px 12px; font-size:.76rem; color:#9ca3af;
   cursor:pointer; text-align:center; transition:border-color .2s, color .2s;
 }
 .cred-toggle:hover { border-color:var(--accent,#2563eb); color:var(--accent,#2563eb); }
-.cred-panel { display:none; margin-top:6px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:8px; padding:9px 11px; font-size:.75rem; }
-.cred-panel .cred-title { font-size:.67rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#9ca3af; margin-bottom:5px; }
-.cred-row { display:flex; align-items:center; gap:7px; padding:4px 7px; border-radius:5px; cursor:pointer; transition:background .15s; margin-bottom:2px; }
+.cred-panel { display:none; margin-top:8px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:9px; padding:10px 13px; }
+.cred-panel .cred-title { font-size:.69rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#9ca3af; margin-bottom:7px; }
+.cred-row { display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:6px; cursor:pointer; transition:background .15s; margin-bottom:2px; }
 .cred-row:hover { background:#e0f2fe; }
-.cred-badge { font-size:.62rem; padding:1px 6px; border-radius:10px; font-weight:700; white-space:nowrap; color:#fff; }
-.cred-id   { font-weight:700; color:#1e293b; font-size:.78rem; }
-.cred-name { color:#6b7280; flex:1; font-size:.74rem; }
-.cred-pass { font-size:.67rem; color:#94a3b8; font-family:monospace; }
+.cred-badge { font-size:.64rem; padding:2px 7px; border-radius:10px; font-weight:700; white-space:nowrap; color:#fff; }
+.cred-id   { font-weight:700; color:#1e293b; font-size:.8rem; min-width:60px; }
+.cred-name { color:#6b7280; flex:1; font-size:.76rem; }
+.cred-pass { font-size:.69rem; color:#94a3b8; font-family:monospace; }
+
+/* ── Responsive ── */
+@media (max-width: 560px) {
+  body { padding: 16px 12px 32px; align-items:flex-start; }
+  .login-card { width:100%; border-radius:14px; }
+  .login-header { padding:22px 20px 18px; border-radius:14px 14px 0 0; }
+  .logo-ring { width:74px; height:74px; }
+  .login-header h1 { font-size:1.15rem; }
+  #phase1 { padding:24px 20px 22px; }
+  #phase2 { padding:20px 20px 22px; }
+  .type-tile { padding:20px 10px 18px; }
+  .type-tile .tile-icon { font-size:2rem; }
+  .type-tile .tile-label { font-size:.9rem; }
+  .wing-tile { padding:11px 6px 10px; }
+  .wing-tile .wt-icon { font-size:1.3rem; }
+  .wing-tile .wt-label { font-size:.74rem; }
+}
+
+@media (max-width: 380px) {
+  .type-tiles { gap:10px; }
+  .wing-tiles  { gap:7px; }
+  .type-tile .tile-icon { font-size:1.7rem; margin-bottom:8px; }
+}
 </style>
 </head>
 <body>
@@ -315,7 +352,7 @@ html, body {
 
       <!-- Wing tiles — only for students -->
       <div id="wingSection" style="display:none">
-        <div class="sec-label">Select Wing</div>
+        <div class="wing-section-label">Select Wing</div>
         <div class="wing-tiles">
           <div class="wing-tile active" id="wt-main"        onclick="selectWing('main')">
             <span class="wt-icon">🏫</span>
@@ -333,7 +370,7 @@ html, body {
       </div>
 
       <!-- Credentials form -->
-      <div class="sec-label" id="credLabel">Enter Credentials</div>
+      <div class="cred-divider">Enter Credentials</div>
 
       <form method="POST" id="loginForm">
         <input type="hidden" name="wing"      id="wingHidden"     value="main">
