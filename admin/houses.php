@@ -9,6 +9,10 @@ $db   = getDB();
 
 // ── POST Handlers ─────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try { $db->query('SELECT 1 FROM houses LIMIT 0'); } catch (PDOException $e) {
+        setFlash('danger', 'Houses table does not exist yet. Run houses-migration.sql first.');
+        redirect('/admin/houses.php');
+    }
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add') {
@@ -65,13 +69,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // ── Fetch houses with student counts ─────────────────────────────
-$houses = $db->query(
-    'SELECT h.*, COUNT(s.id) AS student_count
-     FROM houses h
-     LEFT JOIN students s ON s.house_id = h.id
-     GROUP BY h.id
-     ORDER BY h.name'
-)->fetchAll();
+$houses        = [];
+$tablesMissing = false;
+try {
+    $houses = $db->query(
+        'SELECT h.*, COUNT(s.id) AS student_count
+         FROM houses h
+         LEFT JOIN students s ON s.house_id = h.id
+         GROUP BY h.id
+         ORDER BY h.name'
+    )->fetchAll();
+} catch (PDOException $e) {
+    $tablesMissing = true;
+}
 
 pageHead('Houses', 'admin');
 $links = getAdminLinks();
@@ -84,6 +94,33 @@ $links = getAdminLinks();
 <?php topbar('Houses', $user); ?>
 <div class="page-content">
 <?= flashHtml() ?>
+
+<?php if ($tablesMissing): ?>
+<div class="alert alert-warning d-flex gap-3 align-items-start" style="border-radius:8px">
+  <i class="fas fa-database fa-lg mt-1"></i>
+  <div>
+    <strong>Database table missing.</strong>
+    The <code>houses</code> table has not been created yet. Run the migration below in phpMyAdmin
+    (<strong>SQL</strong> tab) and then refresh this page.
+    <pre class="mt-2 mb-0 p-2" style="background:#f8fafc;border-radius:6px;font-size:.8rem;border:1px solid #e5e7eb">USE bmc_portal;
+
+CREATE TABLE IF NOT EXISTS houses (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  color VARCHAR(20) NOT NULL DEFAULT '#3b82f6',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+ALTER TABLE students ADD COLUMN IF NOT EXISTS house_id INT NULL,
+  ADD CONSTRAINT fk_student_house FOREIGN KEY (house_id) REFERENCES houses(id) ON DELETE SET NULL;
+
+INSERT IGNORE INTO houses (id, name, color) VALUES
+  (1,'Allama Iqbal','#3b82f6'),(2,'Quaid-e-Azam','#22c55e'),
+  (3,'Fatima Jinnah','#f97316'),(4,'Sir Syed','#a855f7');</pre>
+    <div class="mt-2" style="font-size:.82rem">Or import <strong>database/houses-migration.sql</strong> from the project folder.</div>
+  </div>
+</div>
+<?php endif; ?>
 
 <div class="row g-3">
 
