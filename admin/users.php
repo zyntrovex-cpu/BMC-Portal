@@ -170,6 +170,33 @@ $page       = max(1, (int)($_GET['page'] ?? 1));
 $perPage    = 20;
 $offset     = ($page - 1) * $perPage;
 
+// Detect whether wing columns exist (wing-migration.sql may not have been run yet)
+$hasWingCol = false;
+try { $db->query('SELECT wing FROM classes LIMIT 0'); $hasWingCol = true; } catch (Exception $e) {}
+
+// Detect is_ilc / is_montessori as fallback
+$hasIlcCol  = false;
+$hasMonCol  = false;
+if (!$hasWingCol) {
+    try { $db->query('SELECT is_ilc FROM classes LIMIT 0');       $hasIlcCol = true; } catch (Exception $e) {}
+    try { $db->query('SELECT is_montessori FROM classes LIMIT 0'); $hasMonCol = true; } catch (Exception $e) {}
+}
+
+// Wing expression used in SELECT and WHERE
+if ($hasWingCol) {
+    $wingExpr = "CASE WHEN u.role='student' THEN COALESCE(c.wing,'main')
+                      WHEN u.role='teacher' THEN COALESCE(t.wing,'main')
+                      ELSE 'main' END";
+} elseif ($hasIlcCol) {
+    $ilcPart  = "WHEN COALESCE(c.is_ilc,0)=1 THEN 'ilc'" . ($hasMonCol ? " WHEN COALESCE(c.is_montessori,0)=1 THEN 'montessori'" : '');
+    $wingExpr = "CASE WHEN u.role='student' THEN (CASE $ilcPart ELSE 'main' END)
+                      WHEN u.role='teacher' THEN (CASE WHEN COALESCE(t.is_ilc,0)=1 THEN 'ilc' ELSE 'main' END)
+                      ELSE 'main' END";
+} else {
+    $wingExpr  = "'main'";
+    $wingFilter = ''; // can't filter by wing with no column data
+}
+
 $whereParts = [];
 $params     = [];
 if ($roleFilter) {
@@ -177,7 +204,7 @@ if ($roleFilter) {
     $params[]     = $roleFilter;
 }
 if ($wingFilter) {
-    $whereParts[] = "(CASE WHEN u.role='student' THEN COALESCE(c.wing,'main') WHEN u.role='teacher' THEN COALESCE(t.wing,'main') ELSE 'main' END) = ?";
+    $whereParts[] = "($wingExpr) = ?";
     $params[]     = $wingFilter;
 }
 $whereSQL = $whereParts ? ('WHERE ' . implode(' AND ', $whereParts)) : '';
@@ -195,10 +222,7 @@ $pages = (int)ceil($total / $perPage);
 
 $usersSt = $db->prepare(
     "SELECT u.*, c.name AS class_name,
-            CASE WHEN u.role='student' THEN COALESCE(c.wing,'main')
-                 WHEN u.role='teacher' THEN COALESCE(t.wing,'main')
-                 ELSE 'main'
-            END AS user_wing
+            ($wingExpr) AS user_wing
      FROM users u
      LEFT JOIN students s ON s.user_id = u.id AND u.role = 'student'
      LEFT JOIN classes c  ON c.id = s.class_id
