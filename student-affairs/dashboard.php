@@ -7,6 +7,7 @@ require_once __DIR__ . '/../config/config.php';
 $user = requireAuth('student_affairs');
 $db   = getDB();
 
+$totalStudents = (int)$db->query("SELECT COUNT(*) FROM users WHERE role='student' AND status='active'")->fetchColumn();
 $pending  = (int)$db->query('SELECT COUNT(*) FROM admission_requests WHERE status="pending"')->fetchColumn();
 $reviewed = (int)$db->query('SELECT COUNT(*) FROM admission_requests WHERE status="reviewed"')->fetchColumn();
 $approved = (int)$db->query('SELECT COUNT(*) FROM admission_requests WHERE status="approved"')->fetchColumn();
@@ -51,7 +52,14 @@ $links = getStudentAffairsLinks();
 </div>
 
 <div class="row g-3 mb-4">
-  <div class="col-6 col-lg-3">
+  <div class="col-6 col-lg-2">
+    <a href="<?= url('/student-affairs/students.php') ?>" class="stat-card text-decoration-none d-block">
+      <div class="stat-icon" style="background:#ede9fe;color:#7c3aed"><i class="fas fa-user-graduate"></i></div>
+      <div class="stat-val" style="color:#7c3aed"><?= $totalStudents ?></div>
+      <div class="stat-lbl">Students</div>
+    </a>
+  </div>
+  <div class="col-6 col-lg-2">
     <div class="stat-card">
       <div class="stat-icon" style="background:#fef3c7;color:#d97706"><i class="fas fa-clock"></i></div>
       <div class="stat-val" style="color:#d97706"><?= $pending ?></div>
@@ -65,7 +73,7 @@ $links = getStudentAffairsLinks();
       <div class="stat-lbl">Reviewed</div>
     </div>
   </div>
-  <div class="col-6 col-lg-3">
+  <div class="col-6 col-lg-2">
     <div class="stat-card">
       <div class="stat-icon" style="background:#d1fae5;color:#059669"><i class="fas fa-check-circle"></i></div>
       <div class="stat-val" style="color:#059669"><?= $approved ?></div>
