@@ -150,9 +150,9 @@ function viewAsBanner(): void {
         'vp_main' => $base . '/vp/exit-view-as.php',
         default   => $base . '/admin/exit-view-as.php',
     };
-    $roleLabelsB = ['student_affairs'=>'Student Affairs','ilc_vp'=>'VP ILC','admin'=>'Admin','teacher'=>'Teacher','finance'=>'Finance'];
-    $rLabel      = $roleLabelsB[$u['role'] ?? ''] ?? ucfirst($u['role'] ?? '');
-    echo '<div style="background:#f59e0b;color:#1c1c1c;padding:8px 20px;font-size:.82rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;z-index:1100;position:relative">
+    $roleLabelsB = ['student'=>'Student','teacher'=>'Teacher','admin'=>'Admin','finance'=>'Finance','ilc_vp'=>'ILC VP','student_affairs'=>'Student Affairs','vp_main'=>'VP Main','wing_head'=>'Wing Head'];
+    $rLabel      = $roleLabelsB[$u['role'] ?? ''] ?? ucfirst(str_replace('_', ' ', $u['role'] ?? ''));
+    echo '<div style="background:#f59e0b;color:#1c1c1c;padding:8px 20px;font-size:.82rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;z-index:1100;position:sticky;top:0">
       <i class="fas fa-eye"></i>
       <span>Preview Mode — viewing as <strong>' . htmlspecialchars($u['name'] ?? '') . '</strong>
             (' . htmlspecialchars($u['user_id'] ?? '') . ' / ' . $rLabel . ')</span>

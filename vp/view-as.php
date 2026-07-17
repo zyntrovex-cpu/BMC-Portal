@@ -7,9 +7,17 @@ require_once __DIR__ . '/../config/config.php';
 $user = requireAuth('vp_main');
 $db   = getDB();
 
+// Detect whether is_ilc column exists on classes
+$hasIlcCol = false;
+try { $db->query('SELECT is_ilc FROM classes LIMIT 0'); $hasIlcCol = true; } catch (Exception $e) {}
+
+// Exclude ILC students if the column exists; otherwise show all students
+$ilcExclusion = $hasIlcCol ? ' AND (u.role != "student" OR c.is_ilc = 0)' : '';
+
 // ── Start impersonation ───────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['target_id'])) {
-    $targetId = (int)$_POST['target_id'];
+    $targetId  = (int)$_POST['target_id'];
+    $returnUrl = $_POST['return_url'] ?? '';
 
     $st = $db->prepare(
         'SELECT id, user_id, name, email, role, status
@@ -20,9 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['target_id'])) {
     $target = $st->fetch();
 
     if ($target) {
-        $_SESSION['admin_backup'] = $_SESSION['user'];
-        $_SESSION['view_as_mode'] = true;
-        $_SESSION['user']         = $target;
+        $_SESSION['admin_backup']   = $_SESSION['user'];
+        $_SESSION['view_as_mode']   = true;
+        $_SESSION['view_as_return'] = $returnUrl ?: (BASE_URL . '/vp/view-as.php');
+        $_SESSION['user']           = $target;
 
         $dest = match($target['role']) {
             'teacher'   => BASE_URL . '/teacher/dashboard.php',
@@ -45,8 +54,7 @@ $sql = 'SELECT u.id, u.user_id, u.name, u.role, u.email, u.status,
         LEFT JOIN students s ON s.user_id = u.id AND u.role = "student"
         LEFT JOIN classes c  ON c.id = s.class_id
         WHERE u.status = "active"
-          AND u.role IN ("student","teacher","wing_head")
-          AND (u.role != "student" OR c.is_ilc = 0)';
+          AND u.role IN ("student","teacher","wing_head")' . $ilcExclusion;
 $params = [];
 
 if ($roleFilter && in_array($roleFilter, ['student','teacher','wing_head'])) {
@@ -59,9 +67,15 @@ if ($search) {
 }
 $sql .= ' ORDER BY u.role, c.name, u.name';
 
-$st = $db->prepare($sql);
-$st->execute($params);
-$viewUsers = $st->fetchAll();
+$viewUsers   = [];
+$queryFailed = false;
+try {
+    $st = $db->prepare($sql);
+    $st->execute($params);
+    $viewUsers = $st->fetchAll();
+} catch (PDOException $e) {
+    $queryFailed = true;
+}
 
 pageHead('View As User — VP', 'vp_main');
 $links = getVpLinks();
@@ -75,9 +89,9 @@ $links = getVpLinks();
 <div class="page-content">
 <?= flashHtml() ?>
 
-<div class="alert alert-info d-flex gap-2" style="font-size:.86rem;border-radius:8px">
+<div class="alert alert-info d-flex gap-2 align-items-start" style="font-size:.86rem;border-radius:8px">
   <i class="fas fa-eye mt-1"></i>
-  <div><strong>VP Portal Preview</strong> — View wing heads, teachers, or students' portals exactly as they see them. Yellow banner appears — click <em>Exit Preview</em> to return.</div>
+  <div><strong>VP Portal Preview</strong> — View wing heads, teachers, or students' portals exactly as they see them. A yellow banner will appear — click <em>Exit Preview</em> to return here.</div>
 </div>
 
 <div class="sec-card">
@@ -96,7 +110,12 @@ $links = getVpLinks();
     </form>
   </div>
 
-  <?php if (empty($viewUsers)): ?>
+  <?php if ($queryFailed): ?>
+  <div class="p-4 text-center text-danger">
+    <i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>
+    Query failed — a required database column may be missing. Contact admin.
+  </div>
+  <?php elseif (empty($viewUsers)): ?>
   <div style="padding:40px;text-align:center;color:var(--t2)">No users found.</div>
   <?php else: ?>
   <div class="table-responsive">
@@ -116,6 +135,7 @@ $links = getVpLinks();
           <td>
             <form method="POST" class="d-inline">
               <input type="hidden" name="target_id" value="<?= $u['id'] ?>">
+              <input type="hidden" name="return_url" value="<?= h(url('/vp/view-as.php') . ($_SERVER['QUERY_STRING'] ? '?'.$_SERVER['QUERY_STRING'] : '')) ?>">
               <button type="submit" class="btn btn-sm btn-primary" style="font-size:.78rem;padding:3px 10px">
                 <i class="fas fa-eye me-1"></i>View Portal
               </button>
