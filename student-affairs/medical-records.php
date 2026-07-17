@@ -5,6 +5,7 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../config/config.php';
 
 $user = requireAuth('student_affairs');
+requirePermission('sa_medical');
 $db   = getDB();
 
 // ── Handle add / delete ───────────────────────────────────────────

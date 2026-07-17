@@ -5,6 +5,7 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../config/config.php';
 
 $user = requireAuth('vp_main');
+requirePermission('vp_timetable');
 $db   = getDB();
 
 $classId  = (int)($_GET['class_id'] ?? 0);

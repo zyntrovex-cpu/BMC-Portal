@@ -5,6 +5,7 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../config/config.php';
 
 $user    = requireAuth('finance');
+requirePermission('fee_defaulters');
 $db      = getDB();
 $classId = (int)($_GET['class_id'] ?? 0);
 $minUnpaid = max(1, (int)($_GET['min_unpaid'] ?? 1));
@@ -38,14 +39,7 @@ $defaultersSt->execute(array_merge($params, [$minUnpaid]));
 $defaulters = $defaultersSt->fetchAll();
 
 pageHead('Defaulters', 'finance');
-$links = [
-    ['href'=>'/finance/dashboard.php','icon'=>'<i class="fas fa-home"></i>','label'=>'Dashboard','key'=>'dashboard'],
-    ['href'=>'/finance/collection.php','icon'=>'<i class="fas fa-hand-holding-usd"></i>','label'=>'Fee Collection','key'=>'collection'],
-    ['href'=>'/finance/monthly.php','icon'=>'<i class="fas fa-calendar-alt"></i>','label'=>'Monthly Report','key'=>'monthly'],
-    ['href'=>'/finance/records.php','icon'=>'<i class="fas fa-file-invoice-dollar"></i>','label'=>'Fee Records','key'=>'records'],
-    ['href'=>'/finance/defaulters.php','icon'=>'<i class="fas fa-exclamation-triangle"></i>','label'=>'Defaulters','key'=>'defaulters'],
-    ['href'=>'/finance/reports.php','icon'=>'<i class="fas fa-chart-pie"></i>','label'=>'Reports','key'=>'reports'],
-];
+$links = getFinanceLinks();
 ?>
 <div class="portal-wrap">
 <?php sidebar('finance', 'defaulters', $links, $user); ?>

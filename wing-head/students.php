@@ -5,6 +5,7 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../config/config.php';
 
 $user = requireAuth('wing_head');
+requirePermission('wh_students');
 $db   = getDB();
 
 // ── Update student category ───────────────────────────────────────

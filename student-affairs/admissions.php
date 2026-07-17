@@ -5,6 +5,7 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../config/config.php';
 
 $user = requireAuth('student_affairs');
+requirePermission('sa_admissions');
 $db   = getDB();
 
 // ── Handle status update ──────────────────────────────────────────

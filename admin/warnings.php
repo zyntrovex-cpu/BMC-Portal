@@ -9,6 +9,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 if (empty($_SESSION['user'])) redirect('/index.php');
 $user = $_SESSION['user'];
 if (!in_array($user['role'], ['admin', 'teacher'])) redirect('/index.php?msg=unauthorized');
+if ($user['role'] === 'teacher') requirePermission('warnings');
 
 $db = getDB();
 

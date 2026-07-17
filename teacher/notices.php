@@ -5,6 +5,7 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../config/config.php';
 
 $user    = requireAuth('teacher');
+requirePermission('notices');
 $notices = getNoticesForPortal('teacher');
 $cat     = $_GET['cat'] ?? '';
 $q       = trim($_GET['q'] ?? '');

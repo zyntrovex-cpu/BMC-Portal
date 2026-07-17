@@ -2,6 +2,24 @@
 // Shared layout helpers
 
 function pageHead(string $title, string $portal = ''): void {
+    // Load user permissions into session once per login session.
+    // Skipped for admin (always full access) and when table doesn't exist yet.
+    if (!empty($_SESSION['user']) && ($_SESSION['user']['role'] ?? '') !== 'admin') {
+        $uid = $_SESSION['user']['id'] ?? 0;
+        if (!isset($_SESSION['_perms_uid']) || $_SESSION['_perms_uid'] !== $uid) {
+            try {
+                $db = getDB();
+                $st = $db->prepare('SELECT permission, granted FROM user_permissions WHERE user_id = ?');
+                $st->execute([$uid]);
+                $rows = $st->fetchAll(PDO::FETCH_KEY_PAIR);
+                $_SESSION['user_perms'] = $rows ?: null;
+            } catch (Exception $e) {
+                $_SESSION['user_perms'] = null; // table not created yet — full access
+            }
+            $_SESSION['_perms_uid'] = $uid;
+        }
+    }
+
     $accents = [
         'student'         => '#1d4ed8',
         'teacher'         => '#059669',

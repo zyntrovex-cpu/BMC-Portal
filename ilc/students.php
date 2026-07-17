@@ -5,6 +5,7 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../config/config.php';
 
 $user = requireAuth('ilc_vp');
+requirePermission('ilc_students');
 $db   = getDB();
 
 $catFilter = (int)($_GET['cat'] ?? 0);

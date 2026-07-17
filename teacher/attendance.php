@@ -5,6 +5,7 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../config/config.php';
 
 $user    = requireAuth('teacher');
+requirePermission('attendance');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
 if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/index.php'); }

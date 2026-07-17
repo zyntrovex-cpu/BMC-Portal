@@ -72,6 +72,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $sent = sendMail($email, $name, 'Welcome to BMC Portal — Set Your Password', $body);
                 }
 
+                // Seed default permissions (all granted) for roles that have them
+                $rolePermsNew = getRolePermissions($role);
+                if ($rolePermsNew) {
+                    try {
+                        $insP = $db->prepare('INSERT IGNORE INTO user_permissions (user_id, permission, granted) VALUES (?,?,1)');
+                        foreach ($rolePermsNew as $perm => $def) { $insP->execute([$newId, $perm]); }
+                    } catch (Exception $e) {}
+                }
+
                 logActivity($user['id'], 'user_create', "Created $userId ($role)");
 
                 if ($sent) {
@@ -100,6 +109,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare('DELETE FROM users WHERE id = ?')->execute([$id]);
             logActivity($user['id'], 'user_delete', "Deleted user #$id");
             setFlash('success', 'User deleted.');
+        }
+    }
+
+    if ($action === 'edit_user') {
+        $id      = (int)$_POST['id'];
+        $name    = trim($_POST['name']  ?? '');
+        $email   = trim($_POST['email'] ?? '');
+        $uRole   = $_POST['role']       ?? '';
+
+        if ($id && $name) {
+            $db->prepare('UPDATE users SET name=?, email=? WHERE id=?')
+               ->execute([$name, $email ?: null, $id]);
+
+            if ($uRole === 'student' && isset($_POST['class_id'])) {
+                $cId = (int)$_POST['class_id'] ?: null;
+                $db->prepare('UPDATE students SET class_id=? WHERE user_id=?')->execute([$cId, $id]);
+            }
+
+            // Save permissions if role has them
+            $rolePerms = getRolePermissions($uRole);
+            if ($rolePerms) {
+                try {
+                    $db->prepare('DELETE FROM user_permissions WHERE user_id=?')->execute([$id]);
+                    $ins        = $db->prepare('INSERT INTO user_permissions (user_id, permission, granted) VALUES (?,?,?)');
+                    $submitted  = $_POST['perms'] ?? [];
+                    foreach ($rolePerms as $perm => $def) {
+                        $ins->execute([$id, $perm, isset($submitted[$perm]) ? 1 : 0]);
+                    }
+                    // Flush session cache for this user if they are logged in right now
+                    if (isset($_SESSION['_perms_uid']) && (int)$_SESSION['_perms_uid'] === $id) {
+                        unset($_SESSION['user_perms'], $_SESSION['_perms_uid']);
+                    }
+                } catch (Exception $e) { /* permissions table may not exist yet */ }
+            }
+
+            logActivity($user['id'], 'user_edit', "Edited user #$id ($uRole)");
+            setFlash('success', 'User updated successfully.');
+        } else {
+            setFlash('danger', 'Name is required.');
         }
     }
 
@@ -415,7 +463,13 @@ $links = getAdminLinks();
           <td><span class="badge <?= $u['status']==='active'?'bg-success':'bg-danger' ?>"><?= $u['status'] ?></span></td>
           <td style="font-size:.78rem"><?= $u['last_login'] ? fDate($u['last_login']) : '—' ?></td>
           <td>
-            <?php if (in_array($u['role'], ['student','teacher']) && $u['status']==='active'): ?>
+            <!-- Edit (name/email/class + permissions) -->
+            <button class="btn btn-xs btn-outline-secondary" style="font-size:.74rem;padding:2px 7px"
+                    data-bs-toggle="modal" data-bs-target="#editUserModal<?= $u['id'] ?>" title="Edit user &amp; permissions">
+              <i class="fas fa-edit"></i>
+            </button>
+            <!-- View Portal -->
+            <?php if ($u['role'] !== 'admin' && $u['status']==='active'): ?>
             <form method="POST" action="<?= url('/admin/view-as.php') ?>" class="d-inline">
               <input type="hidden" name="target_id" value="<?= $u['id'] ?>">
               <button class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px" title="View their portal">
@@ -423,25 +477,121 @@ $links = getAdminLinks();
               </button>
             </form>
             <?php endif; ?>
+            <!-- Toggle status -->
             <form method="POST" class="d-inline">
               <input type="hidden" name="action" value="toggle_status">
               <input type="hidden" name="id" value="<?= $u['id'] ?>">
-              <button class="btn btn-xs btn-outline-<?= $u['status']==='active'?'warning':'success' ?>" style="font-size:.74rem;padding:2px 7px"><?= $u['status']==='active'?'Deactivate':'Activate' ?></button>
+              <button class="btn btn-xs btn-outline-<?= $u['status']==='active'?'warning':'success' ?>" style="font-size:.74rem;padding:2px 7px"
+                      title="<?= $u['status']==='active'?'Deactivate':'Activate' ?>"><?= $u['status']==='active'?'Off':'On' ?></button>
             </form>
             <?php if ($u['id'] !== $user['id']): ?>
             <form method="POST" class="d-inline" onsubmit="return confirm('Send password reset link to this user?')">
               <input type="hidden" name="action" value="send_reset_link">
               <input type="hidden" name="id" value="<?= $u['id'] ?>">
-              <button class="btn btn-xs btn-outline-info" style="font-size:.74rem;padding:2px 7px">Reset Pwd</button>
+              <button class="btn btn-xs btn-outline-info" style="font-size:.74rem;padding:2px 7px" title="Reset password">
+                <i class="fas fa-key"></i>
+              </button>
             </form>
-            <form method="POST" class="d-inline" onsubmit="return confirm('Delete user?')">
+            <form method="POST" class="d-inline" onsubmit="return confirm('Delete user permanently?')">
               <input type="hidden" name="action" value="delete_user">
               <input type="hidden" name="id" value="<?= $u['id'] ?>">
-              <button class="btn btn-xs btn-outline-danger" style="font-size:.74rem;padding:2px 7px">Del</button>
+              <button class="btn btn-xs btn-outline-danger" style="font-size:.74rem;padding:2px 7px" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
             </form>
             <?php endif; ?>
           </td>
         </tr>
+
+        <!-- ── Edit + Permissions Modal ────────────────────────────── -->
+        <div class="modal fade" id="editUserModal<?= $u['id'] ?>" tabindex="-1">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header py-2" style="background:#f8fafc">
+                <h6 class="modal-title fw-semibold">
+                  <i class="fas fa-user-edit me-2 text-primary"></i>Edit — <?= h($u['name']) ?>
+                  <span class="badge bg-secondary ms-1" style="font-size:.7rem"><?= h($u['role']) ?></span>
+                </h6>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+              </div>
+              <form method="POST">
+                <input type="hidden" name="action" value="edit_user">
+                <input type="hidden" name="id"     value="<?= $u['id'] ?>">
+                <input type="hidden" name="role"   value="<?= h($u['role']) ?>">
+                <div class="modal-body">
+
+                  <!-- Basic info -->
+                  <p class="mb-2 fw-semibold text-muted" style="font-size:.78rem;text-transform:uppercase;letter-spacing:.5px">Basic Information</p>
+                  <div class="row g-2 mb-3">
+                    <div class="col-md-5">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Full Name <span class="text-danger">*</span></label>
+                      <input type="text" name="name" class="form-control form-control-sm"
+                             value="<?= h($u['name']) ?>" required>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Email</label>
+                      <input type="email" name="email" class="form-control form-control-sm"
+                             value="<?= h($u['email'] ?? '') ?>">
+                    </div>
+                    <?php if ($u['role'] === 'student'): ?>
+                    <div class="col-md-3">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Class</label>
+                      <select name="class_id" class="form-select form-select-sm">
+                        <option value="">— None —</option>
+                        <?php foreach ($classes as $c): ?>
+                        <option value="<?= $c['id'] ?>" <?= ($u['class_name'] && $c['name']===$u['class_name'])?'selected':'' ?>><?= h($c['name']) ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                    </div>
+                    <?php endif; ?>
+                  </div>
+
+                  <!-- Permissions (only for roles that have them) -->
+                  <?php
+                    $rolePermsModal = getRolePermissions($u['role']);
+                    if ($rolePermsModal):
+                      $userPermsModal = [];
+                      try {
+                          $mst = $db->prepare('SELECT permission, granted FROM user_permissions WHERE user_id=?');
+                          $mst->execute([$u['id']]);
+                          $userPermsModal = $mst->fetchAll(PDO::FETCH_KEY_PAIR);
+                      } catch (Exception $e) {}
+                  ?>
+                  <hr class="my-2">
+                  <p class="mb-2 fw-semibold text-muted" style="font-size:.78rem;text-transform:uppercase;letter-spacing:.5px">
+                    <i class="fas fa-lock me-1"></i>Access Permissions
+                  </p>
+                  <div class="row g-2">
+                    <?php foreach ($rolePermsModal as $pKey => $pDef): ?>
+                    <div class="col-md-4 col-6">
+                      <div class="form-check" style="padding:6px 8px;border-radius:6px;background:#f8fafc;border:1px solid #e5e7eb">
+                        <input class="form-check-input" type="checkbox"
+                               name="perms[<?= $pKey ?>]" id="perm_<?= $u['id'] ?>_<?= $pKey ?>"
+                               value="1" <?= (bool)($userPermsModal[$pKey] ?? true) ? 'checked' : '' ?>>
+                        <label class="form-check-label" for="perm_<?= $u['id'] ?>_<?= $pKey ?>" style="font-size:.82rem;cursor:pointer">
+                          <i class="fas <?= $pDef['icon'] ?> me-1" style="font-size:.72rem;color:#9ca3af"></i><?= h($pDef['label']) ?>
+                        </label>
+                      </div>
+                    </div>
+                    <?php endforeach; ?>
+                  </div>
+                  <div class="mt-2" style="font-size:.74rem;color:#9ca3af">
+                    <i class="fas fa-info-circle me-1"></i>Unchecked items are hidden from the user's sidebar and blocked at the page level.
+                  </div>
+                  <?php endif; ?>
+
+                </div>
+                <div class="modal-footer py-2">
+                  <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fas fa-save me-1"></i>Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
         <?php endforeach; ?>
       </tbody>
     </table>
