@@ -52,7 +52,7 @@ $allStudents = $db->query(
 )->fetchAll();
 
 // Records to show
-$sql = 'SELECT mr.*, u.name AS student_name, su.user_id AS roll_no, c.name AS class_name,
+$sql = 'SELECT mr.*, u.name AS student_name, u.user_id AS roll_no, c.name AS class_name,
                ru.name AS recorded_by_name
         FROM medical_records mr
         JOIN students s  ON s.id = mr.student_id
