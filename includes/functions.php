@@ -185,11 +185,15 @@ function getRolePermissions(string $role): array {
             'fee_reports'    => ['label' => 'Fee Reports',     'icon' => 'fa-chart-pie'],
         ],
         'ilc_vp' => [
-            'ilc_students'     => ['label' => 'ILC Students',       'icon' => 'fa-user-graduate'],
-            'ilc_teachers'     => ['label' => 'ILC Teachers',       'icon' => 'fa-chalkboard-teacher'],
-            'ilc_disabilities' => ['label' => 'Disability Records', 'icon' => 'fa-heartbeat'],
-            'ilc_admissions'   => ['label' => 'Admission Requests', 'icon' => 'fa-file-medical-alt'],
-            'ilc_viewas'       => ['label' => 'View As User',       'icon' => 'fa-eye'],
+            'ilc_students'     => ['label' => 'ILC Students',         'icon' => 'fa-user-graduate'],
+            'ilc_teachers'     => ['label' => 'ILC Teachers',         'icon' => 'fa-chalkboard-teacher'],
+            'ilc_disabilities' => ['label' => 'Disability Records',   'icon' => 'fa-heartbeat'],
+            'ilc_admissions'   => ['label' => 'Admission Requests',   'icon' => 'fa-file-medical-alt'],
+            'ilc_records'      => ['label' => 'Session Records',      'icon' => 'fa-folder-open'],
+            'ilc_attendance'   => ['label' => 'ILC Attendance',       'icon' => 'fa-calendar-check'],
+            'ilc_results'      => ['label' => 'ILC Results',          'icon' => 'fa-chart-bar'],
+            'ilc_timetable'    => ['label' => 'ILC Timetable',        'icon' => 'fa-table'],
+            'ilc_viewas'       => ['label' => 'View As User',         'icon' => 'fa-eye'],
         ],
         'student_affairs' => [
             'sa_students'   => ['label' => 'Student Management',  'icon' => 'fa-user-graduate'],
@@ -303,6 +307,10 @@ function getIlcLinks(): array {
         hasPermission('ilc_teachers')     ? ['href'=>'/ilc/teachers.php',           'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'ILC Teachers',       'key'=>'teachers']     : null,
         hasPermission('ilc_disabilities') ? ['href'=>'/ilc/disabilities.php',       'icon'=>'<i class="fas fa-heartbeat"></i>',          'label'=>'Disability Records', 'key'=>'disabilities'] : null,
         hasPermission('ilc_admissions')   ? ['href'=>'/ilc/admission-requests.php', 'icon'=>'<i class="fas fa-file-medical-alt"></i>',   'label'=>'Admission Requests', 'key'=>'admissions']   : null,
+        hasPermission('ilc_records')      ? ['href'=>'/ilc/records.php',            'icon'=>'<i class="fas fa-folder-open"></i>',        'label'=>'Session Records',    'key'=>'records']      : null,
+        hasPermission('ilc_attendance')   ? ['href'=>'/ilc/attendance.php',         'icon'=>'<i class="fas fa-calendar-check"></i>',     'label'=>'ILC Attendance',     'key'=>'attendance']   : null,
+        hasPermission('ilc_results')      ? ['href'=>'/ilc/results.php',            'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'ILC Results',        'key'=>'results']      : null,
+        hasPermission('ilc_timetable')    ? ['href'=>'/ilc/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',              'label'=>'ILC Timetable',      'key'=>'timetable']    : null,
         hasPermission('ilc_viewas')       ? ['href'=>'/ilc/view-as.php',            'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',       'key'=>'viewas']       : null,
     ]));
 }
