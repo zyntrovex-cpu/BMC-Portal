@@ -86,11 +86,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $db->prepare('UPDATE users SET name=?, email=? WHERE id=?')
            ->execute([$name, $email ?: null, $uid]);
 
+        $houseId   = (int)($_POST['house_id'] ?? 0) ?: null;
         $setParts  = ['roll_no=?', 'class_id=?', 'gender=?', 'cnic=?', 'phone=?', 'address=?', 'parent_phone=?'];
         $setVals   = [$rollNo ?: null, $classId, ($gender ?: null), ($cnic ?: null), ($phone ?: null), ($address ?: null), ($parentPhone ?: null)];
         if ($dob) { $setParts[] = 'dob=?'; $setVals[] = $dob; }
         if ($hasFatherName)  { $setParts[] = 'father_name=?';  $setVals[] = $fatherName  ?: null; }
         if ($hasParentEmail) { $setParts[] = 'parent_email=?'; $setVals[] = $parentEmail ?: null; }
+        if ($hasHouseId)     { $setParts[] = 'house_id=?';     $setVals[] = $houseId; }
         $setVals[] = $studentId;
 
         $db->prepare('UPDATE students SET ' . implode(',', $setParts) . ' WHERE id=?')
@@ -176,7 +178,7 @@ $whereSQL = 'WHERE ' . implode(' AND ', $where);
 
 $fatherCol   = $hasFatherName  ? ', s.father_name'  : '';
 $parentECol  = $hasParentEmail ? ', s.parent_email'  : '';
-$houseCol    = $hasHouseId     ? ', h.name AS house_name' : '';
+$houseCol    = $hasHouseId     ? ', s.house_id, h.name AS house_name' : '';
 $houseJoin   = $hasHouseId     ? 'LEFT JOIN houses h ON h.id = s.house_id' : '';
 
 $totalSt = $db->prepare("SELECT COUNT(*) FROM users u JOIN students s ON s.user_id=u.id LEFT JOIN classes c ON c.id=s.class_id $whereSQL");
@@ -519,6 +521,19 @@ $links = getStudentAffairsLinks();
                       <label class="form-label fw-semibold" style="font-size:.82rem">Parent Email</label>
                       <input type="email" name="parent_email" class="form-control form-control-sm"
                              value="<?= h($s['parent_email'] ?? '') ?>">
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($hasHouseId && !empty($houses)): ?>
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">House</label>
+                      <select name="house_id" class="form-select form-select-sm">
+                        <option value="">— No house —</option>
+                        <?php foreach ($houses as $h): ?>
+                        <option value="<?= $h['id'] ?>" <?= (($s['house_id'] ?? 0) == $h['id']) ? 'selected' : '' ?>>
+                          <?= htmlspecialchars($h['name']) ?>
+                        </option>
+                        <?php endforeach; ?>
+                      </select>
                     </div>
                     <?php endif; ?>
                     <div class="col-12">

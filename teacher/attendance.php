@@ -15,6 +15,47 @@ $classId   = (int)($_GET['class_id']   ?? 0);
 $subjectId = (int)($_GET['subject_id'] ?? $teacher['subject_id'] ?? 0);
 $date      = $_GET['date'] ?? date('Y-m-d');
 
+// Handle attendance edit request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'request_edit') {
+    $reqTableExists = false;
+    try { $db->query('SELECT 1 FROM attendance_edit_requests LIMIT 0'); $reqTableExists = true; } catch (Exception $e) {}
+
+    if ($reqTableExists) {
+        $studentId  = (int)$_POST['student_id'];
+        $classId    = (int)$_POST['class_id'];
+        $subjectId  = (int)$_POST['subject_id'];
+        $reqDate    = $_POST['date']        ?? '';
+        $oldStatus  = $_POST['old_status']  ?? '';
+        $newStatus  = $_POST['new_status']  ?? '';
+        $reason     = trim($_POST['reason'] ?? '');
+
+        if ($studentId && $classId && $subjectId && $reqDate && $oldStatus && in_array($newStatus,['P','A','L']) && $reason) {
+            // Check no duplicate pending request
+            $ck = $db->prepare(
+                'SELECT id FROM attendance_edit_requests
+                 WHERE student_id=? AND class_id=? AND subject_id=? AND date=? AND status="pending"'
+            );
+            $ck->execute([$studentId, $classId, $subjectId, $reqDate]);
+            if ($ck->fetch()) {
+                setFlash('warning', 'A pending request already exists for this record.');
+            } else {
+                $db->prepare(
+                    'INSERT INTO attendance_edit_requests
+                     (teacher_id, student_id, class_id, subject_id, date, old_status, new_status, reason)
+                     VALUES (?,?,?,?,?,?,?,?)'
+                )->execute([$teacher['id'], $studentId, $classId, $subjectId, $reqDate, $oldStatus, $newStatus, $reason]);
+                logActivity($user['id'], 'att_edit_request', "Requested attendance edit for student #$studentId on $reqDate");
+                setFlash('success', 'Edit request submitted for VP approval.');
+            }
+        } else {
+            setFlash('danger', 'All fields are required.');
+        }
+    } else {
+        setFlash('warning', 'Attendance edit requests table not set up yet.');
+    }
+    redirect('/teacher/attendance.php?tab=requests');
+}
+
 // Handle save attendance
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_attendance') {
     $pClassId   = (int)$_POST['class_id'];
@@ -60,6 +101,32 @@ if ($classId && $tab === 'take') {
     }
 }
 
+// My edit requests tab
+$myRequests = [];
+$reqTableOk = false;
+if ($tab === 'requests') {
+    try {
+        $db->query('SELECT 1 FROM attendance_edit_requests LIMIT 0');
+        $reqTableOk = true;
+        $rSt = $db->prepare(
+            'SELECT aer.*, su.name AS student_name, s.roll_no,
+                    c.name AS class_name, sb.name AS subject_name,
+                    vu.name AS reviewed_by_name
+             FROM attendance_edit_requests aer
+             JOIN students s ON s.id = aer.student_id
+             JOIN users su   ON su.id = s.user_id
+             LEFT JOIN classes c ON c.id = aer.class_id
+             LEFT JOIN subjects sb ON sb.id = aer.subject_id
+             LEFT JOIN users vu ON vu.id = aer.reviewed_by
+             WHERE aer.teacher_id = ?
+             ORDER BY aer.created_at DESC
+             LIMIT 50'
+        );
+        $rSt->execute([$teacher['id']]);
+        $myRequests = $rSt->fetchAll();
+    } catch (Exception $e) {}
+}
+
 // History tab
 $history = [];
 if ($tab === 'history') {
@@ -95,6 +162,7 @@ $links = getTeacherLinks();
 <ul class="nav nav-tabs mb-3">
   <li class="nav-item"><a class="nav-link <?= $tab==='take'?'active':'' ?>" href="?tab=take">Take Attendance</a></li>
   <li class="nav-item"><a class="nav-link <?= $tab==='history'?'active':'' ?>" href="?tab=history">History</a></li>
+  <li class="nav-item"><a class="nav-link <?= $tab==='requests'?'active':'' ?>" href="?tab=requests">Edit Requests</a></li>
 </ul>
 
 <?php if ($tab === 'take'): ?>
@@ -191,7 +259,7 @@ $links = getTeacherLinks();
   <div class="sec-card p-3 text-muted">No students found in selected class.</div>
 <?php endif; ?>
 
-<?php else: ?>
+<?php elseif ($tab === 'history'): ?>
 <!-- History -->
 <div class="sec-card">
   <div class="sec-card-header"><i class="fas fa-history me-2"></i>Attendance History</div>
@@ -219,6 +287,116 @@ $links = getTeacherLinks();
     </table>
   </div>
 </div>
+
+<?php else: ?>
+<!-- Edit Requests Tab -->
+<?php if (!$reqTableOk): ?>
+<div class="alert alert-warning">Attendance edit requests table not set up yet. Ask admin to run the features migration.</div>
+<?php else: ?>
+
+<!-- Request Form -->
+<div class="sec-card mb-3">
+  <div class="sec-card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#reqForm" style="cursor:pointer">
+    <span><i class="fas fa-plus me-2"></i>Submit Correction Request</span>
+    <i class="fas fa-chevron-down" style="font-size:.8rem"></i>
+  </div>
+  <div id="reqForm" class="collapse">
+    <div style="padding:16px">
+      <form method="POST">
+        <input type="hidden" name="action" value="request_edit">
+        <div class="row g-2">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.82rem">Class <span class="text-danger">*</span></label>
+            <select name="class_id" class="form-select form-select-sm" id="reqClassSel" required>
+              <option value="">Select…</option>
+              <?php foreach ($assignedClasses as $ac): ?>
+              <option value="<?= $ac['id'] ?>"><?= h($ac['name']) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.82rem">Subject <span class="text-danger">*</span></label>
+            <select name="subject_id" class="form-select form-select-sm" required>
+              <option value="">Select…</option>
+              <?php foreach ($assignedSubjects as $as): ?>
+              <option value="<?= $as['id'] ?>"><?= h($as['name']) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.82rem">Date <span class="text-danger">*</span></label>
+            <input type="date" name="date" class="form-control form-control-sm" max="<?= date('Y-m-d') ?>" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.82rem">Student ID (db) <span class="text-danger">*</span></label>
+            <input type="number" name="student_id" class="form-control form-control-sm" placeholder="Student DB id" required>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label fw-semibold" style="font-size:.82rem">Current Status <span class="text-danger">*</span></label>
+            <select name="old_status" class="form-select form-select-sm" required>
+              <option value="P">Present</option>
+              <option value="A">Absent</option>
+              <option value="L">Leave</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label fw-semibold" style="font-size:.82rem">Correct Status <span class="text-danger">*</span></label>
+            <select name="new_status" class="form-select form-select-sm" required>
+              <option value="P">Present</option>
+              <option value="A">Absent</option>
+              <option value="L">Leave</option>
+            </select>
+          </div>
+          <div class="col-md-8">
+            <label class="form-label fw-semibold" style="font-size:.82rem">Reason <span class="text-danger">*</span></label>
+            <input type="text" name="reason" class="form-control form-control-sm" required placeholder="Explain why the correction is needed…">
+          </div>
+          <div class="col-12 d-flex justify-content-end">
+            <button type="submit" class="btn btn-sm btn-primary px-4">
+              <i class="fas fa-paper-plane me-1"></i>Submit Request
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- My Requests List -->
+<div class="sec-card">
+  <div class="sec-card-header"><i class="fas fa-list me-2"></i>My Edit Requests</div>
+  <?php if (empty($myRequests)): ?>
+  <div style="padding:40px;text-align:center;color:var(--t2);font-size:.85rem">No requests submitted yet.</div>
+  <?php else: ?>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0" style="font-size:.84rem">
+      <thead class="table-light">
+        <tr><th>Student</th><th>Class</th><th>Subject</th><th>Date</th><th>Old</th><th>New</th><th>Reason</th><th>Status</th><th>Reviewed</th></tr>
+      </thead>
+      <tbody>
+        <?php foreach ($myRequests as $r):
+          $statusClass = match($r['status']) { 'approved'=>'success','rejected'=>'danger',default=>'warning' };
+          $attL = ['P'=>'Present','A'=>'Absent','L'=>'Leave'];
+        ?>
+        <tr>
+          <td><?= h($r['student_name']) ?><div style="font-size:.74rem;color:var(--t3)"><?= h($r['roll_no']) ?></div></td>
+          <td><?= h($r['class_name'] ?? '—') ?></td>
+          <td><?= h($r['subject_name'] ?? '—') ?></td>
+          <td><?= fDate($r['date']) ?></td>
+          <td><span class="badge bg-<?= $r['old_status']==='P'?'success':($r['old_status']==='A'?'danger':'warning') ?>"><?= $attL[$r['old_status']] ?? $r['old_status'] ?></span></td>
+          <td><span class="badge bg-<?= $r['new_status']==='P'?'success':($r['new_status']==='A'?'danger':'warning') ?>"><?= $attL[$r['new_status']] ?? $r['new_status'] ?></span></td>
+          <td style="max-width:160px"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<?= h($r['reason']) ?>"><?= h($r['reason']) ?></div></td>
+          <td><span class="badge bg-<?= $statusClass ?>"><?= ucfirst($r['status']) ?></span></td>
+          <td><?= $r['reviewed_by_name'] ? h($r['reviewed_by_name']).'<br><small style="color:var(--t3)">'.fDate($r['reviewed_at']).'</small>' : '<span class="text-muted">—</span>' ?></td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+  <?php endif; ?>
+</div>
+<?php endif; ?>
+
 <?php endif; ?>
 
 </div>

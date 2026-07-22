@@ -11,6 +11,28 @@ if (!$student) { setFlash('danger','Student record not found.'); redirect('/inde
 
 // Handle profile change request
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? 'field_request';
+
+    // Direct email update (no approval needed)
+    if ($action === 'update_email') {
+        $newEmail = trim($_POST['new_email'] ?? '');
+        if (!$newEmail || !filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+            setFlash('danger', 'Please enter a valid email address.');
+        } else {
+            $ck = $db->prepare('SELECT id FROM users WHERE email=? AND id != ?');
+            $ck->execute([$newEmail, $user['id']]);
+            if ($ck->fetch()) {
+                setFlash('danger', 'That email is already used by another account.');
+            } else {
+                $db->prepare('UPDATE users SET email=? WHERE id=?')->execute([$newEmail, $user['id']]);
+                $_SESSION['user']['email'] = $newEmail;
+                logActivity($user['id'], 'email_update', 'Student updated their email');
+                setFlash('success', 'Email updated successfully.');
+            }
+        }
+        redirect('/student/profile.php');
+    }
+
     $field    = $_POST['field_name']  ?? '';
     $newValue = trim($_POST['new_value'] ?? '');
     $allowed  = ['phone','address','parent_name','parent_phone'];
@@ -68,13 +90,7 @@ $warnings = $warnSt->fetchAll();
 $hasWarnings = !empty($warnings);
 
 pageHead('My Profile', 'student');
-$links = [
-    ['href'=>'/student/dashboard.php','icon'=>'<i class="fas fa-home"></i>','label'=>'Dashboard','key'=>'dashboard'],
-    ['href'=>'/student/results.php','icon'=>'<i class="fas fa-chart-bar"></i>','label'=>'My Results','key'=>'results'],
-    ['href'=>'/student/attendance.php','icon'=>'<i class="fas fa-calendar-check"></i>','label'=>'Attendance','key'=>'attendance'],
-    ['href'=>'/student/timetable.php','icon'=>'<i class="fas fa-table"></i>','label'=>'My Timetable','key'=>'timetable'],
-    ['href'=>'/student/notices.php','icon'=>'<i class="fas fa-bell"></i>','label'=>'Notices','key'=>'notices'],
-];
+$links = getStudentLinks();
 ?>
 <div class="portal-wrap">
 <?php sidebar('student', 'profile', $links, $user); ?>
@@ -114,7 +130,18 @@ $links = [
                 <i class="fas fa-shield-alt"></i> <?= h($houseName) ?>
               </span></td></tr>
           <?php endif; ?>
-          <tr><th style="color:#6b7280">Email</th><td><?= h($student['email'] ?: '—') ?></td></tr>
+          <tr>
+            <th style="color:#6b7280">Email</th>
+            <td>
+              <?= h($student['email'] ?: '—') ?>
+              <button class="btn btn-xs btn-outline-secondary ms-1"
+                      style="font-size:.68rem;padding:1px 6px"
+                      data-bs-toggle="modal" data-bs-target="#emailModal"
+                      title="Change email">
+                <i class="fas fa-edit"></i>
+              </button>
+            </td>
+          </tr>
           <tr><th style="color:#6b7280">DOB</th><td><?= fDate($student['dob'] ?? '') ?></td></tr>
           <tr><th style="color:#6b7280">Admission</th><td><?= fDate($student['admission_date'] ?? '') ?></td></tr>
         </table>
@@ -226,5 +253,31 @@ $links = [
 </div>
 </div>
 </div>
+
+<!-- Email Change Modal -->
+<div class="modal fade" id="emailModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title"><i class="fas fa-envelope me-2"></i>Change Email Address</h6>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST">
+        <input type="hidden" name="action" value="update_email">
+        <div class="modal-body">
+          <p style="font-size:.85rem;color:#6b7280">Current email: <strong><?= h($student['email'] ?: 'Not set') ?></strong></p>
+          <label class="form-label fw-semibold" style="font-size:.85rem">New Email Address</label>
+          <input type="email" name="new_email" class="form-control" placeholder="your@email.com" required>
+          <div class="form-text mt-1">This change takes effect immediately.</div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i>Update Email</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body></html>
