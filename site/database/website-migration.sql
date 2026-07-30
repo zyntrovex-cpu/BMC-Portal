@@ -256,7 +256,7 @@ CREATE TABLE IF NOT EXISTS site_careers (
 
 -- Default admin (password: Admin@2025)
 INSERT IGNORE INTO site_admins (name, email, password, role) VALUES
-('Super Admin', 'admin@bmc.edu.pk', '$2y$12$8Kxz9QmN4pRvT6wL2jY3uOyW5nS7hD1eA0cF9gB4kM3iP6oU8vX2', 'super_admin');
+('Super Admin', 'admin@bmc.edu.pk', '$2y$12$Zx/u/KsXlhUA.Hj5r.N8eONDsSETfIb57BA6UrkSlnk4fczeRg4.O', 'super_admin');
 
 -- Default settings
 INSERT IGNORE INTO site_settings (`key`, `value`, `label`) VALUES
