@@ -1,7 +1,11 @@
 <?php
-// Pull in the parent portal's DB connection helper
+// Pull in the parent portal's DB connection and base config only
 require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../config/db.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // ── Site constants ────────────────────────────────────────────────
 define('SITE_DIR',    __DIR__ . '/../');
