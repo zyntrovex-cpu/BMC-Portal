@@ -11,8 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add_slider') {
         $title     = trim($_POST['title'] ?? '');
         $subtitle  = trim($_POST['subtitle'] ?? '');
-        $btnText   = trim($_POST['btn_text'] ?? '');
-        $btnLink   = trim($_POST['btn_link'] ?? '');
+        $btnText   = trim($_POST['button_text'] ?? '');
+        $btnLink   = trim($_POST['button_url'] ?? '');
         $sortOrder = (int)($_POST['sort_order'] ?? 0);
         $active    = isset($_POST['is_active']) ? 1 : 0;
         $image     = null;
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if (!$err) {
             try {
-                $db->prepare('INSERT INTO site_sliders (title,subtitle,btn_text,btn_link,image,sort_order,is_active) VALUES (?,?,?,?,?,?,?)')
+                $db->prepare('INSERT INTO site_sliders (title,subtitle,button_text,button_url,image,sort_order,is_active) VALUES (?,?,?,?,?,?,?)')
                    ->execute([$title,$subtitle,$btnText,$btnLink,$image,$sortOrder,$active]);
                 $msg = 'Slide added.';
             } catch (Exception $e) { $err = $e->getMessage(); }
@@ -101,11 +101,11 @@ catch (Exception $e) { $sliders = []; }
               </div>
               <div class="col-md-5">
                 <label class="form-label">Button Text</label>
-                <input type="text" name="btn_text" class="form-control" placeholder="Apply Now">
+                <input type="text" name="button_text" class="form-control" placeholder="Apply Now">
               </div>
               <div class="col-md-7">
                 <label class="form-label">Button Link</label>
-                <input type="text" name="btn_link" class="form-control" placeholder="/site/admissions.php">
+                <input type="text" name="button_url" class="form-control" placeholder="/site/admissions.php">
               </div>
               <div class="col-md-8">
                 <label class="form-label">Background Image * (JPEG/PNG/WebP)</label>

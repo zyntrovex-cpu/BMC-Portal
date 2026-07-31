@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add_news') {
         $title    = trim($_POST['title'] ?? '');
         $slug     = slugify($title) . '-' . time();
-        $body     = trim($_POST['body'] ?? '');
+        $content  = trim($_POST['content'] ?? '');
         $excerpt  = trim($_POST['excerpt'] ?? '');
         $category = trim($_POST['category'] ?? 'General');
         $pub      = isset($_POST['is_published']) ? 1 : 0;
@@ -27,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         try {
-            $db->prepare('INSERT INTO site_news (title,slug,body,excerpt,image,category,is_published,is_featured,published_at) VALUES (?,?,?,?,?,?,?,?,?)')
-               ->execute([$title,$slug,$body,$excerpt,$image,$category,$pub,$feat,$pubDate]);
+            $db->prepare('INSERT INTO site_news (title,slug,content,excerpt,image,category,is_published,is_featured,published_at) VALUES (?,?,?,?,?,?,?,?,?)')
+               ->execute([$title,$slug,$content,$excerpt,$image,$category,$pub,$feat,$pubDate]);
             $msg = 'Article added successfully.';
         } catch (Exception $e) { $err = $e->getMessage(); }
     }
@@ -103,7 +103,7 @@ catch (Exception $e) { $newsList = []; }
               </div>
               <div class="col-12">
                 <label class="form-label">Full Article Body *</label>
-                <textarea name="body" class="form-control" rows="8" required></textarea>
+                <textarea name="content" class="form-control" rows="8" required></textarea>
               </div>
               <div class="col-md-5">
                 <label class="form-label">Featured Image</label>

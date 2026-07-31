@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'add_notice') {
         $title    = trim($_POST['title'] ?? '');
-        $body     = trim($_POST['body'] ?? '');
+        $content  = trim($_POST['content'] ?? '');
         $category = trim($_POST['category'] ?? 'General');
         $priority = trim($_POST['priority'] ?? 'normal');
         $expires  = $_POST['expires_at'] ?: null;
@@ -22,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             move_uploaded_file($_FILES['attachment']['tmp_name'], SITE_UPLOAD . 'notices/' . $attach);
         }
         try {
-            $db->prepare('INSERT INTO site_notices (title,body,category,priority,expires_at,attachment,is_published) VALUES (?,?,?,?,?,?,?)')
-               ->execute([$title,$body,$category,$priority,$expires,$attach,$pub]);
+            $db->prepare('INSERT INTO site_notices (title,content,category,priority,expires_at,attachment,is_published) VALUES (?,?,?,?,?,?,?)')
+               ->execute([$title,$content,$category,$priority,$expires,$attach,$pub]);
             $msg = 'Notice added.';
         } catch (Exception $e) { $err = $e->getMessage(); }
     }
@@ -96,13 +96,13 @@ catch (Exception $e) { $notices = []; }
                 <label class="form-label">Priority</label>
                 <select name="priority" class="form-select">
                   <option value="normal">Normal</option>
-                  <option value="high">High</option>
+                  <option value="important">Important</option>
                   <option value="urgent">Urgent</option>
                 </select>
               </div>
               <div class="col-12">
                 <label class="form-label">Body</label>
-                <textarea name="body" class="form-control" rows="4"></textarea>
+                <textarea name="content" class="form-control" rows="4"></textarea>
               </div>
               <div class="col-md-5">
                 <label class="form-label">Attachment (PDF/doc)</label>
@@ -136,7 +136,7 @@ catch (Exception $e) { $notices = []; }
                 <?php if (empty($notices)): ?>
                 <tr><td colspan="6" class="text-center text-muted py-4">No notices yet.</td></tr>
                 <?php else: foreach ($notices as $n): ?>
-                <?php $pBadge = ['urgent'=>'danger','high'=>'warning','normal'=>'secondary'][$n['priority']] ?? 'secondary'; ?>
+                <?php $pBadge = ['urgent'=>'danger','important'=>'warning','normal'=>'secondary'][$n['priority']] ?? 'secondary'; ?>
                 <tr>
                   <td>
                     <strong><?= sh($n['title']) ?></strong>

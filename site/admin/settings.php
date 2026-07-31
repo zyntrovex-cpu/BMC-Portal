@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!empty($_POST['new_password'])) {
                 $np = $_POST['new_password'];
                 if (strlen($np) >= 8) {
-                    $db->prepare('UPDATE site_admins SET password_hash=? WHERE id=?')
+                    $db->prepare('UPDATE site_admins SET password=? WHERE id=?')
                        ->execute([password_hash($np, PASSWORD_BCRYPT), $admin['id']]);
                 }
             }
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $err = 'Name, email, and password (min 8 chars) are required.';
         } else {
             try {
-                $db->prepare('INSERT INTO site_admins (name,email,password_hash,role) VALUES (?,?,?,?)')
+                $db->prepare('INSERT INTO site_admins (name,email,password,role) VALUES (?,?,?,?)')
                    ->execute([$aName,$aEmail,password_hash($aPass,PASSWORD_BCRYPT),$aRole]);
                 $msg = 'Admin account created.';
             } catch (Exception $e) { $err = 'Could not create admin: ' . $e->getMessage(); }
