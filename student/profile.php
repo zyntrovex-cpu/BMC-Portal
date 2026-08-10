@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $field    = $_POST['field_name']  ?? '';
     $newValue = trim($_POST['new_value'] ?? '');
-    $allowed  = ['phone','address','parent_name','parent_phone'];
+    $allowed  = ['phone','address','permanent_address','parent_name','parent_phone','whatsapp_no','emergency_phone'];
 
     if (in_array($field, $allowed) && $newValue) {
         // Check no pending request for same field
@@ -120,10 +120,16 @@ $links = getStudentLinks();
         </div>
         <?php endif; ?>
         <table class="table table-sm mb-0" style="font-size:.88rem">
-          <tr><th style="width:40%;color:#6b7280">Name</th>
+          <tr><th style="width:42%;color:#6b7280">Name</th>
               <td class="<?= $hasWarnings ? 'student-name-warned' : '' ?>"><?= h($student['name']) ?></td></tr>
           <tr><th style="color:#6b7280">Roll No</th><td><?= h($student['roll_no']) ?></td></tr>
+          <?php if (!empty($student['gr_no'])): ?>
+          <tr><th style="color:#6b7280">GR No</th><td><?= h($student['gr_no']) ?></td></tr>
+          <?php endif; ?>
           <tr><th style="color:#6b7280">Class</th><td><?= h($student['class_name']) ?></td></tr>
+          <?php if (!empty($student['academic_group'])): ?>
+          <tr><th style="color:#6b7280">Group</th><td><?= h($student['academic_group']) ?></td></tr>
+          <?php endif; ?>
           <?php if ($houseName): ?>
           <tr><th style="color:#6b7280">House</th>
               <td><span class="badge-house" style="background:<?= h($houseColor) ?>;font-size:.75rem">
@@ -143,8 +149,47 @@ $links = getStudentLinks();
             </td>
           </tr>
           <tr><th style="color:#6b7280">DOB</th><td><?= fDate($student['dob'] ?? '') ?></td></tr>
+          <?php if (!empty($student['gender'])): ?>
+          <tr><th style="color:#6b7280">Gender</th><td><?= ucfirst(h($student['gender'])) ?></td></tr>
+          <?php endif; ?>
+          <?php if (!empty($student['blood_group'])): ?>
+          <tr><th style="color:#6b7280">Blood Group</th>
+              <td><span class="badge bg-danger"><?= h($student['blood_group']) ?></span></td></tr>
+          <?php endif; ?>
+          <?php if (!empty($student['nationality'])): ?>
+          <tr><th style="color:#6b7280">Nationality</th><td><?= h($student['nationality']) ?></td></tr>
+          <?php endif; ?>
+          <?php if (!empty($student['religion'])): ?>
+          <tr><th style="color:#6b7280">Religion</th><td><?= h($student['religion']) ?><?= !empty($student['sect']) ? ' / '.h($student['sect']) : '' ?></td></tr>
+          <?php endif; ?>
           <tr><th style="color:#6b7280">Admission</th><td><?= fDate($student['admission_date'] ?? '') ?></td></tr>
         </table>
+
+        <?php if (!empty($student['skills']) || !empty($student['sports']) || !empty($student['awards'])): ?>
+        <div class="border-top mt-3 pt-2">
+          <?php if (!empty($student['skills'])): ?>
+          <div class="mb-1" style="font-size:.82rem">
+            <span class="text-muted">Skills:</span>
+            <?php foreach (explode(',', $student['skills']) as $sk): ?>
+              <span class="badge bg-secondary me-1"><?= h(trim($sk)) ?></span>
+            <?php endforeach; ?>
+          </div>
+          <?php endif; ?>
+          <?php if (!empty($student['sports'])): ?>
+          <div class="mb-1" style="font-size:.82rem">
+            <span class="text-muted">Sports:</span>
+            <?php foreach (explode(',', $student['sports']) as $sp): ?>
+              <span class="badge bg-info text-dark me-1"><?= h(trim($sp)) ?></span>
+            <?php endforeach; ?>
+          </div>
+          <?php endif; ?>
+          <?php if (!empty($student['awards'])): ?>
+          <div style="font-size:.82rem">
+            <span class="text-muted">Awards:</span> <?= h($student['awards']) ?>
+          </div>
+          <?php endif; ?>
+        </div>
+        <?php endif; ?>
       </div>
     </div>
 
@@ -214,11 +259,17 @@ $links = getStudentLinks();
       <div style="padding:16px">
         <?php
         $editFields = [
-            'phone'        => ['label'=>'Phone','type'=>'tel'],
-            'address'      => ['label'=>'Address','type'=>'text'],
-            'parent_name'  => ['label'=>'Parent/Guardian Name','type'=>'text'],
-            'parent_phone' => ['label'=>'Parent Phone','type'=>'tel'],
+            'phone'             => ['label'=>'Phone',              'type'=>'tel'],
+            'whatsapp_no'       => ['label'=>'WhatsApp',           'type'=>'tel'],
+            'emergency_phone'   => ['label'=>'Emergency Phone',    'type'=>'tel'],
+            'address'           => ['label'=>'Present Address',    'type'=>'text'],
+            'permanent_address' => ['label'=>'Permanent Address',  'type'=>'text'],
+            'parent_name'       => ['label'=>'Parent/Guardian Name','type'=>'text'],
+            'parent_phone'      => ['label'=>'Parent Phone',       'type'=>'tel'],
         ];
+        // Only show fields that exist as columns in this installation
+        $stuKeys = array_keys($student);
+        $editFields = array_filter($editFields, fn($k) => in_array($k, $stuKeys), ARRAY_FILTER_USE_KEY);
         foreach ($editFields as $field => $meta):
             $isPending = in_array($field, $pendingFields);
         ?>

@@ -8,15 +8,35 @@ $user = requireAuth('student_affairs');
 requirePermission('sa_students');
 $db   = getDB();
 
-// Detect optional columns
-$hasHouseId      = false;
-$hasAdmDate      = false;
-$hasFatherName   = false;
-$hasParentEmail  = false;
-try { $db->query('SELECT house_id FROM students LIMIT 0');      $hasHouseId     = true; } catch (Exception $e) {}
-try { $db->query('SELECT admission_date FROM students LIMIT 0'); $hasAdmDate     = true; } catch (Exception $e) {}
-try { $db->query('SELECT father_name FROM students LIMIT 0');    $hasFatherName  = true; } catch (Exception $e) {}
-try { $db->query('SELECT parent_email FROM students LIMIT 0');   $hasParentEmail = true; } catch (Exception $e) {}
+// Detect which columns exist in the students table (single query, forward-compatible)
+$_stuCols = array_flip(
+    $db->query("SHOW COLUMNS FROM students")->fetchAll(PDO::FETCH_COLUMN)
+);
+$hasHouseId      = isset($_stuCols['house_id']);
+$hasAdmDate      = isset($_stuCols['admission_date']);
+$hasFatherName   = isset($_stuCols['father_name']);
+$hasParentEmail  = isset($_stuCols['parent_email']);
+// New biodata columns (added by students-biodata-migration)
+$hasGrNo         = isset($_stuCols['gr_no']);
+$hasKuickpayId   = isset($_stuCols['kuickpay_id']);
+$hasCategory     = isset($_stuCols['category']);
+$hasAcadGroup    = isset($_stuCols['academic_group']);
+$hasChildOrder   = isset($_stuCols['child_order']);
+$hasDomicile     = isset($_stuCols['domicile']);
+$hasPermAddr     = isset($_stuCols['permanent_address']);
+$hasEmergPhone   = isset($_stuCols['emergency_phone']);
+$hasWhatsapp     = isset($_stuCols['whatsapp_no']);
+$hasReligion     = isset($_stuCols['religion']);
+$hasSect         = isset($_stuCols['sect']);
+$hasBloodGroup   = isset($_stuCols['blood_group']);
+$hasLastSchool   = isset($_stuCols['last_school']);
+$hasNationality  = isset($_stuCols['nationality']);
+$hasFatherOcc    = isset($_stuCols['father_occupation']);
+$hasDocsSub      = isset($_stuCols['documents_submitted']);
+$hasMedicalInfo  = isset($_stuCols['medical_info']);
+$hasSkills       = isset($_stuCols['skills']);
+$hasSports       = isset($_stuCols['sports']);
+$hasAwards       = isset($_stuCols['awards']);
 
 // ── POST handlers ─────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -57,19 +77,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ── Edit student ──────────────────────────────────────────────
     if ($action === 'edit_student') {
-        $studentId  = (int)($_POST['student_id'] ?? 0);
-        $name       = trim($_POST['name']         ?? '');
-        $email      = trim($_POST['email']        ?? '');
-        $classId    = (int)($_POST['class_id']    ?? 0) ?: null;
-        $rollNo     = trim($_POST['roll_no']      ?? '');
-        $gender     = $_POST['gender']            ?? '';
-        $dob        = $_POST['dob']               ?? '';
-        $cnic       = trim($_POST['cnic']         ?? '');
-        $phone      = trim($_POST['phone']        ?? '');
-        $address    = trim($_POST['address']      ?? '');
-        $parentPhone = trim($_POST['parent_phone'] ?? '');
-        $fatherName  = trim($_POST['father_name']  ?? '');
-        $parentEmail = trim($_POST['parent_email'] ?? '');
+        $studentId   = (int)($_POST['student_id']   ?? 0);
+        $name        = trim($_POST['name']           ?? '');
+        $email       = trim($_POST['email']          ?? '');
+        $classId     = (int)($_POST['class_id']      ?? 0) ?: null;
+        $rollNo      = trim($_POST['roll_no']        ?? '');
+        $gender      = $_POST['gender']              ?? '';
+        $dob         = $_POST['dob']                 ?? '';
+        $cnic        = trim($_POST['cnic']           ?? '');
+        $phone       = trim($_POST['phone']          ?? '');
+        $address     = trim($_POST['address']        ?? '');
+        $parentPhone = trim($_POST['parent_phone']   ?? '');
+        $parentName  = trim($_POST['parent_name']    ?? '');
+        $fatherName  = trim($_POST['father_name']    ?? '');
+        $parentEmail = trim($_POST['parent_email']   ?? '');
 
         if (!$studentId || !$name) {
             setFlash('danger', 'Student ID and name are required.');
@@ -86,15 +107,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $db->prepare('UPDATE users SET name=?, email=? WHERE id=?')
            ->execute([$name, $email ?: null, $uid]);
 
-        $houseId   = (int)($_POST['house_id'] ?? 0) ?: null;
-        $setParts  = ['roll_no=?', 'class_id=?', 'gender=?', 'cnic=?', 'phone=?', 'address=?', 'parent_phone=?'];
-        $setVals   = [$rollNo ?: null, $classId, ($gender ?: null), ($cnic ?: null), ($phone ?: null), ($address ?: null), ($parentPhone ?: null)];
-        if ($dob) { $setParts[] = 'dob=?'; $setVals[] = $dob; }
-        if ($hasFatherName)  { $setParts[] = 'father_name=?';  $setVals[] = $fatherName  ?: null; }
-        if ($hasParentEmail) { $setParts[] = 'parent_email=?'; $setVals[] = $parentEmail ?: null; }
-        if ($hasHouseId)     { $setParts[] = 'house_id=?';     $setVals[] = $houseId; }
-        $setVals[] = $studentId;
+        $houseId  = (int)($_POST['house_id'] ?? 0) ?: null;
+        $setParts = ['roll_no=?','class_id=?','gender=?','cnic=?','phone=?','address=?',
+                     'parent_phone=?','parent_name=?'];
+        $setVals  = [
+            $rollNo ?: null, $classId, ($gender ?: null), ($cnic ?: null),
+            ($phone ?: null), ($address ?: null), ($parentPhone ?: null), ($parentName ?: null),
+        ];
+        if ($dob)               { $setParts[] = 'dob=?';                  $setVals[] = $dob; }
+        if ($hasFatherName)     { $setParts[] = 'father_name=?';          $setVals[] = $fatherName  ?: null; }
+        if ($hasParentEmail)    { $setParts[] = 'parent_email=?';         $setVals[] = $parentEmail ?: null; }
+        if ($hasHouseId)        { $setParts[] = 'house_id=?';             $setVals[] = $houseId; }
+        // New biodata columns
+        if ($hasGrNo)           { $setParts[] = 'gr_no=?';                $setVals[] = trim($_POST['gr_no'] ?? '') ?: null; }
+        if ($hasKuickpayId)     { $setParts[] = 'kuickpay_id=?';          $setVals[] = trim($_POST['kuickpay_id'] ?? '') ?: null; }
+        if ($hasCategory)       { $setParts[] = 'category=?';             $setVals[] = trim($_POST['category'] ?? '') ?: null; }
+        if ($hasAcadGroup)      { $setParts[] = 'academic_group=?';       $setVals[] = trim($_POST['academic_group'] ?? '') ?: null; }
+        if ($hasChildOrder)     { $setParts[] = 'child_order=?';          $setVals[] = (trim($_POST['child_order'] ?? '') !== '') ? (int)$_POST['child_order'] : null; }
+        if ($hasDomicile)       { $setParts[] = 'domicile=?';             $setVals[] = trim($_POST['domicile'] ?? '') ?: null; }
+        if ($hasPermAddr)       { $setParts[] = 'permanent_address=?';    $setVals[] = trim($_POST['permanent_address'] ?? '') ?: null; }
+        if ($hasEmergPhone)     { $setParts[] = 'emergency_phone=?';      $setVals[] = trim($_POST['emergency_phone'] ?? '') ?: null; }
+        if ($hasWhatsapp)       { $setParts[] = 'whatsapp_no=?';          $setVals[] = trim($_POST['whatsapp_no'] ?? '') ?: null; }
+        if ($hasReligion)       { $setParts[] = 'religion=?';             $setVals[] = trim($_POST['religion'] ?? '') ?: null; }
+        if ($hasSect)           { $setParts[] = 'sect=?';                 $setVals[] = trim($_POST['sect'] ?? '') ?: null; }
+        if ($hasBloodGroup)     { $setParts[] = 'blood_group=?';          $setVals[] = trim($_POST['blood_group'] ?? '') ?: null; }
+        if ($hasLastSchool)     { $setParts[] = 'last_school=?';          $setVals[] = trim($_POST['last_school'] ?? '') ?: null; }
+        if ($hasNationality)    { $setParts[] = 'nationality=?';          $setVals[] = trim($_POST['nationality'] ?? '') ?: null; }
+        if ($hasFatherOcc)      { $setParts[] = 'father_occupation=?';    $setVals[] = trim($_POST['father_occupation'] ?? '') ?: null; }
+        if ($hasDocsSub)        { $setParts[] = 'documents_submitted=?';  $setVals[] = trim($_POST['documents_submitted'] ?? '') ?: null; }
+        if ($hasMedicalInfo)    { $setParts[] = 'medical_info=?';         $setVals[] = trim($_POST['medical_info'] ?? '') ?: null; }
+        if ($hasSkills)         { $setParts[] = 'skills=?';               $setVals[] = trim($_POST['skills'] ?? '') ?: null; }
+        if ($hasSports)         { $setParts[] = 'sports=?';               $setVals[] = trim($_POST['sports'] ?? '') ?: null; }
+        if ($hasAwards)         { $setParts[] = 'awards=?';               $setVals[] = trim($_POST['awards'] ?? '') ?: null; }
 
+        $setVals[] = $studentId;
         $db->prepare('UPDATE students SET ' . implode(',', $setParts) . ' WHERE id=?')
            ->execute($setVals);
 
@@ -132,7 +178,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $st    = $db->prepare('SELECT * FROM profile_change_requests WHERE id=?');
         $st->execute([$reqId]);
         $r = $st->fetch();
-        if ($r && in_array($r['field'], ['phone','address','father_name','parent_name','parent_phone','parent_email','cnic'])) {
+        $editableFields = ['phone','address','permanent_address','father_name','parent_name',
+                           'parent_phone','parent_email','cnic','whatsapp_no','emergency_phone'];
+        if ($r && in_array($r['field'], $editableFields)) {
             $db->prepare("UPDATE students SET {$r['field']}=? WHERE id=?")->execute([$r['new_value'], $r['student_id']]);
             $db->prepare("UPDATE profile_change_requests SET status='approved',reviewed_by=?,reviewed_at=NOW() WHERE id=?")
                ->execute([$user['id'], $reqId]);
@@ -176,10 +224,33 @@ if ($statusFilter !== '') {
 }
 $whereSQL = 'WHERE ' . implode(' AND ', $where);
 
-$fatherCol   = $hasFatherName  ? ', s.father_name'  : '';
-$parentECol  = $hasParentEmail ? ', s.parent_email'  : '';
-$houseCol    = $hasHouseId     ? ', s.house_id, h.name AS house_name' : '';
-$houseJoin   = $hasHouseId     ? 'LEFT JOIN houses h ON h.id = s.house_id' : '';
+// Build optional column selects
+$optCols = '';
+if ($hasFatherName)  $optCols .= ', s.father_name';
+if ($hasParentEmail) $optCols .= ', s.parent_email';
+if ($hasHouseId)     $optCols .= ', s.house_id, h.name AS house_name';
+if ($hasGrNo)        $optCols .= ', s.gr_no';
+if ($hasKuickpayId)  $optCols .= ', s.kuickpay_id';
+if ($hasCategory)    $optCols .= ', s.category';
+if ($hasAcadGroup)   $optCols .= ', s.academic_group';
+if ($hasChildOrder)  $optCols .= ', s.child_order';
+if ($hasDomicile)    $optCols .= ', s.domicile';
+if ($hasPermAddr)    $optCols .= ', s.permanent_address';
+if ($hasEmergPhone)  $optCols .= ', s.emergency_phone';
+if ($hasWhatsapp)    $optCols .= ', s.whatsapp_no';
+if ($hasReligion)    $optCols .= ', s.religion';
+if ($hasSect)        $optCols .= ', s.sect';
+if ($hasBloodGroup)  $optCols .= ', s.blood_group';
+if ($hasLastSchool)  $optCols .= ', s.last_school';
+if ($hasNationality) $optCols .= ', s.nationality';
+if ($hasFatherOcc)   $optCols .= ', s.father_occupation';
+if ($hasDocsSub)     $optCols .= ', s.documents_submitted';
+if ($hasMedicalInfo) $optCols .= ', s.medical_info';
+if ($hasSkills)      $optCols .= ', s.skills';
+if ($hasSports)      $optCols .= ', s.sports';
+if ($hasAwards)      $optCols .= ', s.awards';
+
+$houseJoin = $hasHouseId ? 'LEFT JOIN houses h ON h.id = s.house_id' : '';
 
 $totalSt = $db->prepare("SELECT COUNT(*) FROM users u JOIN students s ON s.user_id=u.id LEFT JOIN classes c ON c.id=s.class_id $whereSQL");
 $totalSt->execute($params);
@@ -190,8 +261,8 @@ $offset = ($page - 1) * $perPage;
 $studentsSt = $db->prepare(
     "SELECT u.id AS uid, u.user_id, u.name, u.email, u.status,
             s.id AS student_id, s.roll_no, s.class_id, s.gender, s.dob, s.cnic,
-            s.phone, s.address, s.parent_phone
-            $fatherCol $parentECol $houseCol,
+            s.phone, s.address, s.parent_phone, s.parent_name
+            $optCols,
             c.name AS class_name
      FROM users u
      JOIN students s ON s.user_id = u.id
@@ -442,7 +513,7 @@ $links = getStudentAffairsLinks();
 
         <!-- Edit Modal -->
         <div class="modal fade" id="editModal<?= $s['student_id'] ?>" tabindex="-1">
-          <div class="modal-dialog modal-lg">
+          <div class="modal-dialog modal-xl">
             <div class="modal-content">
               <div class="modal-header py-2" style="background:#fdf2f8;border-bottom:1px solid #fbcfe8">
                 <h6 class="modal-title" style="color:#be185d">
@@ -453,25 +524,40 @@ $links = getStudentAffairsLinks();
               <form method="POST">
                 <input type="hidden" name="action" value="edit_student">
                 <input type="hidden" name="student_id" value="<?= $s['student_id'] ?>">
-                <div class="modal-body">
+                <div class="modal-body" style="max-height:75vh;overflow-y:auto">
+
+                  <?php /* ── Section label helper */ $lbl = fn(string $t) => '<div class="col-12"><div class="fw-bold border-bottom mb-1 pb-1 mt-2" style="font-size:.78rem;color:#6b7280;letter-spacing:.06em;text-transform:uppercase">'.$t.'</div></div>'; ?>
+
                   <div class="row g-2">
-                    <!-- Basic info -->
+
+                    <?= $lbl('Basic Information') ?>
                     <div class="col-md-4">
                       <label class="form-label fw-semibold" style="font-size:.82rem">Full Name <span class="text-danger">*</span></label>
-                      <input type="text" name="name" class="form-control form-control-sm"
-                             value="<?= h($s['name']) ?>" required>
+                      <input type="text" name="name" class="form-control form-control-sm" value="<?= h($s['name']) ?>" required>
                     </div>
                     <div class="col-md-3">
                       <label class="form-label fw-semibold" style="font-size:.82rem">Roll / User ID</label>
-                      <input type="text" name="roll_no" class="form-control form-control-sm"
-                             value="<?= h($s['roll_no']) ?>">
+                      <input type="text" name="roll_no" class="form-control form-control-sm" value="<?= h($s['roll_no']) ?>">
                     </div>
+                    <?php if ($hasGrNo): ?>
+                    <div class="col-md-2">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">GR No</label>
+                      <input type="text" name="gr_no" class="form-control form-control-sm" value="<?= h($s['gr_no'] ?? '') ?>" placeholder="GR-2025-001">
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($hasKuickpayId): ?>
+                    <div class="col-md-3">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Kuickpay ID</label>
+                      <input type="text" name="kuickpay_id" class="form-control form-control-sm" value="<?= h($s['kuickpay_id'] ?? '') ?>">
+                    </div>
+                    <?php endif; ?>
                     <div class="col-md-5">
                       <label class="form-label fw-semibold" style="font-size:.82rem">Email</label>
-                      <input type="email" name="email" class="form-control form-control-sm"
-                             value="<?= h($s['email'] ?? '') ?>">
+                      <input type="email" name="email" class="form-control form-control-sm" value="<?= h($s['email'] ?? '') ?>">
                     </div>
-                    <div class="col-md-4">
+
+                    <?= $lbl('Academic') ?>
+                    <div class="col-md-3">
                       <label class="form-label fw-semibold" style="font-size:.82rem">Class</label>
                       <select name="class_id" class="form-select form-select-sm">
                         <option value="">— No class —</option>
@@ -480,7 +566,37 @@ $links = getStudentAffairsLinks();
                         <?php endforeach; ?>
                       </select>
                     </div>
-                    <div class="col-md-4">
+                    <?php if ($hasAcadGroup): ?>
+                    <div class="col-md-3">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Academic Group</label>
+                      <select name="academic_group" class="form-select form-select-sm">
+                        <option value="">— Select —</option>
+                        <?php foreach (['Science','Arts','Pre-Medical','Commerce','General'] as $g): ?>
+                        <option <?= ($s['academic_group'] ?? '') === $g ? 'selected' : '' ?>><?= $g ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($hasCategory): ?>
+                    <div class="col-md-2">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Category</label>
+                      <input type="text" name="category" class="form-control form-control-sm" value="<?= h($s['category'] ?? '') ?>" placeholder="AOB 1">
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($hasHouseId && !empty($houses)): ?>
+                    <div class="col-md-3">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">House</label>
+                      <select name="house_id" class="form-select form-select-sm">
+                        <option value="">— No house —</option>
+                        <?php foreach ($houses as $h): ?>
+                        <option value="<?= $h['id'] ?>" <?= (($s['house_id'] ?? 0) == $h['id']) ? 'selected' : '' ?>><?= htmlspecialchars($h['name']) ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                    </div>
+                    <?php endif; ?>
+
+                    <?= $lbl('Personal Details') ?>
+                    <div class="col-md-2">
                       <label class="form-label fw-semibold" style="font-size:.82rem">Gender</label>
                       <select name="gender" class="form-select form-select-sm">
                         <option value="">— Select —</option>
@@ -489,57 +605,152 @@ $links = getStudentAffairsLinks();
                         <option value="other"  <?= $s['gender']==='other' ?'selected':'' ?>>Other</option>
                       </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                       <label class="form-label fw-semibold" style="font-size:.82rem">Date of Birth</label>
-                      <input type="date" name="dob" class="form-control form-control-sm"
-                             value="<?= h($s['dob'] ?? '') ?>">
+                      <input type="date" name="dob" class="form-control form-control-sm" value="<?= h($s['dob'] ?? '') ?>">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                       <label class="form-label fw-semibold" style="font-size:.82rem">CNIC / B-Form</label>
-                      <input type="text" name="cnic" class="form-control form-control-sm"
-                             value="<?= h($s['cnic'] ?? '') ?>" placeholder="00000-0000000-0">
+                      <input type="text" name="cnic" class="form-control form-control-sm" value="<?= h($s['cnic'] ?? '') ?>" placeholder="00000-0000000-0">
                     </div>
-                    <div class="col-md-4">
-                      <label class="form-label fw-semibold" style="font-size:.82rem">Student Phone</label>
-                      <input type="tel" name="phone" class="form-control form-control-sm"
-                             value="<?= h($s['phone'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label fw-semibold" style="font-size:.82rem">Parent Phone</label>
-                      <input type="tel" name="parent_phone" class="form-control form-control-sm"
-                             value="<?= h($s['parent_phone'] ?? '') ?>">
-                    </div>
-                    <?php if ($hasFatherName): ?>
-                    <div class="col-md-4">
-                      <label class="form-label fw-semibold" style="font-size:.82rem">Father / Guardian Name</label>
-                      <input type="text" name="father_name" class="form-control form-control-sm"
-                             value="<?= h($s['father_name'] ?? '') ?>">
-                    </div>
-                    <?php endif; ?>
-                    <?php if ($hasParentEmail): ?>
-                    <div class="col-md-4">
-                      <label class="form-label fw-semibold" style="font-size:.82rem">Parent Email</label>
-                      <input type="email" name="parent_email" class="form-control form-control-sm"
-                             value="<?= h($s['parent_email'] ?? '') ?>">
-                    </div>
-                    <?php endif; ?>
-                    <?php if ($hasHouseId && !empty($houses)): ?>
-                    <div class="col-md-4">
-                      <label class="form-label fw-semibold" style="font-size:.82rem">House</label>
-                      <select name="house_id" class="form-select form-select-sm">
-                        <option value="">— No house —</option>
-                        <?php foreach ($houses as $h): ?>
-                        <option value="<?= $h['id'] ?>" <?= (($s['house_id'] ?? 0) == $h['id']) ? 'selected' : '' ?>>
-                          <?= htmlspecialchars($h['name']) ?>
-                        </option>
+                    <?php if ($hasBloodGroup): ?>
+                    <div class="col-md-2">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Blood Group</label>
+                      <select name="blood_group" class="form-select form-select-sm">
+                        <option value="">—</option>
+                        <?php foreach (['A+','A-','B+','B-','O+','O-','AB+','AB-'] as $bg): ?>
+                        <option <?= ($s['blood_group'] ?? '') === $bg ? 'selected' : '' ?>><?= $bg ?></option>
                         <?php endforeach; ?>
                       </select>
                     </div>
                     <?php endif; ?>
+                    <?php if ($hasChildOrder): ?>
+                    <div class="col-md-2">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Child Order</label>
+                      <input type="number" name="child_order" class="form-control form-control-sm" min="1" max="20" value="<?= h($s['child_order'] ?? '') ?>" placeholder="1=first">
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($hasNationality): ?>
+                    <div class="col-md-3">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Nationality</label>
+                      <input type="text" name="nationality" class="form-control form-control-sm" value="<?= h($s['nationality'] ?? '') ?>" placeholder="Pakistani">
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($hasDomicile): ?>
+                    <div class="col-md-3">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Domicile</label>
+                      <input type="text" name="domicile" class="form-control form-control-sm" value="<?= h($s['domicile'] ?? '') ?>" placeholder="Punjab">
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($hasReligion): ?>
+                    <div class="col-md-3">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Religion</label>
+                      <input type="text" name="religion" class="form-control form-control-sm" value="<?= h($s['religion'] ?? '') ?>" placeholder="Islam">
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($hasSect): ?>
+                    <div class="col-md-3">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Sect</label>
+                      <input type="text" name="sect" class="form-control form-control-sm" value="<?= h($s['sect'] ?? '') ?>">
+                    </div>
+                    <?php endif; ?>
+
+                    <?= $lbl('Contact') ?>
+                    <div class="col-md-3">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Student Phone</label>
+                      <input type="tel" name="phone" class="form-control form-control-sm" value="<?= h($s['phone'] ?? '') ?>">
+                    </div>
+                    <?php if ($hasWhatsapp): ?>
+                    <div class="col-md-3">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">WhatsApp</label>
+                      <input type="tel" name="whatsapp_no" class="form-control form-control-sm" value="<?= h($s['whatsapp_no'] ?? '') ?>">
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($hasEmergPhone): ?>
+                    <div class="col-md-3">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Emergency Phone</label>
+                      <input type="tel" name="emergency_phone" class="form-control form-control-sm" value="<?= h($s['emergency_phone'] ?? '') ?>">
+                    </div>
+                    <?php endif; ?>
                     <div class="col-12">
-                      <label class="form-label fw-semibold" style="font-size:.82rem">Address</label>
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Present Address</label>
                       <textarea name="address" class="form-control form-control-sm" rows="2"><?= h($s['address'] ?? '') ?></textarea>
                     </div>
+                    <?php if ($hasPermAddr): ?>
+                    <div class="col-12">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Permanent Address</label>
+                      <textarea name="permanent_address" class="form-control form-control-sm" rows="2"><?= h($s['permanent_address'] ?? '') ?></textarea>
+                    </div>
+                    <?php endif; ?>
+
+                    <?= $lbl('Parent / Guardian') ?>
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Parent / Guardian Name</label>
+                      <input type="text" name="parent_name" class="form-control form-control-sm" value="<?= h($s['parent_name'] ?? '') ?>">
+                    </div>
+                    <?php if ($hasFatherName): ?>
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Father's Name</label>
+                      <input type="text" name="father_name" class="form-control form-control-sm" value="<?= h($s['father_name'] ?? '') ?>">
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($hasFatherOcc): ?>
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Father's Occupation</label>
+                      <input type="text" name="father_occupation" class="form-control form-control-sm" value="<?= h($s['father_occupation'] ?? '') ?>">
+                    </div>
+                    <?php endif; ?>
+                    <div class="col-md-3">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Parent Phone</label>
+                      <input type="tel" name="parent_phone" class="form-control form-control-sm" value="<?= h($s['parent_phone'] ?? '') ?>">
+                    </div>
+                    <?php if ($hasParentEmail): ?>
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Parent Email</label>
+                      <input type="email" name="parent_email" class="form-control form-control-sm" value="<?= h($s['parent_email'] ?? '') ?>">
+                    </div>
+                    <?php endif; ?>
+
+                    <?= $lbl('Background & Medical') ?>
+                    <?php if ($hasLastSchool): ?>
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Last School Attended</label>
+                      <input type="text" name="last_school" class="form-control form-control-sm" value="<?= h($s['last_school'] ?? '') ?>">
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($hasDocsSub): ?>
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Documents Submitted</label>
+                      <input type="text" name="documents_submitted" class="form-control form-control-sm" value="<?= h($s['documents_submitted'] ?? '') ?>" placeholder="B-Form, Report Card, Photos">
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($hasMedicalInfo): ?>
+                    <div class="col-12">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Medical History</label>
+                      <textarea name="medical_info" class="form-control form-control-sm" rows="2" placeholder="Chronic conditions, allergies, medications, immunizations…"><?= h($s['medical_info'] ?? '') ?></textarea>
+                    </div>
+                    <?php endif; ?>
+
+                    <?= $lbl('Skills & Activities') ?>
+                    <?php if ($hasSkills): ?>
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Skills</label>
+                      <input type="text" name="skills" class="form-control form-control-sm" value="<?= h($s['skills'] ?? '') ?>" placeholder="Drawing, Coding, …">
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($hasSports): ?>
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Sports / Activities</label>
+                      <input type="text" name="sports" class="form-control form-control-sm" value="<?= h($s['sports'] ?? '') ?>" placeholder="Cricket, Football, …">
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($hasAwards): ?>
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold" style="font-size:.82rem">Awards / Certificates</label>
+                      <input type="text" name="awards" class="form-control form-control-sm" value="<?= h($s['awards'] ?? '') ?>">
+                    </div>
+                    <?php endif; ?>
+
                   </div>
                 </div>
                 <div class="modal-footer py-2">
