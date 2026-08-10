@@ -11,9 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title = trim($_POST['title'] ?? '');
         $year  = trim($_POST['year'] ?? '');
         if (!empty($_FILES['file']['tmp_name'])) {
-            $ext = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
-            $fn  = 'adm_' . bin2hex(random_bytes(6)) . '.' . strtolower($ext);
-            move_uploaded_file($_FILES['file']['tmp_name'], SITE_UPLOAD . 'downloads/' . $fn);
+            $ext    = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
+            $fn     = 'adm_' . bin2hex(random_bytes(6)) . '.' . strtolower($ext);
+            $admDir = SITE_UPLOAD . 'downloads/';
+            if (!is_dir($admDir)) { @mkdir($admDir, 0755, true); }
+            move_uploaded_file($_FILES['file']['tmp_name'], $admDir . $fn);
             try {
                 $db->prepare('INSERT INTO site_admission_forms (title,year,filename) VALUES (?,?,?)')->execute([$title,$year,$fn]);
                 $msg = 'Admission form uploaded.';
@@ -29,12 +31,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if ($action === 'toggle_admission') {
         $val = ($_POST['admission_open'] ?? '0') === '1' ? '1' : '0';
-        $db->prepare('UPDATE site_settings SET `value`=? WHERE `key`="admission_open"')->execute([$val]);
+        $db->prepare('INSERT INTO site_settings (`key`,`value`) VALUES ("admission_open",?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)')->execute([$val]);
         $msg = 'Admission status updated.';
     }
     if ($action === 'update_year') {
         $year = trim($_POST['admission_year'] ?? '');
-        $db->prepare('UPDATE site_settings SET `value`=? WHERE `key`="admission_year"')->execute([$year]);
+        $db->prepare('INSERT INTO site_settings (`key`,`value`) VALUES ("admission_year",?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)')->execute([$year]);
         $msg = 'Admission year updated.';
     }
 }

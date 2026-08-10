@@ -14,11 +14,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $rating= min(5, max(1, (int)($_POST['rating'] ?? 5)));
         $image = null;
         if (!empty($_FILES['image']['tmp_name'])) {
-            $mime = mime_content_type($_FILES['image']['tmp_name']);
+            $mime  = mime_content_type($_FILES['image']['tmp_name']);
             if (in_array($mime, ['image/jpeg','image/png','image/webp'])) {
-                $ext = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'][$mime];
+                $ext   = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'][$mime];
                 $image = 'tm_' . bin2hex(random_bytes(6)) . '.' . $ext;
-                move_uploaded_file($_FILES['image']['tmp_name'], SITE_UPLOAD . 'testimonials/' . $image);
+                $tmDir = SITE_UPLOAD . 'testimonials/';
+                if (!is_dir($tmDir)) { @mkdir($tmDir, 0755, true); }
+                move_uploaded_file($_FILES['image']['tmp_name'], $tmDir . $image);
             }
         }
         try {

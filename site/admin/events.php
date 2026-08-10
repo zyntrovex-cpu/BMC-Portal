@@ -23,9 +23,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($_FILES['image']['tmp_name'])) {
             $mime = mime_content_type($_FILES['image']['tmp_name']);
             if (in_array($mime, ['image/jpeg','image/png','image/webp','image/gif'])) {
-                $ext   = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp','image/gif'=>'gif'][$mime];
-                $image = 'ev_' . bin2hex(random_bytes(6)) . '.' . $ext;
-                move_uploaded_file($_FILES['image']['tmp_name'], SITE_UPLOAD . 'events/' . $image);
+                $ext     = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp','image/gif'=>'gif'][$mime];
+                $image   = 'ev_' . bin2hex(random_bytes(6)) . '.' . $ext;
+                $evDir   = SITE_UPLOAD . 'events/';
+                if (!is_dir($evDir)) { @mkdir($evDir, 0755, true); }
+                move_uploaded_file($_FILES['image']['tmp_name'], $evDir . $image);
             }
         }
         try {

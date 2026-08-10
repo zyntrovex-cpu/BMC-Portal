@@ -13,7 +13,7 @@ define('SITE_DIR',    dirname(__DIR__) . '/');
 define('SITE_UPLOAD', dirname(__DIR__) . '/assets/uploads/');
 
 // ── Auto-create upload subdirectories ────────────────────────────
-foreach (['sliders', 'news', 'notices', 'gallery', 'downloads', 'faculty', 'admissions', 'events'] as $_uploadDir) {
+foreach (['sliders', 'news', 'notices', 'gallery', 'downloads', 'faculty', 'admissions', 'events', 'testimonials', 'partners', 'contact'] as $_uploadDir) {
     $__path = SITE_UPLOAD . $_uploadDir;
     if (!is_dir($__path)) {
         @mkdir($__path, 0755, true);
