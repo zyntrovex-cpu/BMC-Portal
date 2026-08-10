@@ -366,19 +366,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]);
                 }
                 $db->commit();
+
+                // ── Verify actual DB writes after commit ──────────
+                $vSt = $db->prepare(
+                    'SELECT COUNT(*) FROM fees WHERE month=? AND year=? AND paid=1 AND payment_mode="Online"'
+                );
+                $vSt->execute([$fMonth, $fYear]);
+                $dbOnlinePaid = (int)$vSt->fetchColumn();
+
+                $vSt2 = $db->prepare(
+                    'SELECT COUNT(*) FROM fees WHERE month=? AND year=? AND paid=1'
+                );
+                $vSt2->execute([$fMonth, $fYear]);
+                $dbTotalPaid = (int)$vSt2->fetchColumn();
+
                 logActivity($user['id'], 'kuickpay_import',
                     "Kuickpay batch $batchId: $cMatched matched, $cUnmatched unmatched, $cSkipped already-paid, $cDuplicate duplicates");
                 unset($_SESSION['kp_preview']);
                 $step        = 'done';
                 $importStats = [
-                    'matched'    => $cMatched,
-                    'skipped'    => $cSkipped,
-                    'duplicate'  => $cDuplicate,
-                    'unmatched'  => $cUnmatched,
-                    'totalAmt'   => $totalAmt,
-                    'batchId'    => $batchId,
-                    'month'      => $fMonth,
-                    'year'       => $fYear,
+                    'matched'      => $cMatched,
+                    'skipped'      => $cSkipped,
+                    'duplicate'    => $cDuplicate,
+                    'unmatched'    => $cUnmatched,
+                    'totalAmt'     => $totalAmt,
+                    'batchId'      => $batchId,
+                    'month'        => $fMonth,
+                    'year'         => $fYear,
+                    'dbOnlinePaid' => $dbOnlinePaid,
+                    'dbTotalPaid'  => $dbTotalPaid,
                 ];
             } catch (Exception $e) {
                 $db->rollBack();
@@ -482,14 +498,27 @@ $links = getFinanceLinks();
         </div>
       </div>
     </div>
-    <div class="d-flex align-items-center gap-2 mb-4 p-3 rounded" style="background:#fff7ed;border:1px solid #fde68a">
+    <div class="d-flex align-items-center gap-2 mb-3 p-3 rounded" style="background:#fff7ed;border:1px solid #fde68a">
       <i class="fas fa-rupee-sign" style="color:#d97706;font-size:1.2rem"></i>
       <span>Total Fee Amount Collected via Kuickpay:</span>
       <strong style="font-size:1.1rem;color:#d97706">PKR <?= number_format($importStats['totalAmt']) ?></strong>
     </div>
+    <!-- DB verification row -->
+    <div class="d-flex gap-3 mb-4 p-3 rounded" style="background:#f0fdf4;border:1px solid #bbf7d0;font-size:.88rem">
+      <i class="fas fa-database" style="color:#059669;margin-top:2px"></i>
+      <div>
+        <strong style="color:#059669">Database verified:</strong>
+        &nbsp;<?= $importStats['dbOnlinePaid'] ?> Online-paid records in DB for
+        <?= $months[$importStats['month']] . ' ' . $importStats['year'] ?>
+        &nbsp;(<?= $importStats['dbTotalPaid'] ?> total paid this month across all payment modes)
+      </div>
+    </div>
     <div class="d-flex gap-2 flex-wrap">
       <a href="<?= url('/finance/kuickpay.php') ?>" class="btn btn-primary">
         <i class="fas fa-upload me-2"></i>Import Another File
+      </a>
+      <a href="<?= url('/finance/collection.php?month=' . $importStats['month'] . '&year=' . $importStats['year']) ?>" class="btn btn-outline-success">
+        <i class="fas fa-hand-holding-usd me-2"></i>View Fee Collection
       </a>
       <a href="<?= url('/finance/records.php') ?>" class="btn btn-outline-secondary">
         <i class="fas fa-file-invoice-dollar me-2"></i>View Fee Records
@@ -629,22 +658,24 @@ $links = getFinanceLinks();
   </div>
 </div>
 
-<!-- Confirm button -->
-<form method="POST">
-  <input type="hidden" name="action" value="import">
-  <div class="d-flex gap-2">
+<!-- Confirm / Cancel buttons — two sibling forms, never nested -->
+<div class="d-flex gap-2 flex-wrap">
+  <form method="POST" class="d-inline">
+    <input type="hidden" name="action" value="import">
     <button type="submit" class="btn btn-success fw-semibold"
       <?= ($pvStats['matched'] ?? 0) === 0 ? 'disabled' : '' ?>
       onclick="return confirm('Confirm import?\n\n<?= $pvStats['matched'] ?? 0 ?> fee records will be marked as Paid.\nThis cannot be undone.')">
       <i class="fas fa-check-circle me-2"></i>
       Confirm Import (<?= $pvStats['matched'] ?? 0 ?> students)
     </button>
-    <form method="POST" class="d-inline m-0">
-      <input type="hidden" name="action" value="cancel">
-      <button type="submit" class="btn btn-outline-secondary">Cancel</button>
-    </form>
-  </div>
-</form>
+  </form>
+  <form method="POST" class="d-inline">
+    <input type="hidden" name="action" value="cancel">
+    <button type="submit" class="btn btn-outline-secondary">
+      <i class="fas fa-times me-1"></i>Cancel
+    </button>
+  </form>
+</div>
 
 <?php /* ═══════════════════ UPLOAD STATE ═══════════════════ */ ?>
 <?php else: ?>
