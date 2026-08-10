@@ -22,7 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (in_array($mime, ['image/jpeg','image/png','image/webp'])) {
                 $ext   = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'][$mime];
                 $image = 'fac_' . bin2hex(random_bytes(6)) . '.' . $ext;
-                move_uploaded_file($_FILES['image']['tmp_name'], SITE_UPLOAD . 'faculty/' . $image);
+                $facDir = SITE_UPLOAD . 'faculty/';
+                if (!is_dir($facDir)) { @mkdir($facDir, 0755, true); }
+                move_uploaded_file($_FILES['image']['tmp_name'], $facDir . $image);
             }
         }
         try {

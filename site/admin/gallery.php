@@ -22,8 +22,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $msg = 'Album deleted.';
     }
     if ($action === 'upload_photos') {
-        $albumId = (int)($_POST['album_id'] ?? 0);
-        $uploaded = 0;
+        $albumId   = (int)($_POST['album_id'] ?? 0);
+        $uploaded  = 0;
+        $uploadDir = SITE_UPLOAD . 'gallery/';
+        if (!is_dir($uploadDir)) { @mkdir($uploadDir, 0755, true); }
         if (!empty($_FILES['photos']['tmp_name'])) {
             $names = (array)$_FILES['photos']['name'];
             $tmps  = (array)$_FILES['photos']['tmp_name'];
@@ -34,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!in_array($mime, ['image/jpeg','image/png','image/webp','image/gif'])) continue;
                 $ext = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp','image/gif'=>'gif'][$mime];
                 $fn  = 'gal_' . bin2hex(random_bytes(6)) . '.' . $ext;
-                if (move_uploaded_file($tmp, SITE_UPLOAD . 'gallery/' . $fn)) {
+                if (move_uploaded_file($tmp, $uploadDir . $fn)) {
                     $db->prepare('INSERT INTO site_gallery (album_id,filename,title) VALUES (?,?,?)')->execute([$albumId ?: null, $fn, pathinfo($names[$i], PATHINFO_FILENAME)]);
                     $uploaded++;
                 }

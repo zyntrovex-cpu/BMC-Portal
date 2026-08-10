@@ -8,8 +8,18 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // ── Site constants ────────────────────────────────────────────────
-define('SITE_DIR',    __DIR__ . '/../');
-define('SITE_UPLOAD', __DIR__ . '/../assets/uploads/');
+// Use dirname() so the path has no literal ".." segments (important on Windows)
+define('SITE_DIR',    dirname(__DIR__) . '/');
+define('SITE_UPLOAD', dirname(__DIR__) . '/assets/uploads/');
+
+// ── Auto-create upload subdirectories ────────────────────────────
+foreach (['sliders', 'news', 'notices', 'gallery', 'downloads', 'faculty', 'admissions', 'events'] as $_uploadDir) {
+    $__path = SITE_UPLOAD . $_uploadDir;
+    if (!is_dir($__path)) {
+        @mkdir($__path, 0755, true);
+    }
+}
+unset($_uploadDir, $__path);
 
 // SITE_URL: the public URL prefix for this sub-site
 // e.g. /BMC-Portal/site  or  /site  or  ''

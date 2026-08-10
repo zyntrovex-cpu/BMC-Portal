@@ -17,9 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pub      = isset($_POST['is_published']) ? 1 : 0;
         $attach   = null;
         if (!empty($_FILES['attachment']['tmp_name'])) {
-            $origName = basename($_FILES['attachment']['name']);
-            $attach   = 'notice_' . bin2hex(random_bytes(6)) . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $origName);
-            move_uploaded_file($_FILES['attachment']['tmp_name'], SITE_UPLOAD . 'notices/' . $attach);
+            $origName   = basename($_FILES['attachment']['name']);
+            $attach     = 'notice_' . bin2hex(random_bytes(6)) . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $origName);
+            $noticeDir  = SITE_UPLOAD . 'notices/';
+            if (!is_dir($noticeDir)) { @mkdir($noticeDir, 0755, true); }
+            move_uploaded_file($_FILES['attachment']['tmp_name'], $noticeDir . $attach);
         }
         try {
             $db->prepare('INSERT INTO site_notices (title,content,category,priority,expires_at,attachment,is_published) VALUES (?,?,?,?,?,?,?)')

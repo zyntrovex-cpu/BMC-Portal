@@ -19,9 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($_FILES['image']['tmp_name'])) {
             $mime = mime_content_type($_FILES['image']['tmp_name']);
             if (in_array($mime, ['image/jpeg','image/png','image/webp'])) {
-                $ext   = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'][$mime];
-                $image = 'slide_' . bin2hex(random_bytes(6)) . '.' . $ext;
-                move_uploaded_file($_FILES['image']['tmp_name'], SITE_UPLOAD . 'sliders/' . $image);
+                $ext      = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'][$mime];
+                $image    = 'slide_' . bin2hex(random_bytes(6)) . '.' . $ext;
+                $slideDir = SITE_UPLOAD . 'sliders/';
+                if (!is_dir($slideDir)) { @mkdir($slideDir, 0755, true); }
+                move_uploaded_file($_FILES['image']['tmp_name'], $slideDir . $image);
             } else { $err = 'Only JPEG, PNG, or WebP images allowed.'; }
         }
         if (!$err) {

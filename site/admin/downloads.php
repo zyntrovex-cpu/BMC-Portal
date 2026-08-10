@@ -16,11 +16,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $fileName  = null;
         $fileSize  = null;
         if (!empty($_FILES['file']['tmp_name'])) {
-            $origName = basename($_FILES['file']['name']);
-            $fileName = 'dl_' . bin2hex(random_bytes(6)) . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $origName);
-            $fSize    = $_FILES['file']['size'];
-            $fileSize = $fSize >= 1048576 ? round($fSize/1048576, 1) . ' MB' : round($fSize/1024, 0) . ' KB';
-            move_uploaded_file($_FILES['file']['tmp_name'], SITE_UPLOAD . 'downloads/' . $fileName);
+            $origName  = basename($_FILES['file']['name']);
+            $fileName  = 'dl_' . bin2hex(random_bytes(6)) . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $origName);
+            $fSize     = $_FILES['file']['size'];
+            $fileSize  = $fSize >= 1048576 ? round($fSize/1048576, 1) . ' MB' : round($fSize/1024, 0) . ' KB';
+            $dlDir     = SITE_UPLOAD . 'downloads/';
+            if (!is_dir($dlDir)) { @mkdir($dlDir, 0755, true); }
+            move_uploaded_file($_FILES['file']['tmp_name'], $dlDir . $fileName);
         }
         try {
             $db->prepare('INSERT INTO site_downloads (title,description,category,file_name,file_size,sort_order) VALUES (?,?,?,?,?,?)')
