@@ -291,11 +291,12 @@ function getTeacherLinks(): array {
 function getFinanceLinks(): array {
     return array_values(array_filter([
         ['href'=>'/finance/dashboard.php',   'icon'=>'<i class="fas fa-home"></i>',                       'label'=>'Dashboard',     'key'=>'dashboard'],
-        hasPermission('fee_collection') ? ['href'=>'/finance/collection.php', 'icon'=>'<i class="fas fa-hand-holding-usd"></i>',    'label'=>'Fee Collection', 'key'=>'collection']  : null,
-        hasPermission('fee_monthly')    ? ['href'=>'/finance/monthly.php',    'icon'=>'<i class="fas fa-calendar-alt"></i>',        'label'=>'Monthly Report', 'key'=>'monthly']     : null,
-        hasPermission('fee_records')    ? ['href'=>'/finance/records.php',    'icon'=>'<i class="fas fa-file-invoice-dollar"></i>', 'label'=>'Fee Records',    'key'=>'records']     : null,
-        hasPermission('fee_defaulters') ? ['href'=>'/finance/defaulters.php', 'icon'=>'<i class="fas fa-exclamation-triangle"></i>','label'=>'Defaulters',     'key'=>'defaulters']  : null,
-        hasPermission('fee_reports')    ? ['href'=>'/finance/reports.php',    'icon'=>'<i class="fas fa-chart-pie"></i>',           'label'=>'Reports',        'key'=>'reports']     : null,
+        hasPermission('fee_collection') ? ['href'=>'/finance/collection.php', 'icon'=>'<i class="fas fa-hand-holding-usd"></i>',    'label'=>'Fee Collection',  'key'=>'collection']  : null,
+        hasPermission('fee_collection') ? ['href'=>'/finance/kuickpay.php',   'icon'=>'<i class="fas fa-file-upload"></i>',          'label'=>'Kuickpay Import', 'key'=>'kuickpay']    : null,
+        hasPermission('fee_monthly')    ? ['href'=>'/finance/monthly.php',    'icon'=>'<i class="fas fa-calendar-alt"></i>',        'label'=>'Monthly Report',  'key'=>'monthly']     : null,
+        hasPermission('fee_records')    ? ['href'=>'/finance/records.php',    'icon'=>'<i class="fas fa-file-invoice-dollar"></i>', 'label'=>'Fee Records',     'key'=>'records']     : null,
+        hasPermission('fee_defaulters') ? ['href'=>'/finance/defaulters.php', 'icon'=>'<i class="fas fa-exclamation-triangle"></i>','label'=>'Defaulters',      'key'=>'defaulters']  : null,
+        hasPermission('fee_reports')    ? ['href'=>'/finance/reports.php',    'icon'=>'<i class="fas fa-chart-pie"></i>',           'label'=>'Reports',         'key'=>'reports']     : null,
     ]));
 }
 
