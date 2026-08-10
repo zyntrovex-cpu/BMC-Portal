@@ -43,6 +43,8 @@
             <li><a href="<?= SITE_URL ?>/academics.php">Academics</a></li>
             <li><a href="<?= SITE_URL ?>/faculty.php">Faculty</a></li>
             <li><a href="<?= SITE_URL ?>/admissions.php">Admissions</a></li>
+            <li><a href="<?= SITE_URL ?>/administration.php">Administration</a></li>
+            <li><a href="<?= SITE_URL ?>/careers.php">Careers</a></li>
             <li><a href="<?= SITE_URL ?>/gallery.php">Gallery</a></li>
             <li><a href="<?= SITE_URL ?>/contact.php">Contact</a></li>
           </ul>

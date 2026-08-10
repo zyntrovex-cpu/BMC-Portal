@@ -14,7 +14,7 @@ $_activePage = $activePage ?? '';
   <meta name="description" content="<?= sh($pageDesc ?? getSetting('about_short', '')) ?>">
   <meta property="og:title"     content="<?= sh($pageTitle ?? $_siteName) ?>">
   <meta property="og:site_name" content="<?= sh($_siteName) ?>">
-  <!-- Inter font (single font family) -->
+  <!-- Inter font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -49,6 +49,7 @@ $_activePage = $activePage ?? '';
           <i class="fas fa-envelope me-1"></i><?= sh(getSetting('site_email', 'info@bmc.edu.pk')) ?>
         </a>
         <?php $phone = getSetting('site_phone'); if ($phone): ?>
+        <span class="topbar-sep">|</span>
         <a href="tel:<?= sh($phone) ?>">
           <i class="fas fa-phone-alt me-1"></i><?= sh($phone) ?>
         </a>
@@ -74,10 +75,10 @@ $_activePage = $activePage ?? '';
 
   <!-- Main nav -->
   <div class="nav-main">
-    <div class="container-xl d-flex justify-content-between align-items-center h-100">
+    <div class="container-xl d-flex align-items-center h-100 gap-2">
 
       <!-- Logo -->
-      <a href="<?= SITE_URL ?>/index.php" class="site-logo">
+      <a href="<?= SITE_URL ?>/index.php" class="site-logo me-2">
         <div class="logo-icon"><i class="fas fa-landmark"></i></div>
         <div>
           <span class="logo-name">BMC</span>
@@ -87,15 +88,17 @@ $_activePage = $activePage ?? '';
 
       <!-- Desktop nav links -->
       <ul class="nav-links" id="navLinks">
+
         <li>
           <a href="<?= SITE_URL ?>/index.php"
              class="<?= $_activePage === 'home' ? 'active' : '' ?>">Home</a>
         </li>
 
+        <!-- About Us mega -->
         <li class="has-mega">
           <a href="<?= SITE_URL ?>/about.php"
-             class="<?= in_array($_activePage, ['about','history','mission','vision','principal','org','campus']) ? 'active' : '' ?>">
-            About Us <i class="fas fa-chevron-down ms-1" style="font-size:.6em"></i>
+             class="<?= in_array($_activePage, ['about','history','mission','vision','principal','org','campus','administration']) ? 'active' : '' ?>">
+            About <i class="fas fa-chevron-down nav-caret"></i>
           </a>
           <div class="mega-menu">
             <div class="mega-inner">
@@ -105,6 +108,7 @@ $_activePage = $activePage ?? '';
                 <a href="<?= SITE_URL ?>/about.php?tab=intro"><i class="fas fa-university"></i>Introduction</a>
                 <a href="<?= SITE_URL ?>/about.php?tab=campus"><i class="fas fa-building"></i>Campus</a>
                 <a href="<?= SITE_URL ?>/about.php?tab=accreditation"><i class="fas fa-certificate"></i>Accreditation</a>
+                <a href="<?= SITE_URL ?>/about.php?tab=facilities"><i class="fas fa-building"></i>Facilities</a>
               </div>
               <div class="mega-col">
                 <h6>Our Identity</h6>
@@ -117,16 +121,18 @@ $_activePage = $activePage ?? '';
                 <h6>Administration</h6>
                 <a href="<?= SITE_URL ?>/administration.php"><i class="fas fa-sitemap"></i>Administration</a>
                 <a href="<?= SITE_URL ?>/about.php?tab=org"><i class="fas fa-project-diagram"></i>Org Structure</a>
-                <a href="<?= SITE_URL ?>/about.php?tab=facilities"><i class="fas fa-building"></i>Facilities</a>
+                <a href="<?= SITE_URL ?>/careers.php"><i class="fas fa-briefcase"></i>Careers</a>
+                <a href="<?= SITE_URL ?>/contact.php"><i class="fas fa-envelope"></i>Contact Us</a>
               </div>
             </div>
           </div>
         </li>
 
+        <!-- Academics mega -->
         <li class="has-mega">
           <a href="<?= SITE_URL ?>/academics.php"
              class="<?= in_array($_activePage, ['academics','departments','programs']) ? 'active' : '' ?>">
-            Academics <i class="fas fa-chevron-down ms-1" style="font-size:.6em"></i>
+            Academics <i class="fas fa-chevron-down nav-caret"></i>
           </a>
           <div class="mega-menu">
             <div class="mega-inner">
@@ -156,17 +162,18 @@ $_activePage = $activePage ?? '';
           <a href="<?= SITE_URL ?>/faculty.php"
              class="<?= $_activePage === 'faculty' ? 'active' : '' ?>">Faculty</a>
         </li>
-        <li>
-          <a href="<?= SITE_URL ?>/administration.php"
-             class="<?= $_activePage === 'administration' ? 'active' : '' ?>">Administration</a>
-        </li>
+
         <li>
           <a href="<?= SITE_URL ?>/admissions.php"
              class="<?= $_activePage === 'admissions' ? 'active' : '' ?>">Admissions</a>
         </li>
 
+        <!-- Student Portal dropdown -->
         <li class="has-dropdown">
-          <a href="#">Student Portal <i class="fas fa-chevron-down ms-1" style="font-size:.6em"></i></a>
+          <a href="<?= BASE_URL ?>/student/dashboard.php"
+             class="<?= $_activePage === 'portal' ? 'active' : '' ?>">
+            Portal <i class="fas fa-chevron-down nav-caret"></i>
+          </a>
           <ul class="dropdown-menu-custom">
             <li><a href="<?= BASE_URL ?>/student/dashboard.php"><i class="fas fa-tachometer-alt"></i>Student Dashboard</a></li>
             <li><a href="<?= BASE_URL ?>/student/results.php"><i class="fas fa-chart-bar"></i>Results</a></li>
@@ -175,14 +182,13 @@ $_activePage = $activePage ?? '';
           </ul>
         </li>
 
-        <li>
-          <a href="<?= SITE_URL ?>/downloads.php"
-             class="<?= $_activePage === 'downloads' ? 'active' : '' ?>">Downloads</a>
-        </li>
-
+        <!-- News dropdown -->
         <li class="has-dropdown">
-          <a href="#">News <i class="fas fa-chevron-down ms-1" style="font-size:.6em"></i></a>
-          <ul class="dropdown-menu-custom">
+          <a href="<?= SITE_URL ?>/news.php"
+             class="<?= in_array($_activePage, ['news','events','notices']) ? 'active' : '' ?>">
+            News <i class="fas fa-chevron-down nav-caret"></i>
+          </a>
+          <ul class="dropdown-menu-custom dropdown-right">
             <li><a href="<?= SITE_URL ?>/news.php"><i class="fas fa-newspaper"></i>Latest News</a></li>
             <li><a href="<?= SITE_URL ?>/events.php"><i class="fas fa-calendar-alt"></i>Events</a></li>
             <li><a href="<?= SITE_URL ?>/notices.php"><i class="fas fa-bell"></i>Notices</a></li>
@@ -193,18 +199,21 @@ $_activePage = $activePage ?? '';
           <a href="<?= SITE_URL ?>/gallery.php"
              class="<?= $_activePage === 'gallery' ? 'active' : '' ?>">Gallery</a>
         </li>
+
         <li>
-          <a href="<?= SITE_URL ?>/careers.php"
-             class="<?= $_activePage === 'careers' ? 'active' : '' ?>">Careers</a>
+          <a href="<?= SITE_URL ?>/downloads.php"
+             class="<?= $_activePage === 'downloads' ? 'active' : '' ?>">Downloads</a>
         </li>
+
         <li>
           <a href="<?= SITE_URL ?>/contact.php"
              class="<?= $_activePage === 'contact' ? 'active' : '' ?>">Contact</a>
         </li>
+
       </ul>
 
       <!-- Right actions -->
-      <div class="nav-actions">
+      <div class="nav-actions ms-auto">
         <a href="<?= SITE_URL ?>/search.php" class="search-toggle" id="searchToggle" title="Search (Ctrl+K)">
           <i class="fas fa-search"></i>
         </a>
@@ -227,89 +236,127 @@ $_activePage = $activePage ?? '';
 </nav>
 <!-- ══ /Navbar ══ -->
 
-<!-- ══ Mobile Menu ══ -->
+<!-- ══ Mobile Menu (slide-in drawer) ══ -->
 <div class="mobile-menu" id="mobileMenu">
-  <ul style="width:100%">
-    <li>
-      <a href="<?= SITE_URL ?>/index.php" class="nav-link <?= $_activePage === 'home' ? 'active' : '' ?>">Home</a>
-    </li>
+  <div class="mobile-menu-inner">
 
-    <li class="has-mega">
-      <a href="#">About Us <i class="fas fa-chevron-down"></i></a>
-      <div class="mega-menu">
-        <div class="mega-inner">
-          <div class="mega-col">
-            <h6>Institution</h6>
-            <a href="<?= SITE_URL ?>/about.php?tab=history"><i class="fas fa-history"></i>History</a>
-            <a href="<?= SITE_URL ?>/about.php?tab=intro"><i class="fas fa-university"></i>Introduction</a>
-            <a href="<?= SITE_URL ?>/about.php?tab=campus"><i class="fas fa-building"></i>Campus</a>
-          </div>
-          <div class="mega-col">
-            <h6>Our Identity</h6>
-            <a href="<?= SITE_URL ?>/about.php?tab=vision"><i class="fas fa-eye"></i>Vision</a>
-            <a href="<?= SITE_URL ?>/about.php?tab=mission"><i class="fas fa-bullseye"></i>Mission</a>
-            <a href="<?= SITE_URL ?>/about.php?tab=principal"><i class="fas fa-user-tie"></i>Principal's Message</a>
-          </div>
-          <div class="mega-col">
-            <h6>Administration</h6>
-            <a href="<?= SITE_URL ?>/administration.php"><i class="fas fa-sitemap"></i>Administration</a>
-            <a href="<?= SITE_URL ?>/about.php?tab=facilities"><i class="fas fa-building"></i>Facilities</a>
-          </div>
-        </div>
-      </div>
-    </li>
+    <div class="mobile-menu-header">
+      <a href="<?= SITE_URL ?>/index.php" class="d-flex align-items-center gap-2">
+        <div class="logo-icon" style="width:32px;height:32px;font-size:.9rem"><i class="fas fa-landmark"></i></div>
+        <span style="font-weight:700;color:var(--primary)">BMC</span>
+      </a>
+      <button class="mobile-menu-close" id="mobileMenuClose" type="button"><i class="fas fa-times"></i></button>
+    </div>
 
-    <li class="has-mega">
-      <a href="#">Academics <i class="fas fa-chevron-down"></i></a>
-      <div class="mega-menu">
-        <div class="mega-inner">
-          <div class="mega-col">
-            <h6>Programs</h6>
-            <a href="<?= SITE_URL ?>/academics.php?tab=departments"><i class="fas fa-university"></i>Departments</a>
-            <a href="<?= SITE_URL ?>/academics.php?tab=programs"><i class="fas fa-book"></i>Programs</a>
-          </div>
-          <div class="mega-col">
-            <h6>Academic Info</h6>
-            <a href="<?= SITE_URL ?>/academics.php?tab=calendar"><i class="fas fa-calendar"></i>Academic Calendar</a>
-            <a href="<?= SITE_URL ?>/academics.php?tab=examination"><i class="fas fa-file-alt"></i>Examination</a>
-          </div>
-          <div class="mega-col">
-            <h6>Resources</h6>
-            <a href="<?= SITE_URL ?>/academics.php?tab=library"><i class="fas fa-book-open"></i>Library</a>
-            <a href="<?= SITE_URL ?>/academics.php?tab=labs"><i class="fas fa-flask"></i>Laboratories</a>
-          </div>
-        </div>
-      </div>
-    </li>
+    <ul class="mobile-nav-list">
 
-    <li><a href="<?= SITE_URL ?>/faculty.php"        class="nav-link <?= $_activePage === 'faculty' ? 'active' : '' ?>">Faculty</a></li>
-    <li><a href="<?= SITE_URL ?>/administration.php" class="nav-link <?= $_activePage === 'administration' ? 'active' : '' ?>">Administration</a></li>
-    <li><a href="<?= SITE_URL ?>/admissions.php"     class="nav-link <?= $_activePage === 'admissions' ? 'active' : '' ?>">Admissions</a></li>
+      <li>
+        <a href="<?= SITE_URL ?>/index.php" class="mobile-nav-link <?= $_activePage === 'home' ? 'active' : '' ?>">
+          <i class="fas fa-home"></i>Home
+        </a>
+      </li>
 
-    <li class="has-dropdown">
-      <a href="#">Student Portal <i class="fas fa-chevron-down"></i></a>
-      <ul class="dropdown-menu-custom">
-        <li><a href="<?= BASE_URL ?>/student/dashboard.php"><i class="fas fa-tachometer-alt"></i>Student Dashboard</a></li>
-        <li><a href="<?= BASE_URL ?>/student/results.php"><i class="fas fa-chart-bar"></i>Results</a></li>
-        <li><a href="<?= BASE_URL ?>/student/attendance.php"><i class="fas fa-calendar-check"></i>Attendance</a></li>
-        <li><a href="<?= BASE_URL ?>/student/timetable.php"><i class="fas fa-clock"></i>Timetable</a></li>
-      </ul>
-    </li>
+      <li class="mobile-has-sub">
+        <button class="mobile-nav-toggle" type="button">
+          <span><i class="fas fa-info-circle"></i>About BMC</span>
+          <i class="fas fa-chevron-down toggle-icon"></i>
+        </button>
+        <ul class="mobile-sub-list">
+          <li><a href="<?= SITE_URL ?>/about.php">Overview</a></li>
+          <li><a href="<?= SITE_URL ?>/about.php?tab=history">History</a></li>
+          <li><a href="<?= SITE_URL ?>/about.php?tab=vision">Vision &amp; Mission</a></li>
+          <li><a href="<?= SITE_URL ?>/about.php?tab=principal">Principal's Message</a></li>
+          <li><a href="<?= SITE_URL ?>/about.php?tab=campus">Campus</a></li>
+          <li><a href="<?= SITE_URL ?>/administration.php">Administration</a></li>
+          <li><a href="<?= SITE_URL ?>/about.php?tab=facilities">Facilities</a></li>
+        </ul>
+      </li>
 
-    <li><a href="<?= SITE_URL ?>/downloads.php" class="nav-link <?= $_activePage === 'downloads' ? 'active' : '' ?>">Downloads</a></li>
+      <li class="mobile-has-sub">
+        <button class="mobile-nav-toggle" type="button">
+          <span><i class="fas fa-graduation-cap"></i>Academics</span>
+          <i class="fas fa-chevron-down toggle-icon"></i>
+        </button>
+        <ul class="mobile-sub-list">
+          <li><a href="<?= SITE_URL ?>/academics.php">Overview</a></li>
+          <li><a href="<?= SITE_URL ?>/academics.php?tab=departments">Departments</a></li>
+          <li><a href="<?= SITE_URL ?>/academics.php?tab=programs">Programs</a></li>
+          <li><a href="<?= SITE_URL ?>/academics.php?tab=calendar">Academic Calendar</a></li>
+          <li><a href="<?= SITE_URL ?>/academics.php?tab=examination">Examination</a></li>
+          <li><a href="<?= SITE_URL ?>/academics.php?tab=library">Library</a></li>
+          <li><a href="<?= SITE_URL ?>/academics.php?tab=labs">Laboratories</a></li>
+        </ul>
+      </li>
 
-    <li class="has-dropdown">
-      <a href="#">News &amp; Events <i class="fas fa-chevron-down"></i></a>
-      <ul class="dropdown-menu-custom">
-        <li><a href="<?= SITE_URL ?>/news.php"><i class="fas fa-newspaper"></i>Latest News</a></li>
-        <li><a href="<?= SITE_URL ?>/events.php"><i class="fas fa-calendar-alt"></i>Events</a></li>
-        <li><a href="<?= SITE_URL ?>/notices.php"><i class="fas fa-bell"></i>Notices</a></li>
-      </ul>
-    </li>
+      <li>
+        <a href="<?= SITE_URL ?>/faculty.php" class="mobile-nav-link <?= $_activePage === 'faculty' ? 'active' : '' ?>">
+          <i class="fas fa-chalkboard-teacher"></i>Faculty
+        </a>
+      </li>
 
-    <li><a href="<?= SITE_URL ?>/gallery.php" class="nav-link <?= $_activePage === 'gallery' ? 'active' : '' ?>">Gallery</a></li>
-    <li><a href="<?= SITE_URL ?>/careers.php" class="nav-link <?= $_activePage === 'careers' ? 'active' : '' ?>">Careers</a></li>
-    <li><a href="<?= SITE_URL ?>/contact.php" class="nav-link <?= $_activePage === 'contact' ? 'active' : '' ?>">Contact</a></li>
-  </ul>
+      <li>
+        <a href="<?= SITE_URL ?>/admissions.php" class="mobile-nav-link <?= $_activePage === 'admissions' ? 'active' : '' ?>">
+          <i class="fas fa-user-plus"></i>Admissions
+        </a>
+      </li>
+
+      <li class="mobile-has-sub">
+        <button class="mobile-nav-toggle" type="button">
+          <span><i class="fas fa-user-graduate"></i>Student Portal</span>
+          <i class="fas fa-chevron-down toggle-icon"></i>
+        </button>
+        <ul class="mobile-sub-list">
+          <li><a href="<?= BASE_URL ?>/student/dashboard.php">Dashboard</a></li>
+          <li><a href="<?= BASE_URL ?>/student/results.php">Results</a></li>
+          <li><a href="<?= BASE_URL ?>/student/attendance.php">Attendance</a></li>
+          <li><a href="<?= BASE_URL ?>/student/timetable.php">Timetable</a></li>
+        </ul>
+      </li>
+
+      <li class="mobile-has-sub">
+        <button class="mobile-nav-toggle" type="button">
+          <span><i class="fas fa-newspaper"></i>News &amp; Events</span>
+          <i class="fas fa-chevron-down toggle-icon"></i>
+        </button>
+        <ul class="mobile-sub-list">
+          <li><a href="<?= SITE_URL ?>/news.php">Latest News</a></li>
+          <li><a href="<?= SITE_URL ?>/events.php">Events</a></li>
+          <li><a href="<?= SITE_URL ?>/notices.php">Notices</a></li>
+        </ul>
+      </li>
+
+      <li>
+        <a href="<?= SITE_URL ?>/gallery.php" class="mobile-nav-link <?= $_activePage === 'gallery' ? 'active' : '' ?>">
+          <i class="fas fa-images"></i>Gallery
+        </a>
+      </li>
+
+      <li>
+        <a href="<?= SITE_URL ?>/downloads.php" class="mobile-nav-link <?= $_activePage === 'downloads' ? 'active' : '' ?>">
+          <i class="fas fa-download"></i>Downloads
+        </a>
+      </li>
+
+      <li>
+        <a href="<?= SITE_URL ?>/careers.php" class="mobile-nav-link <?= $_activePage === 'careers' ? 'active' : '' ?>">
+          <i class="fas fa-briefcase"></i>Careers
+        </a>
+      </li>
+
+      <li>
+        <a href="<?= SITE_URL ?>/contact.php" class="mobile-nav-link <?= $_activePage === 'contact' ? 'active' : '' ?>">
+          <i class="fas fa-envelope"></i>Contact
+        </a>
+      </li>
+
+    </ul>
+
+    <div class="mobile-menu-footer">
+      <a href="<?= SITE_URL ?>/admissions.php" class="btn-primary-custom w-100 justify-content-center">
+        <i class="fas fa-graduation-cap"></i> Apply for Admissions
+      </a>
+    </div>
+  </div>
 </div>
+<div class="mobile-menu-overlay" id="mobileOverlay"></div>
 <!-- ══ /Mobile Menu ══ -->

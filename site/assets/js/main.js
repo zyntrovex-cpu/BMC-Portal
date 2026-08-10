@@ -25,31 +25,47 @@ document.getElementById('backToTop')?.addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-/* ── Hamburger / Mobile nav ──────────────────────────────────── */
-const ham     = document.getElementById('hamburger');
-const mobileMenu = document.getElementById('mobileMenu');
+/* ── Mobile Menu (slide-in drawer) ──────────────────────────── */
+const ham          = document.getElementById('hamburger');
+const mobileMenu   = document.getElementById('mobileMenu');
+const mobileOverlay = document.getElementById('mobileOverlay');
+const mobileClose  = document.getElementById('mobileMenuClose');
+
+const openMobileMenu = () => {
+  ham?.classList.add('open');
+  mobileMenu?.classList.add('open');
+  mobileOverlay?.classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+const closeMobileMenu = () => {
+  ham?.classList.remove('open');
+  mobileMenu?.classList.remove('open');
+  mobileOverlay?.classList.remove('open');
+  document.body.style.overflow = '';
+};
 
 ham?.addEventListener('click', () => {
-  const isOpen = ham.classList.toggle('open');
-  mobileMenu?.classList.toggle('open', isOpen);
-  document.body.style.overflow = isOpen ? 'hidden' : '';
+  mobileMenu?.classList.contains('open') ? closeMobileMenu() : openMobileMenu();
 });
+mobileClose?.addEventListener('click', closeMobileMenu);
+mobileOverlay?.addEventListener('click', closeMobileMenu);
 
-/* Mobile mega/dropdown accordion */
-document.querySelectorAll('.mobile-menu .has-mega > a, .mobile-menu .has-dropdown > a').forEach(link => {
-  link.addEventListener('click', e => {
-    e.preventDefault();
-    link.closest('li').classList.toggle('open');
+/* Mobile accordion sub-menus */
+document.querySelectorAll('.mobile-nav-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const li = btn.closest('.mobile-has-sub');
+    const isOpen = li.classList.contains('open');
+    /* Close all other open subs */
+    document.querySelectorAll('.mobile-has-sub.open').forEach(other => {
+      if (other !== li) other.classList.remove('open');
+    });
+    li.classList.toggle('open', !isOpen);
   });
 });
 
-/* Close mobile nav on inner link click */
-document.querySelectorAll('.mobile-menu a:not(.has-mega > a):not(.has-dropdown > a)').forEach(a => {
-  a.addEventListener('click', () => {
-    ham?.classList.remove('open');
-    mobileMenu?.classList.remove('open');
-    document.body.style.overflow = '';
-  });
+/* Close mobile menu on any link click */
+document.querySelectorAll('.mobile-menu a').forEach(a => {
+  a.addEventListener('click', closeMobileMenu);
 });
 
 /* ── Search overlay ──────────────────────────────────────────── */
