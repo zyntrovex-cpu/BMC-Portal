@@ -1,23 +1,22 @@
 -- ─────────────────────────────────────────────────────────────────────────────
--- Cleanup Dummy Students
--- Removes the 15 original seed students (user_ids 101–115).
--- CASCADE constraints handle fees, attendance, results, profile_change_requests,
+-- Cleanup Old Dummy Students (user_ids 101–115)
+--
+-- USE THIS ONLY if you are upgrading from an old installation that still has
+-- the original 15 seed students (101-115). If you did a fresh install using
+-- the updated bmc_portal_full.sql, these students do NOT exist and this script
+-- is a no-op.
+--
+-- CASCADE constraints handle fees, attendance, marks, profile_change_requests,
 -- kuickpay_transactions, and student_warnings automatically.
--- Run this ONCE in your MySQL/MariaDB client before importing real students.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 SET FOREIGN_KEY_CHECKS = 0;
 
--- Delete dummy student users (cascades to students, fees, attendance, etc.)
+-- Delete old dummy student users — cascades to students + all related tables
 DELETE FROM users
 WHERE role = 'student'
   AND user_id IN ('101','102','103','104','105','106','107',
                   '108','109','110','111','112','113','114','115');
-
--- Clear any orphaned kuickpay_transactions that referenced these students
-DELETE FROM kuickpay_transactions WHERE student_id IS NULL AND reg_num IN
-  ('0101','0102','0103','0104','0105','0106','0107',
-   '0108','0109','0110','0111','0112','0113','0114','0115');
 
 SET FOREIGN_KEY_CHECKS = 1;
 

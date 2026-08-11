@@ -162,7 +162,7 @@ CREATE TABLE `attendance` (
   CONSTRAINT `attendance_ibfk_2` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE SET NULL,
   CONSTRAINT `attendance_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE SET NULL,
   CONSTRAINT `attendance_ibfk_4` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -172,21 +172,10 @@ CREATE TABLE `attendance` (
 LOCK TABLES `attendance` WRITE;
 /*!40000 ALTER TABLE `attendance` DISABLE KEYS */;
 INSERT INTO `attendance` VALUES
-(1,1,12,1,'2026-05-22','P',NULL,1,'2026-06-09 11:24:07'),
-(2,2,12,1,'2026-05-22','P',NULL,1,'2026-06-09 11:24:07'),
-(3,3,12,1,'2026-05-22','A',NULL,1,'2026-06-09 11:24:07'),
-(4,4,12,1,'2026-05-22','P',NULL,1,'2026-06-09 11:24:07'),
-(5,5,12,1,'2026-05-22','P',NULL,1,'2026-06-09 11:24:07'),
-(6,6,12,1,'2026-05-22','P',NULL,1,'2026-06-09 11:24:07'),
-(7,7,12,1,'2026-05-22','A',NULL,1,'2026-06-09 11:24:07'),
-(8,8,12,1,'2026-05-22','P',NULL,1,'2026-06-09 11:24:07'),
-(9,9,12,1,'2026-05-22','L',NULL,1,'2026-06-09 11:24:07'),
-(10,10,12,1,'2026-05-22','P',NULL,1,'2026-06-09 11:24:07'),
-(11,11,12,1,'2026-05-22','P',NULL,1,'2026-06-09 11:24:07'),
-(12,12,12,1,'2026-05-22','P',NULL,1,'2026-06-09 11:24:07'),
-(13,13,12,1,'2026-05-22','P',NULL,1,'2026-06-09 11:24:07'),
-(14,14,12,1,'2026-05-22','P',NULL,1,'2026-06-09 11:24:07'),
-(15,15,12,1,'2026-05-22','P',NULL,1,'2026-06-09 11:24:07');
+(1,17,12,1,'2026-05-22','P',NULL,1,'2026-06-09 11:24:07'),
+(2,18,12,1,'2026-05-22','P',NULL,1,'2026-06-09 11:24:07'),
+(3,19,12,1,'2026-05-22','A',NULL,1,'2026-06-09 11:24:07'),
+(4,20,12,1,'2026-05-22','L',NULL,1,'2026-06-09 11:24:07');
 /*!40000 ALTER TABLE `attendance` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -294,7 +283,7 @@ CREATE TABLE `fees` (
   KEY `recorded_by` (`recorded_by`),
   CONSTRAINT `fees_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fees_ibfk_2` FOREIGN KEY (`recorded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -304,21 +293,26 @@ CREATE TABLE `fees` (
 LOCK TABLES `fees` WRITE;
 /*!40000 ALTER TABLE `fees` DISABLE KEYS */;
 INSERT INTO `fees` VALUES
-(1,1,5,2026,12000.00,1,'2026-05-20','Cash',NULL,NULL,23,'2026-06-09 11:24:07','2026-05-20'),
-(2,2,5,2026,12000.00,1,'2026-05-19','Bank',NULL,NULL,23,'2026-06-09 11:24:07','2026-05-19'),
+(1,1,5,2026,12000.00,1,'2026-05-20','Cash',NULL,NULL,28,'2026-06-09 11:24:07','2026-05-20'),
+(2,2,5,2026,12000.00,1,'2026-05-19','Bank',NULL,NULL,28,'2026-06-09 11:24:07','2026-05-19'),
 (3,3,5,2026,12000.00,0,NULL,'Cash',NULL,NULL,NULL,'2026-06-09 11:24:07',NULL),
-(4,4,5,2026,12000.00,1,'2026-05-17','Online',NULL,NULL,23,'2026-06-09 11:24:07','2026-05-17'),
+(4,4,5,2026,12000.00,1,'2026-05-17','Online',NULL,NULL,28,'2026-06-09 11:24:07','2026-05-17'),
 (5,5,5,2026,12000.00,0,NULL,'Cash',NULL,NULL,NULL,'2026-06-09 11:24:07',NULL),
-(6,6,5,2026,12000.00,1,'2026-05-15','Cash',NULL,NULL,23,'2026-06-09 11:24:07','2026-05-15'),
+(6,6,5,2026,12000.00,1,'2026-05-15','Cash',NULL,NULL,28,'2026-06-09 11:24:07','2026-05-15'),
 (7,7,5,2026,12000.00,0,NULL,'Cash',NULL,NULL,NULL,'2026-06-09 11:24:07',NULL),
-(8,8,5,2026,12000.00,1,'2026-05-12','Bank',NULL,NULL,23,'2026-06-09 11:24:07','2026-05-12'),
+(8,8,5,2026,12000.00,1,'2026-05-12','Bank',NULL,NULL,28,'2026-06-09 11:24:07','2026-05-12'),
 (9,9,5,2026,12000.00,0,NULL,'Cash',NULL,NULL,NULL,'2026-06-09 11:24:07',NULL),
-(10,10,5,2026,12000.00,1,'2026-05-10','Cash',NULL,NULL,23,'2026-06-09 11:24:07','2026-05-10'),
+(10,10,5,2026,12000.00,1,'2026-05-10','Cash',NULL,NULL,28,'2026-06-09 11:24:07','2026-05-10'),
 (11,11,5,2026,12000.00,0,NULL,'Cash',NULL,NULL,NULL,'2026-06-09 11:24:07',NULL),
-(12,12,5,2026,12000.00,1,'2026-05-08','Online',NULL,NULL,23,'2026-06-09 11:24:07','2026-05-08'),
+(12,12,5,2026,12000.00,1,'2026-05-08','Online',NULL,NULL,28,'2026-06-09 11:24:07','2026-05-08'),
 (13,13,5,2026,12000.00,0,NULL,'Cash',NULL,NULL,NULL,'2026-06-09 11:24:07',NULL),
-(14,14,5,2026,12000.00,1,'2026-05-05','Cash',NULL,NULL,23,'2026-06-09 11:24:07','2026-05-05'),
-(15,15,5,2026,12000.00,0,NULL,'Cash',NULL,NULL,NULL,'2026-06-09 11:24:07',NULL);
+(14,14,5,2026,12000.00,1,'2026-05-05','Cash',NULL,NULL,28,'2026-06-09 11:24:07','2026-05-05'),
+(15,15,5,2026,12000.00,0,NULL,'Cash',NULL,NULL,NULL,'2026-06-09 11:24:07',NULL),
+(16,16,5,2026,12000.00,1,'2026-05-03','Bank',NULL,NULL,28,'2026-06-09 11:24:07','2026-05-03'),
+(17,17,5,2026,12000.00,1,'2026-05-21','Online',NULL,NULL,28,'2026-06-09 11:24:07','2026-05-21'),
+(18,18,5,2026,12000.00,1,'2026-05-16','Cash',NULL,NULL,28,'2026-06-09 11:24:07','2026-05-16'),
+(19,19,5,2026,12000.00,0,NULL,'Cash',NULL,NULL,NULL,'2026-06-09 11:24:07',NULL),
+(20,20,5,2026,12000.00,1,'2026-05-11','Bank',NULL,NULL,28,'2026-06-09 11:24:07','2026-05-11');
 /*!40000 ALTER TABLE `fees` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -344,7 +338,7 @@ CREATE TABLE `marks` (
   CONSTRAINT `marks_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
   CONSTRAINT `marks_ibfk_2` FOREIGN KEY (`assessment_id`) REFERENCES `assessments` (`id`) ON DELETE CASCADE,
   CONSTRAINT `marks_ibfk_3` FOREIGN KEY (`entered_by`) REFERENCES `teachers` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -354,36 +348,14 @@ CREATE TABLE `marks` (
 LOCK TABLES `marks` WRITE;
 /*!40000 ALTER TABLE `marks` DISABLE KEYS */;
 INSERT INTO `marks` VALUES
-(1,1,1,45.00,1,'2026-06-09 11:24:07','Good'),
-(2,2,1,38.00,1,'2026-06-09 11:24:07','Average'),
-(3,3,1,6.00,1,'2026-06-09 11:24:07',NULL),
-(4,4,1,10.00,1,'2026-06-09 11:24:07',NULL),
-(5,5,1,5.00,1,'2026-06-09 11:24:07',NULL),
-(6,6,1,7.00,1,'2026-06-09 11:24:07',NULL),
-(7,7,1,6.00,1,'2026-06-09 11:24:07',NULL),
-(8,8,1,8.00,1,'2026-06-09 11:24:07',NULL),
-(9,9,1,4.00,1,'2026-06-09 11:24:07',NULL),
-(10,10,1,7.00,1,'2026-06-09 11:24:07',NULL),
-(11,11,1,9.00,1,'2026-06-09 11:24:07',NULL),
-(12,12,1,6.00,1,'2026-06-09 11:24:07',NULL),
-(13,13,1,7.00,1,'2026-06-09 11:24:07',NULL),
-(14,14,1,9.00,1,'2026-06-09 11:24:07',NULL),
-(15,15,1,5.00,1,'2026-06-09 11:24:07',NULL),
-(16,1,4,34.00,1,'2026-06-09 11:24:07',NULL),
-(17,2,4,36.00,1,'2026-06-09 11:24:07',NULL),
-(18,3,4,28.00,1,'2026-06-09 11:24:07',NULL),
-(19,4,4,38.00,1,'2026-06-09 11:24:07',NULL),
-(20,5,4,22.00,1,'2026-06-09 11:24:07',NULL),
-(21,6,4,31.00,1,'2026-06-09 11:24:07',NULL),
-(22,7,4,25.00,1,'2026-06-09 11:24:07',NULL),
-(23,8,4,33.00,1,'2026-06-09 11:24:07',NULL),
-(24,9,4,19.00,1,'2026-06-09 11:24:07',NULL),
-(25,10,4,29.00,1,'2026-06-09 11:24:07',NULL),
-(26,11,4,35.00,1,'2026-06-09 11:24:07',NULL),
-(27,12,4,27.00,1,'2026-06-09 11:24:07',NULL),
-(28,13,4,32.00,1,'2026-06-09 11:24:07',NULL),
-(29,14,4,37.00,1,'2026-06-09 11:24:07',NULL),
-(30,15,4,24.00,1,'2026-06-09 11:24:07',NULL);
+(1,17,1,47.00,1,'2026-06-09 11:24:07','Good'),
+(2,18,1,42.00,1,'2026-06-09 11:24:07',NULL),
+(3,19,1,38.00,1,'2026-06-09 11:24:07',NULL),
+(4,20,1,44.00,1,'2026-06-09 11:24:07',NULL),
+(5,17,4,36.00,1,'2026-06-09 11:24:07',NULL),
+(6,18,4,39.00,1,'2026-06-09 11:24:07',NULL),
+(7,19,4,28.00,1,'2026-06-09 11:24:07',NULL),
+(8,20,4,41.00,1,'2026-06-09 11:24:07',NULL);
 /*!40000 ALTER TABLE `marks` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -543,21 +515,26 @@ CREATE TABLE `students` (
 LOCK TABLES `students` WRITE;
 /*!40000 ALTER TABLE `students` DISABLE KEYS */;
 INSERT INTO `students` VALUES
-(1,1,'101',12,'Muhammad Ali','2007-03-15','male',NULL,'0300-1234567','House 12, Street 5, Bahria Town','0321-9876543','mali@gmail.com','Muhammad Ali',NULL),
-(2,2,'102',12,'Noor Ahmed','2007-07-22','female',NULL,'0301-2345678','House 34, Block C, Bahria Town','0322-8765432','noor@gmail.com','Noor Ahmed',NULL),
-(3,3,'103',12,'Raza Khan','2007-01-10','male',NULL,'0302-3456789','Flat 5, Tower A, Bahria Town','0323-7654321','raza@gmail.com','Raza Khan',NULL),
-(4,4,'104',12,'Shahid Hussain','2007-11-05','female',NULL,'0303-4567890','House 78, Street 3, Bahria Town','0324-6543210','shah@gmail.com','Shahid Hussain',NULL),
-(5,5,'105',12,'Tariq Mehmood','2007-08-18','male',NULL,'0304-5678901','House 22, Block D, Bahria Town','0325-5432109','tariq@gmail.com','Tariq Mehmood',NULL),
-(6,6,'106',12,'Iqbal Hussain','2007-06-25','female',NULL,'0305-6789012','House 56, Street 9, Bahria Town','0326-4321098','iqb@gmail.com','Iqbal Hussain',NULL),
-(7,7,'107',12,'Qureshi Sahib','2007-04-12','male',NULL,'0306-7890123','House 88, Block E, Bahria Town','0327-3210987','qur@gmail.com','Qureshi Sahib',NULL),
-(8,8,'108',12,'Zahid Ali','2007-09-30','female',NULL,'0307-8901234','House 10, Street 7, Bahria Town','0328-2109876','zah@gmail.com','Zahid Ali',NULL),
-(9,9,'109',12,'Ghani Sahib','2007-12-14','male',NULL,'0308-9012345','House 43, Block F, Bahria Town','0329-1098765','gha@gmail.com','Ghani Sahib',NULL),
-(10,10,'110',12,'Malik Sahib','2007-02-08','female',NULL,'0309-0123456','House 67, Street 2, Bahria Town','0330-0987654','mal@gmail.com','Malik Sahib',NULL),
-(11,11,'111',12,'Khan Bahadur','2007-05-20','male',NULL,'0310-1234560','House 91, Block G, Bahria Town','0331-9876540','kha@gmail.com','Khan Bahadur',NULL),
-(12,12,'112',12,'Ansari Sahib','2007-10-03','female',NULL,'0311-2345671','House 25, Street 6, Bahria Town','0332-8765431','ans@gmail.com','Ansari Sahib',NULL),
-(13,13,'113',12,'Mehmood Sahib','2007-07-17','male',NULL,'0312-3456782','House 49, Block H, Bahria Town','0333-7654322','meh@gmail.com','Mehmood Sahib',NULL),
-(14,14,'114',12,'Butt Sahib','2007-03-28','female',NULL,'0313-4567893','House 73, Street 1, Bahria Town','0334-6543213','but@gmail.com','Butt Sahib',NULL),
-(15,15,'115',12,'Elahi Sahib','2007-09-11','male',NULL,'0314-5678904','House 97, Block I, Bahria Town','0335-5432104','ela@gmail.com','Elahi Sahib',NULL);
+(1,1,'801',1,'Zafar Ahmed','2012-04-12','male','35202-1122334-1','03001112233','House 5, Street 3, Johar Town, Lahore','03007788990','zafar.parent@gmail.com','Zafar Ahmed','2026-06-09'),
+(2,2,'802',1,'Yousaf Saleem','2012-09-27','female','35202-2233445-2','03002223344','House 22, Block D, Model Town, Lahore','03006677889','yousaf.s@gmail.com','Yousaf Saleem','2026-06-09'),
+(3,3,'803',1,'Mahmood Shah','2012-01-15','male','35202-3344556-3','03003334455','House 44, Phase 6, DHA, Lahore','03005566778','mahmood.s@gmail.com','Mahmood Shah','2026-06-09'),
+(4,4,'804',1,'Nawaz Hussain','2012-06-08','female','35202-4455667-4','03004445566','House 7, Gulberg III, Lahore','03004455667','nawaz.h@gmail.com','Nawaz Hussain','2026-06-09'),
+(5,5,'901',5,'Akhtar Hussain','2011-03-20','male','42201-5566778-5','03005556677','Flat 9, Block 4, Gulshan-e-Iqbal, Karachi','03003344556','akhtar.h@gmail.com','Akhtar Hussain','2026-06-09'),
+(6,6,'902',5,'Siddiqui Rashid','2011-11-05','female','42201-6677889-6','03006667788','House 33, Clifton Block 2, Karachi','03002233445','siddiqui.r@gmail.com','Siddiqui Rashid','2026-06-09'),
+(7,7,'903',5,'Farooq Javed','2011-07-30','male','42201-7788990-7','03007778899','House 55, North Nazimabad, Karachi','03001122334','farooq.j@gmail.com','Farooq Javed','2026-06-09'),
+(8,8,'904',5,'Rehman Bhayo','2011-04-14','female','42201-8899001-8','03008889900','House 17, PECHS Block 6, Karachi','03009900112','rehman.b@gmail.com','Rehman Bhayo','2026-06-09'),
+(9,9,'1001',7,'Asif Zaman','2010-08-22','male','61101-9900112-9','03009990011','House 3, Hayatabad Ph-2, Peshawar','03008899001','asif.z@gmail.com','Asif Zaman','2026-06-09'),
+(10,10,'1002',7,'Fatima Gul','2010-02-09','female','61101-0011223-0','03010001122','Street 7, University Town, Peshawar','03007788001','fatima.g@gmail.com','Fatima Gul','2026-06-09'),
+(11,11,'1003',7,'Malik Gul','2010-05-17','male','61101-1122334-1','03011112233','House 12, Dalazak Road, Peshawar','03006677001','malik.g@gmail.com','Malik Gul','2026-06-09'),
+(12,12,'1004',7,'Tariq Shah','2010-12-03','female','61101-2233445-2','03012223344','House 44, Warsak Road, Peshawar','03005566001','tariq.sh@gmail.com','Tariq Shah','2026-06-09'),
+(13,13,'1101',10,'Raza Ali','2009-06-24','male','38401-3344556-3','03013334455','House 8, Jinnah Town, Quetta','03004455001','raza.a@gmail.com','Raza Ali','2026-06-09'),
+(14,14,'1102',10,'Baloch Khan','2009-01-11','female','38401-4455667-4','03014445566','House 22, Samungli Road, Quetta','03003344001','baloch.k@gmail.com','Baloch Khan','2026-06-09'),
+(15,15,'1103',10,'Abbasi Sahib','2009-10-28','male','38401-5566778-5','03015556677','House 35, Satellite Town, Quetta','03002233001','abbasi.s@gmail.com','Abbasi Sahib','2026-06-09'),
+(16,16,'1104',10,'Kakar Sahib','2009-03-15','female','38401-6677889-6','03016667788','House 6, Airport Road, Quetta','03001122001','kakar.s@gmail.com','Kakar Sahib','2026-06-09'),
+(17,17,'1201',12,'Qureshi Nadeem','2008-07-30','male','61501-7788990-7','03017778899','House 14, F-7/3, Islamabad','03009900001','qureshi.n@gmail.com','Qureshi Nadeem','2026-06-09'),
+(18,18,'1202',12,'Baig Akhtar','2008-11-18','female','61501-8899001-8','03018889900','House 45, G-11/2, Islamabad','03008899001','baig.a@gmail.com','Baig Akhtar','2026-06-09'),
+(19,19,'1203',12,'Ishaq Ahmad','2008-04-05','male','61501-9900112-9','03019990011','House 77, I-8/4, Islamabad','03007788001','ishaq.a@gmail.com','Ishaq Ahmad','2026-06-09'),
+(20,20,'1204',12,'Chaudhry Riaz','2008-08-13','female','61501-0011223-0','03020001122','House 32, E-7, Islamabad','03006677001','chaudhry.r@gmail.com','Chaudhry Riaz','2026-06-09');
 /*!40000 ALTER TABLE `students` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -627,12 +604,12 @@ CREATE TABLE `teachers` (
 LOCK TABLES `teachers` WRITE;
 /*!40000 ALTER TABLE `teachers` DISABLE KEYS */;
 INSERT INTO `teachers` VALUES
-(1,16,'T001',1,'Senior Teacher',NULL,'2022-01-15',NULL),
-(2,17,'T002',2,'Subject Teacher',NULL,'2021-03-10',NULL),
-(3,18,'T003',3,'Subject Teacher',NULL,'2020-08-20',NULL),
-(4,19,'T004',4,'Senior Teacher',NULL,'2019-09-05',NULL),
-(5,20,'T005',5,'Subject Teacher',NULL,'2021-07-12',NULL),
-(6,21,'T006',6,'Subject Teacher',NULL,'2023-02-01',NULL);
+(1,21,'T001',1,'Senior Teacher',NULL,'2022-01-15',NULL),
+(2,22,'T002',2,'Subject Teacher',NULL,'2021-03-10',NULL),
+(3,23,'T003',3,'Subject Teacher',NULL,'2020-08-20',NULL),
+(4,24,'T004',4,'Senior Teacher',NULL,'2019-09-05',NULL),
+(5,25,'T005',5,'Subject Teacher',NULL,'2021-07-12',NULL),
+(6,26,'T006',6,'Subject Teacher',NULL,'2023-02-01',NULL);
 /*!40000 ALTER TABLE `teachers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -732,29 +709,34 @@ CREATE TABLE `users` (
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 INSERT INTO `users` VALUES
-(1,'101','Ahmed Ali','ahmed@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active','2026-06-09 19:05:40','2026-06-09 11:24:07',NULL,NULL),
-(2,'102','Fatima Noor','fatima@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(3,'103','Hassan Raza','hassan@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(4,'104','Iqra Shah','iqra@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(5,'105','Bilal Tariq','bilal@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(6,'106','Zara Iqbal','zara@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(7,'107','Saad Qureshi','saad@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(8,'108','Amna Zahid','amna@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(9,'109','Usman Ghani','usman@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(10,'110','Rabia Malik','rabia@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(11,'111','Faisal Khan','faisal@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(12,'112','Nida Ansari','nida@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(13,'113','Asad Mehmood','asad@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(14,'114','Sana Butt','sana@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(15,'115','Kamran Elahi','kamran@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(16,'T001','Dr. Sarah Khan','sarah@bmc.edu.pk','$2y$12$QAjKdAD4ip7DlW3SCDRGxeJt62KfJjsrB8.1oYo/5AnZX3ob90cUO','teacher','active','2026-06-09 19:05:41','2026-06-09 11:24:07',NULL,NULL),
-(17,'T002','Mr. Hasan Ali','hasan@bmc.edu.pk','$2y$12$QAjKdAD4ip7DlW3SCDRGxeJt62KfJjsrB8.1oYo/5AnZX3ob90cUO','teacher','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(18,'T003','Ms. Nadia Raza','nadia@bmc.edu.pk','$2y$12$QAjKdAD4ip7DlW3SCDRGxeJt62KfJjsrB8.1oYo/5AnZX3ob90cUO','teacher','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(19,'T004','Dr. Amina Siddiqui','amina@bmc.edu.pk','$2y$12$QAjKdAD4ip7DlW3SCDRGxeJt62KfJjsrB8.1oYo/5AnZX3ob90cUO','teacher','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(20,'T005','Mr. Imran Hassan','imran@bmc.edu.pk','$2y$12$QAjKdAD4ip7DlW3SCDRGxeJt62KfJjsrB8.1oYo/5AnZX3ob90cUO','teacher','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(21,'T006','Mr. Farhan Ahmed','farhan@bmc.edu.pk','$2y$12$QAjKdAD4ip7DlW3SCDRGxeJt62KfJjsrB8.1oYo/5AnZX3ob90cUO','teacher','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
-(22,'ADM001','Mr. Tariq Mehmood','admin@bmc.edu.pk','$2y$12$sD0pAOjdeVxnb38dt9SRL.HWIkHfVk26iPlZ58EBy.TjbQZFo6Fl.','admin','active','2026-06-09 19:06:32','2026-06-09 11:24:07',NULL,NULL),
-(23,'FIN001','Ms. Ayesha Rizvi','finance@bmc.edu.pk','$2y$12$KcUMkYlad7b5uhqkkPfKOuCVxIwl1R8txkFYNBxfc9lqh/SgrD3Qi','finance','active','2026-06-09 19:05:41','2026-06-09 11:24:07',NULL,NULL);
+(1,'BMC2025001','Arham Zafar','arham.zafar@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active','2026-08-01 09:00:00','2026-06-09 11:24:07',NULL,NULL),
+(2,'BMC2025002','Maryam Yousaf','maryam.yousaf@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active','2026-08-01 09:00:00','2026-06-09 11:24:07',NULL,NULL),
+(3,'BMC2025003','Talha Mahmood','talha.mahmood@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active','2026-08-01 09:00:00','2026-06-09 11:24:07',NULL,NULL),
+(4,'BMC2025004','Hira Nawaz','hira.nawaz@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active','2026-08-01 09:00:00','2026-06-09 11:24:07',NULL,NULL),
+(5,'BMC2025005','Farhan Akhtar','farhan.akhtar@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(6,'BMC2025006','Aiman Siddiqui','aiman.siddiqui@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(7,'BMC2025007','Umer Farooq','umer.farooq@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(8,'BMC2025008','Sadia Rehman','sadia.rehman@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(9,'BMC2025009','Bilal Asif','bilal.asif@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(10,'BMC2025010','Noor Fatima','noor.fatima@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(11,'BMC2025011','Hamza Malik','hamza.malik@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(12,'BMC2025012','Zoya Tariq','zoya.tariq@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(13,'BMC2025013','Saad Raza','saad.raza@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(14,'BMC2025014','Iqra Baloch','iqra.baloch@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(15,'BMC2025015','Waseem Abbasi','waseem.abbasi@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(16,'BMC2025016','Mehwish Kakar','mehwish.kakar@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(17,'BMC2025017','Rehan Qureshi','rehan.qureshi@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(18,'BMC2025018','Amna Baig','amna.baig@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(19,'BMC2025019','Kamran Ishaq','kamran.ishaq@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(20,'BMC2025020','Laiba Chaudhry','laiba.chaudhry@bmc.edu.pk','$2y$12$zcqiKYOO6J5.3z4sGULHU.MrRxtCGF.zR.C28qJC30mak0EtN5ByO','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(21,'T001','Dr. Sarah Khan','sarah@bmc.edu.pk','$2y$12$QAjKdAD4ip7DlW3SCDRGxeJt62KfJjsrB8.1oYo/5AnZX3ob90cUO','teacher','active','2026-06-09 19:05:41','2026-06-09 11:24:07',NULL,NULL),
+(22,'T002','Mr. Hasan Ali','hasan@bmc.edu.pk','$2y$12$QAjKdAD4ip7DlW3SCDRGxeJt62KfJjsrB8.1oYo/5AnZX3ob90cUO','teacher','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(23,'T003','Ms. Nadia Raza','nadia@bmc.edu.pk','$2y$12$QAjKdAD4ip7DlW3SCDRGxeJt62KfJjsrB8.1oYo/5AnZX3ob90cUO','teacher','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(24,'T004','Dr. Amina Siddiqui','amina@bmc.edu.pk','$2y$12$QAjKdAD4ip7DlW3SCDRGxeJt62KfJjsrB8.1oYo/5AnZX3ob90cUO','teacher','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(25,'T005','Mr. Imran Hassan','imran@bmc.edu.pk','$2y$12$QAjKdAD4ip7DlW3SCDRGxeJt62KfJjsrB8.1oYo/5AnZX3ob90cUO','teacher','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(26,'T006','Mr. Farhan Ahmed','farhan@bmc.edu.pk','$2y$12$QAjKdAD4ip7DlW3SCDRGxeJt62KfJjsrB8.1oYo/5AnZX3ob90cUO','teacher','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(27,'ADM001','Mr. Tariq Mehmood','admin@bmc.edu.pk','$2y$12$sD0pAOjdeVxnb38dt9SRL.HWIkHfVk26iPlZ58EBy.TjbQZFo6Fl.','admin','active','2026-06-09 19:06:32','2026-06-09 11:24:07',NULL,NULL),
+(28,'FIN001','Ms. Ayesha Rizvi','finance@bmc.edu.pk','$2y$12$KcUMkYlad7b5uhqkkPfKOuCVxIwl1R8txkFYNBxfc9lqh/SgrD3Qi','finance','active','2026-06-09 19:05:41','2026-06-09 11:24:07',NULL,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

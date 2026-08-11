@@ -14,6 +14,7 @@ USE bmc_portal;
 UPDATE classes SET is_ilc = 1 WHERE id IN (10, 11);
 
 -- A2. ILC Teachers
+-- Note: base user IDs are now 21-28 (students 1-20, teachers 21-26, admin 27, finance 28)
 INSERT IGNORE INTO users (id, user_id, name, email, password, role, status) VALUES
 (401, 'T007', 'Ms. Asma Riaz',   'asma.ilc@bmc.edu.pk',  '$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG', 'teacher', 'active'),
 (402, 'T008', 'Mr. Nadeem Shah', 'nadeem.ilc@bmc.edu.pk', '$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG', 'teacher', 'active');
@@ -176,12 +177,12 @@ INSERT IGNORE INTO attendance (student_id, class_id, subject_id, date, status, t
 ((SELECT id FROM students WHERE user_id=444), 4,1,'2026-05-19','P',1),
 ((SELECT id FROM students WHERE user_id=445), 4,1,'2026-05-19','P',1);
 
--- C7. Second attendance date for 12-A (for VP attendance view)
+-- C7. Second attendance date for 12-A students (new BMC2025017-020)
 INSERT IGNORE INTO attendance (student_id, class_id, subject_id, date, status, teacher_id) VALUES
-(1,12,1,'2026-05-19','P',1),(2,12,1,'2026-05-19','P',1),( 3,12,1,'2026-05-19','P',1),
-(4,12,1,'2026-05-19','P',1),(5,12,1,'2026-05-19','A',1),( 6,12,1,'2026-05-19','P',1),
-(7,12,1,'2026-05-19','P',1),(8,12,1,'2026-05-19','P',1),( 9,12,1,'2026-05-19','L',1),
-(10,12,1,'2026-05-19','P',1),(11,12,1,'2026-05-19','P',1),(12,12,1,'2026-05-19','P',1);
+((SELECT id FROM students WHERE roll_no='1201'),12,1,'2026-05-19','P',1),
+((SELECT id FROM students WHERE roll_no='1202'),12,1,'2026-05-19','P',1),
+((SELECT id FROM students WHERE roll_no='1203'),12,1,'2026-05-19','L',1),
+((SELECT id FROM students WHERE roll_no='1204'),12,1,'2026-05-19','P',1);
 
 -- ══════════════════════════════════════════════════════════════════
 -- SECTION D: STUDENT AFFAIRS — MEDICAL RECORDS
@@ -189,12 +190,13 @@ INSERT IGNORE INTO attendance (student_id, class_id, subject_id, date, status, t
 -- ══════════════════════════════════════════════════════════════════
 
 INSERT IGNORE INTO medical_records (student_id, record_type, description, recorded_by, recorded_at) VALUES
--- Regular 12-A students (student ids 1-5 from bmc_portal_full.sql)
-(1, 'Vaccination',   'Hepatitis B booster administered. Next due 2027.',            302, '2026-01-15'),
-(2, 'Allergy',       'Penicillin allergy confirmed. Update prescription records.',  302, '2026-02-10'),
-(3, 'Physical Exam', 'Annual physical completed. All vitals normal.',               302, '2026-03-05'),
-(4, 'Vision Test',   'Mild myopia (-1.5D). Spectacles recommended.',               302, '2026-03-20'),
-(5, 'Dental Checkup','Cavity in lower-left molar. Referred to dentist.',           302, '2026-04-12'),
+-- 12-A students (Rehan, Amna, Kamran, Laiba — BMC2025017-020)
+((SELECT id FROM students WHERE roll_no='1201'), 'Vaccination',   'Hepatitis B booster administered. Next due 2027.',            302, '2026-01-15'),
+((SELECT id FROM students WHERE roll_no='1202'), 'Allergy',       'Penicillin allergy confirmed. Update prescription records.',  302, '2026-02-10'),
+((SELECT id FROM students WHERE roll_no='1203'), 'Physical Exam', 'Annual physical completed. All vitals normal.',               302, '2026-03-05'),
+((SELECT id FROM students WHERE roll_no='1204'), 'Vision Test',   'Mild myopia (-1.5D). Spectacles recommended.',               302, '2026-03-20'),
+-- 8-A student (Arham Zafar — BMC2025001)
+((SELECT id FROM students WHERE roll_no='801'),  'Dental Checkup','Cavity in lower-left molar. Referred to dentist.',           302, '2026-04-12'),
 -- ILC students
 ((SELECT id FROM students WHERE user_id=411), 'Psychological Assessment', 'Dyslexia confirmed via WISC-V psycho-educational battery.',        302, '2026-01-20'),
 ((SELECT id FROM students WHERE user_id=412), 'Vision Test',              'Best corrected visual acuity 6/60. Low vision certified.',         302, '2026-02-05'),
@@ -212,28 +214,32 @@ INSERT IGNORE INTO medical_records (student_id, record_type, description, record
 -- student_id 1-15 = students 101-115 (from bmc_portal_full.sql)
 -- ══════════════════════════════════════════════════════════════════
 
+-- Marks for 12-A students only (assessments are tied to class 12-A subjects)
 INSERT IGNORE INTO marks (student_id, assessment_id, marks_obtained, entered_by) VALUES
--- Quiz 2
-(1,2,8,1),(2,2,7,1),(3,2,5,1),(4,2,9,1),(5,2,6,1),
-(6,2,8,1),(7,2,5,1),(8,2,7,1),(9,2,4,1),(10,2,8,1),
-(11,2,9,1),(12,2,6,1),(13,2,7,1),(14,2,8,1),(15,2,5,1),
--- Assignment 1
-(1,3,18,1),(2,3,15,1),(3,3,12,1),(4,3,19,1),(5,3,14,1),
-(6,3,16,1),(7,3,11,1),(8,3,17,1),(9,3,10,1),(10,3,15,1),
-(11,3,18,1),(12,3,13,1),(13,3,16,1),(14,3,19,1),(15,3,12,1);
+-- Quiz 2 (assessment_id=2)
+((SELECT id FROM students WHERE roll_no='1201'),2,9,1),
+((SELECT id FROM students WHERE roll_no='1202'),2,7,1),
+((SELECT id FROM students WHERE roll_no='1203'),2,5,1),
+((SELECT id FROM students WHERE roll_no='1204'),2,8,1),
+-- Assignment 1 (assessment_id=3)
+((SELECT id FROM students WHERE roll_no='1201'),3,19,1),
+((SELECT id FROM students WHERE roll_no='1202'),3,17,1),
+((SELECT id FROM students WHERE roll_no='1203'),3,13,1),
+((SELECT id FROM students WHERE roll_no='1204'),3,18,1);
 
 -- ══════════════════════════════════════════════════════════════════
 -- SECTION F: APRIL FEES (additional months for finance portal)
 -- ══════════════════════════════════════════════════════════════════
 
+-- April fees for first 10 new students (BMC2025001-010)
 INSERT IGNORE INTO fees (student_id, month, year, amount, paid, payment_date, payment_mode, recorded_by) VALUES
-(1, 4,2026,12000,1,'2026-04-18','Bank',  23),
-(2, 4,2026,12000,1,'2026-04-15','Cash',  23),
-(3, 4,2026,12000,1,'2026-04-20','Online',23),
-(4, 4,2026,12000,1,'2026-04-10','Cash',  23),
-(5, 4,2026,12000,0, NULL,       'Cash',  NULL),
-(6, 4,2026,12000,1,'2026-04-12','Bank',  23),
-(7, 4,2026,12000,0, NULL,       'Cash',  NULL),
-(8, 4,2026,12000,1,'2026-04-08','Cash',  23),
-(9, 4,2026,12000,0, NULL,       'Cash',  NULL),
-(10,4,2026,12000,1,'2026-04-05','Online',23);
+((SELECT id FROM students WHERE roll_no='801'), 4,2026,12000,1,'2026-04-18','Bank',  28),
+((SELECT id FROM students WHERE roll_no='802'), 4,2026,12000,1,'2026-04-15','Cash',  28),
+((SELECT id FROM students WHERE roll_no='803'), 4,2026,12000,1,'2026-04-20','Online',28),
+((SELECT id FROM students WHERE roll_no='804'), 4,2026,12000,1,'2026-04-10','Cash',  28),
+((SELECT id FROM students WHERE roll_no='901'), 4,2026,12000,0, NULL,       'Cash',  NULL),
+((SELECT id FROM students WHERE roll_no='902'), 4,2026,12000,1,'2026-04-12','Bank',  28),
+((SELECT id FROM students WHERE roll_no='903'), 4,2026,12000,0, NULL,       'Cash',  NULL),
+((SELECT id FROM students WHERE roll_no='904'), 4,2026,12000,1,'2026-04-08','Cash',  28),
+((SELECT id FROM students WHERE roll_no='1001'),4,2026,12000,0, NULL,       'Cash',  NULL),
+((SELECT id FROM students WHERE roll_no='1002'),4,2026,12000,1,'2026-04-05','Online',28);
