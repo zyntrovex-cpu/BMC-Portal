@@ -387,10 +387,10 @@ $admissionOpen    = getSetting('admission_open', '1') === '1';
         <div class="d-flex flex-column gap-3">
           <?php if (empty($events)):
             $demoEvents = [
-              ['title'=>'Annual Prize Distribution Ceremony','event_date'=>'2025-08-15','event_time'=>'09:00:00','venue'=>'Main Auditorium'],
-              ['title'=>'Inter-House Sports Week','event_date'=>'2025-08-20','event_time'=>'08:00:00','venue'=>'Sports Ground'],
-              ['title'=>'Science & Technology Fair','event_date'=>'2025-09-05','event_time'=>'10:00:00','venue'=>'Science Block'],
-              ['title'=>'Parent-Teacher Meeting','event_date'=>'2025-09-12','event_time'=>'09:00:00','venue'=>'Main Hall'],
+              ['title'=>'Annual Prize Distribution Ceremony','event_date'=>'2026-09-15','event_time'=>'09:00:00','venue'=>'Main Auditorium'],
+              ['title'=>'Inter-House Sports Week','event_date'=>'2026-09-20','event_time'=>'08:00:00','venue'=>'Sports Ground'],
+              ['title'=>'Science & Technology Fair','event_date'=>'2026-10-05','event_time'=>'10:00:00','venue'=>'Science Block'],
+              ['title'=>'Parent-Teacher Meeting','event_date'=>'2026-10-12','event_time'=>'09:00:00','venue'=>'Main Hall'],
             ];
             foreach ($demoEvents as $e):
           ?>

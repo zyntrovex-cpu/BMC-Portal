@@ -306,3 +306,22 @@ INSERT IGNORE INTO site_testimonials (name, designation, content, rating) VALUES
 ('Sara Iqbal',       'Current Student, FSc Pre-Medical', 'The labs, library, and support from teachers here are exceptional. I am proud to be a BMC student.', 5),
 ('Muhammad Ali',     'Parent', 'My daughter has grown tremendously as a student and as a person since joining BMC. The discipline and care shown by staff is remarkable.', 5),
 ('Fatima Siddiqui',  'Alumni, Class of 2020', 'The values and work ethic I developed at BMC have shaped my professional life. I owe a great deal to this institution.', 5);
+
+-- Default events (upcoming calendar)
+INSERT IGNORE INTO site_events (title, slug, description, event_date, event_time, venue, is_published, is_featured) VALUES
+('Annual Prize Distribution Ceremony',
+ 'annual-prize-distribution-ceremony-2026',
+ 'Annual celebration recognising academic excellence and co-curricular achievements across all classes.',
+ '2026-09-15', '09:00:00', 'Main Auditorium', 1, 1),
+('Inter-House Sports Week',
+ 'inter-house-sports-week-2026',
+ 'A week-long inter-house sports competition featuring athletics, cricket, football, and indoor games.',
+ '2026-09-20', '08:00:00', 'Sports Ground', 1, 0),
+('Science & Technology Fair',
+ 'science-technology-fair-2026',
+ 'Students showcase innovative science projects and technology demonstrations open to all classes.',
+ '2026-10-05', '10:00:00', 'Science Block', 1, 0),
+('Parent-Teacher Meeting',
+ 'parent-teacher-meeting-2026',
+ 'Mid-term parent-teacher meeting to discuss student progress, attendance, and academic performance.',
+ '2026-10-12', '09:00:00', 'Main Hall', 1, 0);
