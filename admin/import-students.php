@@ -7,12 +7,15 @@ require_once __DIR__ . '/../config/config.php';
 $user = requireAuth('admin');
 $db   = getDB();
 
-// ─── Auto-migration: add new biodata columns if absent ───────────────────────
+// ─── Auto-migration: add new biodata + houses columns if absent ──────────────
 function ensureBiodataColumns(PDO $db): void {
     $existing = array_flip(
         $db->query("SHOW COLUMNS FROM students")->fetchAll(PDO::FETCH_COLUMN)
     );
+
+    // Plain text / numeric columns — safe to add unconditionally
     $cols = [
+        'student_category'   => "ENUM('civilian','cpo','sailor') DEFAULT NULL COMMENT 'Montessori wing category'",
         'gr_no'              => "VARCHAR(30)   DEFAULT NULL COMMENT 'General Register Number'",
         'kuickpay_id'        => "VARCHAR(30)   DEFAULT NULL COMMENT 'Kuickpay student ID'",
         'category'           => "VARCHAR(30)   DEFAULT NULL COMMENT 'Admission category (AOB 1, AOG 2, etc.)'",
@@ -36,7 +39,28 @@ function ensureBiodataColumns(PDO $db): void {
     ];
     foreach ($cols as $col => $def) {
         if (!isset($existing[$col])) {
-            $db->exec("ALTER TABLE `students` ADD COLUMN `$col` $def");
+            try { $db->exec("ALTER TABLE `students` ADD COLUMN `$col` $def"); } catch (Exception $e) {}
+        }
+    }
+
+    // house_id — requires houses table; try with FK first, fallback to plain column
+    if (!isset($existing['house_id'])) {
+        try {
+            // Ensure houses table exists
+            $db->exec("CREATE TABLE IF NOT EXISTS `houses` (
+                `id` INT NOT NULL AUTO_INCREMENT,
+                `name` VARCHAR(100) NOT NULL,
+                `color` VARCHAR(20) NOT NULL DEFAULT '#3b82f6',
+                `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $db->exec("ALTER TABLE `students`
+                ADD COLUMN `house_id` INT DEFAULT NULL,
+                ADD CONSTRAINT `fk_student_house`
+                    FOREIGN KEY (`house_id`) REFERENCES `houses`(`id`) ON DELETE SET NULL");
+        } catch (Exception $e) {
+            // FK failed (e.g. constraint already exists) — add plain column without FK
+            try { $db->exec("ALTER TABLE `students` ADD COLUMN `house_id` INT DEFAULT NULL"); } catch (Exception $e2) {}
         }
     }
 }
@@ -431,7 +455,7 @@ $links = getAdminLinks();
           <a href="<?= url('/admin/import-students.php') ?>" class="btn btn-primary btn-sm">
             <i class="fas fa-upload me-1"></i>Import More
           </a>
-          <a href="<?= url('/student-affairs/students.php') ?>" class="btn btn-outline-secondary btn-sm">
+          <a href="<?= url('/admin/users.php?role=student') ?>" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-users me-1"></i>View Students
           </a>
         </div>

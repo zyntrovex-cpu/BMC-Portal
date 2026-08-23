@@ -760,6 +760,60 @@ INSERT INTO `users` VALUES
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
+-- ── Houses table ──────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `houses` (
+  `id`         INT          NOT NULL AUTO_INCREMENT,
+  `name`       VARCHAR(100) NOT NULL,
+  `color`      VARCHAR(20)  NOT NULL DEFAULT '#3b82f6',
+  `created_at` TIMESTAMP    NULL     DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO `houses` (`id`, `name`, `color`) VALUES
+(1, 'Allama Iqbal', '#3b82f6'),
+(2, 'Quaid-e-Azam', '#22c55e'),
+(3, 'Fatima Jinnah', '#f97316'),
+(4, 'Sir Syed',      '#a855f7');
+
+-- ── Extend students table with all optional columns ───────────────────────────
+-- These are safe to run multiple times (IF NOT EXISTS guard).
+ALTER TABLE `students`
+  ADD COLUMN IF NOT EXISTS `house_id`            INT                               DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `student_category`    ENUM('civilian','cpo','sailor')   DEFAULT NULL COMMENT 'Montessori wing category',
+  ADD COLUMN IF NOT EXISTS `gr_no`               VARCHAR(30)                       DEFAULT NULL COMMENT 'General Register Number',
+  ADD COLUMN IF NOT EXISTS `kuickpay_id`         VARCHAR(30)                       DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `category`            VARCHAR(30)                       DEFAULT NULL COMMENT 'Admission category (AOB 1, AOG 2 …)',
+  ADD COLUMN IF NOT EXISTS `academic_group`      VARCHAR(50)                       DEFAULT NULL COMMENT 'Science / Arts / Commerce / Pre-Medical',
+  ADD COLUMN IF NOT EXISTS `child_order`         TINYINT                           DEFAULT NULL COMMENT 'Birth order in family',
+  ADD COLUMN IF NOT EXISTS `domicile`            VARCHAR(100)                      DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `permanent_address`   TEXT                              DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `emergency_phone`     VARCHAR(20)                       DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `whatsapp_no`         VARCHAR(20)                       DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `religion`            VARCHAR(50)                       DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `sect`                VARCHAR(50)                       DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `blood_group`         VARCHAR(5)                        DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `last_school`         VARCHAR(200)                      DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `nationality`         VARCHAR(100)                      DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `father_occupation`   VARCHAR(150)                      DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `documents_submitted` TEXT                              DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `medical_info`        TEXT                              DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `skills`              TEXT                              DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `sports`              TEXT                              DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `awards`              TEXT                              DEFAULT NULL;
+
+-- Add house_id FK only if not already there
+SET @fk_exists = (
+  SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'students'
+    AND CONSTRAINT_NAME = 'fk_student_house'
+);
+SET @sql = IF(@fk_exists = 0,
+  'ALTER TABLE students ADD CONSTRAINT fk_student_house FOREIGN KEY (house_id) REFERENCES houses(id) ON DELETE SET NULL',
+  'SELECT 1'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
