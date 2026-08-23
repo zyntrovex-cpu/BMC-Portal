@@ -312,7 +312,7 @@ $links = getStudentLinks();
           <div>
             <div class="fw-semibold" style="font-size:13px"><?= $pinHtml ?><?= h($n['title']) ?></div>
             <small class="text-muted"><?= fDate($n['created_at']) ?></small>
-            <span class="badge ms-1" style="background:<?= $pColor ?>;font-size:9px"><?= ($n['priority'] ?? 'Normal') ?></span>
+            <span class="badge ms-1" style="background:<?= $pColor ?>;font-size:9px"><?= h($n['priority'] ?? 'Normal') ?></span>
           </div>
         </div>
         <?php endforeach; endif; ?>

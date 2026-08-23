@@ -209,7 +209,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    redirect('/admin/users.php' . (isset($_POST['role_filter']) ? '?role='.$_POST['role_filter'] : ''));
+    $allowedRoles = ['student','teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head'];
+    $backRole = in_array($_POST['role_filter'] ?? '', $allowedRoles) ? $_POST['role_filter'] : '';
+    redirect('/admin/users.php' . ($backRole ? '?role=' . $backRole : ''));
 }
 
 $roleFilter = $_GET['role'] ?? '';

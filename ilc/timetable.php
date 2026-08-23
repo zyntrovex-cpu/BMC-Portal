@@ -32,18 +32,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cid    = (int)($_POST['class_id'] ?? 0);
 
     if ($action === 'add_period' && $cid) {
+        $dayVal    = strtolower(trim($_POST['day'] ?? ''));
+        $periodVal = (int)($_POST['period'] ?? 0);
+        $validDays = ['monday','tuesday','wednesday','thursday','friday'];
+        if (!in_array($dayVal, $validDays) || $periodVal < 1 || $periodVal > 8) {
+            setFlash('danger', 'Invalid day or period number.');
+            redirect('/ilc/timetable.php?class_id=' . $cid);
+        }
         try {
             $db->prepare(
-                'INSERT INTO timetable (class_id, subject_id, teacher_id, day_of_week, period_number, start_time, end_time)
-                 VALUES (?,?,?,?,?,?,?)'
+                'INSERT INTO timetable (class_id, subject_id, teacher_id, day, period)
+                 VALUES (?,?,?,?,?)'
             )->execute([
                 $cid,
                 $_POST['subject_id'] ?: null,
                 $_POST['teacher_id'] ?: null,
-                $_POST['day_of_week'],
-                (int)$_POST['period_number'],
-                $_POST['start_time'],
-                $_POST['end_time'],
+                $dayVal,
+                $periodVal,
             ]);
             logActivity($user['id'], 'ilc_timetable_edit', "ILC VP added period for class #$cid");
             setFlash('success', 'Period added.');
@@ -67,13 +72,13 @@ if ($classId) {
          LEFT JOIN teachers t   ON t.id   = tt.teacher_id
          LEFT JOIN users u      ON u.id   = t.user_id
          WHERE tt.class_id = ?
-         ORDER BY FIELD(tt.day_of_week,"Monday","Tuesday","Wednesday","Thursday","Friday"), tt.period_number'
+         ORDER BY FIELD(tt.day,"monday","tuesday","wednesday","thursday","friday"), tt.period'
     );
     $st->execute([$classId]);
     $timetable = $st->fetchAll();
 }
 $grouped = [];
-foreach ($timetable as $row) $grouped[$row['day_of_week']][] = $row;
+foreach ($timetable as $row) $grouped[$row['day']][] = $row;
 
 pageHead('ILC Timetable', 'ilc_vp');
 $links = getIlcLinks();
@@ -123,35 +128,27 @@ $links = getIlcLinks();
         <input type="hidden" name="class_id" value="<?= $classId ?>">
         <div class="col-md-2">
           <label class="form-label fw-semibold" style="font-size:.8rem">Day</label>
-          <select name="day_of_week" class="form-select form-select-sm" required>
-            <?php foreach ($days as $d): ?><option><?= $d ?></option><?php endforeach; ?>
+          <select name="day" class="form-select form-select-sm" required>
+            <?php foreach ($days as $d): ?><option value="<?= strtolower($d) ?>"><?= $d ?></option><?php endforeach; ?>
           </select>
         </div>
         <div class="col-md-1">
           <label class="form-label fw-semibold" style="font-size:.8rem">Period</label>
-          <input type="number" name="period_number" class="form-control form-control-sm" min="1" max="10" value="1" required>
+          <input type="number" name="period" class="form-control form-control-sm" min="1" max="8" value="1" required>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
           <label class="form-label fw-semibold" style="font-size:.8rem">Subject</label>
           <select name="subject_id" class="form-select form-select-sm">
             <option value="">—</option>
             <?php foreach ($subjects as $s): ?><option value="<?= $s['id'] ?>"><?= h($s['name']) ?></option><?php endforeach; ?>
           </select>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
           <label class="form-label fw-semibold" style="font-size:.8rem">ILC Teacher</label>
           <select name="teacher_id" class="form-select form-select-sm">
             <option value="">—</option>
             <?php foreach ($teachers as $t): ?><option value="<?= $t['id'] ?>"><?= h($t['name']) ?></option><?php endforeach; ?>
           </select>
-        </div>
-        <div class="col-md-2">
-          <label class="form-label fw-semibold" style="font-size:.8rem">Start</label>
-          <input type="time" name="start_time" class="form-control form-control-sm" value="08:00" required>
-        </div>
-        <div class="col-md-2">
-          <label class="form-label fw-semibold" style="font-size:.8rem">End</label>
-          <input type="time" name="end_time" class="form-control form-control-sm" value="08:45" required>
         </div>
         <div class="col-12">
           <button type="submit" class="btn btn-sm" style="background:#0891b2;color:#fff">Add Period</button>
@@ -170,18 +167,17 @@ $links = getIlcLinks();
   <div style="padding:32px;text-align:center;color:var(--t2);font-size:.85rem">No periods added yet.</div>
   <?php else: ?>
   <?php foreach ($days as $day): ?>
-  <?php if (!isset($grouped[$day])) continue; ?>
+  <?php $dayKey = strtolower($day); if (!isset($grouped[$dayKey])) continue; ?>
   <div style="padding:10px 16px 4px;font-weight:700;font-size:.8rem;color:var(--t2);text-transform:uppercase;border-top:1px solid var(--border)"><?= $day ?></div>
   <div class="table-responsive">
     <table class="table table-sm mb-0" style="font-size:.82rem">
-      <thead class="table-light"><tr><th>Period</th><th>Subject</th><th>Teacher</th><th>Time</th><th></th></tr></thead>
+      <thead class="table-light"><tr><th>Period</th><th>Subject</th><th>Teacher</th><th></th></tr></thead>
       <tbody>
-        <?php foreach ($grouped[$day] as $p): ?>
+        <?php foreach ($grouped[$dayKey] as $p): ?>
         <tr>
-          <td><?= $p['period_number'] ?></td>
+          <td><?= (int)$p['period'] ?></td>
           <td><?= h($p['subject_name'] ?: '—') ?></td>
           <td><?= h($p['teacher_name'] ?: '—') ?></td>
-          <td><?= substr($p['start_time'],0,5) ?> – <?= substr($p['end_time'],0,5) ?></td>
           <td>
             <form method="POST" class="d-inline" onsubmit="return confirm('Remove this period?')">
               <input type="hidden" name="action" value="delete_period">

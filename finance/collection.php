@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fee'])) {
     $pYear    = (int)$_POST['year'];
 
     // Get default fee from settings
-    $defFee = (float)($db->query('SELECT value FROM settings WHERE key_name="fee_per_month"')->fetchColumn() ?: 5000);
+    try { $defFee = (float)($db->query('SELECT value FROM settings WHERE key_name="fee_per_month"')->fetchColumn() ?: 5000); } catch (Exception $e) { $defFee = 5000; }
 
     foreach ($_POST['fee'] as $studentId => $data) {
         $paid     = isset($data['paid']) ? 1 : 0;
@@ -58,7 +58,7 @@ if ($classId) {
             $feesMap[$f['student_id']] = $f;
         }
     }
-    $defAmount = (float)($db->query('SELECT value FROM settings WHERE key_name="fee_per_month"')->fetchColumn() ?: 5000);
+    try { $defAmount = (float)($db->query('SELECT value FROM settings WHERE key_name="fee_per_month"')->fetchColumn() ?: 5000); } catch (Exception $e) { $defAmount = 5000; }
 }
 
 $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];

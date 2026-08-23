@@ -8,28 +8,42 @@ $user = requireAuth('vp_main');
 $db   = getDB();
 
 // Stats
-$totalTeachers   = (int)$db->query('SELECT COUNT(*) FROM teachers t JOIN users u ON u.id=t.user_id WHERE u.status="active"')->fetchColumn();
-$mainStudents    = (int)$db->query('SELECT COUNT(*) FROM students s JOIN classes c ON c.id=s.class_id WHERE c.is_ilc=0 AND c.is_montessori=0')->fetchColumn();
-$montessoriStu   = (int)$db->query('SELECT COUNT(*) FROM students s JOIN classes c ON c.id=s.class_id WHERE c.is_montessori=1')->fetchColumn();
-$wingHeads       = (int)$db->query('SELECT COUNT(*) FROM users WHERE role="wing_head" AND status="active"')->fetchColumn();
+$totalTeachers = $mainStudents = $montessoriStu = $wingHeads = 0;
+$classSummary  = $recentActivity = [];
+try {
+    $totalTeachers = (int)$db->query('SELECT COUNT(*) FROM teachers t JOIN users u ON u.id=t.user_id WHERE u.status="active"')->fetchColumn();
+} catch (Exception $e) {}
+try {
+    $mainStudents  = (int)$db->query('SELECT COUNT(*) FROM students s JOIN classes c ON c.id=s.class_id WHERE c.is_ilc=0 AND c.is_montessori=0')->fetchColumn();
+} catch (Exception $e) {}
+try {
+    $montessoriStu = (int)$db->query('SELECT COUNT(*) FROM students s JOIN classes c ON c.id=s.class_id WHERE c.is_montessori=1')->fetchColumn();
+} catch (Exception $e) {}
+try {
+    $wingHeads     = (int)$db->query('SELECT COUNT(*) FROM users WHERE role="wing_head" AND status="active"')->fetchColumn();
+} catch (Exception $e) {}
 
 // Class summary
-$classSummary = $db->query(
-    'SELECT c.name, c.is_montessori, c.is_ilc,
-            COUNT(s.id) AS student_count
-     FROM classes c
-     LEFT JOIN students s ON s.class_id = c.id
-     WHERE c.is_ilc = 0
-     GROUP BY c.id ORDER BY c.is_montessori, c.name'
-)->fetchAll();
+try {
+    $classSummary = $db->query(
+        'SELECT c.name, c.is_montessori, c.is_ilc,
+                COUNT(s.id) AS student_count
+         FROM classes c
+         LEFT JOIN students s ON s.class_id = c.id
+         WHERE c.is_ilc = 0
+         GROUP BY c.id ORDER BY c.is_montessori, c.name'
+    )->fetchAll();
+} catch (Exception $e) {}
 
 // Recent activity log
-$recentActivity = $db->query(
-    'SELECT al.*, u.name AS actor_name, u.role AS actor_role
-     FROM activity_log al
-     JOIN users u ON u.id = al.user_id
-     ORDER BY al.created_at DESC LIMIT 8'
-)->fetchAll();
+try {
+    $recentActivity = $db->query(
+        'SELECT al.*, u.name AS actor_name, u.role AS actor_role
+         FROM activity_log al
+         JOIN users u ON u.id = al.user_id
+         ORDER BY al.created_at DESC LIMIT 8'
+    )->fetchAll();
+} catch (Exception $e) {}
 
 pageHead('VP Dashboard', 'vp_main');
 $links = getVpLinks();

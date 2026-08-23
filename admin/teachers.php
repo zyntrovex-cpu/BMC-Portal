@@ -59,16 +59,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Get all teachers with details
-$teachersSt = $db->query(
-    'SELECT t.*, u.name, u.email, u.user_id AS uid, u.status, u.last_login,
-            u.id AS users_id, sb.name AS subject_name, sb.code AS subject_code,
-            (SELECT COUNT(DISTINCT cs.class_id) FROM class_subjects cs WHERE cs.teacher_id = t.id) AS class_count
-     FROM teachers t
-     JOIN users u ON t.user_id = u.id
-     LEFT JOIN subjects sb ON t.subject_id = sb.id
-     ORDER BY u.name'
-);
-$teachers = $teachersSt->fetchAll();
+$teachers = [];
+try {
+    $teachersSt = $db->query(
+        'SELECT t.*, u.name, u.email, u.user_id AS uid, u.status, u.last_login,
+                u.id AS users_id, sb.name AS subject_name, sb.code AS subject_code,
+                (SELECT COUNT(DISTINCT cs.class_id) FROM class_subjects cs WHERE cs.teacher_id = t.id) AS class_count
+         FROM teachers t
+         JOIN users u ON t.user_id = u.id
+         LEFT JOIN subjects sb ON t.subject_id = sb.id
+         ORDER BY u.name'
+    );
+    $teachers = $teachersSt->fetchAll();
+} catch (Exception $e) {}
 $subjects = getAllSubjects();
 
 pageHead('Teachers', 'admin');

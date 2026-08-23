@@ -4,13 +4,8 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../config/config.php';
 
-if (session_status() === PHP_SESSION_NONE) session_start();
-if (empty($_SESSION['user'])) redirect('/index.php');
-$user = $_SESSION['user'];
-
 // Allow admin, vp_main, student_affairs
-$allowedRoles = ['admin', 'vp_main', 'student_affairs'];
-if (!in_array($user['role'], $allowedRoles)) redirect('/index.php?msg=unauthorized');
+$user = requireAuth('admin', 'vp_main', 'student_affairs');
 if ($user['role'] === 'vp_main')         requirePermission('vp_calendar');
 if ($user['role'] === 'student_affairs') requirePermission('sa_calendar');
 

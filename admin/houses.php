@@ -48,8 +48,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = (int)($_POST['id'] ?? 0);
         if ($id) {
             // Check if any students are assigned
-            $count = (int)$db->prepare('SELECT COUNT(*) FROM students WHERE house_id = ?')
-                             ->execute([$id]) ? $db->query("SELECT COUNT(*) FROM students WHERE house_id = $id")->fetchColumn() : 0;
             $st = $db->prepare('SELECT COUNT(*) FROM students WHERE house_id = ?');
             $st->execute([$id]);
             $count = (int)$st->fetchColumn();

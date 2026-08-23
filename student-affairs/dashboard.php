@@ -7,18 +7,23 @@ require_once __DIR__ . '/../config/config.php';
 $user = requireAuth('student_affairs');
 $db   = getDB();
 
-$totalStudents = (int)$db->query("SELECT COUNT(*) FROM users WHERE role='student' AND status='active'")->fetchColumn();
-$pending  = (int)$db->query('SELECT COUNT(*) FROM admission_requests WHERE status="pending"')->fetchColumn();
-$reviewed = (int)$db->query('SELECT COUNT(*) FROM admission_requests WHERE status="reviewed"')->fetchColumn();
-$approved = (int)$db->query('SELECT COUNT(*) FROM admission_requests WHERE status="approved"')->fetchColumn();
-$rejected = (int)$db->query('SELECT COUNT(*) FROM admission_requests WHERE status="rejected"')->fetchColumn();
-
-$recent = $db->query(
-    'SELECT ar.*, ru.name AS requested_by_name
-     FROM admission_requests ar
-     JOIN users ru ON ru.id = ar.requested_by
-     ORDER BY ar.created_at DESC LIMIT 6'
-)->fetchAll();
+$totalStudents = $pending = $reviewed = $approved = $rejected = 0;
+$recent = [];
+try {
+    $totalStudents = (int)$db->query("SELECT COUNT(*) FROM users WHERE role='student' AND status='active'")->fetchColumn();
+} catch (Exception $e) {}
+try {
+    $pending  = (int)$db->query('SELECT COUNT(*) FROM admission_requests WHERE status="pending"')->fetchColumn();
+    $reviewed = (int)$db->query('SELECT COUNT(*) FROM admission_requests WHERE status="reviewed"')->fetchColumn();
+    $approved = (int)$db->query('SELECT COUNT(*) FROM admission_requests WHERE status="approved"')->fetchColumn();
+    $rejected = (int)$db->query('SELECT COUNT(*) FROM admission_requests WHERE status="rejected"')->fetchColumn();
+    $recent   = $db->query(
+        'SELECT ar.*, ru.name AS requested_by_name
+         FROM admission_requests ar
+         JOIN users ru ON ru.id = ar.requested_by
+         ORDER BY ar.created_at DESC LIMIT 6'
+    )->fetchAll();
+} catch (Exception $e) {}
 
 pageHead('Student Affairs Dashboard', 'student_affairs');
 $links = getStudentAffairsLinks();

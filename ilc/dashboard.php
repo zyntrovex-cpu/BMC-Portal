@@ -7,47 +7,49 @@ require_once __DIR__ . '/../config/config.php';
 $user = requireAuth('ilc_vp');
 $db   = getDB();
 
-// Stats
-$ilcStudents = (int)$db->query(
-    'SELECT COUNT(*) FROM students s JOIN classes c ON c.id=s.class_id WHERE c.is_ilc=1'
-)->fetchColumn();
-
-$ilcTeachers = (int)$db->query(
-    'SELECT COUNT(*) FROM teachers WHERE is_ilc=1'
-)->fetchColumn();
-
-$pendingAdmissions = (int)$db->prepare(
-    'SELECT COUNT(*) FROM admission_requests WHERE status="pending" AND requested_by=?'
-)->execute([$user['id']]) ? 0 : 0;
-$paStmt = $db->prepare('SELECT COUNT(*) FROM admission_requests WHERE status="pending" AND requested_by=?');
-$paStmt->execute([$user['id']]);
-$pendingAdmissions = (int)$paStmt->fetchColumn();
-
-$disabilityCount = (int)$db->query(
-    'SELECT COUNT(*) FROM student_disabilities sd JOIN students s ON s.id=sd.student_id JOIN classes c ON c.id=s.class_id WHERE c.is_ilc=1'
-)->fetchColumn();
-
-// Recent admission requests
-$recentAdm = $db->prepare(
-    'SELECT ar.*, u.name AS reviewed_by_name
-     FROM admission_requests ar
-     LEFT JOIN users u ON u.id = ar.reviewed_by
-     WHERE ar.requested_by = ?
-     ORDER BY ar.created_at DESC LIMIT 5'
-);
-$recentAdm->execute([$user['id']]);
-$recentAdmissions = $recentAdm->fetchAll();
-
-// Disability category breakdown
-$catBreakdown = $db->query(
-    'SELECT dc.name, COUNT(sd.id) AS cnt
-     FROM disability_categories dc
-     LEFT JOIN disability_subtypes dst ON dst.category_id=dc.id
-     LEFT JOIN student_disabilities sd ON sd.subtype_id=dst.id
-     LEFT JOIN students s ON s.id=sd.student_id
-     LEFT JOIN classes c ON c.id=s.class_id AND c.is_ilc=1
-     GROUP BY dc.id, dc.name ORDER BY cnt DESC'
-)->fetchAll();
+// Stats — all wrapped in try/catch for tables that may not exist yet
+$ilcStudents = $ilcTeachers = $pendingAdmissions = $disabilityCount = 0;
+$recentAdmissions = $catBreakdown = [];
+try {
+    $ilcStudents = (int)$db->query(
+        'SELECT COUNT(*) FROM students s JOIN classes c ON c.id=s.class_id WHERE c.is_ilc=1'
+    )->fetchColumn();
+} catch (Exception $e) {}
+try {
+    $ilcTeachers = (int)$db->query('SELECT COUNT(*) FROM teachers WHERE is_ilc=1')->fetchColumn();
+} catch (Exception $e) {}
+try {
+    $paStmt = $db->prepare('SELECT COUNT(*) FROM admission_requests WHERE status="pending" AND requested_by=?');
+    $paStmt->execute([$user['id']]);
+    $pendingAdmissions = (int)$paStmt->fetchColumn();
+} catch (Exception $e) {}
+try {
+    $disabilityCount = (int)$db->query(
+        'SELECT COUNT(*) FROM student_disabilities sd JOIN students s ON s.id=sd.student_id JOIN classes c ON c.id=s.class_id WHERE c.is_ilc=1'
+    )->fetchColumn();
+} catch (Exception $e) {}
+try {
+    $recentAdm = $db->prepare(
+        'SELECT ar.*, u.name AS reviewed_by_name
+         FROM admission_requests ar
+         LEFT JOIN users u ON u.id = ar.reviewed_by
+         WHERE ar.requested_by = ?
+         ORDER BY ar.created_at DESC LIMIT 5'
+    );
+    $recentAdm->execute([$user['id']]);
+    $recentAdmissions = $recentAdm->fetchAll();
+} catch (Exception $e) {}
+try {
+    $catBreakdown = $db->query(
+        'SELECT dc.name, COUNT(sd.id) AS cnt
+         FROM disability_categories dc
+         LEFT JOIN disability_subtypes dst ON dst.category_id=dc.id
+         LEFT JOIN student_disabilities sd ON sd.subtype_id=dst.id
+         LEFT JOIN students s ON s.id=sd.student_id
+         LEFT JOIN classes c ON c.id=s.class_id AND c.is_ilc=1
+         GROUP BY dc.id, dc.name ORDER BY cnt DESC'
+    )->fetchAll();
+} catch (Exception $e) {}
 
 pageHead('ILC Dashboard', 'ilc_vp');
 $links = getIlcLinks();

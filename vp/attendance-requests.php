@@ -27,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
                 // Update attendance record
                 $db->prepare(
                     'UPDATE attendance SET status=?
-                     WHERE student_id=? AND class_id=? AND subject_id=? AND date=?'
-                )->execute([$req['new_status'], $req['student_id'], $req['class_id'], $req['subject_id'], $req['date']]);
+                     WHERE student_id=? AND subject_id=? AND date=?'
+                )->execute([$req['new_status'], $req['student_id'], $req['subject_id'], $req['date']]);
 
                 $db->prepare(
                     'UPDATE attendance_edit_requests SET status="approved", reviewed_by=?, reviewed_at=NOW() WHERE id=?'

@@ -24,7 +24,7 @@ $stSt->execute([$studentId]);
 $student = $stSt->fetch();
 if (!$student) { setFlash('danger','Student not found in ILC.'); redirect('/ilc/students.php'); }
 
-// ── Handle add/remove disability ──────────────────────────────────
+// ── Handle all POST actions ────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -41,24 +41,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 setFlash('danger', 'Could not add record: ' . $e->getMessage());
             }
         }
-    }
-
-    if ($action === 'remove_disability') {
+    } elseif ($action === 'remove_disability') {
         $disId = (int)($_POST['dis_id'] ?? 0);
         if ($disId) {
             $db->prepare('DELETE FROM student_disabilities WHERE id = ? AND student_id = ?')
                ->execute([$disId, $studentId]);
             setFlash('success', 'Record removed.');
         }
-    }
-
-    if ($action === 'update_notes') {
+    } elseif ($action === 'update_notes') {
         $disId = (int)($_POST['dis_id'] ?? 0);
         $notes = trim($_POST['notes'] ?? '');
         if ($disId) {
             $db->prepare('UPDATE student_disabilities SET notes = ? WHERE id = ? AND student_id = ?')
                ->execute([$notes ?: null, $disId, $studentId]);
             setFlash('success', 'Notes updated.');
+        }
+    } elseif ($action === 'edit_student') {
+        // Biodata column flags (detected below after SHOW COLUMNS — duplicated here so
+        // the handler runs inside the POST block before the redirect)
+        $_sc          = array_flip($db->query("SHOW COLUMNS FROM students")->fetchAll(PDO::FETCH_COLUMN));
+        $name        = trim($_POST['name']         ?? '');
+        $email       = trim($_POST['email']        ?? '');
+        $newClassId  = (int)($_POST['class_id']    ?? 0) ?: null;
+        $rollNo      = trim($_POST['roll_no']      ?? '');
+        $gender      = $_POST['gender']            ?? '';
+        $dob         = $_POST['dob']               ?? '';
+        $cnic        = trim($_POST['cnic']         ?? '');
+        $phone       = trim($_POST['phone']        ?? '');
+        $address     = trim($_POST['address']      ?? '');
+        $parentPhone = trim($_POST['parent_phone'] ?? '');
+        $parentName  = trim($_POST['parent_name']  ?? '');
+        $fatherName  = trim($_POST['father_name']  ?? '');
+        $parentEmail = trim($_POST['parent_email'] ?? '');
+        $houseId     = (int)($_POST['house_id']    ?? 0) ?: null;
+        if ($name) {
+            $db->prepare('UPDATE users SET name=?, email=? WHERE id=?')
+               ->execute([$name, $email ?: null, $student['user_id']]);
+            $setParts = ['roll_no=?','class_id=?','gender=?','cnic=?','phone=?','address=?','parent_phone=?','parent_name=?'];
+            $setVals  = [$rollNo ?: null, $newClassId, $gender ?: null, $cnic ?: null, $phone ?: null, $address ?: null, $parentPhone ?: null, $parentName ?: null];
+            if ($dob)                       { $setParts[] = 'dob=?';                 $setVals[] = $dob; }
+            if (isset($_sc['father_name'])) { $setParts[] = 'father_name=?';         $setVals[] = $fatherName  ?: null; }
+            if (isset($_sc['parent_email'])){ $setParts[] = 'parent_email=?';        $setVals[] = $parentEmail ?: null; }
+            if (isset($_sc['house_id']))    { $setParts[] = 'house_id=?';            $setVals[] = $houseId; }
+            foreach (['gr_no','kuickpay_id','category','academic_group','domicile','permanent_address',
+                      'emergency_phone','whatsapp_no','religion','sect','blood_group','last_school',
+                      'nationality','father_occupation','documents_submitted','medical_info',
+                      'skills','sports','awards'] as $col) {
+                if (isset($_sc[$col])) { $setParts[] = "$col=?"; $setVals[] = trim($_POST[$col] ?? '') ?: null; }
+            }
+            if (isset($_sc['child_order'])) {
+                $setParts[] = 'child_order=?';
+                $setVals[]  = (trim($_POST['child_order'] ?? '') !== '') ? (int)$_POST['child_order'] : null;
+            }
+            $setVals[] = $studentId;
+            $db->prepare('UPDATE students SET ' . implode(',', $setParts) . ' WHERE id=?')->execute($setVals);
+            logActivity($user['id'], 'student_edit', "ILC VP edited student #$studentId");
+            setFlash('success', 'Student biodata updated.');
         }
     }
 
@@ -78,10 +116,9 @@ $disRecords = $db->prepare(
 $disRecords->execute([$studentId]);
 $disabilities = $disRecords->fetchAll();
 
-// Detect biodata columns (same forward-compatible approach as student-affairs)
+// Detect biodata columns for the edit modal display
 $_stuCols     = array_flip($db->query("SHOW COLUMNS FROM students")->fetchAll(PDO::FETCH_COLUMN));
-$hasHouseId   = isset($_stuCols['house_id']);
-$hasAdmDate   = isset($_stuCols['admission_date']);
+$hasHouseId     = isset($_stuCols['house_id']);
 $hasFatherName  = isset($_stuCols['father_name']);
 $hasParentEmail = isset($_stuCols['parent_email']);
 $hasGrNo        = isset($_stuCols['gr_no']);
@@ -104,62 +141,6 @@ $hasMedicalInfo = isset($_stuCols['medical_info']);
 $hasSkills      = isset($_stuCols['skills']);
 $hasSports      = isset($_stuCols['sports']);
 $hasAwards      = isset($_stuCols['awards']);
-
-// ── Edit student biodata ──────────────────────────────────────────
-if (($_POST['action'] ?? '') === 'edit_student') {
-    $name        = trim($_POST['name']         ?? '');
-    $email       = trim($_POST['email']        ?? '');
-    $classId     = (int)($_POST['class_id']    ?? 0) ?: null;
-    $rollNo      = trim($_POST['roll_no']      ?? '');
-    $gender      = $_POST['gender']            ?? '';
-    $dob         = $_POST['dob']               ?? '';
-    $cnic        = trim($_POST['cnic']         ?? '');
-    $phone       = trim($_POST['phone']        ?? '');
-    $address     = trim($_POST['address']      ?? '');
-    $parentPhone = trim($_POST['parent_phone'] ?? '');
-    $parentName  = trim($_POST['parent_name']  ?? '');
-    $fatherName  = trim($_POST['father_name']  ?? '');
-    $parentEmail = trim($_POST['parent_email'] ?? '');
-    $houseId     = (int)($_POST['house_id']    ?? 0) ?: null;
-
-    if ($name) {
-        $db->prepare('UPDATE users SET name=?, email=? WHERE id=?')
-           ->execute([$name, $email ?: null, $student['user_id']]);
-
-        $setParts = ['roll_no=?','class_id=?','gender=?','cnic=?','phone=?','address=?','parent_phone=?','parent_name=?'];
-        $setVals  = [$rollNo ?: null, $classId, $gender ?: null, $cnic ?: null, $phone ?: null, $address ?: null, $parentPhone ?: null, $parentName ?: null];
-        if ($dob)              { $setParts[] = 'dob=?';                 $setVals[] = $dob; }
-        if ($hasFatherName)    { $setParts[] = 'father_name=?';         $setVals[] = $fatherName  ?: null; }
-        if ($hasParentEmail)   { $setParts[] = 'parent_email=?';        $setVals[] = $parentEmail ?: null; }
-        if ($hasHouseId)       { $setParts[] = 'house_id=?';            $setVals[] = $houseId; }
-        if ($hasGrNo)          { $setParts[] = 'gr_no=?';               $setVals[] = trim($_POST['gr_no'] ?? '') ?: null; }
-        if ($hasKuickpayId)    { $setParts[] = 'kuickpay_id=?';         $setVals[] = trim($_POST['kuickpay_id'] ?? '') ?: null; }
-        if ($hasCategory)      { $setParts[] = 'category=?';            $setVals[] = trim($_POST['category'] ?? '') ?: null; }
-        if ($hasAcadGroup)     { $setParts[] = 'academic_group=?';      $setVals[] = trim($_POST['academic_group'] ?? '') ?: null; }
-        if ($hasChildOrder)    { $setParts[] = 'child_order=?';         $setVals[] = (trim($_POST['child_order'] ?? '') !== '') ? (int)$_POST['child_order'] : null; }
-        if ($hasDomicile)      { $setParts[] = 'domicile=?';            $setVals[] = trim($_POST['domicile'] ?? '') ?: null; }
-        if ($hasPermAddr)      { $setParts[] = 'permanent_address=?';   $setVals[] = trim($_POST['permanent_address'] ?? '') ?: null; }
-        if ($hasEmergPhone)    { $setParts[] = 'emergency_phone=?';     $setVals[] = trim($_POST['emergency_phone'] ?? '') ?: null; }
-        if ($hasWhatsapp)      { $setParts[] = 'whatsapp_no=?';         $setVals[] = trim($_POST['whatsapp_no'] ?? '') ?: null; }
-        if ($hasReligion)      { $setParts[] = 'religion=?';            $setVals[] = trim($_POST['religion'] ?? '') ?: null; }
-        if ($hasSect)          { $setParts[] = 'sect=?';                $setVals[] = trim($_POST['sect'] ?? '') ?: null; }
-        if ($hasBloodGroup)    { $setParts[] = 'blood_group=?';         $setVals[] = trim($_POST['blood_group'] ?? '') ?: null; }
-        if ($hasLastSchool)    { $setParts[] = 'last_school=?';         $setVals[] = trim($_POST['last_school'] ?? '') ?: null; }
-        if ($hasNationality)   { $setParts[] = 'nationality=?';         $setVals[] = trim($_POST['nationality'] ?? '') ?: null; }
-        if ($hasFatherOcc)     { $setParts[] = 'father_occupation=?';   $setVals[] = trim($_POST['father_occupation'] ?? '') ?: null; }
-        if ($hasDocsSub)       { $setParts[] = 'documents_submitted=?'; $setVals[] = trim($_POST['documents_submitted'] ?? '') ?: null; }
-        if ($hasMedicalInfo)   { $setParts[] = 'medical_info=?';        $setVals[] = trim($_POST['medical_info'] ?? '') ?: null; }
-        if ($hasSkills)        { $setParts[] = 'skills=?';              $setVals[] = trim($_POST['skills'] ?? '') ?: null; }
-        if ($hasSports)        { $setParts[] = 'sports=?';              $setVals[] = trim($_POST['sports'] ?? '') ?: null; }
-        if ($hasAwards)        { $setParts[] = 'awards=?';              $setVals[] = trim($_POST['awards'] ?? '') ?: null; }
-        $setVals[] = $studentId;
-        $db->prepare('UPDATE students SET ' . implode(',', $setParts) . ' WHERE id=?')->execute($setVals);
-
-        logActivity($user['id'], 'student_edit', "ILC VP edited student #$studentId");
-        setFlash('success', 'Student biodata updated.');
-    }
-    redirect('/ilc/student-profile.php?id=' . $studentId);
-}
 
 // All categories + subtypes for the add form
 $categories = $db->query(

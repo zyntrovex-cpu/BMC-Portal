@@ -65,29 +65,37 @@ foreach ($pending as $r) {
     if ($r['status'] === 'pending') $pendingFields[] = $r['field'];
 }
 
-// Fetch house info
-$houseSt = $db->prepare(
-    'SELECT h.name AS house_name, h.color AS house_color
-     FROM students s
-     LEFT JOIN houses h ON s.house_id = h.id
-     WHERE s.id = ?'
-);
-$houseSt->execute([$student['id']]);
-$houseRow = $houseSt->fetch();
-$houseName  = $houseRow['house_name']  ?? null;
-$houseColor = $houseRow['house_color'] ?? '#6b7280';
+// Fetch house info (houses table may not exist on older installations)
+$houseName  = null;
+$houseColor = '#6b7280';
+try {
+    $houseSt = $db->prepare(
+        'SELECT h.name AS house_name, h.color AS house_color
+         FROM students s
+         LEFT JOIN houses h ON s.house_id = h.id
+         WHERE s.id = ?'
+    );
+    $houseSt->execute([$student['id']]);
+    $houseRow   = $houseSt->fetch();
+    $houseName  = $houseRow['house_name']  ?? null;
+    $houseColor = $houseRow['house_color'] ?? '#6b7280';
+} catch (Exception $e) {}
 
-// Fetch warnings
-$warnSt = $db->prepare(
-    'SELECT w.severity, w.reason, w.created_at, u.name AS given_by_name
-     FROM student_warnings w
-     LEFT JOIN users u ON w.given_by = u.id
-     WHERE w.student_id = ?
-     ORDER BY w.created_at DESC'
-);
-$warnSt->execute([$student['id']]);
-$warnings = $warnSt->fetchAll();
-$hasWarnings = !empty($warnings);
+// Fetch warnings (student_warnings table may not exist on older installations)
+$warnings    = [];
+$hasWarnings = false;
+try {
+    $warnSt = $db->prepare(
+        'SELECT w.severity, w.reason, w.created_at, u.name AS given_by_name
+         FROM student_warnings w
+         LEFT JOIN users u ON w.given_by = u.id
+         WHERE w.student_id = ?
+         ORDER BY w.created_at DESC'
+    );
+    $warnSt->execute([$student['id']]);
+    $warnings    = $warnSt->fetchAll();
+    $hasWarnings = !empty($warnings);
+} catch (Exception $e) {}
 
 pageHead('My Profile', 'student');
 $links = getStudentLinks();

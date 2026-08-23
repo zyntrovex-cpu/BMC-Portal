@@ -42,16 +42,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $studentId = (int)($_GET['student_id'] ?? 0);
 $search    = trim($_GET['q'] ?? '');
 
+// Check medical_records table exists; if not, show migration notice
+$medTableExists = true;
+try { $db->query('SELECT 1 FROM medical_records LIMIT 0'); } catch (PDOException $e) { $medTableExists = false; }
+
 // All students for dropdown
-$allStudents = $db->query(
-    'SELECT s.id AS student_id, u.name, u.user_id AS roll, c.name AS class_name
-     FROM students s
-     JOIN users u ON u.id=s.user_id
-     JOIN classes c ON c.id=s.class_id
-     WHERE u.status="active" ORDER BY c.name, u.name'
-)->fetchAll();
+$allStudents = [];
+try {
+    $allStudents = $db->query(
+        'SELECT s.id AS student_id, u.name, u.user_id AS roll, c.name AS class_name
+         FROM students s
+         JOIN users u ON u.id=s.user_id
+         JOIN classes c ON c.id=s.class_id
+         WHERE u.status="active" ORDER BY c.name, u.name'
+    )->fetchAll();
+} catch (Exception $e) {}
 
 // Records to show
+$records = [];
 $sql = 'SELECT mr.*, u.name AS student_name, u.user_id AS roll_no, c.name AS class_name,
                ru.name AS recorded_by_name
         FROM medical_records mr
@@ -68,9 +76,13 @@ if ($search) {
     $params[] = $like; $params[] = $like;
 }
 $sql .= ' ORDER BY mr.recorded_at DESC, mr.created_at DESC';
-$st = $db->prepare($sql);
-$st->execute($params);
-$records = $st->fetchAll();
+if ($medTableExists) {
+    try {
+        $st = $db->prepare($sql);
+        $st->execute($params);
+        $records = $st->fetchAll();
+    } catch (Exception $e) {}
+}
 
 // Selected student info
 $selectedStudent = null;

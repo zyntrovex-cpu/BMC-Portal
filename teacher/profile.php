@@ -37,13 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $phone = trim($_POST['phone'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $qual  = trim($_POST['qualification'] ?? '');
-        $db->prepare('UPDATE teachers SET phone = ?, qualification = ? WHERE user_id = ?')
-           ->execute([$phone, $qual, $user['id']]);
-        if ($email) {
-            $db->prepare('UPDATE users SET email = ? WHERE id = ?')->execute([$email, $user['id']]);
+        try {
+            $db->prepare('UPDATE teachers SET phone = ?, qualification = ? WHERE user_id = ?')
+               ->execute([$phone, $qual, $user['id']]);
+            if ($email) {
+                $db->prepare('UPDATE users SET email = ? WHERE id = ?')->execute([$email, $user['id']]);
+            }
+            logActivity($user['id'], 'profile_update', 'Updated profile');
+            setFlash('success','Profile updated successfully.');
+        } catch (Exception $e) {
+            setFlash('danger', 'Profile update failed. Contact admin if this persists.');
         }
-        logActivity($user['id'], 'profile_update', 'Updated profile');
-        setFlash('success','Profile updated successfully.');
     }
     redirect('/teacher/profile.php');
 }

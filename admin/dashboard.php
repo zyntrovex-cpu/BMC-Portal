@@ -17,8 +17,11 @@ $stFees = $db->prepare('SELECT COALESCE(SUM(amount),0) FROM fees WHERE paid=1 AN
 $stFees->execute([$month, $year]);
 $feesThisMonth = (float)$stFees->fetchColumn();
 
-// Pending profile change requests
-$pendingRequests = (int)$db->query('SELECT COUNT(*) FROM profile_change_requests WHERE status="pending"')->fetchColumn();
+// Pending profile change requests (table may not exist on older installs)
+$pendingRequests = 0;
+try {
+    $pendingRequests = (int)$db->query('SELECT COUNT(*) FROM profile_change_requests WHERE status="pending"')->fetchColumn();
+} catch (Exception $e) {}
 
 // Recent activity (last 10)
 $stActivity = $db->query(

@@ -48,8 +48,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($confirm === 1) {
         // Do the actual promotion
-        $count = (int)$db->prepare('SELECT COUNT(*) FROM students WHERE class_id = ?')
-                         ->execute([$sourceId]) ? 0 : 0;
         $countSt = $db->prepare('SELECT COUNT(*) FROM students WHERE class_id = ?');
         $countSt->execute([$sourceId]);
         $count = (int)$countSt->fetchColumn();

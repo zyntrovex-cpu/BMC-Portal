@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setFlash('success','Subject removed.');
     }
 
-    redirect('/admin/classes.php' . (isset($_POST['view_class']) ? '?view='.$_POST['view_class'] : ''));
+    redirect('/admin/classes.php' . (isset($_POST['view_class']) ? '?view='.(int)$_POST['view_class'] : ''));
 }
 
 $viewClassId = (int)($_GET['view'] ?? 0);

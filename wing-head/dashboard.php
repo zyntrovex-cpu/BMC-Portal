@@ -7,26 +7,34 @@ require_once __DIR__ . '/../config/config.php';
 $user = requireAuth('wing_head');
 $db   = getDB();
 
-$totalStudents = (int)$db->query(
-    'SELECT COUNT(*) FROM students s JOIN classes c ON c.id=s.class_id WHERE c.is_montessori=1'
-)->fetchColumn();
-$totalClasses  = (int)$db->query('SELECT COUNT(*) FROM classes WHERE is_montessori=1')->fetchColumn();
-
-$classSummary = $db->query(
-    'SELECT c.name, COUNT(s.id) AS cnt
-     FROM classes c
-     LEFT JOIN students s ON s.class_id = c.id
-     WHERE c.is_montessori = 1
-     GROUP BY c.id ORDER BY c.name'
-)->fetchAll();
-
+$totalStudents = $totalClasses = 0;
+$classSummary  = $catSummary  = [];
+try {
+    $totalStudents = (int)$db->query(
+        'SELECT COUNT(*) FROM students s JOIN classes c ON c.id=s.class_id WHERE c.is_montessori=1'
+    )->fetchColumn();
+} catch (Exception $e) {}
+try {
+    $totalClasses = (int)$db->query('SELECT COUNT(*) FROM classes WHERE is_montessori=1')->fetchColumn();
+} catch (Exception $e) {}
+try {
+    $classSummary = $db->query(
+        'SELECT c.name, COUNT(s.id) AS cnt
+         FROM classes c
+         LEFT JOIN students s ON s.class_id = c.id
+         WHERE c.is_montessori = 1
+         GROUP BY c.id ORDER BY c.name'
+    )->fetchAll();
+} catch (Exception $e) {}
 // Category breakdown (civilian/cpo/sailor)
-$catSummary = $db->query(
-    'SELECT s.student_category, COUNT(*) AS cnt
-     FROM students s JOIN classes c ON c.id=s.class_id
-     WHERE c.is_montessori=1
-     GROUP BY s.student_category'
-)->fetchAll();
+try {
+    $catSummary = $db->query(
+        'SELECT s.student_category, COUNT(*) AS cnt
+         FROM students s JOIN classes c ON c.id=s.class_id
+         WHERE c.is_montessori=1
+         GROUP BY s.student_category'
+    )->fetchAll();
+} catch (Exception $e) {}
 
 pageHead('Wing Head Dashboard', 'wing_head');
 $links = getWingHeadLinks();

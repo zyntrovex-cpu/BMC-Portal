@@ -88,9 +88,9 @@ $pendingMarks = $stPending->fetchAll();
 $teacherWing = 'main';
 $ilcStudents = [];
 try {
-    $stWing = $db->prepare('SELECT wing FROM teachers WHERE user_id = ?');
+    $stWing = $db->prepare('SELECT is_ilc FROM teachers WHERE user_id = ?');
     $stWing->execute([$user['id']]);
-    $teacherWing = $stWing->fetchColumn() ?: 'main';
+    $teacherWing = $stWing->fetchColumn() ? 'ilc' : 'main';
     if ($teacherWing === 'ilc') {
         $stIlc = $db->prepare(
             'SELECT u.name AS student_name, u.user_id AS student_uid,

@@ -34,6 +34,7 @@ if (!$user || !password_verify($password, $user['password'])) {
 
 $db->prepare('UPDATE users SET last_login = NOW() WHERE id = ?')->execute([$user['id']]);
 
+session_regenerate_id(true);   // Prevent session fixation
 $_SESSION['user'] = [
     'id'      => $user['id'],
     'user_id' => $user['user_id'],

@@ -5,10 +5,7 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../config/config.php';
 
 // Auth: allow both admin and teacher
-if (session_status() === PHP_SESSION_NONE) session_start();
-if (empty($_SESSION['user'])) redirect('/index.php');
-$user = $_SESSION['user'];
-if (!in_array($user['role'], ['admin', 'teacher'])) redirect('/index.php?msg=unauthorized');
+$user = requireAuth('admin', 'teacher');
 if ($user['role'] === 'teacher') requirePermission('warnings');
 
 $db = getDB();
