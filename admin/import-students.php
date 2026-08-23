@@ -464,7 +464,7 @@ $links = getAdminLinks();
             No password column — students set their own password via Forgot Password (User ID → email link).
           </div>
           <ul class="mt-2 mb-0">
-            <li><code>class_name</code> must exactly match an existing class (e.g. 8-A, 10-B)</li>
+            <li><code>class_name</code> must exactly match an existing class (e.g. 8-A, 10-B, ILC-A, ILC-B, Beginner, Advance, Prep, Class-1)</li>
             <li><code>house_name</code> optional; must match an existing house if provided</li>
             <li><code>dob</code> format: YYYY-MM-DD (other formats also accepted)</li>
             <li><code>gender</code>: male / female / other</li>

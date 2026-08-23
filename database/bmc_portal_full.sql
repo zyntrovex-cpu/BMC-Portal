@@ -229,9 +229,11 @@ CREATE TABLE `classes` (
   `name` varchar(20) NOT NULL,
   `grade` int(11) NOT NULL,
   `section` varchar(5) NOT NULL,
+  `is_ilc` tinyint(1) NOT NULL DEFAULT 0,
+  `is_montessori` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -241,19 +243,28 @@ CREATE TABLE `classes` (
 LOCK TABLES `classes` WRITE;
 /*!40000 ALTER TABLE `classes` DISABLE KEYS */;
 INSERT INTO `classes` VALUES
-(1,'8-A',8,'A'),
-(2,'8-B',8,'B'),
-(3,'8-C',8,'C'),
-(4,'9-A',9,'A'),
-(5,'9-B',9,'B'),
-(6,'9-C',9,'C'),
-(7,'10-A',10,'A'),
-(8,'10-B',10,'B'),
-(9,'10-C',10,'C'),
-(10,'11-A',11,'A'),
-(11,'11-B',11,'B'),
-(12,'12-A',12,'A'),
-(13,'12-B',12,'B');
+-- Regular classes (is_ilc=0, is_montessori=0)
+(1,'8-A',8,'A',0,0),
+(2,'8-B',8,'B',0,0),
+(3,'8-C',8,'C',0,0),
+(4,'9-A',9,'A',0,0),
+(5,'9-B',9,'B',0,0),
+(6,'9-C',9,'C',0,0),
+(7,'10-A',10,'A',0,0),
+(8,'10-B',10,'B',0,0),
+(9,'10-C',10,'C',0,0),
+(10,'11-A',11,'A',0,0),
+(11,'11-B',11,'B',0,0),
+(12,'12-A',12,'A',0,0),
+(13,'12-B',12,'B',0,0),
+-- ILC classes
+(14,'ILC-A',0,'A',1,0),
+(15,'ILC-B',0,'B',1,0),
+-- Montessori classes
+(20,'Beginner',0,'A',0,1),
+(21,'Advance',0,'B',0,1),
+(22,'Prep',0,'C',0,1),
+(23,'Class-1',1,'A',0,1);
 /*!40000 ALTER TABLE `classes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -691,7 +702,7 @@ CREATE TABLE `users` (
   `name` varchar(100) NOT NULL,
   `email` varchar(100) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
-  `role` enum('student','teacher','admin','finance') NOT NULL,
+  `role` enum('student','teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head') NOT NULL,
   `status` enum('active','inactive','pending') DEFAULT 'active',
   `last_login` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
@@ -736,7 +747,15 @@ INSERT INTO `users` VALUES
 (25,'T005','Mr. Imran Hassan','imran@bmc.edu.pk','$2y$12$QAjKdAD4ip7DlW3SCDRGxeJt62KfJjsrB8.1oYo/5AnZX3ob90cUO','teacher','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
 (26,'T006','Mr. Farhan Ahmed','farhan@bmc.edu.pk','$2y$12$QAjKdAD4ip7DlW3SCDRGxeJt62KfJjsrB8.1oYo/5AnZX3ob90cUO','teacher','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
 (27,'ADM001','Mr. Tariq Mehmood','admin@bmc.edu.pk','$2y$12$sD0pAOjdeVxnb38dt9SRL.HWIkHfVk26iPlZ58EBy.TjbQZFo6Fl.','admin','active','2026-06-09 19:06:32','2026-06-09 11:24:07',NULL,NULL),
-(28,'FIN001','Ms. Ayesha Rizvi','finance@bmc.edu.pk','$2y$12$KcUMkYlad7b5uhqkkPfKOuCVxIwl1R8txkFYNBxfc9lqh/SgrD3Qi','finance','active','2026-06-09 19:05:41','2026-06-09 11:24:07',NULL,NULL);
+(28,'FIN001','Ms. Ayesha Rizvi','finance@bmc.edu.pk','$2y$12$KcUMkYlad7b5uhqkkPfKOuCVxIwl1R8txkFYNBxfc9lqh/SgrD3Qi','finance','active','2026-06-09 19:05:41','2026-06-09 11:24:07',NULL,NULL),
+-- Staff: ILC VP (password: student123)
+(301,'ILC001','Dr. Amna Siddiqui','amna.ilc@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','ilc_vp','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+-- Staff: Student Affairs (password: student123)
+(302,'SA001','Mr. Tariq Aziz','tariq.sa@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student_affairs','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+-- Staff: VP Main / Montessori (password: student123)
+(303,'VP001','Mr. Asad Khan','asad.vp@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','vp_main','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+-- Staff: Wing Head (password: student123)
+(304,'WH001','Ms. Rubina Akhtar','rubina.wh@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','wing_head','active',NULL,'2026-06-09 11:24:07',NULL,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
