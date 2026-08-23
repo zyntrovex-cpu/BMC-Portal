@@ -230,11 +230,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
         if ($ext === 'xlsx') {
             $allRows = parseXlsxRows($file['tmp_name']);
         } else {
-            $handle = fopen($file['tmp_name'], 'r');
-            while (($row = fgetcsv($handle)) !== false) {
+            // Strip UTF-8 BOM if present
+            $raw = file_get_contents($file['tmp_name']);
+            if (substr($raw, 0, 3) === "\xEF\xBB\xBF") {
+                $raw = substr($raw, 3);
+            }
+            // Try auto-detecting delimiter (comma vs semicolon vs tab)
+            $firstLine = strtok($raw, "\n");
+            $delim = ',';
+            foreach ([';', "\t", '|'] as $d) {
+                if (substr_count($firstLine, $d) > substr_count($firstLine, $delim)) {
+                    $delim = $d;
+                }
+            }
+            $tmpPath = tempnam(sys_get_temp_dir(), 'bmc_import_');
+            file_put_contents($tmpPath, $raw);
+            $handle = fopen($tmpPath, 'r');
+            while (($row = fgetcsv($handle, 0, $delim)) !== false) {
                 $allRows[] = array_map('trim', $row);
             }
             fclose($handle);
+            unlink($tmpPath);
         }
     } catch (Exception $e) {
         setFlash('danger', 'Could not read file: ' . $e->getMessage());
@@ -246,8 +262,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
         redirect('/admin/import-students.php');
     }
 
-    // Skip header row (row 0 = headers)
-    $headerRow  = array_shift($allRows);
+    // ── Detect header row and build column→index map ─────────────────────────
+    $headerRow = array_shift($allRows);
+
+    if (empty($allRows)) {
+        setFlash('danger', 'File has a header row but no data rows. Add at least one student and re-upload.');
+        redirect('/admin/import-students.php');
+    }
+
+    // Normalise header names: lowercase, spaces→underscore, strip BOM/special chars
+    $normHeader = array_map(function ($h) {
+        return preg_replace('/[^a-z0-9_]/', '', strtolower(str_replace([' ', '-', '/'], '_', $h)));
+    }, $headerRow);
+
+    // Accept common alternate spellings → canonical IMPORT_COLS name
+    $aliases = [
+        'full_name'      => 'name',   'student_name'  => 'name',
+        'roll_no'        => 'roll_no','roll'          => 'roll_no',  'rollno' => 'roll_no',
+        'studentid'      => 'user_id','student_id'    => 'user_id',
+        'userid'         => 'user_id','id'            => 'user_id',
+        'classname'      => 'class_name', 'class'     => 'class_name',
+        'housename'      => 'house_name', 'house'     => 'house_name',
+        'dateofbirth'    => 'dob',    'date_of_birth' => 'dob',   'birth_date' => 'dob',
+        'fathername'     => 'father_name',
+        'parentname'     => 'parent_name',
+        'parentphone'    => 'parent_phone', 'parent_mobile' => 'parent_phone',
+        'parentemail'    => 'parent_email',
+        'bloodgroup'     => 'blood_group',
+        'lastschool'     => 'last_school',  'previous_school' => 'last_school',
+        'emergencyphone' => 'emergency_phone',
+        'whatsapp'       => 'whatsapp_no',
+        'permanentaddress' => 'permanent_address',
+        'presentaddress' => 'present_address',
+        'academicgroup'  => 'academic_group',
+        'childorder'     => 'child_order',
+        'fatheroccupation' => 'father_occupation',
+        'documentssubmitted' => 'documents_submitted',
+        'medicalinfo'    => 'medical_info',   'medical' => 'medical_info',
+        'kuickpayid'     => 'kuickpay_id',    'kuickpay' => 'kuickpay_id',
+        'grno'           => 'gr_no',          'gr'       => 'gr_no',
+    ];
+
+    // Build map: IMPORT_COL → CSV column index
+    $colIndexMap = [];
+    foreach ($normHeader as $csvIdx => $normName) {
+        $canonical = $aliases[$normName] ?? $normName;
+        if (in_array($canonical, IMPORT_COLS, true)) {
+            $colIndexMap[$canonical] = $csvIdx;
+        }
+    }
+
+    // Decide strategy: header-based (at least name OR user_id found) or positional
+    $headerBased = isset($colIndexMap['name']) || isset($colIndexMap['user_id']);
+
     $imported   = 0;
     $skipped    = [];
     $rowNum     = 1;
@@ -257,11 +324,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
         foreach ($allRows as $row) {
             $rowNum++;
 
-            // Pad row to full width so array positions always exist
-            $row = array_pad($row, count(IMPORT_COLS), '');
-
-            // Map by position — matches IMPORT_COLS order
-            $map = array_combine(IMPORT_COLS, array_slice($row, 0, count(IMPORT_COLS)));
+            if ($headerBased) {
+                // Map by header name
+                $map = [];
+                foreach (IMPORT_COLS as $col) {
+                    $map[$col] = isset($colIndexMap[$col]) ? trim($row[$colIndexMap[$col]] ?? '') : '';
+                }
+            } else {
+                // Positional fallback: assume IMPORT_COLS column order
+                $row = array_pad($row, count(IMPORT_COLS), '');
+                $map = array_combine(IMPORT_COLS, array_slice($row, 0, count(IMPORT_COLS)));
+            }
 
             $name   = trim($map['name']    ?? '');
             $userId = trim($map['user_id'] ?? '');
@@ -395,11 +468,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
         logActivity($user['id'], 'student_import', "Imported $imported student(s) from $ext file");
     } catch (Exception $e) {
         $db->rollBack();
-        setFlash('danger', 'Import failed: ' . $e->getMessage());
+        setFlash('danger', 'Import failed (row ' . $rowNum . '): ' . $e->getMessage());
         redirect('/admin/import-students.php');
     }
 
-    $importResults = ['imported' => $imported, 'skipped' => $skipped];
+    $importResults = [
+        'imported'     => $imported,
+        'skipped'      => $skipped,
+        'total_rows'   => $rowNum - 1,
+        'header_based' => $headerBased,
+        'detected_cols'=> array_keys($colIndexMap),
+    ];
 }
 
 pageHead('Import Students', 'admin');
@@ -422,25 +501,62 @@ $links = getAdminLinks();
       <div class="sec-card-header"><i class="fas fa-check-circle me-2"></i>Import Results</div>
       <div style="padding:20px">
         <div class="row g-3 mb-4">
-          <div class="col-6">
+          <div class="col-4">
+            <div class="stat-card text-center">
+              <div class="stat-icon mx-auto" style="background:#dbeafe;color:#1d4ed8">
+                <i class="fas fa-file-alt"></i>
+              </div>
+              <div class="stat-val" style="color:#1d4ed8"><?= $importResults['total_rows'] ?></div>
+              <div class="stat-lbl">Rows in File</div>
+            </div>
+          </div>
+          <div class="col-4">
             <div class="stat-card text-center">
               <div class="stat-icon mx-auto" style="background:#d1fae5;color:#059669">
                 <i class="fas fa-user-plus"></i>
               </div>
               <div class="stat-val text-success"><?= $importResults['imported'] ?></div>
-              <div class="stat-lbl">Students Imported</div>
+              <div class="stat-lbl">Imported</div>
             </div>
           </div>
-          <div class="col-6">
+          <div class="col-4">
             <div class="stat-card text-center">
               <div class="stat-icon mx-auto" style="background:#fee2e2;color:#dc2626">
                 <i class="fas fa-times-circle"></i>
               </div>
               <div class="stat-val text-danger"><?= count($importResults['skipped']) ?></div>
-              <div class="stat-lbl">Rows Skipped</div>
+              <div class="stat-lbl">Skipped</div>
             </div>
           </div>
         </div>
+
+        <!-- Column detection info -->
+        <?php if ($importResults['header_based']): ?>
+        <div class="alert alert-info mb-3" style="font-size:.82rem;padding:8px 12px">
+          <i class="fas fa-columns me-1"></i>
+          <strong>Header-based mapping</strong> — detected
+          <strong><?= count($importResults['detected_cols']) ?></strong> known columns:
+          <?= implode(', ', array_map('h', $importResults['detected_cols'])) ?>
+        </div>
+        <?php else: ?>
+        <div class="alert alert-warning mb-3" style="font-size:.82rem;padding:8px 12px">
+          <i class="fas fa-exclamation-triangle me-1"></i>
+          <strong>No recognized column headers found</strong> — used positional mapping
+          (assumes columns follow the template order exactly).
+          Download the template and ensure headers match.
+        </div>
+        <?php endif; ?>
+
+        <?php if ($importResults['imported'] === 0 && count($importResults['skipped']) === 0 && $importResults['total_rows'] > 0): ?>
+        <div class="alert alert-warning mb-3" style="font-size:.82rem;padding:8px 12px">
+          <i class="fas fa-info-circle me-1"></i>
+          <strong>All <?= $importResults['total_rows'] ?> data rows were silently skipped</strong>
+          — this usually means <code>name</code> and <code>user_id</code> columns were both empty
+          after mapping. Check that your file uses column headers matching the template
+          (e.g. <code>name</code>, <code>user_id</code>).
+        </div>
+        <?php endif; ?>
+
         <?php if (!empty($importResults['skipped'])): ?>
         <div class="alert alert-warning" style="font-size:.84rem">
           <strong>Skipped rows:</strong>
