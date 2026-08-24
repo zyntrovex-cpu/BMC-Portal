@@ -2,12 +2,12 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user    = requireAuth('student');
 $db      = getDB();
 $student = getStudentByUserId($user['id']);
-if (!$student) { setFlash('danger','Student record not found.'); redirect('/index.php'); }
+if (!$student) { setFlash('danger','Student record not found.'); redirect('/portal/index.php'); }
 
 // Check table exists
 $tableExists = false;
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
         logActivity($user['id'], 'complaint_submit', "Submitted complaint to teacher #$teacherId");
         setFlash('success', 'Complaint submitted successfully.');
     }
-    redirect('/student/complaints.php');
+    redirect('/portal/student/complaints.php');
 }
 
 // Fetch teachers

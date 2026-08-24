@@ -4,8 +4,8 @@ $isLoggedIn = !empty($_SESSION['user'] ?? null);
 if (session_status() === PHP_SESSION_NONE) session_start();
 $isLoggedIn = !empty($_SESSION['user']);
 $role = $_SESSION['user']['role'] ?? '';
-$dashMap = ['student'=>'/student/dashboard.php','teacher'=>'/teacher/dashboard.php','admin'=>'/admin/dashboard.php','finance'=>'/finance/dashboard.php'];
-$dashUrl = $dashMap[$role] ?? '/index.php';
+$dashMap = ['student'=>'/portal/student/dashboard.php','teacher'=>'/portal/teacher/dashboard.php','admin'=>'/portal/admin/dashboard.php','finance'=>'/portal/finance/dashboard.php'];
+$dashUrl = $dashMap[$role] ?? '/portal/index.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -31,7 +31,7 @@ body { background: linear-gradient(135deg,#0f1f3d 0%,#1c3054 50%,#0d2847 100%); 
   <?php if ($isLoggedIn): ?>
     <a href="<?= $dashUrl ?>" class="btn btn-primary me-2"><i class="fas fa-home me-1"></i>Go to Dashboard</a>
   <?php else: ?>
-    <a href="<?= url('/index.php') ?>" class="btn btn-primary"><i class="fas fa-sign-in-alt me-1"></i>Back to Login</a>
+    <a href="<?= url('/portal/index.php') ?>" class="btn btn-primary"><i class="fas fa-sign-in-alt me-1"></i>Back to Login</a>
   <?php endif; ?>
 </div>
 </body>

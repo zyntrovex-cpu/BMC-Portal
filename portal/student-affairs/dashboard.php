@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('student_affairs');
 $db   = getDB();
@@ -58,7 +58,7 @@ $links = getStudentAffairsLinks();
 
 <div class="row g-3 mb-4">
   <div class="col-6 col-lg-2">
-    <a href="<?= url('/student-affairs/students.php') ?>" class="stat-card text-decoration-none d-block">
+    <a href="<?= url('/portal/student-affairs/students.php') ?>" class="stat-card text-decoration-none d-block">
       <div class="stat-icon" style="background:#ede9fe;color:#7c3aed"><i class="fas fa-user-graduate"></i></div>
       <div class="stat-val" style="color:#7c3aed"><?= $totalStudents ?></div>
       <div class="stat-lbl">Students</div>
@@ -97,7 +97,7 @@ $links = getStudentAffairsLinks();
 <div class="sec-card">
   <div class="sec-card-header d-flex justify-content-between">
     <span><i class="fas fa-file-medical-alt me-2"></i>Recent Admission Requests</span>
-    <a href="<?= url('/student-affairs/admissions.php') ?>" class="btn btn-xs btn-outline-primary" style="font-size:.75rem;padding:2px 8px">View All</a>
+    <a href="<?= url('/portal/student-affairs/admissions.php') ?>" class="btn btn-xs btn-outline-primary" style="font-size:.75rem;padding:2px 8px">View All</a>
   </div>
   <?php if (empty($recent)): ?>
   <div style="padding:32px;text-align:center;color:var(--t2);font-size:.85rem">No requests yet.</div>
@@ -115,7 +115,7 @@ $links = getStudentAffairsLinks();
           <td><?= h($r['requested_class'] ?: '—') ?></td>
           <td style="font-size:.78rem"><?= fDate($r['created_at']) ?></td>
           <td><span class="badge bg-<?= $sc ?>"><?= $r['status'] ?></span></td>
-          <td><a href="<?= url('/student-affairs/admissions.php') ?>?id=<?= $r['id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px">Review</a></td>
+          <td><a href="<?= url('/portal/student-affairs/admissions.php') ?>?id=<?= $r['id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px">Review</a></td>
         </tr>
         <?php endforeach; ?>
       </tbody>

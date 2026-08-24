@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('student_affairs');
 requirePermission('sa_students');
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 setFlash('success', "Student $userId added successfully.");
             }
         }
-        redirect('/student-affairs/students.php');
+        redirect('/portal/student-affairs/students.php');
     }
 
     // ── Edit student ──────────────────────────────────────────────
@@ -94,14 +94,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!$studentId || !$name) {
             setFlash('danger', 'Student ID and name are required.');
-            redirect('/student-affairs/students.php');
+            redirect('/portal/student-affairs/students.php');
         }
 
         // Fetch user_id for this student
         $st = $db->prepare('SELECT user_id FROM students WHERE id = ?');
         $st->execute([$studentId]);
         $row = $st->fetch();
-        if (!$row) { setFlash('danger', 'Student not found.'); redirect('/student-affairs/students.php'); }
+        if (!$row) { setFlash('danger', 'Student not found.'); redirect('/portal/student-affairs/students.php'); }
         $uid = $row['user_id'];
 
         $db->prepare('UPDATE users SET name=?, email=? WHERE id=?')
@@ -146,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         logActivity($user['id'], 'student_edit', "Edited student #$studentId");
         setFlash('success', 'Student updated successfully.');
-        redirect('/student-affairs/students.php');
+        redirect('/portal/student-affairs/students.php');
     }
 
     // ── Toggle status ─────────────────────────────────────────────
@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             logActivity($user['id'], 'student_status', "Toggled status for user #$uid");
             setFlash('success', 'Status updated.');
         }
-        redirect('/student-affairs/students.php');
+        redirect('/portal/student-affairs/students.php');
     }
 
     // ── Delete student ────────────────────────────────────────────
@@ -169,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             logActivity($user['id'], 'student_delete', "Deleted student user #$uid");
             setFlash('success', 'Student deleted.');
         }
-        redirect('/student-affairs/students.php');
+        redirect('/portal/student-affairs/students.php');
     }
 
     // ── Approve/Reject profile change request ─────────────────────
@@ -186,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                ->execute([$user['id'], $reqId]);
             setFlash('success', 'Profile change approved.');
         }
-        redirect('/student-affairs/students.php');
+        redirect('/portal/student-affairs/students.php');
     }
 
     if ($action === 'reject_request') {
@@ -196,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                ->execute([$user['id'], $reqId]);
             setFlash('success', 'Request rejected.');
         }
-        redirect('/student-affairs/students.php');
+        redirect('/portal/student-affairs/students.php');
     }
 }
 
@@ -444,7 +444,7 @@ $links = getStudentAffairsLinks();
       </select>
       <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search"></i></button>
       <?php if ($search || $classFilter || $statusFilter): ?>
-      <a href="<?= url('/student-affairs/students.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a>
+      <a href="<?= url('/portal/student-affairs/students.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a>
       <?php endif; ?>
     </form>
   </div>

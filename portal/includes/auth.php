@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../config/db.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/../../config/config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -10,13 +10,13 @@ if (session_status() === PHP_SESSION_NONE) {
 function requireAuth(string ...$roles): array {
     if (empty($_SESSION['user'])) {
         $base = defined('BASE_URL') ? BASE_URL : '';
-        header('Location: ' . $base . '/index.php?msg=login');
+        header('Location: ' . $base . '/portal/index.php?msg=login');
         exit;
     }
     $user = $_SESSION['user'];
     if (!empty($roles) && !in_array($user['role'], $roles, true)) {
         $base = defined('BASE_URL') ? BASE_URL : '';
-        header('Location: ' . $base . '/index.php?msg=unauthorized');
+        header('Location: ' . $base . '/portal/index.php?msg=unauthorized');
         exit;
     }
     return $user;

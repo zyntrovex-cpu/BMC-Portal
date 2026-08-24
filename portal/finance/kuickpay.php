@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('finance');
 requirePermission('fee_collection');
@@ -409,7 +409,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── Cancel preview ────────────────────────────────────────────
     if ($action === 'cancel') {
         unset($_SESSION['kp_preview']);
-        redirect('/finance/kuickpay.php');
+        redirect('/portal/finance/kuickpay.php');
     }
 }
 
@@ -514,13 +514,13 @@ $links = getFinanceLinks();
       </div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-      <a href="<?= url('/finance/kuickpay.php') ?>" class="btn btn-primary">
+      <a href="<?= url('/portal/finance/kuickpay.php') ?>" class="btn btn-primary">
         <i class="fas fa-upload me-2"></i>Import Another File
       </a>
-      <a href="<?= url('/finance/collection.php?month=' . $importStats['month'] . '&year=' . $importStats['year']) ?>" class="btn btn-outline-success">
+      <a href="<?= url('/portal/finance/collection.php?month=' . $importStats['month'] . '&year=' . $importStats['year']) ?>" class="btn btn-outline-success">
         <i class="fas fa-hand-holding-usd me-2"></i>View Fee Collection
       </a>
-      <a href="<?= url('/finance/records.php') ?>" class="btn btn-outline-secondary">
+      <a href="<?= url('/portal/finance/records.php') ?>" class="btn btn-outline-secondary">
         <i class="fas fa-file-invoice-dollar me-2"></i>View Fee Records
       </a>
     </div>

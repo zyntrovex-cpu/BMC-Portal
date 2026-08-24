@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('admin');
 $db   = getDB();
@@ -211,7 +211,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $allowedRoles = ['student','teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head'];
     $backRole = in_array($_POST['role_filter'] ?? '', $allowedRoles) ? $_POST['role_filter'] : '';
-    redirect('/admin/users.php' . ($backRole ? '?role=' . $backRole : ''));
+    redirect('/portal/admin/users.php' . ($backRole ? '?role=' . $backRole : ''));
 }
 
 $roleFilter = $_GET['role'] ?? '';
@@ -472,7 +472,7 @@ $links = getAdminLinks();
             </button>
             <!-- View Portal -->
             <?php if ($u['role'] !== 'admin' && $u['status']==='active'): ?>
-            <form method="POST" action="<?= url('/admin/view-as.php') ?>" class="d-inline">
+            <form method="POST" action="<?= url('/portal/admin/view-as.php') ?>" class="d-inline">
               <input type="hidden" name="target_id" value="<?= $u['id'] ?>">
               <button class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px" title="View their portal">
                 <i class="fas fa-eye"></i>

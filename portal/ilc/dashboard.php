@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('ilc_vp');
 $db   = getDB();
@@ -130,7 +130,7 @@ $links = getIlcLinks();
         </div>
         <?php endforeach; ?>
         <?php endif; ?>
-        <a href="<?= url('/ilc/disabilities.php') ?>" class="btn btn-sm btn-outline-secondary w-100 mt-2" style="font-size:.8rem">View All Records</a>
+        <a href="<?= url('/portal/ilc/disabilities.php') ?>" class="btn btn-sm btn-outline-secondary w-100 mt-2" style="font-size:.8rem">View All Records</a>
       </div>
     </div>
   </div>
@@ -140,11 +140,11 @@ $links = getIlcLinks();
     <div class="sec-card">
       <div class="sec-card-header d-flex justify-content-between">
         <span><i class="fas fa-file-medical-alt me-2"></i>Recent Admission Requests</span>
-        <a href="<?= url('/ilc/admission-requests.php') ?>" class="btn btn-xs btn-outline-primary" style="font-size:.75rem;padding:2px 8px">View All</a>
+        <a href="<?= url('/portal/ilc/admission-requests.php') ?>" class="btn btn-xs btn-outline-primary" style="font-size:.75rem;padding:2px 8px">View All</a>
       </div>
       <?php if (empty($recentAdmissions)): ?>
       <div style="padding:24px;text-align:center;color:var(--t2);font-size:.85rem">
-        No admission requests yet. <a href="<?= url('/ilc/admission-requests.php') ?>">Create one</a>.
+        No admission requests yet. <a href="<?= url('/portal/ilc/admission-requests.php') ?>">Create one</a>.
       </div>
       <?php else: ?>
       <div class="table-responsive">

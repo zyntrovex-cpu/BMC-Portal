@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('student_affairs');
 requirePermission('sa_admissions');
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
         logActivity($user['id'], 'admission_review', "Set admission request #$id to $newStatus");
         setFlash('success', "Request #$id marked as $newStatus.");
     }
-    redirect('/student-affairs/admissions.php');
+    redirect('/portal/student-affairs/admissions.php');
 }
 
 $statusFilter = $_GET['status'] ?? '';

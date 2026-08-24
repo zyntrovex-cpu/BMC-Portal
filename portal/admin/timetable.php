@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('admin');
 $db   = getDB();
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
            ->execute([$classId, $subjectId, $teacherId ?: null, $day, $period, $room]);
         setFlash('success','Timetable updated.');
     }
-    redirect('/admin/timetable.php?class_id='.$classId);
+    redirect('/portal/admin/timetable.php?class_id='.$classId);
 }
 
 $classId  = (int)($_GET['class_id'] ?? 0);

@@ -2,13 +2,13 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('ilc_vp');
 $db   = getDB();
 
 $studentId = (int)($_GET['id'] ?? 0);
-if (!$studentId) { setFlash('danger','Invalid student.'); redirect('/ilc/students.php'); }
+if (!$studentId) { setFlash('danger','Invalid student.'); redirect('/portal/ilc/students.php'); }
 
 // Fetch student — must be ILC class
 $stSt = $db->prepare(
@@ -22,7 +22,7 @@ $stSt = $db->prepare(
 );
 $stSt->execute([$studentId]);
 $student = $stSt->fetch();
-if (!$student) { setFlash('danger','Student not found in ILC.'); redirect('/ilc/students.php'); }
+if (!$student) { setFlash('danger','Student not found in ILC.'); redirect('/portal/ilc/students.php'); }
 
 // ── Handle all POST actions ────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    redirect('/ilc/student-profile.php?id=' . $studentId);
+    redirect('/portal/ilc/student-profile.php?id=' . $studentId);
 }
 
 // Existing disability records
@@ -199,7 +199,7 @@ $links = getIlcLinks();
         <button class="btn btn-sm btn-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#editBioModal">
           <i class="fas fa-edit me-1"></i>Edit Biodata
         </button>
-        <a href="<?= url('/ilc/students.php') ?>" class="btn btn-sm btn-outline-secondary w-100">
+        <a href="<?= url('/portal/ilc/students.php') ?>" class="btn btn-sm btn-outline-secondary w-100">
           <i class="fas fa-arrow-left me-1"></i>Back to List
         </a>
       </div>

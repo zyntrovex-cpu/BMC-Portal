@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 // Auth: allow both admin and teacher
 $user = requireAuth('admin', 'teacher');
@@ -14,7 +14,7 @@ $db = getDB();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try { $db->query('SELECT 1 FROM student_warnings LIMIT 0'); } catch (PDOException $e) {
         setFlash('danger', 'student_warnings table missing — run warnings-migration.sql first.');
-        redirect('/admin/warnings.php');
+        redirect('/portal/admin/warnings.php');
     }
     $action = $_POST['action'] ?? '';
 
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             logActivity($user['id'], 'warning_add', "Added $severity warning to student #$studentId");
             setFlash('success', 'Warning added successfully.');
         }
-        redirect('/admin/warnings.php');
+        redirect('/portal/admin/warnings.php');
     }
 
     if ($action === 'delete') {
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             logActivity($user['id'], 'warning_delete', "Deleted warning #$id");
             setFlash('success', 'Warning removed.');
         }
-        redirect('/admin/warnings.php');
+        redirect('/portal/admin/warnings.php');
     }
 }
 

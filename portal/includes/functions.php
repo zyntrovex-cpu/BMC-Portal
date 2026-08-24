@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../config/db.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/../../config/config.php';
 
 function h(mixed $v): string {
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
@@ -232,7 +232,7 @@ function hasPermission(string $perm): bool {
 function requirePermission(string $perm): void {
     if (!hasPermission($perm)) {
         $base = defined('BASE_URL') ? BASE_URL : '';
-        header('Location: ' . $base . '/index.php?msg=unauthorized');
+        header('Location: ' . $base . '/portal/index.php?msg=unauthorized');
         exit;
     }
 }
@@ -240,113 +240,113 @@ function requirePermission(string $perm): void {
 // ── Student sidebar links ─────────────────────────────────────────
 function getStudentLinks(): array {
     return [
-        ['href'=>'/student/dashboard.php',   'icon'=>'<i class="fas fa-home"></i>',            'label'=>'Dashboard',    'key'=>'dashboard'],
-        ['href'=>'/student/results.php',     'icon'=>'<i class="fas fa-chart-bar"></i>',       'label'=>'My Results',   'key'=>'results'],
-        ['href'=>'/student/attendance.php',  'icon'=>'<i class="fas fa-calendar-check"></i>',  'label'=>'Attendance',   'key'=>'attendance'],
-        ['href'=>'/student/timetable.php',   'icon'=>'<i class="fas fa-table"></i>',           'label'=>'Timetable',    'key'=>'timetable'],
-        ['href'=>'/student/notices.php',     'icon'=>'<i class="fas fa-bell"></i>',            'label'=>'Notices',      'key'=>'notices'],
-        ['href'=>'/student/diary.php',       'icon'=>'<i class="fas fa-book-open"></i>',       'label'=>'Class Diary',  'key'=>'diary'],
-        ['href'=>'/student/complaints.php',  'icon'=>'<i class="fas fa-comment-alt"></i>',     'label'=>'Complaints',   'key'=>'complaints'],
-        ['href'=>'/student/calendar.php',    'icon'=>'<i class="fas fa-calendar-week"></i>',   'label'=>'Calendar',     'key'=>'calendar'],
-        ['href'=>'/student/profile.php',     'icon'=>'<i class="fas fa-user"></i>',            'label'=>'My Profile',   'key'=>'profile'],
+        ['href'=>'/portal/student/dashboard.php',   'icon'=>'<i class="fas fa-home"></i>',            'label'=>'Dashboard',    'key'=>'dashboard'],
+        ['href'=>'/portal/student/results.php',     'icon'=>'<i class="fas fa-chart-bar"></i>',       'label'=>'My Results',   'key'=>'results'],
+        ['href'=>'/portal/student/attendance.php',  'icon'=>'<i class="fas fa-calendar-check"></i>',  'label'=>'Attendance',   'key'=>'attendance'],
+        ['href'=>'/portal/student/timetable.php',   'icon'=>'<i class="fas fa-table"></i>',           'label'=>'Timetable',    'key'=>'timetable'],
+        ['href'=>'/portal/student/notices.php',     'icon'=>'<i class="fas fa-bell"></i>',            'label'=>'Notices',      'key'=>'notices'],
+        ['href'=>'/portal/student/diary.php',       'icon'=>'<i class="fas fa-book-open"></i>',       'label'=>'Class Diary',  'key'=>'diary'],
+        ['href'=>'/portal/student/complaints.php',  'icon'=>'<i class="fas fa-comment-alt"></i>',     'label'=>'Complaints',   'key'=>'complaints'],
+        ['href'=>'/portal/student/calendar.php',    'icon'=>'<i class="fas fa-calendar-week"></i>',   'label'=>'Calendar',     'key'=>'calendar'],
+        ['href'=>'/portal/student/profile.php',     'icon'=>'<i class="fas fa-user"></i>',            'label'=>'My Profile',   'key'=>'profile'],
     ];
 }
 
 // ── Admin sidebar links ───────────────────────────────────────────
 function getAdminLinks(): array {
     return [
-        ['href'=>'/admin/dashboard.php',          'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',         'key'=>'dashboard'],
-        ['href'=>'/admin/users.php',              'icon'=>'<i class="fas fa-users"></i>',              'label'=>'Staff & Students',  'key'=>'users'],
-        ['href'=>'/admin/import-students.php',    'icon'=>'<i class="fas fa-file-import"></i>',        'label'=>'Import Students',   'key'=>'import'],
-        ['href'=>'/admin/classes.php',            'icon'=>'<i class="fas fa-chalkboard"></i>',         'label'=>'Classes & Subjects','key'=>'classes'],
-        ['href'=>'/admin/teachers.php',           'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teacher Accounts',  'key'=>'teachers'],
-        ['href'=>'/admin/promote.php',            'icon'=>'<i class="fas fa-level-up-alt"></i>',       'label'=>'Class Promotion',   'key'=>'promote'],
-        ['href'=>'/admin/houses.php',             'icon'=>'<i class="fas fa-shield-alt"></i>',         'label'=>'Houses',            'key'=>'houses'],
-        ['href'=>'/admin/warnings.php',           'icon'=>'<i class="fas fa-exclamation-triangle"></i>','label'=>'Student Warnings', 'key'=>'warnings'],
-        ['href'=>'/admin/notices.php',            'icon'=>'<i class="fas fa-bell"></i>',               'label'=>'Notice Board',      'key'=>'notices'],
-        ['href'=>'/admin/academic-calendar.php',  'icon'=>'<i class="fas fa-calendar-week"></i>',      'label'=>'Academic Calendar', 'key'=>'calendar'],
-        ['href'=>'/admin/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',         'key'=>'timetable'],
-        ['href'=>'/admin/results.php',            'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'Results',           'key'=>'results'],
-        ['href'=>'/admin/view-as.php',            'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',      'key'=>'viewas'],
-        ['href'=>'/admin/activity.php',           'icon'=>'<i class="fas fa-history"></i>',            'label'=>'Activity Log',      'key'=>'activity'],
-        ['href'=>'/admin/settings.php',           'icon'=>'<i class="fas fa-cog"></i>',               'label'=>'Settings',           'key'=>'settings'],
+        ['href'=>'/portal/admin/dashboard.php',          'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',         'key'=>'dashboard'],
+        ['href'=>'/portal/admin/users.php',              'icon'=>'<i class="fas fa-users"></i>',              'label'=>'Staff & Students',  'key'=>'users'],
+        ['href'=>'/portal/admin/import-students.php',    'icon'=>'<i class="fas fa-file-import"></i>',        'label'=>'Import Students',   'key'=>'import'],
+        ['href'=>'/portal/admin/classes.php',            'icon'=>'<i class="fas fa-chalkboard"></i>',         'label'=>'Classes & Subjects','key'=>'classes'],
+        ['href'=>'/portal/admin/teachers.php',           'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teacher Accounts',  'key'=>'teachers'],
+        ['href'=>'/portal/admin/promote.php',            'icon'=>'<i class="fas fa-level-up-alt"></i>',       'label'=>'Class Promotion',   'key'=>'promote'],
+        ['href'=>'/portal/admin/houses.php',             'icon'=>'<i class="fas fa-shield-alt"></i>',         'label'=>'Houses',            'key'=>'houses'],
+        ['href'=>'/portal/admin/warnings.php',           'icon'=>'<i class="fas fa-exclamation-triangle"></i>','label'=>'Student Warnings', 'key'=>'warnings'],
+        ['href'=>'/portal/admin/notices.php',            'icon'=>'<i class="fas fa-bell"></i>',               'label'=>'Notice Board',      'key'=>'notices'],
+        ['href'=>'/portal/admin/academic-calendar.php',  'icon'=>'<i class="fas fa-calendar-week"></i>',      'label'=>'Academic Calendar', 'key'=>'calendar'],
+        ['href'=>'/portal/admin/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',         'key'=>'timetable'],
+        ['href'=>'/portal/admin/results.php',            'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'Results',           'key'=>'results'],
+        ['href'=>'/portal/admin/view-as.php',            'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',      'key'=>'viewas'],
+        ['href'=>'/portal/admin/activity.php',           'icon'=>'<i class="fas fa-history"></i>',            'label'=>'Activity Log',      'key'=>'activity'],
+        ['href'=>'/portal/admin/settings.php',           'icon'=>'<i class="fas fa-cog"></i>',               'label'=>'Settings',           'key'=>'settings'],
     ];
 }
 
 // ── Teacher sidebar links (permission-filtered) ───────────────────
 function getTeacherLinks(): array {
     return array_values(array_filter([
-        ['href'=>'/teacher/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',                'label'=>'Dashboard',           'key'=>'dashboard'],
-        hasPermission('marks')      ? ['href'=>'/teacher/marks.php',      'icon'=>'<i class="fas fa-pen-alt"></i>',              'label'=>'Assessments & Marks', 'key'=>'marks']       : null,
-        hasPermission('attendance') ? ['href'=>'/teacher/attendance.php', 'icon'=>'<i class="fas fa-calendar-check"></i>',       'label'=>'Attendance',          'key'=>'attendance']  : null,
-        hasPermission('timetable')  ? ['href'=>'/teacher/timetable.php',  'icon'=>'<i class="fas fa-table"></i>',                'label'=>'My Timetable',        'key'=>'timetable']   : null,
-        hasPermission('diary')      ? ['href'=>'/teacher/diary.php',      'icon'=>'<i class="fas fa-book-open"></i>',            'label'=>'Daily Diary',         'key'=>'diary']       : null,
-        hasPermission('notices')    ? ['href'=>'/teacher/notices.php',    'icon'=>'<i class="fas fa-bell"></i>',                 'label'=>'Notices',             'key'=>'notices']     : null,
-        hasPermission('warnings')   ? ['href'=>'/admin/warnings.php',     'icon'=>'<i class="fas fa-exclamation-triangle"></i>', 'label'=>'Student Warnings',    'key'=>'warnings']    : null,
-        hasPermission('complaints') ? ['href'=>'/teacher/complaints.php', 'icon'=>'<i class="fas fa-comment-alt"></i>',         'label'=>'Complaints',          'key'=>'complaints']  : null,
+        ['href'=>'/portal/teacher/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',                'label'=>'Dashboard',           'key'=>'dashboard'],
+        hasPermission('marks')      ? ['href'=>'/portal/teacher/marks.php',      'icon'=>'<i class="fas fa-pen-alt"></i>',              'label'=>'Assessments & Marks', 'key'=>'marks']       : null,
+        hasPermission('attendance') ? ['href'=>'/portal/teacher/attendance.php', 'icon'=>'<i class="fas fa-calendar-check"></i>',       'label'=>'Attendance',          'key'=>'attendance']  : null,
+        hasPermission('timetable')  ? ['href'=>'/portal/teacher/timetable.php',  'icon'=>'<i class="fas fa-table"></i>',                'label'=>'My Timetable',        'key'=>'timetable']   : null,
+        hasPermission('diary')      ? ['href'=>'/portal/teacher/diary.php',      'icon'=>'<i class="fas fa-book-open"></i>',            'label'=>'Daily Diary',         'key'=>'diary']       : null,
+        hasPermission('notices')    ? ['href'=>'/portal/teacher/notices.php',    'icon'=>'<i class="fas fa-bell"></i>',                 'label'=>'Notices',             'key'=>'notices']     : null,
+        hasPermission('warnings')   ? ['href'=>'/portal/admin/warnings.php',     'icon'=>'<i class="fas fa-exclamation-triangle"></i>', 'label'=>'Student Warnings',    'key'=>'warnings']    : null,
+        hasPermission('complaints') ? ['href'=>'/portal/teacher/complaints.php', 'icon'=>'<i class="fas fa-comment-alt"></i>',         'label'=>'Complaints',          'key'=>'complaints']  : null,
     ]));
 }
 
 // ── Finance sidebar links (permission-filtered) ───────────────────
 function getFinanceLinks(): array {
     return array_values(array_filter([
-        ['href'=>'/finance/dashboard.php',   'icon'=>'<i class="fas fa-home"></i>',                       'label'=>'Dashboard',     'key'=>'dashboard'],
-        hasPermission('fee_collection') ? ['href'=>'/finance/collection.php', 'icon'=>'<i class="fas fa-hand-holding-usd"></i>',    'label'=>'Fee Collection',  'key'=>'collection']  : null,
-        hasPermission('fee_collection') ? ['href'=>'/finance/kuickpay.php',   'icon'=>'<i class="fas fa-file-upload"></i>',          'label'=>'Kuickpay Import', 'key'=>'kuickpay']    : null,
-        hasPermission('fee_monthly')    ? ['href'=>'/finance/monthly.php',    'icon'=>'<i class="fas fa-calendar-alt"></i>',        'label'=>'Monthly Report',  'key'=>'monthly']     : null,
-        hasPermission('fee_records')    ? ['href'=>'/finance/records.php',    'icon'=>'<i class="fas fa-file-invoice-dollar"></i>', 'label'=>'Fee Records',     'key'=>'records']     : null,
-        hasPermission('fee_defaulters') ? ['href'=>'/finance/defaulters.php', 'icon'=>'<i class="fas fa-exclamation-triangle"></i>','label'=>'Defaulters',      'key'=>'defaulters']  : null,
-        hasPermission('fee_reports')    ? ['href'=>'/finance/reports.php',    'icon'=>'<i class="fas fa-chart-pie"></i>',           'label'=>'Reports',         'key'=>'reports']     : null,
+        ['href'=>'/portal/finance/dashboard.php',   'icon'=>'<i class="fas fa-home"></i>',                       'label'=>'Dashboard',     'key'=>'dashboard'],
+        hasPermission('fee_collection') ? ['href'=>'/portal/finance/collection.php', 'icon'=>'<i class="fas fa-hand-holding-usd"></i>',    'label'=>'Fee Collection',  'key'=>'collection']  : null,
+        hasPermission('fee_collection') ? ['href'=>'/portal/finance/kuickpay.php',   'icon'=>'<i class="fas fa-file-upload"></i>',          'label'=>'Kuickpay Import', 'key'=>'kuickpay']    : null,
+        hasPermission('fee_monthly')    ? ['href'=>'/portal/finance/monthly.php',    'icon'=>'<i class="fas fa-calendar-alt"></i>',        'label'=>'Monthly Report',  'key'=>'monthly']     : null,
+        hasPermission('fee_records')    ? ['href'=>'/portal/finance/records.php',    'icon'=>'<i class="fas fa-file-invoice-dollar"></i>', 'label'=>'Fee Records',     'key'=>'records']     : null,
+        hasPermission('fee_defaulters') ? ['href'=>'/portal/finance/defaulters.php', 'icon'=>'<i class="fas fa-exclamation-triangle"></i>','label'=>'Defaulters',      'key'=>'defaulters']  : null,
+        hasPermission('fee_reports')    ? ['href'=>'/portal/finance/reports.php',    'icon'=>'<i class="fas fa-chart-pie"></i>',           'label'=>'Reports',         'key'=>'reports']     : null,
     ]));
 }
 
 // ── ILC sidebar links (permission-filtered) ───────────────────────
 function getIlcLinks(): array {
     return array_values(array_filter([
-        ['href'=>'/ilc/dashboard.php',         'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',          'key'=>'dashboard'],
-        hasPermission('ilc_students')     ? ['href'=>'/ilc/students.php',           'icon'=>'<i class="fas fa-user-graduate"></i>',      'label'=>'ILC Students',       'key'=>'students']     : null,
-        hasPermission('ilc_teachers')     ? ['href'=>'/ilc/teachers.php',           'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'ILC Teachers',       'key'=>'teachers']     : null,
-        hasPermission('ilc_disabilities') ? ['href'=>'/ilc/disabilities.php',       'icon'=>'<i class="fas fa-heartbeat"></i>',          'label'=>'Disability Records', 'key'=>'disabilities'] : null,
-        hasPermission('ilc_admissions')   ? ['href'=>'/ilc/admission-requests.php', 'icon'=>'<i class="fas fa-file-medical-alt"></i>',   'label'=>'Admission Requests', 'key'=>'admissions']   : null,
-        hasPermission('ilc_records')      ? ['href'=>'/ilc/records.php',            'icon'=>'<i class="fas fa-folder-open"></i>',        'label'=>'Session Records',    'key'=>'records']      : null,
-        hasPermission('ilc_attendance')   ? ['href'=>'/ilc/attendance.php',         'icon'=>'<i class="fas fa-calendar-check"></i>',     'label'=>'ILC Attendance',     'key'=>'attendance']   : null,
-        hasPermission('ilc_results')      ? ['href'=>'/ilc/results.php',            'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'ILC Results',        'key'=>'results']      : null,
-        hasPermission('ilc_timetable')    ? ['href'=>'/ilc/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',              'label'=>'ILC Timetable',      'key'=>'timetable']    : null,
-        hasPermission('ilc_viewas')       ? ['href'=>'/ilc/view-as.php',            'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',       'key'=>'viewas']       : null,
+        ['href'=>'/portal/ilc/dashboard.php',         'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',          'key'=>'dashboard'],
+        hasPermission('ilc_students')     ? ['href'=>'/portal/ilc/students.php',           'icon'=>'<i class="fas fa-user-graduate"></i>',      'label'=>'ILC Students',       'key'=>'students']     : null,
+        hasPermission('ilc_teachers')     ? ['href'=>'/portal/ilc/teachers.php',           'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'ILC Teachers',       'key'=>'teachers']     : null,
+        hasPermission('ilc_disabilities') ? ['href'=>'/portal/ilc/disabilities.php',       'icon'=>'<i class="fas fa-heartbeat"></i>',          'label'=>'Disability Records', 'key'=>'disabilities'] : null,
+        hasPermission('ilc_admissions')   ? ['href'=>'/portal/ilc/admission-requests.php', 'icon'=>'<i class="fas fa-file-medical-alt"></i>',   'label'=>'Admission Requests', 'key'=>'admissions']   : null,
+        hasPermission('ilc_records')      ? ['href'=>'/portal/ilc/records.php',            'icon'=>'<i class="fas fa-folder-open"></i>',        'label'=>'Session Records',    'key'=>'records']      : null,
+        hasPermission('ilc_attendance')   ? ['href'=>'/portal/ilc/attendance.php',         'icon'=>'<i class="fas fa-calendar-check"></i>',     'label'=>'ILC Attendance',     'key'=>'attendance']   : null,
+        hasPermission('ilc_results')      ? ['href'=>'/portal/ilc/results.php',            'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'ILC Results',        'key'=>'results']      : null,
+        hasPermission('ilc_timetable')    ? ['href'=>'/portal/ilc/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',              'label'=>'ILC Timetable',      'key'=>'timetable']    : null,
+        hasPermission('ilc_viewas')       ? ['href'=>'/portal/ilc/view-as.php',            'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',       'key'=>'viewas']       : null,
     ]));
 }
 
 // ── Student Affairs sidebar links (permission-filtered) ───────────
 function getStudentAffairsLinks(): array {
     return array_values(array_filter([
-        ['href'=>'/student-affairs/dashboard.php',       'icon'=>'<i class="fas fa-home"></i>',             'label'=>'Dashboard',          'key'=>'dashboard'],
-        hasPermission('sa_students')   ? ['href'=>'/student-affairs/students.php',        'icon'=>'<i class="fas fa-user-graduate"></i>',    'label'=>'Students',           'key'=>'students']   : null,
-        hasPermission('sa_admissions') ? ['href'=>'/student-affairs/admissions.php',      'icon'=>'<i class="fas fa-file-medical-alt"></i>', 'label'=>'Admission Requests', 'key'=>'admissions'] : null,
-        hasPermission('sa_medical')    ? ['href'=>'/student-affairs/medical-records.php', 'icon'=>'<i class="fas fa-notes-medical"></i>',    'label'=>'Medical Records',    'key'=>'medical']    : null,
-        hasPermission('sa_calendar')   ? ['href'=>'/admin/academic-calendar.php',         'icon'=>'<i class="fas fa-calendar-week"></i>',    'label'=>'Academic Calendar',  'key'=>'calendar']   : null,
+        ['href'=>'/portal/student-affairs/dashboard.php',       'icon'=>'<i class="fas fa-home"></i>',             'label'=>'Dashboard',          'key'=>'dashboard'],
+        hasPermission('sa_students')   ? ['href'=>'/portal/student-affairs/students.php',        'icon'=>'<i class="fas fa-user-graduate"></i>',    'label'=>'Students',           'key'=>'students']   : null,
+        hasPermission('sa_admissions') ? ['href'=>'/portal/student-affairs/admissions.php',      'icon'=>'<i class="fas fa-file-medical-alt"></i>', 'label'=>'Admission Requests', 'key'=>'admissions'] : null,
+        hasPermission('sa_medical')    ? ['href'=>'/portal/student-affairs/medical-records.php', 'icon'=>'<i class="fas fa-notes-medical"></i>',    'label'=>'Medical Records',    'key'=>'medical']    : null,
+        hasPermission('sa_calendar')   ? ['href'=>'/portal/admin/academic-calendar.php',         'icon'=>'<i class="fas fa-calendar-week"></i>',    'label'=>'Academic Calendar',  'key'=>'calendar']   : null,
     ]));
 }
 
 // ── VP sidebar links (permission-filtered) ────────────────────────
 function getVpLinks(): array {
     return array_values(array_filter([
-        ['href'=>'/vp/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',            'key'=>'dashboard'],
-        hasPermission('vp_teachers')     ? ['href'=>'/vp/teachers.php',               'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teachers',             'key'=>'teachers']     : null,
-        hasPermission('vp_students')     ? ['href'=>'/vp/students.php',               'icon'=>'<i class="fas fa-user-graduate"></i>',      'label'=>'Students',             'key'=>'students']     : null,
-        hasPermission('vp_attendance')   ? ['href'=>'/vp/attendance.php',             'icon'=>'<i class="fas fa-calendar-check"></i>',     'label'=>'Attendance',           'key'=>'attendance']   : null,
-        hasPermission('vp_att_requests') ? ['href'=>'/vp/attendance-requests.php',    'icon'=>'<i class="fas fa-edit"></i>',               'label'=>'Attendance Requests',  'key'=>'att_requests'] : null,
-        hasPermission('vp_results')      ? ['href'=>'/vp/results.php',                'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'Results',              'key'=>'results']      : null,
-        hasPermission('vp_timetable')    ? ['href'=>'/vp/timetable.php',              'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',            'key'=>'timetable']    : null,
-        hasPermission('vp_calendar')     ? ['href'=>'/admin/academic-calendar.php',   'icon'=>'<i class="fas fa-calendar-week"></i>',      'label'=>'Academic Calendar',    'key'=>'calendar']     : null,
-        hasPermission('vp_viewas')       ? ['href'=>'/vp/view-as.php',                'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',         'key'=>'viewas']       : null,
+        ['href'=>'/portal/vp/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',            'key'=>'dashboard'],
+        hasPermission('vp_teachers')     ? ['href'=>'/portal/vp/teachers.php',               'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teachers',             'key'=>'teachers']     : null,
+        hasPermission('vp_students')     ? ['href'=>'/portal/vp/students.php',               'icon'=>'<i class="fas fa-user-graduate"></i>',      'label'=>'Students',             'key'=>'students']     : null,
+        hasPermission('vp_attendance')   ? ['href'=>'/portal/vp/attendance.php',             'icon'=>'<i class="fas fa-calendar-check"></i>',     'label'=>'Attendance',           'key'=>'attendance']   : null,
+        hasPermission('vp_att_requests') ? ['href'=>'/portal/vp/attendance-requests.php',    'icon'=>'<i class="fas fa-edit"></i>',               'label'=>'Attendance Requests',  'key'=>'att_requests'] : null,
+        hasPermission('vp_results')      ? ['href'=>'/portal/vp/results.php',                'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'Results',              'key'=>'results']      : null,
+        hasPermission('vp_timetable')    ? ['href'=>'/portal/vp/timetable.php',              'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',            'key'=>'timetable']    : null,
+        hasPermission('vp_calendar')     ? ['href'=>'/portal/admin/academic-calendar.php',   'icon'=>'<i class="fas fa-calendar-week"></i>',      'label'=>'Academic Calendar',    'key'=>'calendar']     : null,
+        hasPermission('vp_viewas')       ? ['href'=>'/portal/vp/view-as.php',                'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',         'key'=>'viewas']       : null,
     ]));
 }
 
 // ── Wing Head sidebar links (permission-filtered) ─────────────────
 function getWingHeadLinks(): array {
     return array_values(array_filter([
-        ['href'=>'/wing-head/dashboard.php', 'icon'=>'<i class="fas fa-home"></i>',          'label'=>'Dashboard', 'key'=>'dashboard'],
-        hasPermission('wh_students') ? ['href'=>'/wing-head/students.php', 'icon'=>'<i class="fas fa-user-graduate"></i>', 'label'=>'Students', 'key'=>'students'] : null,
-        hasPermission('wh_classes')  ? ['href'=>'/wing-head/classes.php',  'icon'=>'<i class="fas fa-chalkboard"></i>',    'label'=>'Classes',  'key'=>'classes']  : null,
+        ['href'=>'/portal/wing-head/dashboard.php', 'icon'=>'<i class="fas fa-home"></i>',          'label'=>'Dashboard', 'key'=>'dashboard'],
+        hasPermission('wh_students') ? ['href'=>'/portal/wing-head/students.php', 'icon'=>'<i class="fas fa-user-graduate"></i>', 'label'=>'Students', 'key'=>'students'] : null,
+        hasPermission('wh_classes')  ? ['href'=>'/portal/wing-head/classes.php',  'icon'=>'<i class="fas fa-chalkboard"></i>',    'label'=>'Classes',  'key'=>'classes']  : null,
     ]));
 }

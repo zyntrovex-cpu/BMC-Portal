@@ -8,7 +8,7 @@ $student = getStudentByUserId($user['id']);
 
 if (!$student) {
     setFlash('danger', 'Student profile not found.');
-    redirect('/logout.php');
+    redirect('/portal/logout.php');
 }
 
 $db = getDB();

@@ -2,13 +2,13 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user    = requireAuth('teacher');
 requirePermission('marks');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
-if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/index.php'); }
+if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
 
 $tab = $_GET['tab'] ?? 'assessments';
 $assessmentId = (int)($_GET['assessment_id'] ?? 0);
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             setFlash('danger', 'All fields required.');
         }
-        redirect('/teacher/marks.php?tab=assessments');
+        redirect('/portal/teacher/marks.php?tab=assessments');
     }
 
     if ($action === 'delete_assessment') {
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare('DELETE FROM assessments WHERE id = ?')->execute([$id]);
             setFlash('success','Assessment deleted.');
         }
-        redirect('/teacher/marks.php?tab=assessments');
+        redirect('/portal/teacher/marks.php?tab=assessments');
     }
 
     if ($action === 'save_marks') {
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         logActivity($user['id'], 'marks_save', "Saved marks for assessment #$aId ($saved students)");
         setFlash('success', "Marks saved for $saved students.");
-        redirect('/teacher/marks.php?tab=marks&assessment_id='.$aId);
+        redirect('/portal/teacher/marks.php?tab=marks&assessment_id='.$aId);
     }
 }
 

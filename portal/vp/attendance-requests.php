@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('vp_main');
 requirePermission('vp_att_requests');
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
             setFlash('success', 'Request rejected.');
         }
     }
-    redirect('/vp/attendance-requests.php');
+    redirect('/portal/vp/attendance-requests.php');
 }
 
 // Fetch requests

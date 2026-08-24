@@ -2,12 +2,12 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user    = requireAuth('student');
 $db      = getDB();
 $student = getStudentByUserId($user['id']);
-if (!$student) { setFlash('danger','Student record not found.'); redirect('/index.php'); }
+if (!$student) { setFlash('danger','Student record not found.'); redirect('/portal/index.php'); }
 
 // Handle profile change request
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 setFlash('success', 'Email updated successfully.');
             }
         }
-        redirect('/student/profile.php');
+        redirect('/portal/student/profile.php');
     }
 
     $field    = $_POST['field_name']  ?? '';
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         setFlash('danger','Invalid request.');
     }
-    redirect('/student/profile.php');
+    redirect('/portal/student/profile.php');
 }
 
 // Pending requests

@@ -2,13 +2,13 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user    = requireAuth('teacher');
 requirePermission('timetable');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
-if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/index.php'); }
+if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
 
 // Get teacher's timetable
 $st = $db->prepare(

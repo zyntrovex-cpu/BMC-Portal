@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('admin');
 $db   = getDB();
@@ -11,7 +11,7 @@ $db   = getDB();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try { $db->query('SELECT 1 FROM houses LIMIT 0'); } catch (PDOException $e) {
         setFlash('danger', 'Houses table does not exist yet. Run houses-migration.sql first.');
-        redirect('/admin/houses.php');
+        redirect('/portal/admin/houses.php');
     }
     $action = $_POST['action'] ?? '';
 
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             logActivity($user['id'], 'house_add', "Added house: $name");
             setFlash('success', "House \"$name\" added successfully.");
         }
-        redirect('/admin/houses.php');
+        redirect('/portal/admin/houses.php');
     }
 
     if ($action === 'edit') {
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             setFlash('danger', 'Invalid data.');
         }
-        redirect('/admin/houses.php');
+        redirect('/portal/admin/houses.php');
     }
 
     if ($action === 'delete') {
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 setFlash('success', 'House deleted.');
             }
         }
-        redirect('/admin/houses.php');
+        redirect('/portal/admin/houses.php');
     }
 }
 

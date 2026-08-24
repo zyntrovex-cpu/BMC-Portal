@@ -6,6 +6,6 @@ if (ini_get('session.use_cookies')) {
     setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
 }
 session_destroy();
-require_once __DIR__ . '/config/config.php';
-header('Location: ' . BASE_URL . '/index.php?msg=logout');
+require_once __DIR__ . '/../config/config.php';
+header('Location: ' . BASE_URL . '/portal/index.php?msg=logout');
 exit;

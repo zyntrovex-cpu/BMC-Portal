@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('wing_head');
 requirePermission('wh_students');
@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_c
     $cat = in_array($_POST['category'], ['civilian','cpo','sailor','']) ? ($_POST['category'] ?: null) : null;
     $db->prepare('UPDATE students SET student_category=? WHERE id=?')->execute([$cat, $sid]);
     setFlash('success', 'Category updated.');
-    redirect('/wing-head/students.php' . (isset($_GET['class_id']) ? '?class_id='.(int)$_GET['class_id'] : ''));
+    redirect('/portal/wing-head/students.php' . (isset($_GET['class_id']) ? '?class_id='.(int)$_GET['class_id'] : ''));
 }
 
 $classId  = (int)($_GET['class_id'] ?? 0);

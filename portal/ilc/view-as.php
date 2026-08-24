@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('ilc_vp');
 requirePermission('ilc_viewas');
@@ -45,12 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['target_id'])) {
     if ($target) {
         $_SESSION['admin_backup']   = $_SESSION['user'];
         $_SESSION['view_as_mode']   = true;
-        $_SESSION['view_as_return'] = $returnUrl ?: (BASE_URL . '/ilc/view-as.php');
+        $_SESSION['view_as_return'] = $returnUrl ?: (BASE_URL . '/portal/ilc/view-as.php');
         $_SESSION['user']           = $target;
 
         $dest = $target['role'] === 'teacher'
-            ? BASE_URL . '/teacher/dashboard.php'
-            : BASE_URL . '/student/dashboard.php';
+            ? BASE_URL . '/portal/teacher/dashboard.php'
+            : BASE_URL . '/portal/student/dashboard.php';
         header('Location: ' . $dest);
         exit;
     }
@@ -160,7 +160,7 @@ $links = getIlcLinks();
           <td>
             <form method="POST" class="d-inline">
               <input type="hidden" name="target_id" value="<?= $u['id'] ?>">
-              <input type="hidden" name="return_url" value="<?= h(url('/ilc/view-as.php') . ($_SERVER['QUERY_STRING'] ? '?'.$_SERVER['QUERY_STRING'] : '')) ?>">
+              <input type="hidden" name="return_url" value="<?= h(url('/portal/ilc/view-as.php') . ($_SERVER['QUERY_STRING'] ? '?'.$_SERVER['QUERY_STRING'] : '')) ?>">
               <button type="submit" class="btn btn-sm btn-primary" style="font-size:.78rem;padding:3px 10px">
                 <i class="fas fa-eye me-1"></i>View Portal
               </button>

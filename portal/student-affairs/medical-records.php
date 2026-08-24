@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('student_affairs');
 requirePermission('sa_medical');
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setFlash('success', 'Record deleted.');
     }
 
-    redirect('/student-affairs/medical-records.php' . (isset($_GET['student_id']) ? '?student_id='.(int)$_GET['student_id'] : ''));
+    redirect('/portal/student-affairs/medical-records.php' . (isset($_GET['student_id']) ? '?student_id='.(int)$_GET['student_id'] : ''));
 }
 
 $studentId = (int)($_GET['student_id'] ?? 0);
@@ -169,7 +169,7 @@ $links = getStudentAffairsLinks();
           <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
                  placeholder="Search…" style="width:130px">
           <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search"></i></button>
-          <?php if ($studentId||$search): ?><a href="<?= url('/student-affairs/medical-records.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
+          <?php if ($studentId||$search): ?><a href="<?= url('/portal/student-affairs/medical-records.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
         </form>
       </div>
 

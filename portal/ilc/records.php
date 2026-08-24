@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('ilc_vp');
 requirePermission('ilc_records');
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
         }
     }
 
-    redirect('/ilc/records.php');
+    redirect('/portal/ilc/records.php');
 }
 
 // Fetch active records

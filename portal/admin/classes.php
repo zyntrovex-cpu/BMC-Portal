@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('admin');
 $db   = getDB();
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setFlash('success','Subject removed.');
     }
 
-    redirect('/admin/classes.php' . (isset($_POST['view_class']) ? '?view='.(int)$_POST['view_class'] : ''));
+    redirect('/portal/admin/classes.php' . (isset($_POST['view_class']) ? '?view='.(int)$_POST['view_class'] : ''));
 }
 
 $viewClassId = (int)($_GET['view'] ?? 0);
@@ -179,7 +179,7 @@ $links = getAdminLinks();
               <td><?= $c['student_count'] ?></td>
               <td>
                 <a href="?view=<?= $c['id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px">Manage</a>
-                <a href="<?= url('/admin/users.php?role=student') ?>" class="btn btn-xs btn-outline-info" style="font-size:.74rem;padding:2px 7px">Students</a>
+                <a href="<?= url('/portal/admin/users.php?role=student') ?>" class="btn btn-xs btn-outline-info" style="font-size:.74rem;padding:2px 7px">Students</a>
                 <form method="POST" class="d-inline" onsubmit="return confirm('Delete class?')">
                   <input type="hidden" name="action" value="delete_class">
                   <input type="hidden" name="id" value="<?= $c['id'] ?>">

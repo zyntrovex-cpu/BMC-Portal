@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('ilc_vp');
 requirePermission('ilc_students');
@@ -78,7 +78,7 @@ $links = getIlcLinks();
       </select>
       <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search"></i></button>
       <?php if ($search || $catFilter): ?>
-      <a href="<?= url('/ilc/students.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a>
+      <a href="<?= url('/portal/ilc/students.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a>
       <?php endif; ?>
     </form>
   </div>
@@ -110,7 +110,7 @@ $links = getIlcLinks();
             <?php endif; ?>
           </td>
           <td>
-            <a href="<?= url('/ilc/student-profile.php') ?>?id=<?= $s['student_id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 8px">
+            <a href="<?= url('/portal/ilc/student-profile.php') ?>?id=<?= $s['student_id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 8px">
               <i class="fas fa-user me-1"></i>Profile
             </a>
           </td>

@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('admin');
 $db   = getDB();
@@ -15,12 +15,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $db->prepare('DELETE FROM notices WHERE id = ?')->execute([$id]);
         logActivity($user['id'], 'notice_delete', "Deleted notice #$id");
         setFlash('success','Notice deleted.');
-        redirect('/admin/notices.php');
+        redirect('/portal/admin/notices.php');
     }
 
     if ($action === 'toggle_pin' && $id) {
         $db->prepare('UPDATE notices SET pinned = !pinned WHERE id = ?')->execute([$id]);
-        redirect('/admin/notices.php');
+        redirect('/portal/admin/notices.php');
     }
 
     $title      = trim($_POST['title']   ?? '');
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$title || !$body) {
         setFlash('danger','Title and body are required.');
-        redirect('/admin/notices.php');
+        redirect('/portal/admin/notices.php');
     }
 
     if ($action === 'update' && $id) {
@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         logActivity($user['id'], 'notice_create', "Created notice: $title");
         setFlash('success','Notice posted.');
     }
-    redirect('/admin/notices.php');
+    redirect('/portal/admin/notices.php');
 }
 
 // Fetch all notices
@@ -137,7 +137,7 @@ $prios     = ['Normal','Important','Urgent'];
         </div>
       </div>
       <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-save me-1"></i><?= $editNotice ? 'Update' : 'Post' ?> Notice</button>
-      <?php if ($editNotice): ?><a href="<?= url('/admin/notices.php') ?>" class="btn btn-sm btn-outline-secondary ms-2">Cancel</a><?php endif; ?>
+      <?php if ($editNotice): ?><a href="<?= url('/portal/admin/notices.php') ?>" class="btn btn-sm btn-outline-secondary ms-2">Cancel</a><?php endif; ?>
     </form>
   </div>
 </div>

@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('ilc_vp');
 requirePermission('ilc_teachers');
@@ -49,7 +49,7 @@ $links = getIlcLinks();
       <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
              placeholder="Search name / ID…" style="width:180px">
       <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search"></i></button>
-      <?php if ($search): ?><a href="<?= url('/ilc/teachers.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
+      <?php if ($search): ?><a href="<?= url('/portal/ilc/teachers.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
     </form>
   </div>
 
@@ -74,7 +74,7 @@ $links = getIlcLinks();
           <td><?= h($t['phone'] ?: '—') ?></td>
           <td><?= $t['join_date'] ? date('d M Y', strtotime($t['join_date'])) : '—' ?></td>
           <td>
-            <form method="POST" action="<?= url('/ilc/view-as.php') ?>" class="d-inline">
+            <form method="POST" action="<?= url('/portal/ilc/view-as.php') ?>" class="d-inline">
               <input type="hidden" name="target_id" value="<?= $t['id'] ?>">
               <button class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 8px">
                 <i class="fas fa-eye me-1"></i>View Portal

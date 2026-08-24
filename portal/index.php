@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/config/db.php';
-require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/auth.php';
 
@@ -9,16 +9,16 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 if (!empty($_SESSION['user'])) {
     $role = $_SESSION['user']['role'];
     $map  = [
-        'student'        => '/student/dashboard.php',
-        'teacher'        => '/teacher/dashboard.php',
-        'admin'          => '/admin/dashboard.php',
-        'finance'        => '/finance/dashboard.php',
-        'ilc_vp'         => '/ilc/dashboard.php',
-        'student_affairs'=> '/student-affairs/dashboard.php',
-        'vp_main'        => '/vp/dashboard.php',
-        'wing_head'      => '/wing-head/dashboard.php',
+        'student'        => '/portal/student/dashboard.php',
+        'teacher'        => '/portal/teacher/dashboard.php',
+        'admin'          => '/portal/admin/dashboard.php',
+        'finance'        => '/portal/finance/dashboard.php',
+        'ilc_vp'         => '/portal/ilc/dashboard.php',
+        'student_affairs'=> '/portal/student-affairs/dashboard.php',
+        'vp_main'        => '/portal/vp/dashboard.php',
+        'wing_head'      => '/portal/wing-head/dashboard.php',
     ];
-    redirect($map[$role] ?? '/index.php');
+    redirect($map[$role] ?? '/portal/index.php');
 }
 
 $error = '';

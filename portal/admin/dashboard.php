@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 $user = requireAuth('admin');
 
 $db = getDB();
@@ -82,7 +82,7 @@ echo flashHtml();
   <i class="fas fa-clock"></i>
   <div>
     <strong><?= h($pendingRequests) ?> pending profile change request<?= $pendingRequests > 1 ? 's' : '' ?></strong> awaiting your review.
-    <a href="<?= url('/admin/users.php#profile-requests') ?>" class="alert-link ms-1">Review now &rarr;</a>
+    <a href="<?= url('/portal/admin/users.php#profile-requests') ?>" class="alert-link ms-1">Review now &rarr;</a>
   </div>
 </div>
 <?php endif; ?>
@@ -95,32 +95,32 @@ echo flashHtml();
       <div class="sec-body">
         <div class="row g-2">
           <div class="col-6">
-            <a href="<?= url('/admin/users.php') ?>" class="qa-btn">
+            <a href="<?= url('/portal/admin/users.php') ?>" class="qa-btn">
               <i class="fas fa-users"></i><span>Manage Users</span>
             </a>
           </div>
           <div class="col-6">
-            <a href="<?= url('/admin/notices.php') ?>" class="qa-btn">
+            <a href="<?= url('/portal/admin/notices.php') ?>" class="qa-btn">
               <i class="fas fa-bell"></i><span>Manage Notices</span>
             </a>
           </div>
           <div class="col-6">
-            <a href="<?= url('/admin/classes.php') ?>" class="qa-btn">
+            <a href="<?= url('/portal/admin/classes.php') ?>" class="qa-btn">
               <i class="fas fa-chalkboard"></i><span>Manage Classes</span>
             </a>
           </div>
           <div class="col-6">
-            <a href="<?= url('/admin/results.php') ?>" class="qa-btn">
+            <a href="<?= url('/portal/admin/results.php') ?>" class="qa-btn">
               <i class="fas fa-chart-bar"></i><span>View Results</span>
             </a>
           </div>
           <div class="col-6">
-            <a href="<?= url('/admin/timetable.php') ?>" class="qa-btn">
+            <a href="<?= url('/portal/admin/timetable.php') ?>" class="qa-btn">
               <i class="fas fa-table"></i><span>Timetable</span>
             </a>
           </div>
           <div class="col-6">
-            <a href="<?= url('/admin/settings.php') ?>" class="qa-btn">
+            <a href="<?= url('/portal/admin/settings.php') ?>" class="qa-btn">
               <i class="fas fa-cog"></i><span>Settings</span>
             </a>
           </div>
@@ -134,7 +134,7 @@ echo flashHtml();
     <div class="sec-card">
       <div class="sec-head">
         <h5><i class="fas fa-history me-1" style="color:#7c3aed"></i> Recent Activity</h5>
-        <a href="<?= url('/admin/activity.php') ?>" class="btn btn-sm btn-outline-secondary">View All</a>
+        <a href="<?= url('/portal/admin/activity.php') ?>" class="btn btn-sm btn-outline-secondary">View All</a>
       </div>
       <?php if (empty($activities)): ?>
         <div class="sec-body text-muted">No activity recorded yet.</div>

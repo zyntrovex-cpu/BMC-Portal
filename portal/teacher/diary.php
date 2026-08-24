@@ -2,13 +2,13 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user    = requireAuth('teacher');
 requirePermission('diary');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
-if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/index.php'); }
+if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
 
 // Check tables exist
 $tableExists = false;
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
         }
     }
 
-    redirect('/teacher/diary.php');
+    redirect('/portal/teacher/diary.php');
 }
 
 // Classes assigned to this teacher
@@ -197,7 +197,7 @@ $links = getTeacherLinks();
       </select>
       <input type="date" name="date" class="form-control form-control-sm" style="max-width:160px" value="<?= h($filterDate) ?>">
       <button class="btn btn-sm btn-outline-secondary">Filter</button>
-      <?php if ($filterClass || $filterDate): ?><a href="<?= url('/teacher/diary.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
+      <?php if ($filterClass || $filterDate): ?><a href="<?= url('/portal/teacher/diary.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
     </form>
 
     <?php if (empty($entries)): ?>

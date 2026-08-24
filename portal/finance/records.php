@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user    = requireAuth('finance');
 requirePermission('fee_records');
@@ -73,7 +73,7 @@ $links = getFinanceLinks();
     </select>
   </div>
   <button type="submit" class="btn btn-sm btn-primary">Filter</button>
-  <?php if ($q||$classId||$paid!==''): ?><a href="<?= url('/finance/records.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
+  <?php if ($q||$classId||$paid!==''): ?><a href="<?= url('/portal/finance/records.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
 </form>
 
 <div class="sec-card">

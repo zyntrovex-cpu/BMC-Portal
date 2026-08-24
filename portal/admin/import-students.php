@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('admin');
 $db   = getDB();
@@ -228,13 +228,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
     $file = $_FILES['import_file'];
     if ($file['error'] !== UPLOAD_ERR_OK) {
         setFlash('danger', 'Upload error. Please try again.');
-        redirect('/admin/import-students.php');
+        redirect('/portal/admin/import-students.php');
     }
 
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     if (!in_array($ext, ['csv', 'xlsx'])) {
         setFlash('danger', 'Only .csv and .xlsx files are accepted.');
-        redirect('/admin/import-students.php');
+        redirect('/portal/admin/import-students.php');
     }
 
     // ── Parse rows into a uniform array ──────────────────────────────────────
@@ -267,12 +267,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
         }
     } catch (Exception $e) {
         setFlash('danger', 'Could not read file: ' . $e->getMessage());
-        redirect('/admin/import-students.php');
+        redirect('/portal/admin/import-students.php');
     }
 
     if (empty($allRows)) {
         setFlash('danger', 'The uploaded file is empty.');
-        redirect('/admin/import-students.php');
+        redirect('/portal/admin/import-students.php');
     }
 
     // ── Detect header row and build column→index map ─────────────────────────
@@ -280,7 +280,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
 
     if (empty($allRows)) {
         setFlash('danger', 'File has a header row but no data rows. Add at least one student and re-upload.');
-        redirect('/admin/import-students.php');
+        redirect('/portal/admin/import-students.php');
     }
 
     // Normalise header names: lowercase, spaces→underscore, strip BOM/special chars
@@ -488,7 +488,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
     } catch (Exception $e) {
         $db->rollBack();
         setFlash('danger', 'Import failed (row ' . $rowNum . '): ' . $e->getMessage());
-        redirect('/admin/import-students.php');
+        redirect('/portal/admin/import-students.php');
     }
 
     $importResults = [
@@ -587,10 +587,10 @@ $links = getAdminLinks();
         </div>
         <?php endif; ?>
         <div class="d-flex gap-2 mt-3">
-          <a href="<?= url('/admin/import-students.php') ?>" class="btn btn-primary btn-sm">
+          <a href="<?= url('/portal/admin/import-students.php') ?>" class="btn btn-primary btn-sm">
             <i class="fas fa-upload me-1"></i>Import More
           </a>
-          <a href="<?= url('/admin/users.php?role=student') ?>" class="btn btn-outline-secondary btn-sm">
+          <a href="<?= url('/portal/admin/users.php?role=student') ?>" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-users me-1"></i>View Students
           </a>
         </div>
@@ -612,11 +612,11 @@ $links = getAdminLinks();
           covering all wings (Main, ILC, Montessori). Use the dummy CSV to test the import.
         </p>
         <div class="d-flex gap-2 flex-wrap mb-3">
-          <a href="<?= url('/admin/import-students.php?download_template=1') ?>"
+          <a href="<?= url('/portal/admin/import-students.php?download_template=1') ?>"
              class="btn btn-outline-success btn-sm">
             <i class="fas fa-file-excel me-1"></i>Download XLSX Template
           </a>
-          <a href="<?= url('/admin/import-students.php?download_sample=1') ?>"
+          <a href="<?= url('/portal/admin/import-students.php?download_sample=1') ?>"
              class="btn btn-outline-primary btn-sm">
             <i class="fas fa-file-csv me-1"></i>Download Sample CSV (30 students)
           </a>

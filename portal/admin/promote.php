@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('admin');
 $db   = getDB();
@@ -25,11 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$sourceId || !$targetId) {
         setFlash('danger', 'Please select both source and target classes.');
-        redirect('/admin/promote.php');
+        redirect('/portal/admin/promote.php');
     }
     if ($sourceId === $targetId) {
         setFlash('danger', 'Source and target classes must be different.');
-        redirect('/admin/promote.php');
+        redirect('/portal/admin/promote.php');
     }
 
     // Get class names
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$srcClass || !$tgtClass) {
         setFlash('danger', 'Invalid class selection.');
-        redirect('/admin/promote.php');
+        redirect('/portal/admin/promote.php');
     }
     $sourceName = $srcClass['name'];
     $targetName = $tgtClass['name'];
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "Promoted $count student(s) from $sourceName to $targetName");
         $promoted = $count;
         setFlash('success', "$count student(s) successfully promoted from $sourceName to $targetName.");
-        redirect('/admin/promote.php');
+        redirect('/portal/admin/promote.php');
     }
 
     // Preview mode — fetch students in source class
@@ -187,7 +187,7 @@ $links = getAdminLinks();
       <?php endif; ?>
       <div style="padding:16px;border-top:1px solid var(--border);background:#f7f9fb">
         <div class="d-flex gap-2 justify-content-between">
-          <a href="<?= url('/admin/promote.php') ?>" class="btn btn-outline-secondary">
+          <a href="<?= url('/portal/admin/promote.php') ?>" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-1"></i>Go Back
           </a>
           <form method="POST">

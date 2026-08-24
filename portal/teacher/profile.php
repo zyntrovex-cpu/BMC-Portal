@@ -2,12 +2,12 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user    = requireAuth('teacher');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
-if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/index.php'); }
+if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? 'update_profile';
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             setFlash('danger', 'Profile update failed. Contact admin if this persists.');
         }
     }
-    redirect('/teacher/profile.php');
+    redirect('/portal/teacher/profile.php');
 }
 
 pageHead('My Profile', 'teacher');

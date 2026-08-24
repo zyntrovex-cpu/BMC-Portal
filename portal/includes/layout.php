@@ -41,7 +41,7 @@ function pageHead(string $title, string $portal = ''): void {
 <link rel="icon" type="image/png" href="' . $base . '/assets/bmc-logo.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="' . $base . '/portal.css">
+<link rel="stylesheet" href="' . $base . '/portal/portal.css">
 <style>:root { --accent: ' . $accent . '; --accent-rgb: ' . implode(',', sscanf($accent, '#%02x%02x%02x')) . '; }</style>
 ';
 }
@@ -72,14 +72,14 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
     $portalLabel  = $portalLabels[$portal] ?? 'Portal';
 
     $profileMap = [
-        'student'         => ['href'=>$base.'/student/profile.php',          'label'=>'My Profile', 'key'=>'profile',   'icon'=>'fas fa-user'],
-        'teacher'         => ['href'=>$base.'/teacher/profile.php',          'label'=>'My Profile', 'key'=>'profile',   'icon'=>'fas fa-user'],
-        'admin'           => ['href'=>$base.'/admin/settings.php',           'label'=>'Settings',   'key'=>'settings',  'icon'=>'fas fa-cog'],
+        'student'         => ['href'=>$base.'/portal/student/profile.php',          'label'=>'My Profile', 'key'=>'profile',   'icon'=>'fas fa-user'],
+        'teacher'         => ['href'=>$base.'/portal/teacher/profile.php',          'label'=>'My Profile', 'key'=>'profile',   'icon'=>'fas fa-user'],
+        'admin'           => ['href'=>$base.'/portal/admin/settings.php',           'label'=>'Settings',   'key'=>'settings',  'icon'=>'fas fa-cog'],
         'finance'         => null,
-        'ilc_vp'          => ['href'=>$base.'/ilc/dashboard.php',            'label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
-        'student_affairs' => ['href'=>$base.'/student-affairs/dashboard.php','label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
-        'vp_main'         => ['href'=>$base.'/vp/dashboard.php',             'label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
-        'wing_head'       => ['href'=>$base.'/wing-head/dashboard.php',      'label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
+        'ilc_vp'          => ['href'=>$base.'/portal/ilc/dashboard.php',            'label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
+        'student_affairs' => ['href'=>$base.'/portal/student-affairs/dashboard.php','label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
+        'vp_main'         => ['href'=>$base.'/portal/vp/dashboard.php',             'label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
+        'wing_head'       => ['href'=>$base.'/portal/wing-head/dashboard.php',      'label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
     ];
 
     $userInitials = $user ? _initials($user['name'] ?? '') : '?';
@@ -140,7 +140,7 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
           <span>' . $profItem['label'] . '</span>
         </a></li>';
     }
-    echo '<li><a class="sb-link" href="' . $base . '/logout.php" onclick="closeSidebar()">
+    echo '<li><a class="sb-link" href="' . $base . '/portal/logout.php" onclick="closeSidebar()">
         <span class="sb-icon"><i class="fas fa-sign-out-alt"></i></span>
         <span>Logout</span>
       </a></li>';
@@ -184,9 +184,9 @@ function viewAsBanner(): void {
     $base        = defined('BASE_URL') ? BASE_URL : '';
     $adminRole   = $_SESSION['admin_backup']['role'] ?? 'admin';
     $exitUrl     = match($adminRole) {
-        'ilc_vp'  => $base . '/ilc/exit-view-as.php',
-        'vp_main' => $base . '/vp/exit-view-as.php',
-        default   => $base . '/admin/exit-view-as.php',
+        'ilc_vp'  => $base . '/portal/ilc/exit-view-as.php',
+        'vp_main' => $base . '/portal/vp/exit-view-as.php',
+        default   => $base . '/portal/admin/exit-view-as.php',
     };
     $roleLabelsB = ['student'=>'Student','teacher'=>'Teacher','admin'=>'Admin','finance'=>'Finance','ilc_vp'=>'ILC VP','student_affairs'=>'Student Affairs','vp_main'=>'VP Main','wing_head'=>'Wing Head'];
     $rLabel      = $roleLabelsB[$u['role'] ?? ''] ?? ucfirst(str_replace('_', ' ', $u['role'] ?? ''));

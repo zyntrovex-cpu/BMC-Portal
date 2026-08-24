@@ -54,10 +54,10 @@
         <div class="col-lg-2 col-md-4 col-6">
           <h6 class="footer-heading">Students</h6>
           <ul class="footer-links">
-            <li><a href="<?= BASE_URL ?>/student/dashboard.php">Student Portal</a></li>
-            <li><a href="<?= BASE_URL ?>/student/results.php">Results</a></li>
-            <li><a href="<?= BASE_URL ?>/student/attendance.php">Attendance</a></li>
-            <li><a href="<?= BASE_URL ?>/student/timetable.php">Timetable</a></li>
+            <li><a href="<?= BASE_URL ?>/portal/">Student Portal</a></li>
+            <li><a href="<?= BASE_URL ?>/portal/student/results.php">Results</a></li>
+            <li><a href="<?= BASE_URL ?>/portal/student/attendance.php">Attendance</a></li>
+            <li><a href="<?= BASE_URL ?>/portal/student/timetable.php">Timetable</a></li>
             <li><a href="<?= SITE_URL ?>/notices.php">Notices</a></li>
             <li><a href="<?= SITE_URL ?>/downloads.php">Downloads</a></li>
             <li><a href="<?= SITE_URL ?>/news.php">News &amp; Events</a></li>
@@ -101,7 +101,7 @@
         &copy; <?= date('Y') ?> <?= sh(getSetting('site_name', 'Bahria Model College')) ?>. All Rights Reserved.
       </p>
       <div class="d-flex gap-3">
-        <a href="<?= SITE_URL ?>/admin/login.php">Admin</a>
+        <a href="<?= BASE_URL ?>/site-admin/login.php">Admin</a>
         <a href="<?= SITE_URL ?>/contact.php">Privacy Policy</a>
         <a href="<?= SITE_URL ?>/search.php">Sitemap</a>
       </div>

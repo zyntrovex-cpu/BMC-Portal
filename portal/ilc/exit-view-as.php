@@ -1,10 +1,10 @@
 <?php
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../includes/functions.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-$returnUrl = BASE_URL . '/ilc/view-as.php';
+$returnUrl = BASE_URL . '/portal/ilc/view-as.php';
 
 if (!empty($_SESSION['view_as_mode']) && !empty($_SESSION['admin_backup'])) {
     $returnUrl = $_SESSION['view_as_return'] ?? $returnUrl;

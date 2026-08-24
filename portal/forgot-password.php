@@ -1,12 +1,12 @@
 <?php
-require_once __DIR__ . '/config/db.php';
-require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/mailer.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
-if (!empty($_SESSION['user'])) redirect('/index.php');
+if (!empty($_SESSION['user'])) redirect('/portal/index.php');
 
 $sent   = false;
 $error  = '';
@@ -55,13 +55,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['pr_smtp_error']  = smtpNotConfigured()
                         ? 'SMTP email is not configured.'
                         : 'Email could not be sent: ' . getSmtpError();
-                    redirect('/forgot-password.php?fallback=1');
+                    redirect('/portal/forgot-password.php?fallback=1');
                 }
             } else {
                 // No email on account — show link for admin
                 $_SESSION['pr_direct_link'] = $resetLink;
                 $_SESSION['pr_smtp_error']  = 'This account has no email address on file.';
-                redirect('/forgot-password.php?fallback=1');
+                redirect('/portal/forgot-password.php?fallback=1');
             }
         } else {
             // Don't reveal if account exists

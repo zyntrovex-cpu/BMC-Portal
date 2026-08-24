@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('admin');
 $db   = getDB();
@@ -105,7 +105,7 @@ $links = getAdminLinks();
   </div>
   <button type="submit" class="btn btn-sm btn-primary">Filter</button>
   <?php if ($filterUser || $filterAction || $filterDate): ?>
-    <a href="<?= url('/admin/activity.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a>
+    <a href="<?= url('/portal/admin/activity.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a>
   <?php endif; ?>
 </form>
 

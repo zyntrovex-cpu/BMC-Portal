@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('ilc_vp');
 requirePermission('ilc_admissions');
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
         logActivity($user['id'], 'admission_request_create', "Created admission request for $studentName");
         setFlash('success', "Admission request for \"$studentName\" submitted to Student Affairs.");
     }
-    redirect('/ilc/admission-requests.php');
+    redirect('/portal/ilc/admission-requests.php');
 }
 
 $statusFilter = $_GET['status'] ?? '';

@@ -8,7 +8,7 @@ $student = getStudentByUserId($user['id']);
 
 if (!$student) {
     setFlash('danger', 'Student profile not found. Contact admin.');
-    redirect('/logout.php');
+    redirect('/portal/logout.php');
 }
 
 $db = getDB();
@@ -117,7 +117,7 @@ $links = getStudentLinks();
         &nbsp;&middot;&nbsp; <?= date('l, d M Y') ?>
       </small>
     </div>
-    <a href="<?= url('/student/results.php') ?>" class="btn btn-light btn-sm fw-semibold">View Results</a>
+    <a href="<?= url('/portal/student/results.php') ?>" class="btn btn-light btn-sm fw-semibold">View Results</a>
   </div>
 </div>
 
@@ -190,7 +190,7 @@ $links = getStudentLinks();
     <div class="sec-card">
       <div class="sec-head">
         <h5><i class="fas fa-chart-bar me-2" style="color:#1d4ed8"></i>Recent Marks</h5>
-        <a href="<?= url('/student/results.php') ?>" class="btn btn-sm btn-outline-primary">All Results</a>
+        <a href="<?= url('/portal/student/results.php') ?>" class="btn btn-sm btn-outline-primary">All Results</a>
       </div>
       <div class="table-responsive">
         <table class="data-table">
@@ -266,7 +266,7 @@ $links = getStudentLinks();
     <div class="sec-card mb-3">
       <div class="sec-head">
         <h5><i class="fas fa-calendar-check me-2 text-success"></i>Recent Attendance</h5>
-        <a href="<?= url('/student/attendance.php') ?>" class="btn btn-sm btn-outline-success">Details</a>
+        <a href="<?= url('/portal/student/attendance.php') ?>" class="btn btn-sm btn-outline-success">Details</a>
       </div>
       <div class="table-responsive">
         <table class="data-table">
@@ -295,7 +295,7 @@ $links = getStudentLinks();
     <div class="sec-card">
       <div class="sec-head">
         <h5><i class="fas fa-bell me-2 text-danger"></i>Latest Notices</h5>
-        <a href="<?= url('/student/notices.php') ?>" class="btn btn-sm btn-outline-danger">All</a>
+        <a href="<?= url('/portal/student/notices.php') ?>" class="btn btn-sm btn-outline-danger">All</a>
       </div>
       <div class="p-3">
         <?php if (empty($topNotices)): ?>

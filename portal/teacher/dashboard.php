@@ -2,14 +2,14 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user    = requireAuth('teacher');
 $teacher = getTeacherByUserId($user['id']);
 
 if (!$teacher) {
     setFlash('danger', 'Teacher profile not found. Please contact admin.');
-    redirect('/index.php');
+    redirect('/portal/index.php');
 }
 
 $db = getDB();
@@ -191,16 +191,16 @@ pageHead('Dashboard', 'teacher');
                 <h5><i class="fas fa-bolt me-2" style="color:#059669;"></i>Quick Actions</h5>
             </div>
             <div class="sec-body d-flex flex-wrap gap-2">
-                <a href="<?= url('/teacher/attendance.php') ?>" class="btn btn-success btn-sm">
+                <a href="<?= url('/portal/teacher/attendance.php') ?>" class="btn btn-success btn-sm">
                     <i class="fas fa-calendar-check me-1"></i>Take Attendance
                 </a>
-                <a href="<?= url('/teacher/marks.php?tab=marks') ?>" class="btn btn-primary btn-sm">
+                <a href="<?= url('/portal/teacher/marks.php?tab=marks') ?>" class="btn btn-primary btn-sm">
                     <i class="fas fa-pen-alt me-1"></i>Enter Marks
                 </a>
-                <a href="<?= url('/teacher/marks.php?tab=assessments') ?>" class="btn btn-outline-secondary btn-sm">
+                <a href="<?= url('/portal/teacher/marks.php?tab=assessments') ?>" class="btn btn-outline-secondary btn-sm">
                     <i class="fas fa-plus me-1"></i>New Assessment
                 </a>
-                <a href="<?= url('/teacher/timetable.php') ?>" class="btn btn-outline-secondary btn-sm">
+                <a href="<?= url('/portal/teacher/timetable.php') ?>" class="btn btn-outline-secondary btn-sm">
                     <i class="fas fa-table me-1"></i>View Timetable
                 </a>
             </div>
@@ -275,10 +275,10 @@ pageHead('Dashboard', 'teacher');
                                     <small class="d-block mt-1" style="font-size:11.5px; color:var(--t2);"><?= h($cls['subject_name']) ?></small>
                                 </td>
                                 <td>
-                                    <a href="<?= url('/teacher/attendance.php') ?>?class_id=<?= $cls['id'] ?>" class="btn btn-xs btn-outline-success me-1" title="Take Attendance">
+                                    <a href="<?= url('/portal/teacher/attendance.php') ?>?class_id=<?= $cls['id'] ?>" class="btn btn-xs btn-outline-success me-1" title="Take Attendance">
                                         <i class="fas fa-calendar-check"></i>
                                     </a>
-                                    <a href="<?= url('/teacher/marks.php?tab=marks') ?>" class="btn btn-xs btn-outline-primary" title="Enter Marks">
+                                    <a href="<?= url('/portal/teacher/marks.php?tab=marks') ?>" class="btn btn-xs btn-outline-primary" title="Enter Marks">
                                         <i class="fas fa-pen-alt"></i>
                                     </a>
                                 </td>
@@ -296,7 +296,7 @@ pageHead('Dashboard', 'teacher');
         <div class="sec-card h-100">
             <div class="sec-head">
                 <h5><i class="fas fa-exclamation-circle me-2" style="color:#d97706;"></i>Pending Marks Entries</h5>
-                <a href="<?= url('/teacher/marks.php') ?>" class="btn btn-xs btn-outline-secondary">View All</a>
+                <a href="<?= url('/portal/teacher/marks.php') ?>" class="btn btn-xs btn-outline-secondary">View All</a>
             </div>
             <div class="sec-body p-0">
                 <?php if (empty($pendingMarks)): ?>
@@ -316,7 +316,7 @@ pageHead('Dashboard', 'teacher');
                             <?php foreach ($pendingMarks as $p): ?>
                             <tr>
                                 <td>
-                                    <a href="<?= url('/teacher/marks.php') ?>?tab=marks&assessment_id=<?= $p['id'] ?>" class="fw-semibold text-decoration-none" style="color:var(--t1);">
+                                    <a href="<?= url('/portal/teacher/marks.php') ?>?tab=marks&assessment_id=<?= $p['id'] ?>" class="fw-semibold text-decoration-none" style="color:var(--t1);">
                                         <?= h($p['title']) ?>
                                     </a>
                                     <small class="text-muted d-block"><?= h($p['type']) ?> &mdash; <?= fDate($p['date']) ?></small>
@@ -374,7 +374,7 @@ pageHead('Dashboard', 'teacher');
         <div class="sec-card">
             <div class="sec-head">
                 <h5><i class="fas fa-bell me-2" style="color:#059669;"></i>Notices</h5>
-                <a href="<?= url('/teacher/notices.php') ?>" class="btn btn-xs btn-outline-secondary">All Notices</a>
+                <a href="<?= url('/portal/teacher/notices.php') ?>" class="btn btn-xs btn-outline-secondary">All Notices</a>
             </div>
             <div class="sec-body p-0">
                 <?php if (empty($notices)): ?>

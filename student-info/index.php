@@ -1,13 +1,13 @@
 <?php
-require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../includes/functions.php';
 // If the user is already logged in as a student, send them directly to the portal
 if (!empty($_SESSION['user']['id']) && $_SESSION['user']['role'] === 'student') {
-    header('Location: ' . BASE_URL . '/student/dashboard.php');
+    header('Location: ' . BASE_URL . '/portal/student/dashboard.php');
     exit;
 }
 // Staff / admin shortcuts
 if (!empty($_SESSION['user']['id']) && in_array($_SESSION['user']['role'], ['admin','superadmin','staff','ilc_vp'])) {
-    header('Location: ' . BASE_URL . '/admin/dashboard.php');
+    header('Location: ' . BASE_URL . '/portal/admin/dashboard.php');
     exit;
 }
 

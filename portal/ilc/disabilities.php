@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('ilc_vp');
 requirePermission('ilc_disabilities');
@@ -80,7 +80,7 @@ $links = getIlcLinks();
     <div class="sec-card">
       <div class="sec-card-header"><i class="fas fa-chart-pie me-2"></i>By Category</div>
       <div style="padding:12px 16px">
-        <a href="<?= url('/ilc/disabilities.php') . ($search?'?q='.urlencode($search):'') ?>"
+        <a href="<?= url('/portal/ilc/disabilities.php') . ($search?'?q='.urlencode($search):'') ?>"
            class="d-flex justify-content-between mb-2 text-decoration-none <?= !$catFilter?'fw-bold':'' ?>" style="font-size:.84rem;color:inherit">
           <span>All Categories</span>
           <span class="badge" style="background:#0891b2"><?= count($records) ?></span>
@@ -108,13 +108,13 @@ $links = getIlcLinks();
           <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
                  placeholder="Search student…" style="width:170px">
           <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search"></i></button>
-          <?php if ($search||$catFilter): ?><a href="<?= url('/ilc/disabilities.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
+          <?php if ($search||$catFilter): ?><a href="<?= url('/portal/ilc/disabilities.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
         </form>
       </div>
 
       <?php if (empty($records)): ?>
       <div style="padding:40px;text-align:center;color:var(--t2);font-size:.85rem">
-        No disability records found. Go to a <a href="<?= url('/ilc/students.php') ?>">student profile</a> to add records.
+        No disability records found. Go to a <a href="<?= url('/portal/ilc/students.php') ?>">student profile</a> to add records.
       </div>
       <?php else: ?>
       <div class="table-responsive">
@@ -133,7 +133,7 @@ $links = getIlcLinks();
               <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<?= h($r['notes']??'') ?>"><?= h($r['notes'] ?: '—') ?></td>
               <td style="font-size:.78rem"><?= fDate($r['created_at']) ?></td>
               <td>
-                <a href="<?= url('/ilc/student-profile.php') ?>?id=<?= $r['student_id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px">
+                <a href="<?= url('/portal/ilc/student-profile.php') ?>?id=<?= $r['student_id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px">
                   <i class="fas fa-user"></i>
                 </a>
               </td>

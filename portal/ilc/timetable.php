@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('ilc_vp');
 requirePermission('ilc_timetable');
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $validDays = ['monday','tuesday','wednesday','thursday','friday'];
         if (!in_array($dayVal, $validDays) || $periodVal < 1 || $periodVal > 8) {
             setFlash('danger', 'Invalid day or period number.');
-            redirect('/ilc/timetable.php?class_id=' . $cid);
+            redirect('/portal/ilc/timetable.php?class_id=' . $cid);
         }
         try {
             $db->prepare(
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $db->prepare('DELETE FROM timetable WHERE id=?')->execute([(int)$_POST['period_id']]);
         setFlash('success', 'Period removed.');
     }
-    redirect('/ilc/timetable.php?class_id=' . $cid);
+    redirect('/portal/ilc/timetable.php?class_id=' . $cid);
 }
 
 $timetable = [];

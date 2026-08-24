@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/functions.php';
 
 // Already logged in — go to dashboard
 if (isSiteAdmin()) {
-    header('Location: ' . SITE_URL . '/admin/index.php');
+    header('Location: ' . BASE_URL . '/site-admin/index.php');
     exit;
 }
 
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Record last login time
                 $db->prepare('UPDATE site_admins SET last_login = NOW() WHERE id = ?')
                    ->execute([$row['id']]);
-                header('Location: ' . SITE_URL . '/admin/index.php');
+                header('Location: ' . BASE_URL . '/site-admin/index.php');
                 exit;
             } else {
                 $error = 'Invalid email or password. Please try again.';
@@ -270,7 +270,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   </div>
 
-  <a href="<?= SITE_URL ?>/index.php" class="back-link">
+  <a href="<?= BASE_URL ?>/" class="back-link">
     <i class="fas fa-arrow-left me-1"></i> Back to Website
   </a>
 </div>

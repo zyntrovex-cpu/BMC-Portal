@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('vp_main');
 requirePermission('vp_teachers');
@@ -48,7 +48,7 @@ $links = getVpLinks();
       <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
              placeholder="Search name / ID / subject…" style="width:200px">
       <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search"></i></button>
-      <?php if ($search): ?><a href="<?= url('/vp/teachers.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
+      <?php if ($search): ?><a href="<?= url('/portal/vp/teachers.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
     </form>
   </div>
   <?php if (empty($teachers)): ?>
@@ -70,7 +70,7 @@ $links = getVpLinks();
           <td><?= $t['is_ilc'] ? '<span class="badge bg-info">ILC</span>' : '<span class="badge bg-primary">Main</span>' ?></td>
           <td><span class="badge <?= $t['status']==='active'?'bg-success':'bg-danger' ?>"><?= $t['status'] ?></span></td>
           <td>
-            <form method="POST" action="<?= url('/vp/view-as.php') ?>" class="d-inline">
+            <form method="POST" action="<?= url('/portal/vp/view-as.php') ?>" class="d-inline">
               <input type="hidden" name="target_id" value="<?= $t['id'] ?>">
               <button class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 8px">
                 <i class="fas fa-eye me-1"></i>View Portal

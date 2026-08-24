@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user    = requireAuth('student');
 $notices = getNoticesForPortal('student');
@@ -41,7 +41,7 @@ $links = getStudentLinks();
   </select>
   <button type="submit" class="btn btn-sm btn-outline-secondary">Filter</button>
   <?php if ($cat || $q): ?>
-    <a href="<?= url('/student/notices.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a>
+    <a href="<?= url('/portal/student/notices.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a>
   <?php endif; ?>
 </form>
 

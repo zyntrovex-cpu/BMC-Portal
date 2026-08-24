@@ -1,7 +1,7 @@
 <?php
 // Pull in the parent portal's DB connection and base config only
-require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../config/db.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -24,7 +24,7 @@ unset($_uploadDir, $__path);
 // SITE_URL: the public URL prefix for this sub-site
 // e.g. /BMC-Portal/site  or  /site  or  ''
 if (!defined('SITE_URL')) {
-    define('SITE_URL', BASE_URL . '/site');
+    define('SITE_URL', BASE_URL);
 }
 
 // ── Reuse parent DB ───────────────────────────────────────────────
@@ -36,7 +36,7 @@ function isSiteAdmin(): bool {
 }
 function requireSiteAdmin(): array {
     if (!isSiteAdmin()) {
-        header('Location: ' . SITE_URL . '/admin/login.php');
+        header('Location: ' . BASE_URL . '/site-admin/login.php');
         exit;
     }
     return $_SESSION['site_admin'];
@@ -47,7 +47,7 @@ function currentAdmin(): array { return $_SESSION['site_admin'] ?? []; }
 // Students use the main portal auth; this just exposes a redirect.
 function requireSiteStudent(): void {
     if (empty($_SESSION['user']['id']) || $_SESSION['user']['role'] !== 'student') {
-        header('Location: ' . BASE_URL . '/student/dashboard.php');
+        header('Location: ' . BASE_URL . '/portal/student/dashboard.php');
         exit;
     }
 }

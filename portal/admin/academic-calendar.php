@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 // Allow admin, vp_main, student_affairs
 $user = requireAuth('admin', 'vp_main', 'student_affairs');
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
         }
     }
 
-    redirect('/admin/academic-calendar.php');
+    redirect('/portal/admin/academic-calendar.php');
 }
 
 // Fetch calendars

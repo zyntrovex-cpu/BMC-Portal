@@ -1,11 +1,11 @@
 <?php
-require_once __DIR__ . '/config/db.php';
-require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/auth.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
-if (!empty($_SESSION['user'])) redirect('/index.php');
+if (!empty($_SESSION['user'])) redirect('/portal/index.php');
 
 $token = trim($_GET['token'] ?? $_POST['token'] ?? '');
 $error = '';

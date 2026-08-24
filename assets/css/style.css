@@ -1229,3 +1229,33 @@ label.form-label { font-size: .8rem; font-weight: 600; color: var(--text-2); mar
   .mobile-menu   { width: 100%; right: -100%; }
   .footer-top    { padding: 40px 0 24px; }
 }
+
+/* ── Portal nav button ── */
+.nav-portal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #1c3054, #2563eb);
+  color: #fff !important;
+  padding: 8px 18px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: .88rem;
+  text-decoration: none;
+  transition: transform .18s, box-shadow .18s;
+  white-space: nowrap;
+}
+.nav-portal-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(37,99,235,.35);
+  color: #fff !important;
+}
+.mobile-portal-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+  padding: 10px 16px;
+}

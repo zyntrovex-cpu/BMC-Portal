@@ -2,12 +2,12 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user    = requireAuth('student');
 $db      = getDB();
 $student = getStudentByUserId($user['id']);
-if (!$student) { setFlash('danger','Student record not found.'); redirect('/index.php'); }
+if (!$student) { setFlash('danger','Student record not found.'); redirect('/portal/index.php'); }
 
 // Check table exists
 $tableExists = false;
@@ -62,7 +62,7 @@ $links = getStudentLinks();
 <form method="GET" class="d-flex gap-2 mb-3 flex-wrap">
   <input type="date" name="date" class="form-control form-control-sm" style="max-width:170px" value="<?= h($filterDate) ?>">
   <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search me-1"></i>Filter</button>
-  <?php if ($filterDate): ?><a href="<?= url('/student/diary.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
+  <?php if ($filterDate): ?><a href="<?= url('/portal/student/diary.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
 </form>
 
 <?php if (empty($entries)): ?>

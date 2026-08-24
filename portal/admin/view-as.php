@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('admin');
 $db   = getDB();
@@ -23,17 +23,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['target_id'])) {
     if ($target) {
         $_SESSION['admin_backup']    = $_SESSION['user'];
         $_SESSION['view_as_mode']    = true;
-        $_SESSION['view_as_return']  = $returnUrl ?: (BASE_URL . '/admin/view-as.php');
+        $_SESSION['view_as_return']  = $returnUrl ?: (BASE_URL . '/portal/admin/view-as.php');
         $_SESSION['user']            = $target;
 
         $dest = match($target['role']) {
-            'teacher'         => BASE_URL . '/teacher/dashboard.php',
-            'ilc_vp'          => BASE_URL . '/ilc/dashboard.php',
-            'student_affairs' => BASE_URL . '/student-affairs/dashboard.php',
-            'finance'         => BASE_URL . '/finance/dashboard.php',
-            'vp_main'         => BASE_URL . '/vp/dashboard.php',
-            'wing_head'       => BASE_URL . '/wing-head/dashboard.php',
-            default           => BASE_URL . '/student/dashboard.php',
+            'teacher'         => BASE_URL . '/portal/teacher/dashboard.php',
+            'ilc_vp'          => BASE_URL . '/portal/ilc/dashboard.php',
+            'student_affairs' => BASE_URL . '/portal/student-affairs/dashboard.php',
+            'finance'         => BASE_URL . '/portal/finance/dashboard.php',
+            'vp_main'         => BASE_URL . '/portal/vp/dashboard.php',
+            'wing_head'       => BASE_URL . '/portal/wing-head/dashboard.php',
+            default           => BASE_URL . '/portal/student/dashboard.php',
         };
         header('Location: ' . $dest);
         exit;
@@ -116,7 +116,7 @@ $links = getAdminLinks();
       </select>
       <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search"></i></button>
       <?php if ($search || $roleFilter): ?>
-      <a href="<?= url('/admin/view-as.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a>
+      <a href="<?= url('/portal/admin/view-as.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a>
       <?php endif; ?>
     </form>
   </div>
@@ -147,7 +147,7 @@ $links = getAdminLinks();
             <?php if ($u['status'] === 'active'): ?>
             <form method="POST" class="d-inline">
               <input type="hidden" name="target_id" value="<?= $u['id'] ?>">
-              <input type="hidden" name="return_url" value="<?= h(url('/admin/view-as.php') . ($_SERVER['QUERY_STRING'] ? '?'.$_SERVER['QUERY_STRING'] : '')) ?>">
+              <input type="hidden" name="return_url" value="<?= h(url('/portal/admin/view-as.php') . ($_SERVER['QUERY_STRING'] ? '?'.$_SERVER['QUERY_STRING'] : '')) ?>">
               <button type="submit" class="btn btn-sm btn-primary" style="font-size:.78rem;padding:3px 10px">
                 <i class="fas fa-eye me-1"></i>View Portal
               </button>

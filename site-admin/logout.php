@@ -9,5 +9,5 @@ if (empty($_SESSION)) {
     session_destroy();
 }
 
-header('Location: ' . SITE_URL . '/admin/login.php');
+header('Location: ' . BASE_URL . '/site-admin/login.php');
 exit;

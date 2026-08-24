@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/functions.php';
 
 // Stores the last SMTP error so callers can show a helpful message

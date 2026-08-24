@@ -168,18 +168,12 @@ $_activePage = $activePage ?? '';
              class="<?= $_activePage === 'admissions' ? 'active' : '' ?>">Admissions</a>
         </li>
 
-        <!-- Student Portal dropdown -->
-        <li class="has-dropdown">
-          <a href="<?= BASE_URL ?>/student/dashboard.php"
-             class="<?= $_activePage === 'portal' ? 'active' : '' ?>">
-            Portal <i class="fas fa-chevron-down nav-caret"></i>
+        <!-- Portal link -->
+        <li>
+          <a href="<?= BASE_URL ?>/portal/"
+             class="nav-portal-btn <?= $_activePage === 'portal' ? 'active' : '' ?>">
+            <i class="fas fa-sign-in-alt"></i> Portal
           </a>
-          <ul class="dropdown-menu-custom">
-            <li><a href="<?= BASE_URL ?>/student/dashboard.php"><i class="fas fa-tachometer-alt"></i>Student Dashboard</a></li>
-            <li><a href="<?= BASE_URL ?>/student/results.php"><i class="fas fa-chart-bar"></i>Results</a></li>
-            <li><a href="<?= BASE_URL ?>/student/attendance.php"><i class="fas fa-calendar-check"></i>Attendance</a></li>
-            <li><a href="<?= BASE_URL ?>/student/timetable.php"><i class="fas fa-clock"></i>Timetable</a></li>
-          </ul>
         </li>
 
         <!-- News dropdown -->
@@ -300,17 +294,10 @@ $_activePage = $activePage ?? '';
         </a>
       </li>
 
-      <li class="mobile-has-sub">
-        <button class="mobile-nav-toggle" type="button">
-          <span><i class="fas fa-user-graduate"></i>Student Portal</span>
-          <i class="fas fa-chevron-down toggle-icon"></i>
-        </button>
-        <ul class="mobile-sub-list">
-          <li><a href="<?= BASE_URL ?>/student/dashboard.php">Dashboard</a></li>
-          <li><a href="<?= BASE_URL ?>/student/results.php">Results</a></li>
-          <li><a href="<?= BASE_URL ?>/student/attendance.php">Attendance</a></li>
-          <li><a href="<?= BASE_URL ?>/student/timetable.php">Timetable</a></li>
-        </ul>
+      <li>
+        <a href="<?= BASE_URL ?>/portal/" class="mobile-portal-link">
+          <i class="fas fa-sign-in-alt"></i> Portal Login
+        </a>
       </li>
 
       <li class="mobile-has-sub">

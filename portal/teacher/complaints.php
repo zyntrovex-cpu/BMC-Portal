@@ -2,13 +2,13 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user    = requireAuth('teacher');
 requirePermission('complaints');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
-if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/index.php'); }
+if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
 
 // Check table exists
 $tableExists = false;
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
             setFlash('success', 'Response submitted.');
         }
     }
-    redirect('/teacher/complaints.php');
+    redirect('/portal/teacher/complaints.php');
 }
 
 // Fetch complaints addressed to this teacher

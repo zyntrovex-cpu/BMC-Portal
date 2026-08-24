@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user    = requireAuth('teacher');
 requirePermission('notices');
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setFlash('success', 'Notice removed.');
     }
 
-    redirect('/teacher/notices.php');
+    redirect('/portal/teacher/notices.php');
 }
 
 $notices = getNoticesForPortal('teacher');

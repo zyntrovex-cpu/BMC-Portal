@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('vp_main');
 requirePermission('vp_students');
@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'assign_house'
         logActivity($user['id'], 'house_assign', "Assigned house to student #$studentId");
         setFlash('success', 'House assignment updated.');
     }
-    redirect('/vp/students.php?' . http_build_query(['q'=>$_POST['q']??'','class_id'=>$_POST['class_id']??'','wing'=>$_POST['wing']??'']));
+    redirect('/portal/vp/students.php?' . http_build_query(['q'=>$_POST['q']??'','class_id'=>$_POST['class_id']??'','wing'=>$_POST['wing']??'']));
 }
 
 $search     = trim($_GET['q']       ?? '');
@@ -148,7 +148,7 @@ $links = getVpLinks();
               <i class="fas fa-shield-alt"></i>
             </button>
             <?php endif; ?>
-            <form method="POST" action="<?= url('/vp/view-as.php') ?>" class="d-inline">
+            <form method="POST" action="<?= url('/portal/vp/view-as.php') ?>" class="d-inline">
               <input type="hidden" name="target_id" value="<?= $s['id'] ?>">
               <button class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px" title="View portal">
                 <i class="fas fa-eye"></i>
