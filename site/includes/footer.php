@@ -9,7 +9,7 @@
         <div class="col-lg-4">
           <div class="footer-brand">
             <div class="d-flex align-items-center gap-3 mb-3">
-              <div class="footer-logo-icon"><i class="fas fa-landmark"></i></div>
+              <img src="<?= BASE_URL ?>/assets/bmc-logo.png" alt="BMC Logo" class="footer-logo-img">
               <div>
                 <div class="footer-logo-name">BMC</div>
                 <div class="footer-logo-sub"><?= sh(getSetting('site_name', 'Bahria Model College')) ?></div>

@@ -180,6 +180,15 @@ button { font-family: var(--font); cursor: pointer; }
   display: flex; align-items: center; justify-content: center;
   color: #fff; font-size: 1rem; flex-shrink: 0;
 }
+/* Real logo image — navbar */
+.site-logo-img {
+  width: 42px; height: 42px; object-fit: contain;
+  border-radius: 50%;
+  background: #fff;
+  padding: 3px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  flex-shrink: 0;
+}
 .logo-name { display: block; color: var(--primary); font-weight: 800; font-size: 1.1rem; line-height: 1; }
 .logo-sub  { display: block; color: var(--text-2); font-size: .63rem; font-weight: 400; margin-top: 2px; }
 [data-theme="dark"] .logo-name { color: #fff; }
@@ -1101,6 +1110,15 @@ label.form-label { font-size: .8rem; font-weight: 600; color: var(--text-2); mar
 .site-footer { background: var(--primary); color: rgba(255,255,255,.8); }
 .footer-top  { padding: 56px 0 36px; }
 .footer-brand p { font-size: .85rem; line-height: 1.7; margin-bottom: 18px; color: rgba(255,255,255,.6); }
+/* Real logo image — footer */
+.footer-logo-img {
+  width: 52px; height: 52px; object-fit: contain;
+  border-radius: 50%;
+  background: rgba(255,255,255,.12);
+  padding: 4px;
+  border: 2px solid rgba(255,255,255,.2);
+  flex-shrink: 0;
+}
 .footer-logo-icon {
   width: 40px; height: 40px; background: var(--accent); border-radius: 8px;
   display: flex; align-items: center; justify-content: center;

@@ -79,7 +79,7 @@ $_activePage = $activePage ?? '';
 
       <!-- Logo -->
       <a href="<?= SITE_URL ?>/index.php" class="site-logo me-2">
-        <div class="logo-icon"><i class="fas fa-landmark"></i></div>
+        <img src="<?= BASE_URL ?>/assets/bmc-logo.png" alt="BMC Logo" class="site-logo-img">
         <div>
           <span class="logo-name">BMC</span>
           <span class="logo-sub"><?= sh($_siteName) ?></span>
