@@ -320,7 +320,6 @@ $links = getStudentLinks();
             'emergency_phone'   => ['label'=>'Emergency Phone',    'type'=>'tel'],
             'address'           => ['label'=>'Present Address',    'type'=>'text'],
             'permanent_address' => ['label'=>'Permanent Address',  'type'=>'text'],
-            'parent_name'       => ['label'=>'Parent/Guardian Name','type'=>'text'],
             'parent_phone'      => ['label'=>'Parent Phone',       'type'=>'tel'],
         ];
         // Only show fields that exist as columns in this installation
