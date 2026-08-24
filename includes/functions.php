@@ -1,352 +1,293 @@
 <?php
-require_once __DIR__ . '/../config/db.php';
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/config.php';
 
-function h(mixed $v): string {
-    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
-}
-
-function redirect(string $url): never {
-    // Prepend BASE_URL for site-relative paths so subdirectory installs work
-    if (str_starts_with($url, '/') && defined('BASE_URL') && BASE_URL !== '') {
-        $url = BASE_URL . $url;
-    }
-    header('Location: ' . $url);
-    exit;
-}
-
-// Returns a URL with BASE_URL prepended (for use in HTML href/src attributes)
-function url(string $path): string {
-    return (defined('BASE_URL') ? BASE_URL : '') . $path;
-}
-
-function jsonResponse(mixed $data, int $code = 200): never {
-    http_response_code($code);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($data);
-    exit;
-}
-
-function getAllClasses(): array {
-    return getDB()->query('SELECT * FROM classes ORDER BY grade, section')->fetchAll();
-}
-
-function getAllSubjects(): array {
-    return getDB()->query('SELECT * FROM subjects ORDER BY name')->fetchAll();
-}
-
-function getClassSubjects(int $classId): array {
-    $st = getDB()->prepare(
-        'SELECT s.*, t.emp_id, u.name AS teacher_name
-         FROM class_subjects cs
-         JOIN subjects s ON cs.subject_id = s.id
-         LEFT JOIN teachers t ON cs.teacher_id = t.id
-         LEFT JOIN users u ON t.user_id = u.id
-         WHERE cs.class_id = ?
-         ORDER BY s.name'
-    );
-    $st->execute([$classId]);
-    return $st->fetchAll();
-}
-
-function getClassStudents(int $classId): array {
-    $st = getDB()->prepare(
-        'SELECT s.*, u.name, u.status, u.user_id AS roll_no_login
-         FROM students s
-         JOIN users u ON s.user_id = u.id
-         WHERE s.class_id = ?
-         ORDER BY s.roll_no'
-    );
-    $st->execute([$classId]);
-    return $st->fetchAll();
-}
-
-function getStudentByUserId(int $userId): ?array {
-    $st = getDB()->prepare(
-        'SELECT s.*, u.name, u.email, u.user_id AS login_id, c.name AS class_name
-         FROM students s
-         JOIN users u ON s.user_id = u.id
-         LEFT JOIN classes c ON s.class_id = c.id
-         WHERE s.user_id = ?'
-    );
-    $st->execute([$userId]);
-    return $st->fetch() ?: null;
-}
-
-function getTeacherByUserId(int $userId): ?array {
-    $st = getDB()->prepare(
-        'SELECT t.*, u.name, u.email, u.user_id AS emp_id_login, sb.name AS subject_name, sb.code AS subject_code
-         FROM teachers t
-         JOIN users u ON t.user_id = u.id
-         LEFT JOIN subjects sb ON t.subject_id = sb.id
-         WHERE t.user_id = ?'
-    );
-    $st->execute([$userId]);
-    $teacher = $st->fetch() ?: null;
-    if ($teacher) {
-        $subSt = getDB()->prepare('SELECT DISTINCT s.id, s.name FROM class_subjects cs JOIN subjects s ON cs.subject_id=s.id WHERE cs.teacher_id = ? ORDER BY s.name');
-        $subSt->execute([$teacher['id']]);
-        $teacher['assigned_subjects'] = $subSt->fetchAll();
-    }
-    return $teacher;
-}
-
-function getStudentAttendanceSummary(int $studentId): array {
-    $st = getDB()->prepare(
-        'SELECT sb.name AS subject, sb.code,
-                COALESCE(COUNT(a.id), 0) AS total,
-                COALESCE(SUM(a.status="P"), 0) AS present,
-                COALESCE(SUM(a.status="A"), 0) AS absent,
-                COALESCE(SUM(a.status="L"), 0) AS `leave`
-         FROM attendance a
-         JOIN subjects sb ON a.subject_id = sb.id
-         WHERE a.student_id = ?
-         GROUP BY sb.id, sb.name, sb.code
-         ORDER BY sb.name'
-    );
-    $st->execute([$studentId]);
-    return $st->fetchAll();
-}
-
-function getClassTimetable(int $classId): array {
-    $st = getDB()->prepare(
-        'SELECT tt.day, tt.period, tt.room, tt.subject_id, tt.teacher_id,
-                sb.name AS subject_name, sb.code AS subject_code,
-                u.name AS teacher_name
-         FROM timetable tt
-         LEFT JOIN subjects sb ON tt.subject_id = sb.id
-         LEFT JOIN teachers tc ON tt.teacher_id = tc.id
-         LEFT JOIN users u ON tc.user_id = u.id
-         WHERE tt.class_id = ?
-         ORDER BY FIELD(tt.day,"monday","tuesday","wednesday","thursday","friday"), tt.period'
-    );
-    $st->execute([$classId]);
-    $rows = $st->fetchAll();
-    $grid = [];
-    foreach ($rows as $r) {
-        $grid[$r['day']][$r['period']] = $r;
-    }
-    return $grid;
-}
-
-// audience column is a SET type; FIND_IN_SET works for SET and CSV alike
-function getNoticesForPortal(string $portal): array {
-    $map = ['student'=>'students','teacher'=>'teachers','finance'=>'finance','admin'=>'admin'];
-    $audience = $map[$portal] ?? 'students';
-    $st = getDB()->prepare(
-        'SELECT n.*, u.name AS author_name
-         FROM notices n
-         LEFT JOIN users u ON n.author_id = u.id
-         WHERE FIND_IN_SET(?, audience)
-           AND (expiry_date IS NULL OR expiry_date >= CURDATE())
-         ORDER BY pinned DESC, created_at DESC'
-    );
-    $st->execute([$audience]);
-    return $st->fetchAll();
-}
-
+// ── Settings ──────────────────────────────────────────────────────
 function getSetting(string $key, string $default = ''): string {
-    static $cache = [];
-    if (array_key_exists($key, $cache)) return $cache[$key];
-    $st = getDB()->prepare('SELECT value FROM settings WHERE key_name = ?');
-    $st->execute([$key]);
-    $row = $st->fetch();
-    $cache[$key] = $row ? (string)$row['value'] : $default;
-    return $cache[$key];
+    static $cache = null;
+    if ($cache === null) {
+        try {
+            $rows  = siteDB()->query('SELECT `key`,`value` FROM site_settings')->fetchAll();
+            $cache = array_column($rows, 'value', 'key');
+        } catch (Exception $e) { $cache = []; }
+    }
+    return $cache[$key] ?? $default;
 }
 
-function fDate(?string $d): string {
-    if (!$d) return '—';
+// ── Sliders ───────────────────────────────────────────────────────
+function getSliders(): array {
+    try {
+        return siteDB()->query(
+            'SELECT * FROM site_sliders WHERE is_active=1 ORDER BY sort_order, id'
+        )->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+// ── News ──────────────────────────────────────────────────────────
+function getNews(int $limit = 10, bool $featuredOnly = false, string $category = ''): array {
+    try {
+        $where  = 'WHERE is_published=1';
+        $params = [];
+        if ($featuredOnly) { $where .= ' AND is_featured=1'; }
+        if ($category)     { $where .= ' AND category=?'; $params[] = $category; }
+        $st = siteDB()->prepare(
+            "SELECT * FROM site_news $where ORDER BY published_at DESC, created_at DESC LIMIT ?"
+        );
+        $params[] = $limit;
+        $st->execute($params);
+        return $st->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+function getNewsById(int $id): ?array {
+    try {
+        $st = siteDB()->prepare('SELECT * FROM site_news WHERE id=? AND is_published=1');
+        $st->execute([$id]);
+        return $st->fetch() ?: null;
+    } catch (Exception $e) { return null; }
+}
+
+// ── Events ────────────────────────────────────────────────────────
+function getEvents(int $limit = 10, bool $upcomingOnly = false): array {
+    try {
+        $where = 'WHERE is_published=1';
+        if ($upcomingOnly) $where .= ' AND event_date >= CURDATE()';
+        $st = siteDB()->prepare(
+            "SELECT * FROM site_events $where ORDER BY event_date ASC LIMIT ?"
+        );
+        $st->execute([$limit]);
+        return $st->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+// ── Notices ───────────────────────────────────────────────────────
+function getNotices(int $limit = 20, string $category = ''): array {
+    try {
+        $where  = 'WHERE is_published=1 AND (expires_at IS NULL OR expires_at >= CURDATE())';
+        $params = [];
+        if ($category) { $where .= ' AND category=?'; $params[] = $category; }
+        $params[] = $limit;
+        $st = siteDB()->prepare(
+            "SELECT * FROM site_notices $where ORDER BY priority DESC, created_at DESC LIMIT ?"
+        );
+        $st->execute($params);
+        return $st->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+// ── Faculty ───────────────────────────────────────────────────────
+function getFaculty(int $deptId = 0, int $limit = 100): array {
+    try {
+        $where  = 'WHERE f.is_active=1';
+        $params = [];
+        if ($deptId) { $where .= ' AND f.department_id=?'; $params[] = $deptId; }
+        $params[] = $limit;
+        $st = siteDB()->prepare(
+            "SELECT f.*, d.name AS dept_name FROM site_faculty f
+             LEFT JOIN site_departments d ON d.id=f.department_id
+             $where ORDER BY f.sort_order, f.name LIMIT ?"
+        );
+        $st->execute($params);
+        return $st->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+// ── Departments ───────────────────────────────────────────────────
+function getDepartments(): array {
+    try {
+        return siteDB()->query(
+            'SELECT d.*, COUNT(f.id) AS faculty_count
+             FROM site_departments d
+             LEFT JOIN site_faculty f ON f.department_id=d.id AND f.is_active=1
+             WHERE d.is_active=1 GROUP BY d.id ORDER BY d.sort_order, d.name'
+        )->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+// ── Programs ──────────────────────────────────────────────────────
+function getPrograms(int $deptId = 0): array {
+    try {
+        $where  = 'WHERE p.is_active=1';
+        $params = [];
+        if ($deptId) { $where .= ' AND p.department_id=?'; $params[] = $deptId; }
+        $st = siteDB()->prepare(
+            "SELECT p.*, d.name AS dept_name FROM site_programs p
+             LEFT JOIN site_departments d ON d.id=p.department_id
+             $where ORDER BY d.sort_order, p.name"
+        );
+        $st->execute($params);
+        return $st->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+// ── Gallery ───────────────────────────────────────────────────────
+function getGalleryAlbums(): array {
+    try {
+        return siteDB()->query(
+            'SELECT a.*, COUNT(g.id) AS photo_count
+             FROM site_albums a
+             LEFT JOIN site_gallery g ON g.album_id=a.id AND g.is_active=1
+             WHERE a.is_active=1 GROUP BY a.id ORDER BY a.created_at DESC'
+        )->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+function getGalleryPhotos(int $albumId = 0, int $limit = 50): array {
+    try {
+        $where  = 'WHERE g.is_active=1';
+        $params = [];
+        if ($albumId) { $where .= ' AND g.album_id=?'; $params[] = $albumId; }
+        $params[] = $limit;
+        $st = siteDB()->prepare(
+            "SELECT g.*, a.name AS album_name FROM site_gallery g
+             LEFT JOIN site_albums a ON a.id=g.album_id
+             $where ORDER BY g.sort_order, g.created_at DESC LIMIT ?"
+        );
+        $st->execute($params);
+        return $st->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+// ── Videos ────────────────────────────────────────────────────────
+function getVideos(int $limit = 12): array {
+    try {
+        $st = siteDB()->prepare('SELECT * FROM site_videos WHERE is_active=1 ORDER BY created_at DESC LIMIT ?');
+        $st->execute([$limit]);
+        return $st->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+// ── Downloads ─────────────────────────────────────────────────────
+function getDownloads(string $category = ''): array {
+    try {
+        $where  = 'WHERE is_active=1';
+        $params = [];
+        if ($category) { $where .= ' AND category=?'; $params[] = $category; }
+        $st = siteDB()->prepare("SELECT * FROM site_downloads $where ORDER BY category, created_at DESC");
+        $st->execute($params);
+        return $st->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+function getAdmissionForms(): array {
+    try {
+        return siteDB()->query(
+            'SELECT * FROM site_admission_forms WHERE is_active=1 ORDER BY created_at DESC'
+        )->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+// ── Testimonials ──────────────────────────────────────────────────
+function getTestimonials(int $limit = 6): array {
+    try {
+        $st = siteDB()->prepare('SELECT * FROM site_testimonials WHERE is_active=1 ORDER BY id LIMIT ?');
+        $st->execute([$limit]);
+        return $st->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────
+function getStats(): array {
+    try {
+        return siteDB()->query(
+            'SELECT * FROM site_stats ORDER BY sort_order'
+        )->fetchAll();
+    } catch (Exception $e) {
+        return [
+            ['label'=>'Students Enrolled','value'=>4500,'icon'=>'fa-user-graduate','suffix'=>'+'],
+            ['label'=>'Expert Faculty',   'value'=>185, 'icon'=>'fa-chalkboard-teacher','suffix'=>'+'],
+            ['label'=>'Years of Excellence','value'=>30,'icon'=>'fa-award','suffix'=>'+'],
+            ['label'=>'Programs Offered', 'value'=>24,  'icon'=>'fa-book-open','suffix'=>'+'],
+        ];
+    }
+}
+
+// ── Partners ──────────────────────────────────────────────────────
+function getPartners(): array {
+    try {
+        return siteDB()->query('SELECT * FROM site_partners WHERE is_active=1 ORDER BY sort_order')->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+// ── Careers ───────────────────────────────────────────────────────
+function getCareers(): array {
+    try {
+        return siteDB()->query(
+            'SELECT * FROM site_careers WHERE is_published=1 AND (deadline IS NULL OR deadline >= CURDATE())
+             ORDER BY created_at DESC'
+        )->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+// ── Search ────────────────────────────────────────────────────────
+function globalSearch(string $q, int $limit = 30): array {
+    $q     = '%' . $q . '%';
+    $db    = siteDB();
+    $results = [];
+    try {
+        // News
+        $st = $db->prepare('SELECT id,"news" AS type,title,excerpt AS snippet,published_at AS date FROM site_news WHERE is_published=1 AND (title LIKE ? OR content LIKE ? OR excerpt LIKE ?) LIMIT 10');
+        $st->execute([$q,$q,$q]);
+        $results = array_merge($results, $st->fetchAll());
+        // Notices
+        $st = $db->prepare('SELECT id,"notice" AS type,title,content AS snippet,created_at AS date FROM site_notices WHERE is_published=1 AND (title LIKE ? OR content LIKE ?) LIMIT 10');
+        $st->execute([$q,$q]);
+        $results = array_merge($results, $st->fetchAll());
+        // Faculty
+        $st = $db->prepare('SELECT id,"faculty" AS type,name AS title,designation AS snippet,NULL AS date FROM site_faculty WHERE is_active=1 AND (name LIKE ? OR designation LIKE ? OR bio LIKE ?) LIMIT 10');
+        $st->execute([$q,$q,$q]);
+        $results = array_merge($results, $st->fetchAll());
+        // Events
+        $st = $db->prepare('SELECT id,"event" AS type,title,description AS snippet,event_date AS date FROM site_events WHERE is_published=1 AND (title LIKE ? OR description LIKE ?) LIMIT 10');
+        $st->execute([$q,$q]);
+        $results = array_merge($results, $st->fetchAll());
+    } catch (Exception $e) {}
+    return $results;
+}
+
+// ── Utility ───────────────────────────────────────────────────────
+function sh(mixed $v): string { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
+
+function siteUrl(string $path): string { return SITE_URL . $path; }
+
+function portalUrl(string $path): string { return BASE_URL . $path; }
+
+function truncateText(string $text, int $len = 150): string {
+    $text = strip_tags($text);
+    return strlen($text) <= $len ? $text : substr($text, 0, $len) . '…';
+}
+
+function siteDate(?string $d): string {
+    if (!$d) return '';
     return date('d M Y', strtotime($d));
 }
 
-function fDateTime(?string $d): string {
-    if (!$d) return '—';
-    return date('d M Y H:i', strtotime($d));
+function siteDatetime(?string $d): string {
+    if (!$d) return '';
+    return date('d M Y, g:i a', strtotime($d));
 }
 
-// ── Permission definitions ────────────────────────────────────────
-function getRolePermissions(string $role): array {
-    static $map = [
-        'teacher' => [
-            'marks'       => ['label' => 'Assessments & Marks', 'icon' => 'fa-pen-alt'],
-            'attendance'  => ['label' => 'Mark Attendance',     'icon' => 'fa-calendar-check'],
-            'timetable'   => ['label' => 'View Timetable',      'icon' => 'fa-table'],
-            'notices'     => ['label' => 'Post Notices',        'icon' => 'fa-bell'],
-            'warnings'    => ['label' => 'Issue Warnings',      'icon' => 'fa-exclamation-triangle'],
-            'diary'       => ['label' => 'Daily Diary',         'icon' => 'fa-book-open'],
-            'complaints'  => ['label' => 'View Complaints',     'icon' => 'fa-comment-alt'],
-        ],
-        'finance' => [
-            'fee_collection' => ['label' => 'Fee Collection',  'icon' => 'fa-hand-holding-usd'],
-            'fee_monthly'    => ['label' => 'Monthly Report',  'icon' => 'fa-calendar-alt'],
-            'fee_records'    => ['label' => 'Fee Records',     'icon' => 'fa-file-invoice-dollar'],
-            'fee_defaulters' => ['label' => 'Defaulters',      'icon' => 'fa-exclamation-triangle'],
-            'fee_reports'    => ['label' => 'Fee Reports',     'icon' => 'fa-chart-pie'],
-        ],
-        'ilc_vp' => [
-            'ilc_students'     => ['label' => 'ILC Students',         'icon' => 'fa-user-graduate'],
-            'ilc_teachers'     => ['label' => 'ILC Teachers',         'icon' => 'fa-chalkboard-teacher'],
-            'ilc_disabilities' => ['label' => 'Disability Records',   'icon' => 'fa-heartbeat'],
-            'ilc_admissions'   => ['label' => 'Admission Requests',   'icon' => 'fa-file-medical-alt'],
-            'ilc_records'      => ['label' => 'Session Records',      'icon' => 'fa-folder-open'],
-            'ilc_attendance'   => ['label' => 'ILC Attendance',       'icon' => 'fa-calendar-check'],
-            'ilc_results'      => ['label' => 'ILC Results',          'icon' => 'fa-chart-bar'],
-            'ilc_timetable'    => ['label' => 'ILC Timetable',        'icon' => 'fa-table'],
-            'ilc_viewas'       => ['label' => 'View As User',         'icon' => 'fa-eye'],
-        ],
-        'student_affairs' => [
-            'sa_students'   => ['label' => 'Student Management',  'icon' => 'fa-user-graduate'],
-            'sa_admissions' => ['label' => 'Admission Requests',  'icon' => 'fa-file-medical-alt'],
-            'sa_medical'    => ['label' => 'Medical Records',     'icon' => 'fa-notes-medical'],
-            'sa_calendar'   => ['label' => 'Academic Calendar',   'icon' => 'fa-calendar-week'],
-        ],
-        'vp_main' => [
-            'vp_teachers'      => ['label' => 'Teachers',              'icon' => 'fa-chalkboard-teacher'],
-            'vp_students'      => ['label' => 'Students',              'icon' => 'fa-user-graduate'],
-            'vp_attendance'    => ['label' => 'Attendance',            'icon' => 'fa-calendar-check'],
-            'vp_att_requests'  => ['label' => 'Attendance Requests',   'icon' => 'fa-edit'],
-            'vp_results'       => ['label' => 'Results',               'icon' => 'fa-chart-bar'],
-            'vp_timetable'     => ['label' => 'Timetable',             'icon' => 'fa-table'],
-            'vp_calendar'      => ['label' => 'Academic Calendar',     'icon' => 'fa-calendar-week'],
-            'vp_viewas'        => ['label' => 'View As User',          'icon' => 'fa-eye'],
-        ],
-        'wing_head' => [
-            'wh_students' => ['label' => 'Students', 'icon' => 'fa-user-graduate'],
-            'wh_classes'  => ['label' => 'Classes',  'icon' => 'fa-chalkboard'],
-        ],
-    ];
-    return $map[$role] ?? [];
+function uploadUrl(string $folder, string $file): string {
+    return SITE_URL . '/assets/uploads/' . $folder . '/' . $file;
 }
 
-// Returns true if current user has the given permission.
-// Admins always pass. If no permission records exist in DB, access is granted.
-function hasPermission(string $perm): bool {
-    if (($_SESSION['user']['role'] ?? '') === 'admin') return true;
-    $perms = $_SESSION['user_perms'] ?? null;
-    if ($perms === null) return true;
-    return (bool)($perms[$perm] ?? true);
+function slugify(string $text): string {
+    return preg_replace('/[^a-z0-9-]/', '', strtolower(preg_replace('/[\s_]+/', '-', $text)));
 }
 
-// Redirects to unauthorized page if permission is missing.
-function requirePermission(string $perm): void {
-    if (!hasPermission($perm)) {
-        $base = defined('BASE_URL') ? BASE_URL : '';
-        header('Location: ' . $base . '/index.php?msg=unauthorized');
-        exit;
-    }
+function priorityBadge(string $priority): string {
+    return match($priority) {
+        'urgent'    => '<span class="badge bg-danger">Urgent</span>',
+        'important' => '<span class="badge bg-warning text-dark">Important</span>',
+        default     => '<span class="badge bg-secondary">Notice</span>',
+    };
 }
 
-// ── Student sidebar links ─────────────────────────────────────────
-function getStudentLinks(): array {
-    return [
-        ['href'=>'/student/dashboard.php',   'icon'=>'<i class="fas fa-home"></i>',            'label'=>'Dashboard',    'key'=>'dashboard'],
-        ['href'=>'/student/results.php',     'icon'=>'<i class="fas fa-chart-bar"></i>',       'label'=>'My Results',   'key'=>'results'],
-        ['href'=>'/student/attendance.php',  'icon'=>'<i class="fas fa-calendar-check"></i>',  'label'=>'Attendance',   'key'=>'attendance'],
-        ['href'=>'/student/timetable.php',   'icon'=>'<i class="fas fa-table"></i>',           'label'=>'Timetable',    'key'=>'timetable'],
-        ['href'=>'/student/notices.php',     'icon'=>'<i class="fas fa-bell"></i>',            'label'=>'Notices',      'key'=>'notices'],
-        ['href'=>'/student/diary.php',       'icon'=>'<i class="fas fa-book-open"></i>',       'label'=>'Class Diary',  'key'=>'diary'],
-        ['href'=>'/student/complaints.php',  'icon'=>'<i class="fas fa-comment-alt"></i>',     'label'=>'Complaints',   'key'=>'complaints'],
-        ['href'=>'/student/calendar.php',    'icon'=>'<i class="fas fa-calendar-week"></i>',   'label'=>'Calendar',     'key'=>'calendar'],
-        ['href'=>'/student/profile.php',     'icon'=>'<i class="fas fa-user"></i>',            'label'=>'My Profile',   'key'=>'profile'],
-    ];
+function getYoutubeId(string $url): string {
+    preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/', $url, $m);
+    return $m[1] ?? '';
 }
 
-// ── Admin sidebar links ───────────────────────────────────────────
-function getAdminLinks(): array {
-    return [
-        ['href'=>'/admin/dashboard.php',          'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',         'key'=>'dashboard'],
-        ['href'=>'/admin/users.php',              'icon'=>'<i class="fas fa-users"></i>',              'label'=>'Staff & Students',  'key'=>'users'],
-        ['href'=>'/admin/import-students.php',    'icon'=>'<i class="fas fa-file-import"></i>',        'label'=>'Import Students',   'key'=>'import'],
-        ['href'=>'/admin/classes.php',            'icon'=>'<i class="fas fa-chalkboard"></i>',         'label'=>'Classes & Subjects','key'=>'classes'],
-        ['href'=>'/admin/teachers.php',           'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teacher Accounts',  'key'=>'teachers'],
-        ['href'=>'/admin/promote.php',            'icon'=>'<i class="fas fa-level-up-alt"></i>',       'label'=>'Class Promotion',   'key'=>'promote'],
-        ['href'=>'/admin/houses.php',             'icon'=>'<i class="fas fa-shield-alt"></i>',         'label'=>'Houses',            'key'=>'houses'],
-        ['href'=>'/admin/warnings.php',           'icon'=>'<i class="fas fa-exclamation-triangle"></i>','label'=>'Student Warnings', 'key'=>'warnings'],
-        ['href'=>'/admin/notices.php',            'icon'=>'<i class="fas fa-bell"></i>',               'label'=>'Notice Board',      'key'=>'notices'],
-        ['href'=>'/admin/academic-calendar.php',  'icon'=>'<i class="fas fa-calendar-week"></i>',      'label'=>'Academic Calendar', 'key'=>'calendar'],
-        ['href'=>'/admin/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',         'key'=>'timetable'],
-        ['href'=>'/admin/results.php',            'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'Results',           'key'=>'results'],
-        ['href'=>'/admin/view-as.php',            'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',      'key'=>'viewas'],
-        ['href'=>'/admin/activity.php',           'icon'=>'<i class="fas fa-history"></i>',            'label'=>'Activity Log',      'key'=>'activity'],
-        ['href'=>'/admin/settings.php',           'icon'=>'<i class="fas fa-cog"></i>',               'label'=>'Settings',           'key'=>'settings'],
-    ];
-}
-
-// ── Teacher sidebar links (permission-filtered) ───────────────────
-function getTeacherLinks(): array {
-    return array_values(array_filter([
-        ['href'=>'/teacher/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',                'label'=>'Dashboard',           'key'=>'dashboard'],
-        hasPermission('marks')      ? ['href'=>'/teacher/marks.php',      'icon'=>'<i class="fas fa-pen-alt"></i>',              'label'=>'Assessments & Marks', 'key'=>'marks']       : null,
-        hasPermission('attendance') ? ['href'=>'/teacher/attendance.php', 'icon'=>'<i class="fas fa-calendar-check"></i>',       'label'=>'Attendance',          'key'=>'attendance']  : null,
-        hasPermission('timetable')  ? ['href'=>'/teacher/timetable.php',  'icon'=>'<i class="fas fa-table"></i>',                'label'=>'My Timetable',        'key'=>'timetable']   : null,
-        hasPermission('diary')      ? ['href'=>'/teacher/diary.php',      'icon'=>'<i class="fas fa-book-open"></i>',            'label'=>'Daily Diary',         'key'=>'diary']       : null,
-        hasPermission('notices')    ? ['href'=>'/teacher/notices.php',    'icon'=>'<i class="fas fa-bell"></i>',                 'label'=>'Notices',             'key'=>'notices']     : null,
-        hasPermission('warnings')   ? ['href'=>'/admin/warnings.php',     'icon'=>'<i class="fas fa-exclamation-triangle"></i>', 'label'=>'Student Warnings',    'key'=>'warnings']    : null,
-        hasPermission('complaints') ? ['href'=>'/teacher/complaints.php', 'icon'=>'<i class="fas fa-comment-alt"></i>',         'label'=>'Complaints',          'key'=>'complaints']  : null,
-    ]));
-}
-
-// ── Finance sidebar links (permission-filtered) ───────────────────
-function getFinanceLinks(): array {
-    return array_values(array_filter([
-        ['href'=>'/finance/dashboard.php',   'icon'=>'<i class="fas fa-home"></i>',                       'label'=>'Dashboard',     'key'=>'dashboard'],
-        hasPermission('fee_collection') ? ['href'=>'/finance/collection.php', 'icon'=>'<i class="fas fa-hand-holding-usd"></i>',    'label'=>'Fee Collection',  'key'=>'collection']  : null,
-        hasPermission('fee_collection') ? ['href'=>'/finance/kuickpay.php',   'icon'=>'<i class="fas fa-file-upload"></i>',          'label'=>'Kuickpay Import', 'key'=>'kuickpay']    : null,
-        hasPermission('fee_monthly')    ? ['href'=>'/finance/monthly.php',    'icon'=>'<i class="fas fa-calendar-alt"></i>',        'label'=>'Monthly Report',  'key'=>'monthly']     : null,
-        hasPermission('fee_records')    ? ['href'=>'/finance/records.php',    'icon'=>'<i class="fas fa-file-invoice-dollar"></i>', 'label'=>'Fee Records',     'key'=>'records']     : null,
-        hasPermission('fee_defaulters') ? ['href'=>'/finance/defaulters.php', 'icon'=>'<i class="fas fa-exclamation-triangle"></i>','label'=>'Defaulters',      'key'=>'defaulters']  : null,
-        hasPermission('fee_reports')    ? ['href'=>'/finance/reports.php',    'icon'=>'<i class="fas fa-chart-pie"></i>',           'label'=>'Reports',         'key'=>'reports']     : null,
-    ]));
-}
-
-// ── ILC sidebar links (permission-filtered) ───────────────────────
-function getIlcLinks(): array {
-    return array_values(array_filter([
-        ['href'=>'/ilc/dashboard.php',         'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',          'key'=>'dashboard'],
-        hasPermission('ilc_students')     ? ['href'=>'/ilc/students.php',           'icon'=>'<i class="fas fa-user-graduate"></i>',      'label'=>'ILC Students',       'key'=>'students']     : null,
-        hasPermission('ilc_teachers')     ? ['href'=>'/ilc/teachers.php',           'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'ILC Teachers',       'key'=>'teachers']     : null,
-        hasPermission('ilc_disabilities') ? ['href'=>'/ilc/disabilities.php',       'icon'=>'<i class="fas fa-heartbeat"></i>',          'label'=>'Disability Records', 'key'=>'disabilities'] : null,
-        hasPermission('ilc_admissions')   ? ['href'=>'/ilc/admission-requests.php', 'icon'=>'<i class="fas fa-file-medical-alt"></i>',   'label'=>'Admission Requests', 'key'=>'admissions']   : null,
-        hasPermission('ilc_records')      ? ['href'=>'/ilc/records.php',            'icon'=>'<i class="fas fa-folder-open"></i>',        'label'=>'Session Records',    'key'=>'records']      : null,
-        hasPermission('ilc_attendance')   ? ['href'=>'/ilc/attendance.php',         'icon'=>'<i class="fas fa-calendar-check"></i>',     'label'=>'ILC Attendance',     'key'=>'attendance']   : null,
-        hasPermission('ilc_results')      ? ['href'=>'/ilc/results.php',            'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'ILC Results',        'key'=>'results']      : null,
-        hasPermission('ilc_timetable')    ? ['href'=>'/ilc/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',              'label'=>'ILC Timetable',      'key'=>'timetable']    : null,
-        hasPermission('ilc_viewas')       ? ['href'=>'/ilc/view-as.php',            'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',       'key'=>'viewas']       : null,
-    ]));
-}
-
-// ── Student Affairs sidebar links (permission-filtered) ───────────
-function getStudentAffairsLinks(): array {
-    return array_values(array_filter([
-        ['href'=>'/student-affairs/dashboard.php',       'icon'=>'<i class="fas fa-home"></i>',             'label'=>'Dashboard',          'key'=>'dashboard'],
-        hasPermission('sa_students')   ? ['href'=>'/student-affairs/students.php',        'icon'=>'<i class="fas fa-user-graduate"></i>',    'label'=>'Students',           'key'=>'students']   : null,
-        hasPermission('sa_admissions') ? ['href'=>'/student-affairs/admissions.php',      'icon'=>'<i class="fas fa-file-medical-alt"></i>', 'label'=>'Admission Requests', 'key'=>'admissions'] : null,
-        hasPermission('sa_medical')    ? ['href'=>'/student-affairs/medical-records.php', 'icon'=>'<i class="fas fa-notes-medical"></i>',    'label'=>'Medical Records',    'key'=>'medical']    : null,
-        hasPermission('sa_calendar')   ? ['href'=>'/admin/academic-calendar.php',         'icon'=>'<i class="fas fa-calendar-week"></i>',    'label'=>'Academic Calendar',  'key'=>'calendar']   : null,
-    ]));
-}
-
-// ── VP sidebar links (permission-filtered) ────────────────────────
-function getVpLinks(): array {
-    return array_values(array_filter([
-        ['href'=>'/vp/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',            'key'=>'dashboard'],
-        hasPermission('vp_teachers')     ? ['href'=>'/vp/teachers.php',               'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teachers',             'key'=>'teachers']     : null,
-        hasPermission('vp_students')     ? ['href'=>'/vp/students.php',               'icon'=>'<i class="fas fa-user-graduate"></i>',      'label'=>'Students',             'key'=>'students']     : null,
-        hasPermission('vp_attendance')   ? ['href'=>'/vp/attendance.php',             'icon'=>'<i class="fas fa-calendar-check"></i>',     'label'=>'Attendance',           'key'=>'attendance']   : null,
-        hasPermission('vp_att_requests') ? ['href'=>'/vp/attendance-requests.php',    'icon'=>'<i class="fas fa-edit"></i>',               'label'=>'Attendance Requests',  'key'=>'att_requests'] : null,
-        hasPermission('vp_results')      ? ['href'=>'/vp/results.php',                'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'Results',              'key'=>'results']      : null,
-        hasPermission('vp_timetable')    ? ['href'=>'/vp/timetable.php',              'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',            'key'=>'timetable']    : null,
-        hasPermission('vp_calendar')     ? ['href'=>'/admin/academic-calendar.php',   'icon'=>'<i class="fas fa-calendar-week"></i>',      'label'=>'Academic Calendar',    'key'=>'calendar']     : null,
-        hasPermission('vp_viewas')       ? ['href'=>'/vp/view-as.php',                'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',         'key'=>'viewas']       : null,
-    ]));
-}
-
-// ── Wing Head sidebar links (permission-filtered) ─────────────────
-function getWingHeadLinks(): array {
-    return array_values(array_filter([
-        ['href'=>'/wing-head/dashboard.php', 'icon'=>'<i class="fas fa-home"></i>',          'label'=>'Dashboard', 'key'=>'dashboard'],
-        hasPermission('wh_students') ? ['href'=>'/wing-head/students.php', 'icon'=>'<i class="fas fa-user-graduate"></i>', 'label'=>'Students', 'key'=>'students'] : null,
-        hasPermission('wh_classes')  ? ['href'=>'/wing-head/classes.php',  'icon'=>'<i class="fas fa-chalkboard"></i>',    'label'=>'Classes',  'key'=>'classes']  : null,
-    ]));
+function getYoutubeThumbnail(string $url): string {
+    $id = getYoutubeId($url);
+    return $id ? "https://img.youtube.com/vi/{$id}/maxresdefault.jpg" : '';
 }
