@@ -97,16 +97,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       box-shadow: 0 40px 100px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.05);
     }
     .brand-icon {
-      width: 72px; height: 72px;
-      background: linear-gradient(135deg, #0c2461 0%, #0984e3 100%);
-      border-radius: 20px;
+      width: 84px; height: 84px;
+      background: #fff;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 0 auto 20px;
-      box-shadow: 0 8px 28px rgba(9,132,227,.4);
+      box-shadow: 0 8px 28px rgba(9,132,227,.35), 0 0 0 4px rgba(255,255,255,.2);
+      padding: 8px;
+      overflow: hidden;
     }
-    .brand-icon i { font-size: 1.9rem; color: #f9ca24; }
+    .brand-icon img { width: 100%; height: 100%; object-fit: contain; }
     .login-heading {
       text-align: center;
       font-size: 1.55rem;
@@ -229,7 +231,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 <div class="login-wrap">
   <div class="login-card">
-    <div class="brand-icon"><i class="fas fa-shield-alt"></i></div>
+    <div class="brand-icon">
+      <img src="<?= BASE_URL ?>/assets/bmc-logo.png" alt="BMC Logo">
+    </div>
     <h1 class="login-heading">BMC Admin Panel</h1>
     <p class="login-sub">Bahria Model College — Content Management</p>
 

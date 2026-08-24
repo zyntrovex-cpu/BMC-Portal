@@ -10,7 +10,10 @@ function adminActive(string $file): string {
 <aside class="admin-sidebar">
   <div class="admin-sidebar-header">
     <div style="display:flex;align-items:center;gap:10px">
-      <div style="width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:900">B</div>
+      <img src="<?= BASE_URL ?>/assets/bmc-logo.png" alt="BMC Logo"
+           style="width:40px;height:40px;border-radius:50%;object-fit:contain;
+                  background:#fff;padding:3px;flex-shrink:0;
+                  box-shadow:0 2px 8px rgba(0,0,0,.3);">
       <div>
         <div style="font-weight:800;color:#fff;font-size:.95rem">BMC Admin</div>
         <div style="font-size:.7rem;color:rgba(255,255,255,.45)">Content Management</div>
