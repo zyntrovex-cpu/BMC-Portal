@@ -186,21 +186,62 @@ body {
 }
 .wing-section-label::after { content:''; flex:1; height:1px; background:#e5e7eb; }
 
-.wing-tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
+.wing-tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:22px; }
+
+/* Base wing tile */
 .wing-tile {
-  border:2px solid #e5e7eb; border-radius:11px;
-  padding:14px 8px 12px; text-align:center; cursor:pointer;
-  transition:border-color .2s, background .2s, box-shadow .2s;
-  background:#fafafa; user-select:none;
+  border:2.5px solid transparent;
+  border-radius:16px;
+  padding:20px 10px 16px;
+  text-align:center; cursor:pointer;
+  user-select:none; position:relative; overflow:hidden;
+  transition:transform .18s, box-shadow .18s, border-color .18s;
 }
-.wing-tile:hover { border-color:var(--accent,#2563eb); box-shadow:0 3px 12px rgba(37,99,235,.1); }
+.wing-tile::before {
+  content:''; position:absolute; inset:0; opacity:.08;
+  background:radial-gradient(ellipse at 50% 0%,#fff 0%,transparent 70%);
+  pointer-events:none;
+}
+.wing-tile:hover  { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.18); }
+.wing-tile:active { transform:translateY(0); }
+
+/* Per-wing gradient themes */
+#wt-main {
+  background:linear-gradient(145deg,#1c3054 0%,#2563eb 100%);
+  border-color:#2563eb;
+}
+#wt-montessori {
+  background:linear-gradient(145deg,#064e3b 0%,#059669 100%);
+  border-color:#059669;
+}
+#wt-ilc {
+  background:linear-gradient(145deg,#713f12 0%,#d97706 100%);
+  border-color:#d97706;
+}
+
+/* Active glow ring */
 .wing-tile.active {
-  border-color:var(--accent,#2563eb);
-  background:var(--accent-light,#eff6ff);
-  box-shadow:0 3px 12px rgba(37,99,235,.12);
+  border-width:2.5px;
+  box-shadow:0 0 0 3px rgba(255,255,255,.25), 0 8px 28px rgba(0,0,0,.22);
+  transform:translateY(-2px);
 }
-.wing-tile .wt-icon  { font-size:1.5rem; display:block; margin-bottom:6px; }
-.wing-tile .wt-label { font-size:.8rem; font-weight:700; color:#374151; }
+#wt-main.active        { box-shadow:0 0 0 3px rgba(37,99,235,.4),   0 8px 28px rgba(37,99,235,.3); }
+#wt-montessori.active  { box-shadow:0 0 0 3px rgba(5,150,105,.4),   0 8px 28px rgba(5,150,105,.3); }
+#wt-ilc.active         { box-shadow:0 0 0 3px rgba(217,119,6,.4),   0 8px 28px rgba(217,119,6,.3); }
+
+/* Icon & label on coloured bg */
+.wing-tile .wt-icon {
+  font-size:2rem; display:block; margin-bottom:8px;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.25));
+}
+.wing-tile .wt-label {
+  font-size:.82rem; font-weight:800; color:#fff; letter-spacing:.3px;
+  text-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+.wing-tile .wt-sub {
+  font-size:.67rem; color:rgba(255,255,255,.65);
+  margin-top:3px; font-weight:500;
+}
 
 /* Divider */
 .cred-divider {
@@ -282,9 +323,10 @@ body {
   .type-tile { padding:20px 10px 18px; }
   .type-tile .tile-icon { font-size:2rem; }
   .type-tile .tile-label { font-size:.9rem; }
-  .wing-tile { padding:11px 6px 10px; }
-  .wing-tile .wt-icon { font-size:1.3rem; }
-  .wing-tile .wt-label { font-size:.74rem; }
+  .wing-tile { padding:14px 6px 12px; border-radius:12px; }
+  .wing-tile .wt-icon  { font-size:1.6rem; margin-bottom:6px; }
+  .wing-tile .wt-label { font-size:.76rem; }
+  .wing-tile .wt-sub   { font-size:.62rem; }
 }
 
 @media (max-width: 380px) {
@@ -357,14 +399,17 @@ body {
           <div class="wing-tile active" id="wt-main"        onclick="selectWing('main')">
             <span class="wt-icon">🏫</span>
             <div class="wt-label">Main</div>
+            <div class="wt-sub">Grades 8 – 12</div>
           </div>
           <div class="wing-tile"       id="wt-montessori"   onclick="selectWing('montessori')">
             <span class="wt-icon">🌱</span>
             <div class="wt-label">Montessori</div>
+            <div class="wt-sub">Early Years</div>
           </div>
           <div class="wing-tile"       id="wt-ilc"          onclick="selectWing('ilc')">
             <span class="wt-icon">🤝</span>
             <div class="wt-label">ILC</div>
+            <div class="wt-sub">Language Centre</div>
           </div>
         </div>
       </div>
