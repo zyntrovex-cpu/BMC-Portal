@@ -436,8 +436,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
                 $bloodGroup = in_array($bloodGroup, $validBG) ? $bloodGroup : null;
             }
 
-            // Insert user
-            $hash = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT);
+            // Password: use column from CSV if provided, otherwise default to student123
+            $pwdRaw = trim($map['password'] ?? '');
+            if ($pwdRaw !== '') {
+                $hash = password_hash($pwdRaw, PASSWORD_BCRYPT, ['cost' => 12]);
+            } else {
+                // Default: student123 — lets test accounts work immediately
+                $hash = '$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG';
+            }
             $db->prepare(
                 'INSERT INTO users (user_id, name, email, password, role, status)
                  VALUES (?,?,?,?,?,?)'
@@ -621,7 +627,8 @@ $links = getAdminLinks();
           <div class="alert alert-info mt-2 mb-0" style="font-size:.8rem;padding:8px 12px">
             <i class="fas fa-info-circle me-1"></i>
             Column order doesn't matter — the import reads column names from the header row.
-            Passwords are set randomly; students reset via Forgot Password (User ID → email).
+            Default password for all imported students is <strong>student123</strong>.
+            Add an optional <code>password</code> column to set a custom password per student.
           </div>
           <ul class="mt-2 mb-0">
             <li><code>class_name</code> must exactly match an existing class: <code>8-A</code>, <code>9-A</code>, <code>10-A</code> … <code>ILC-A</code>, <code>ILC-B</code>, <code>Beginner</code>, <code>Advance</code>, <code>Prep</code>, <code>Class-1</code></li>
