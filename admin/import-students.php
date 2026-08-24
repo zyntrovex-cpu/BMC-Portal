@@ -208,6 +208,19 @@ if (isset($_GET['download_template'])) {
     exit;
 }
 
+// ─── Download Sample CSV (30 dummy students, all wings) ──────────────────────
+if (isset($_GET['download_sample'])) {
+    $samplePath = __DIR__ . '/../database/dummy_students_import.csv';
+    if (file_exists($samplePath)) {
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="BMC_Sample_Students_AllWings.csv"');
+        header('Content-Length: ' . filesize($samplePath));
+        header('Cache-Control: no-cache');
+        readfile($samplePath);
+    }
+    exit;
+}
+
 $importResults = null;
 
 // ─── Handle Upload & Import ───────────────────────────────────────────────────
@@ -586,30 +599,37 @@ $links = getAdminLinks();
   <div class="col-lg-7">
 
     <div class="sec-card mb-3">
-      <div class="sec-card-header"><i class="fas fa-download me-2"></i>Step 1 — Download Template</div>
+      <div class="sec-card-header"><i class="fas fa-download me-2"></i>Step 1 — Download Template or Sample Data</div>
       <div style="padding:16px">
         <p class="text-muted mb-3" style="font-size:.88rem">
-          Download the XLSX import template. It contains 35 columns covering all admission-form fields,
-          a Field Guide sheet with descriptions, and 5 sample rows. Delete the samples before uploading.
+          Download the XLSX import template or the ready-to-use CSV with 30 dummy students
+          covering all wings (Main, ILC, Montessori). Use the dummy CSV to test the import.
         </p>
-        <a href="<?= url('/admin/import-students.php?download_template=1') ?>"
-           class="btn btn-outline-success btn-sm">
-          <i class="fas fa-file-excel me-1"></i>Download XLSX Template
-        </a>
-        <div class="mt-3" style="font-size:.8rem;color:var(--t2)">
+        <div class="d-flex gap-2 flex-wrap mb-3">
+          <a href="<?= url('/admin/import-students.php?download_template=1') ?>"
+             class="btn btn-outline-success btn-sm">
+            <i class="fas fa-file-excel me-1"></i>Download XLSX Template
+          </a>
+          <a href="<?= url('/admin/import-students.php?download_sample=1') ?>"
+             class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-file-csv me-1"></i>Download Sample CSV (30 students)
+          </a>
+        </div>
+        <div style="font-size:.8rem;color:var(--t2)">
           <strong>Required columns:</strong>
           <code>name</code>, <code>user_id</code> — all others are optional.<br>
           <div class="alert alert-info mt-2 mb-0" style="font-size:.8rem;padding:8px 12px">
             <i class="fas fa-info-circle me-1"></i>
-            No password column — students set their own password via Forgot Password (User ID → email link).
+            Column order doesn't matter — the import reads column names from the header row.
+            Passwords are set randomly; students reset via Forgot Password (User ID → email).
           </div>
           <ul class="mt-2 mb-0">
-            <li><code>class_name</code> must exactly match an existing class (e.g. 8-A, 10-B, ILC-A, ILC-B, Beginner, Advance, Prep, Class-1)</li>
-            <li><code>house_name</code> optional; must match an existing house if provided</li>
+            <li><code>class_name</code> must exactly match an existing class: <code>8-A</code>, <code>9-A</code>, <code>10-A</code> … <code>ILC-A</code>, <code>ILC-B</code>, <code>Beginner</code>, <code>Advance</code>, <code>Prep</code>, <code>Class-1</code></li>
+            <li><code>house_name</code> optional; must match: <code>Allama Iqbal</code>, <code>Quaid-e-Azam</code>, <code>Fatima Jinnah</code>, <code>Sir Syed</code></li>
             <li><code>dob</code> format: YYYY-MM-DD (other formats also accepted)</li>
-            <li><code>gender</code>: male / female / other</li>
+            <li><code>gender</code>: <code>male</code> / <code>female</code> / <code>other</code></li>
             <li><code>blood_group</code>: A+, A-, B+, B-, O+, O-, AB+, AB-</li>
-            <li>Rows with duplicate <code>user_id</code> are skipped</li>
+            <li>Rows with duplicate <code>user_id</code> are skipped automatically</li>
             <li>Both <code>.xlsx</code> and <code>.csv</code> files are accepted</li>
           </ul>
         </div>
