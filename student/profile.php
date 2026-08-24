@@ -97,6 +97,13 @@ try {
     $hasWarnings = !empty($warnings);
 } catch (Exception $e) {}
 
+// Ordinal helper (1st, 2nd, 3rd …)
+function ordinal(int $n): string {
+    $s = ['th','st','nd','rd'];
+    $v = $n % 100;
+    return $n . ($s[($v - 20) % 10] ?? $s[$v] ?? $s[0]);
+}
+
 pageHead('My Profile', 'student');
 $links = getStudentLinks();
 ?>
@@ -106,10 +113,17 @@ $links = getStudentLinks();
 <?php topbar('My Profile', $user); ?>
 <div class="page-content">
 <?= flashHtml() ?>
+<style>
+.bio-section-label {
+  font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--accent);background:var(--sidebar-bg,#f8fafc);
+  padding:5px 12px;margin:0 -0px 4px;border-left:3px solid var(--accent);
+}
+</style>
 
 <div class="row g-3">
   <!-- Read-only info -->
-  <div class="col-md-5">
+  <div class="col-md-6">
     <div class="sec-card">
       <div class="sec-card-header"><i class="fas fa-id-card me-2"></i>Student Information</div>
       <div style="padding:16px">
@@ -127,76 +141,110 @@ $links = getStudentLinks();
           </span>
         </div>
         <?php endif; ?>
-        <table class="table table-sm mb-0" style="font-size:.88rem">
-          <tr><th style="width:42%;color:#6b7280">Name</th>
+        <?php
+        // Helper: display a bio row only if value is set
+        function bioRow(string $label, $value, string $extra = ''): void {
+            if ($value === null || $value === '') return;
+            echo '<tr>';
+            echo '<th style="width:42%;color:#6b7280;font-weight:500;vertical-align:top">' . htmlspecialchars($label) . '</th>';
+            echo '<td style="word-break:break-word">' . ($extra ?: htmlspecialchars($value)) . '</td>';
+            echo '</tr>';
+        }
+        ?>
+
+        <!-- ── PERSONAL INFORMATION ───────────────────────── -->
+        <div class="bio-section-label">Personal Information</div>
+        <table class="table table-sm mb-2" style="font-size:.86rem">
+          <tr><th style="width:42%;color:#6b7280;font-weight:500">Name</th>
               <td class="<?= $hasWarnings ? 'student-name-warned' : '' ?>"><?= h($student['name']) ?></td></tr>
-          <tr><th style="color:#6b7280">Roll No</th><td><?= h($student['roll_no']) ?></td></tr>
-          <?php if (!empty($student['gr_no'])): ?>
-          <tr><th style="color:#6b7280">GR No</th><td><?= h($student['gr_no']) ?></td></tr>
+          <?php bioRow('Father Name', $student['father_name'] ?? null); ?>
+          <?php bioRow('Roll No', $student['roll_no'] ?? null); ?>
+          <?php bioRow('GR No', $student['gr_no'] ?? null); ?>
+          <?php bioRow('CNIC', $student['cnic'] ?? null); ?>
+          <?php bioRow('Date of Birth', fDate($student['dob'] ?? '')); ?>
+          <?php bioRow('Gender', isset($student['gender']) ? ucfirst($student['gender']) : null); ?>
+          <?php if (!empty($student['blood_group'])): ?>
+          <tr><th style="color:#6b7280;font-weight:500">Blood Group</th>
+              <td><span class="badge bg-danger"><?= h($student['blood_group']) ?></span></td></tr>
           <?php endif; ?>
-          <tr><th style="color:#6b7280">Class</th><td><?= h($student['class_name']) ?></td></tr>
-          <?php if (!empty($student['academic_group'])): ?>
-          <tr><th style="color:#6b7280">Group</th><td><?= h($student['academic_group']) ?></td></tr>
+          <?php bioRow('Nationality', $student['nationality'] ?? null); ?>
+          <?php if (!empty($student['religion'])): ?>
+          <?php bioRow('Religion', $student['religion'] . (!empty($student['sect']) ? ' / '.$student['sect'] : '')); ?>
           <?php endif; ?>
+          <?php bioRow('Domicile', $student['domicile'] ?? null); ?>
+          <?php bioRow('Child Order', isset($student['child_order']) && $student['child_order'] !== null ? ordinal((int)$student['child_order']).' child' : null); ?>
+        </table>
+
+        <!-- ── ACADEMIC INFORMATION ───────────────────────── -->
+        <div class="bio-section-label">Academic Information</div>
+        <table class="table table-sm mb-2" style="font-size:.86rem">
+          <tr><th style="width:42%;color:#6b7280;font-weight:500">Class</th><td><?= h($student['class_name']) ?></td></tr>
+          <?php bioRow('Academic Group', $student['academic_group'] ?? null); ?>
+          <?php bioRow('Category', $student['category'] ?? null); ?>
           <?php if ($houseName): ?>
-          <tr><th style="color:#6b7280">House</th>
+          <tr><th style="color:#6b7280;font-weight:500">House</th>
               <td><span class="badge-house" style="background:<?= h($houseColor) ?>;font-size:.75rem">
                 <i class="fas fa-shield-alt"></i> <?= h($houseName) ?>
               </span></td></tr>
           <?php endif; ?>
-          <tr>
-            <th style="color:#6b7280">Email</th>
-            <td>
-              <?= h($student['email'] ?: '—') ?>
-              <button class="btn btn-xs btn-outline-secondary ms-1"
-                      style="font-size:.68rem;padding:1px 6px"
-                      data-bs-toggle="modal" data-bs-target="#emailModal"
-                      title="Change email">
-                <i class="fas fa-edit"></i>
-              </button>
-            </td>
-          </tr>
-          <tr><th style="color:#6b7280">DOB</th><td><?= fDate($student['dob'] ?? '') ?></td></tr>
-          <?php if (!empty($student['gender'])): ?>
-          <tr><th style="color:#6b7280">Gender</th><td><?= ucfirst(h($student['gender'])) ?></td></tr>
-          <?php endif; ?>
-          <?php if (!empty($student['blood_group'])): ?>
-          <tr><th style="color:#6b7280">Blood Group</th>
-              <td><span class="badge bg-danger"><?= h($student['blood_group']) ?></span></td></tr>
-          <?php endif; ?>
-          <?php if (!empty($student['nationality'])): ?>
-          <tr><th style="color:#6b7280">Nationality</th><td><?= h($student['nationality']) ?></td></tr>
-          <?php endif; ?>
-          <?php if (!empty($student['religion'])): ?>
-          <tr><th style="color:#6b7280">Religion</th><td><?= h($student['religion']) ?><?= !empty($student['sect']) ? ' / '.h($student['sect']) : '' ?></td></tr>
-          <?php endif; ?>
-          <tr><th style="color:#6b7280">Admission</th><td><?= fDate($student['admission_date'] ?? '') ?></td></tr>
+          <?php bioRow('KuickPay ID', $student['kuickpay_id'] ?? null); ?>
+          <?php bioRow('Last School', $student['last_school'] ?? null); ?>
+          <?php bioRow('Admission Date', fDate($student['admission_date'] ?? '')); ?>
         </table>
 
+        <!-- ── CONTACT INFORMATION ────────────────────────── -->
+        <div class="bio-section-label">Contact Information</div>
+        <table class="table table-sm mb-2" style="font-size:.86rem">
+          <tr><th style="width:42%;color:#6b7280;font-weight:500">Email</th>
+              <td>
+                <?= h($student['email'] ?: '—') ?>
+                <button class="btn btn-xs btn-outline-secondary ms-1"
+                        style="font-size:.65rem;padding:1px 5px"
+                        data-bs-toggle="modal" data-bs-target="#emailModal"
+                        title="Change email"><i class="fas fa-edit"></i></button>
+              </td></tr>
+          <?php bioRow('Phone', $student['phone'] ?? null); ?>
+          <?php bioRow('WhatsApp', $student['whatsapp_no'] ?? null); ?>
+          <?php bioRow('Emergency Phone', $student['emergency_phone'] ?? null); ?>
+          <?php bioRow('Present Address', $student['address'] ?? null); ?>
+          <?php bioRow('Permanent Address', $student['permanent_address'] ?? null); ?>
+        </table>
+
+        <!-- ── PARENT / GUARDIAN ──────────────────────────── -->
+        <div class="bio-section-label">Parent / Guardian</div>
+        <table class="table table-sm mb-2" style="font-size:.86rem">
+          <?php bioRow('Parent Name', $student['parent_name'] ?? null); ?>
+          <?php bioRow('Father Occupation', $student['father_occupation'] ?? null); ?>
+          <?php bioRow('Parent Phone', $student['parent_phone'] ?? null); ?>
+          <?php bioRow('Parent Email', $student['parent_email'] ?? null); ?>
+        </table>
+
+        <!-- ── SKILLS / SPORTS / AWARDS ───────────────────── -->
         <?php if (!empty($student['skills']) || !empty($student['sports']) || !empty($student['awards'])): ?>
-        <div class="border-top mt-3 pt-2">
+        <div class="bio-section-label">Extracurricular</div>
+        <div class="px-1 pb-2" style="font-size:.83rem">
           <?php if (!empty($student['skills'])): ?>
-          <div class="mb-1" style="font-size:.82rem">
-            <span class="text-muted">Skills:</span>
+          <div class="mb-1"><span class="text-muted me-1">Skills:</span>
             <?php foreach (explode(',', $student['skills']) as $sk): ?>
               <span class="badge bg-secondary me-1"><?= h(trim($sk)) ?></span>
-            <?php endforeach; ?>
-          </div>
+            <?php endforeach; ?></div>
           <?php endif; ?>
           <?php if (!empty($student['sports'])): ?>
-          <div class="mb-1" style="font-size:.82rem">
-            <span class="text-muted">Sports:</span>
+          <div class="mb-1"><span class="text-muted me-1">Sports:</span>
             <?php foreach (explode(',', $student['sports']) as $sp): ?>
               <span class="badge bg-info text-dark me-1"><?= h(trim($sp)) ?></span>
-            <?php endforeach; ?>
-          </div>
+            <?php endforeach; ?></div>
           <?php endif; ?>
           <?php if (!empty($student['awards'])): ?>
-          <div style="font-size:.82rem">
-            <span class="text-muted">Awards:</span> <?= h($student['awards']) ?>
-          </div>
+          <div><span class="text-muted me-1">Awards:</span> <?= h($student['awards']) ?></div>
           <?php endif; ?>
         </div>
+        <?php endif; ?>
+
+        <!-- ── MEDICAL ─────────────────────────────────────── -->
+        <?php if (!empty($student['medical_info'])): ?>
+        <div class="bio-section-label">Medical Information</div>
+        <div class="px-1 pb-2" style="font-size:.83rem;color:#374151"><?= nl2br(h($student['medical_info'])) ?></div>
         <?php endif; ?>
       </div>
     </div>
@@ -259,7 +307,7 @@ $links = getStudentLinks();
   </div>
 
   <!-- Editable fields -->
-  <div class="col-md-7">
+  <div class="col-md-6">
     <div class="sec-card">
       <div class="sec-card-header"><i class="fas fa-edit me-2"></i>Edit Profile
         <small class="ms-2 opacity-75" style="font-weight:400">(changes require admin approval)</small>
