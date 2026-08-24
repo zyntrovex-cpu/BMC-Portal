@@ -121,7 +121,7 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
         }
         $cls  = str_contains($active, $link['key'] ?? '') ? ' active' : '';
         $href = $base . $link['href'];
-        echo '<li><a class="sb-link' . $cls . '" href="' . htmlspecialchars($href) . '">
+        echo '<li><a class="sb-link' . $cls . '" href="' . htmlspecialchars($href) . '" onclick="closeSidebar()">
           <span class="sb-icon">' . ($link['icon'] ?? '') . '</span>
           <span>' . htmlspecialchars($link['label']) . '</span>
         </a></li>';
@@ -135,12 +135,12 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
     $profItem = $profileMap[$portal] ?? null;
     if ($profItem) {
         $pCls = ($active === $profItem['key']) ? ' active' : '';
-        echo '<li><a class="sb-link' . $pCls . '" href="' . $profItem['href'] . '">
+        echo '<li><a class="sb-link' . $pCls . '" href="' . $profItem['href'] . '" onclick="closeSidebar()">
           <span class="sb-icon"><i class="' . $profItem['icon'] . '"></i></span>
           <span>' . $profItem['label'] . '</span>
         </a></li>';
     }
-    echo '<li><a class="sb-link" href="' . $base . '/logout.php">
+    echo '<li><a class="sb-link" href="' . $base . '/logout.php" onclick="closeSidebar()">
         <span class="sb-icon"><i class="fas fa-sign-out-alt"></i></span>
         <span>Logout</span>
       </a></li>';
@@ -156,6 +156,26 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
   </div>
 
 </nav>';
+
+    // ── Mobile bottom navigation bar (first 4 main links) ──────────
+    $bottomLinks = array_values(array_filter($links, fn($l) => !isset($l['divider'])));
+    $bottomLinks = array_slice($bottomLinks, 0, 4);
+    // Always add profile as last if fewer than 4
+    $profItem2 = $profileMap[$portal] ?? null;
+    echo '<nav class="mobile-bottom-nav" id="mobileBottomNav">';
+    foreach ($bottomLinks as $bl) {
+        $bCls  = str_contains($active, $bl['key'] ?? '') ? ' active' : '';
+        $bHref = $base . $bl['href'];
+        $bIconHtml = $bl['icon'] ?? '<i class="fas fa-circle"></i>';
+        $bLbl  = htmlspecialchars($bl['label']);
+        echo '<a href="' . htmlspecialchars($bHref) . '" class="' . trim($bCls) . '">'
+           . $bIconHtml          // already safe HTML like <i class="fas fa-home"></i>
+           . '<span>' . $bLbl . '</span></a>';
+    }
+    // Always show hamburger as last item to open full sidebar
+    echo '<a href="#" onclick="toggleSidebar();return false;">'
+       . '<i class="fas fa-th-large"></i><span>More</span></a>';
+    echo '</nav>';
 }
 
 function viewAsBanner(): void {
@@ -200,11 +220,12 @@ function topbar(string $pageTitle, array $user, string $badge = ''): void {
         ? '<span class="topbar-badge">' . htmlspecialchars($badge) . '</span>'
         : '';
 
+    // Build a short mobile bottom-nav from the first 4 main links
+    // (injected after page content by JS so it stays above fold)
     echo '<header class="topbar" id="topbar">
-  <button class="topbar-toggle" onclick="
-    document.getElementById(\'sidebar\').classList.toggle(\'open\');
-    document.getElementById(\'sidebarOverlay\').classList.toggle(\'show\')
-  "><i class="fas fa-bars"></i></button>
+  <button class="topbar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Menu">
+    <i class="fas fa-bars"></i>
+  </button>
 
   <div class="topbar-brand">
     <div class="topbar-brand-main">BMC Portal</div>
@@ -216,6 +237,23 @@ function topbar(string $pageTitle, array $user, string $badge = ''): void {
     ' . $badgeHtml . '
     <div class="topbar-avatar" title="' . htmlspecialchars($user['name'] ?? '') . '">' . $initials . '</div>
   </div>
-</header>';
+</header>
+<script>
+function toggleSidebar(){
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebarOverlay").classList.toggle("show");
+}
+function closeSidebar(){
+  if(window.innerWidth<=991){
+    document.getElementById("sidebar").classList.remove("open");
+    document.getElementById("sidebarOverlay").classList.remove("show");
+  }
+}
+// Close sidebar on overlay click
+(function(){
+  var ov=document.getElementById("sidebarOverlay");
+  if(ov) ov.addEventListener("click",closeSidebar);
+})();
+</script>';
     viewAsBanner();
 }

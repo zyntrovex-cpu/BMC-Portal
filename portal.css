@@ -309,54 +309,183 @@ img { max-width: 100%; }
 .stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.10); transform: translateY(-1px); transition: box-shadow .18s, transform .18s; }
 
 /* ================================================================
-   RESPONSIVE
+   RESPONSIVE — Full Mobile Support
    ================================================================ */
 
 /* ── Mobile sidebar overlay ──────────────────────────────────────── */
 #sidebarOverlay {
   display: none; position: fixed; inset: 0;
   background: rgba(0,0,0,.45); z-index: 1040;
+  cursor: pointer;
 }
 #sidebarOverlay.show { display: block; }
 
-@media (max-width: 768px) {
-  /* Sidebar off-canvas on mobile */
-  .sidebar { transform: translateX(-100%); }
+/* ── Tablet + Mobile (≤ 991px) — sidebar goes off-canvas ──────── */
+@media (max-width: 991px) {
+
+  /* Off-canvas sidebar */
+  .sidebar {
+    transform: translateX(-100%);
+    z-index: 1050;
+    width: 260px;
+  }
   .sidebar.open { transform: translateX(0); }
 
-  /* Main area fills full width */
+  /* Full-width main area */
   .main-area, .main { margin-left: 0 !important; }
 
-  /* Topbar fills full width */
+  /* Topbar spans full width */
   .topbar { left: 0 !important; padding: 0 14px; }
 
-  /* Show hamburger toggle */
+  /* Show hamburger button */
   .topbar-toggle { display: flex !important; }
-
-  /* Reduce page padding */
-  .page-content, .content { padding: 14px 14px 28px; }
-
-  /* Smaller stat values */
-  .stat-val { font-size: 22px; }
-
-  /* Hide date on small screens */
-  .topbar-date { display: none; }
-
-  /* Responsive stat cards: 2 per row on mobile */
-  .col-6.col-lg-3 { width: 50%; }
-
-  /* Tables scroll horizontally */
-  .table-responsive { -webkit-overflow-scrolling: touch; }
 }
 
-@media (max-width: 480px) {
-  /* Very small screens: hide brand sub-label */
+/* ── Mobile (≤ 767px) ────────────────────────────────────────── */
+@media (max-width: 767px) {
+
+  /* ── Layout ── */
+  .page-content, .content { padding: 12px 12px 80px; }
+
+  /* ── Topbar ── */
+  .topbar-date    { display: none; }
+  .topbar-badge   { display: none; }
+
+  /* ── Portal banner: stack vertically ── */
+  .portal-banner  {
+    flex-direction: column; align-items: flex-start; gap: 8px;
+    padding: 14px 16px;
+  }
+  .portal-banner h5 { font-size: 14px; }
+  .portal-banner p  { font-size: 12px; }
+
+  /* ── Stat cards: 2-column grid ── */
+  .stat-val { font-size: 22px; }
+  .stat-card { padding: 14px; }
+  .stat-icon { width: 36px; height: 36px; font-size: 15px; margin-bottom: 8px; }
+
+  /* Force 2 columns for stat rows */
+  .row > [class*="col-lg-3"],
+  .row > [class*="col-md-3"] { width: 50%; }
+
+  /* ── Tables: horizontal scroll ── */
+  .table-responsive,
+  .sec-card .table-responsive { -webkit-overflow-scrolling: touch; }
+
+  /* Wrap bare tables inside cards */
+  .sec-card > .table,
+  .sec-card > div > .table {
+    display: block; overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* ── Data table: compact ── */
+  .data-table thead th { font-size: 10px; padding: 7px 10px; }
+  .data-table tbody td { padding: 8px 10px; font-size: 12px; }
+
+  /* ── Section card header ── */
+  .sec-card-header { font-size: 12.5px; padding: 9px 12px; flex-wrap: wrap; gap: 6px; }
+  .sec-card-header .btn { font-size: 11px; padding: 3px 8px; }
+
+  /* ── Forms: full width, bigger touch targets ── */
+  .form-control, .form-select {
+    font-size: 15px !important; /* prevents iOS zoom */
+    min-height: 42px;
+  }
+  .input-group .form-control { min-height: 42px; }
+  .btn { min-height: 38px; }
+  .btn-sm { min-height: 32px; font-size: 12px; }
+
+  /* ── Quick-action buttons: 3 per row ── */
+  .qa-btn {
+    padding: 14px 8px; gap: 4px;
+    border-radius: 8px;
+  }
+  .qa-btn i   { font-size: 18px; }
+  .qa-btn span { font-size: 11px; }
+
+  /* ── Activity log ── */
+  .act-item { padding: 9px 12px; gap: 10px; }
+
+  /* ── Bootstrap column overrides for common page layouts ── */
+  /* Profile page 2-column → stack */
+  .col-md-4, .col-md-3 { width: 100%; }
+  .col-md-8, .col-md-9 { width: 100%; }
+  .col-md-5, .col-md-6, .col-md-7 { width: 100%; }
+
+  /* Keep 2-col stats */
+  .col-md-6.col-lg-3 { width: 50%; }
+  .col-6 { width: 50%; }
+
+  /* ── Attendance pills: smaller ── */
+  .att-pill { width: 30px; height: 26px; font-size: .72rem; }
+
+  /* ── Modal: full-screen on mobile ── */
+  .modal-dialog { margin: 8px; }
+  .modal-dialog:not(.modal-dialog-centered) { margin-top: 16px; }
+
+  /* ── Inline bio rows: allow wrap ── */
+  .bio-section-label { font-size: .7rem; padding: 4px 10px; }
+
+  /* ── Hide secondary text in cramped columns ── */
   .topbar-brand-sub { display: none; }
+}
 
-  /* Full-width stat cards on very small screens */
-  .col-6.col-lg-3 { width: 100%; }
+/* ── Small phones (≤ 480px) ─────────────────────────────────── */
+@media (max-width: 480px) {
 
-  /* Reduce card padding */
-  .sec-card-header { padding: 9px 12px; font-size: 12px; }
-  .page-content, .content { padding: 10px 10px 24px; }
+  .page-content, .content { padding: 10px 10px 80px; }
+
+  /* 2-col stats still, but smaller */
+  .stat-card { padding: 12px; }
+  .stat-val  { font-size: 20px; }
+  .stat-icon { width: 32px; height: 32px; font-size: 14px; margin-bottom: 6px; }
+
+  /* Topbar compact */
+  .topbar { padding: 0 10px; }
+  .topbar-avatar { width: 30px; height: 30px; font-size: 11px; }
+
+  /* Tables always scrollable */
+  .table { min-width: 480px; }
+  .table-sm { min-width: 360px; }
+
+  /* Full-width modals */
+  .modal-dialog { margin: 0; max-width: 100%; }
+  .modal-content { border-radius: 12px 12px 0 0; }
+
+  /* Wing/type tiles responsive */
+  .type-tiles  { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .wing-tiles  { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+  /* Sec-card header tiny */
+  .sec-card-header { font-size: 12px; padding: 8px 10px; }
+}
+
+/* ── Bottom navigation bar for mobile ────────────────────────── */
+@media (max-width: 767px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--sb-bg);
+    border-top: 1px solid rgba(255,255,255,.1);
+    z-index: 900; height: 58px;
+    align-items: stretch;
+  }
+  .mobile-bottom-nav a {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: rgba(255,255,255,.5); font-size: 9px; font-weight: 600;
+    letter-spacing: .3px; gap: 3px; padding: 6px 2px 4px;
+    text-decoration: none; transition: color .15s;
+    border-top: 2px solid transparent;
+  }
+  .mobile-bottom-nav a i { font-size: 16px; }
+  .mobile-bottom-nav a.active {
+    color: #fff; border-top-color: var(--accent);
+  }
+  .mobile-bottom-nav a:hover { color: rgba(255,255,255,.85); }
+
+  /* Push page content above bottom nav */
+  .page-content, .content { padding-bottom: 70px; }
 }
