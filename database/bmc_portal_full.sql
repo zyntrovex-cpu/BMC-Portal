@@ -516,7 +516,7 @@ CREATE TABLE `students` (
   KEY `class_id` (`class_id`),
   CONSTRAINT `students_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `students_ibfk_2` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -545,7 +545,38 @@ INSERT INTO `students` VALUES
 (17,17,'1201',12,'Qureshi Nadeem','2008-07-30','male','61501-7788990-7','03017778899','House 14, F-7/3, Islamabad','03009900001','qureshi.n@gmail.com','Qureshi Nadeem','2026-06-09'),
 (18,18,'1202',12,'Baig Akhtar','2008-11-18','female','61501-8899001-8','03018889900','House 45, G-11/2, Islamabad','03008899001','baig.a@gmail.com','Baig Akhtar','2026-06-09'),
 (19,19,'1203',12,'Ishaq Ahmad','2008-04-05','male','61501-9900112-9','03019990011','House 77, I-8/4, Islamabad','03007788001','ishaq.a@gmail.com','Ishaq Ahmad','2026-06-09'),
-(20,20,'1204',12,'Chaudhry Riaz','2008-08-13','female','61501-0011223-0','03020001122','House 32, E-7, Islamabad','03006677001','chaudhry.r@gmail.com','Chaudhry Riaz','2026-06-09');
+(20,20,'1204',12,'Chaudhry Riaz','2008-08-13','female','61501-0011223-0','03020001122','House 32, E-7, Islamabad','03006677001','chaudhry.r@gmail.com','Chaudhry Riaz','2026-06-09'),
+-- Test students 21-50 (all wings)
+(21,305,'2021',1,'Raza Khan','2012-03-15','male','35202-3001001-1','03211001001','House 11, Johar Town, Lahore','03211001001','raza.khan1@gmail.com','Raza Khan','2026-06-09'),
+(22,306,'2022',1,'Mahmood Iqbal','2012-07-22','female','35202-3002002-2','03211002002','House 12, Model Town, Lahore','03211002002','mahmood.iqbal2@gmail.com','Mahmood Iqbal','2026-06-09'),
+(23,307,'2023',2,'Farooq Ahmad','2012-01-08','male','35202-3003003-3','03211003003','House 13, DHA Phase 5, Lahore','03211003003','farooq.ahmad3@gmail.com','Farooq Ahmad','2026-06-09'),
+(24,308,'2024',2,'Nawaz Shahid','2012-09-14','female','35202-3004004-4','03211004004','House 14, Gulberg III, Lahore','03211004004','nawaz.shahid4@gmail.com','Nawaz Shahid','2026-06-09'),
+(25,309,'2025',4,'Hassan Akram','2011-04-25','male','35202-3005005-5','03211005005','House 15, Wapda Town, Lahore','03211005005','hassan.akram5@gmail.com','Hassan Akram','2026-06-09'),
+(26,310,'2026',4,'Siddiqui Munir','2011-11-30','female','35202-3006006-6','03211006006','House 16, Township, Lahore','03211006006','siddiqui.munir6@gmail.com','Siddiqui Munir','2026-06-09'),
+(27,311,'2027',5,'Qureshi Nadim','2011-06-17','male','35202-3007007-7','03211007007','House 17, Allama Iqbal Town, Lahore','03211007007','qureshi.nadim7@gmail.com','Qureshi Nadim','2026-06-09'),
+(28,312,'2028',5,'Baloch Ghulam','2011-02-03','female','35202-3008008-8','03211008008','House 18, Shadbagh, Lahore','03211008008','baloch.ghulam8@gmail.com','Baloch Ghulam','2026-06-09'),
+(29,313,'2029',7,'Malik Zahoor','2010-08-19','male','35202-3009009-9','03211009009','House 19, Bahria Town, Lahore','03211009009','malik.zahoor9@gmail.com','Malik Zahoor','2026-06-09'),
+(30,314,'2030',7,'Baig Saeed','2010-05-06','female','35202-3010010-0','03211010010','House 20, Cavalry Ground, Lahore','03211010010','baig.saeed10@gmail.com','Baig Saeed','2026-06-09'),
+(31,315,'2031',8,'Chaudhry Waheed','2010-12-11','male','35202-3011011-1','03211011011','House 21, Iqbal Park, Lahore','03211011011','chaudhry.waheed11@gmail.com','Chaudhry Waheed','2026-06-09'),
+(32,316,'2032',8,'Awan Shafiq','2010-03-28','female','35202-3012012-2','03211012012','House 22, Muslim Town, Lahore','03211012012','awan.shafiq12@gmail.com','Awan Shafiq','2026-06-09'),
+(33,317,'2033',10,'Butt Amjad','2009-07-14','male','35202-3013013-3','03211013013','House 23, Garden Town, Lahore','03211013013','butt.amjad13@gmail.com','Butt Amjad','2026-06-09'),
+(34,318,'2034',10,'Ishtiaq Pervez','2009-10-01','female','35202-3014014-4','03211014014','House 24, Faisal Town, Lahore','03211014014','ishtiaq.pervez14@gmail.com','Ishtiaq Pervez','2026-06-09'),
+(35,319,'2035',12,'Mehmood Arshad','2008-05-18','male','35202-3015015-5','03211015015','House 25, Gulshan Ravi, Lahore','03211015015','mehmood.arshad15@gmail.com','Mehmood Arshad','2026-06-09'),
+(36,320,'2036',12,'Rauf Khurshid','2008-09-24','female','35202-3016016-6','03211016016','House 26, Sanda Road, Lahore','03211016016','rauf.khurshid16@gmail.com','Rauf Khurshid','2026-06-09'),
+(37,321,'2037',14,'Ahmed Zubair','2014-01-09','male','35202-3017017-7','03211017017','House 27, Thokar Niaz Baig, Lahore','03211017017','ahmed.zubair17@gmail.com','Ahmed Zubair','2026-06-09'),
+(38,322,'2038',14,'Zaman Farhat','2014-06-26','female','35202-3018018-8','03211018018','House 28, Bedian Road, Lahore','03211018018','zaman.farhat18@gmail.com','Zaman Farhat','2026-06-09'),
+(39,323,'2039',14,'Yusuf Bashir','2014-11-13','male','35202-3019019-9','03211019019','House 29, Raiwind Road, Lahore','03211019019','yusuf.bashir19@gmail.com','Yusuf Bashir','2026-06-09'),
+(40,324,'2040',15,'Bibi Ghaffar','2014-04-02','female','35202-3020020-0','03211020020','House 30, Manga Mandi, Lahore','03211020020','bibi.ghaffar20@gmail.com','Bibi Ghaffar','2026-06-09'),
+(41,325,'2041',15,'Gul Wazir','2014-08-20','male','35202-3021021-1','03211021021','House 31, Sundar Estate, Lahore','03211021021','gul.wazir21@gmail.com','Gul Wazir','2026-06-09'),
+(42,326,'2042',15,'Butt Tanveer','2014-02-07','female','35202-3022022-2','03211022022','House 32, Kahna, Lahore','03211022022','butt.tanveer22@gmail.com','Butt Tanveer','2026-06-09'),
+(43,327,'2043',20,'Hassan Riaz','2019-05-15','male','35202-3023023-3','03211023023','House 33, Chung, Lahore','03211023023','hassan.riaz23@gmail.com','Hassan Riaz','2026-06-09'),
+(44,328,'2044',20,'Noor Anwar','2019-09-03','female','35202-3024024-4','03211024024','House 34, Kot Lakhpat, Lahore','03211024024','noor.anwar24@gmail.com','Noor Anwar','2026-06-09'),
+(45,329,'2045',21,'Raza Shaukat','2020-01-21','male','35202-3025025-5','03211025025','House 35, Sabzazar, Lahore','03211025025','raza.shaukat25@gmail.com','Raza Shaukat','2026-06-09'),
+(46,330,'2046',21,'Bibi Rashida','2020-06-08','female','35202-3026026-6','03211026026','House 36, Shahdara, Lahore','03211026026','bibi.rashida26@gmail.com','Bibi Rashida','2026-06-09'),
+(47,331,'2047',22,'Tariq Sajjad','2021-03-25','male','35202-3027027-7','03211027027','House 37, Ichra, Lahore','03211027027','tariq.sajjad27@gmail.com','Tariq Sajjad','2026-06-09'),
+(48,332,'2048',22,'Malik Javed','2021-07-14','female','35202-3028028-8','03211028028','House 38, Mozang, Lahore','03211028028','malik.javed28@gmail.com','Malik Javed','2026-06-09'),
+(49,333,'2049',23,'Iqbal Saleem','2021-11-01','male','35202-3029029-9','03211029029','House 39, Data Ganj Bakhsh, Lahore','03211029029','iqbal.saleem29@gmail.com','Iqbal Saleem','2026-06-09'),
+(50,334,'2050',23,'Ahmed Bashir','2022-04-18','female','35202-3030030-0','03211030030','House 40, Bhati Gate, Lahore','03211030030','ahmed.bashir30@gmail.com','Ahmed Bashir','2026-06-09');
 /*!40000 ALTER TABLE `students` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -710,7 +741,7 @@ CREATE TABLE `users` (
   `reset_expires` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_id` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=335 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -755,7 +786,38 @@ INSERT INTO `users` VALUES
 -- Staff: VP Main / Montessori (password: student123)
 (303,'VP001','Mr. Asad Khan','asad.vp@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','vp_main','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
 -- Staff: Wing Head (password: student123)
-(304,'WH001','Ms. Rubina Akhtar','rubina.wh@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','wing_head','active',NULL,'2026-06-09 11:24:07',NULL,NULL);
+(304,'WH001','Ms. Rubina Akhtar','rubina.wh@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','wing_head','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+-- Test students BMC2025021-050 (all wings, password: student123)
+(305,'BMC2025021','Ahmad Raza Khan','ahmad.raza@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(306,'BMC2025022','Sara Mahmood','sara.mahmood@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(307,'BMC2025023','Umar Farooq','umar.farooq@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(308,'BMC2025024','Aisha Nawaz','aisha.nawaz@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(309,'BMC2025025','Bilal Hassan','bilal.hassan@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(310,'BMC2025026','Zainab Siddiqui','zainab.siddiqui@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(311,'BMC2025027','Hamid Qureshi','hamid.qureshi@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(312,'BMC2025028','Hina Baloch','hina.baloch@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(313,'BMC2025029','Imran Malik','imran.malik@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(314,'BMC2025030','Fatima Baig','fatima.baig@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(315,'BMC2025031','Waseem Chaudhry','waseem.chaudhry@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(316,'BMC2025032','Mehwish Awan','mehwish.awan@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(317,'BMC2025033','Rehan Butt','rehan.butt@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(318,'BMC2025034','Sana Ishtiaq','sana.ishtiaq@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(319,'BMC2025035','Tariq Mehmood','tariq.mehmood@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(320,'BMC2025036','Amna Rauf','amna.rauf@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(321,'BMC2025037','Iqbal Ahmed','iqbal.ahmed@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(322,'BMC2025038','Nadia Zaman','nadia.zaman@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(323,'BMC2025039','Kamran Yusuf','kamran.yusuf@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(324,'BMC2025040','Rukhsana Bibi','rukhsana.bibi@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(325,'BMC2025041','Salman Gul','salman.gul@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(326,'BMC2025042','Aisha Butt','aisha.butt@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(327,'BMC2025043','Ali Hassan','ali.hassan@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(328,'BMC2025044','Maryam Noor','maryam.noor@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(329,'BMC2025045','Usman Raza','usman.raza@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(330,'BMC2025046','Noor Bibi','noor.bibi@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(331,'BMC2025047','Saad Tariq','saad.tariq@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(332,'BMC2025048','Zara Malik','zara.malik@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(333,'BMC2025049','Hamza Iqbal','hamza.iqbal@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL),
+(334,'BMC2025050','Sofia Ahmed','sofia.ahmed@bmc.edu.pk','$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG','student','active',NULL,'2026-06-09 11:24:07',NULL,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
