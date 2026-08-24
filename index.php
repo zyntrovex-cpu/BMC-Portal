@@ -439,15 +439,6 @@ body {
         </button>
       </form>
 
-      <!-- Test credentials helper -->
-      <button class="cred-toggle" type="button" onclick="toggleCreds()" id="credToggle">
-        <i class="fas fa-key me-1"></i>Show test accounts
-      </button>
-      <div class="cred-panel" id="credPanel">
-        <div class="cred-title">Click any row to auto-fill &mdash; password is always <strong>student123</strong></div>
-        <div id="credList"></div>
-      </div>
-
       <div class="login-footer">
         <a href="forgot-password.php"><i class="fas fa-question-circle me-1"></i>Forgot password?</a>
         <span>&copy; <?= date('Y') ?> BMC</span>

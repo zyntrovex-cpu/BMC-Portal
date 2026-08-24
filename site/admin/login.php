@@ -264,11 +264,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </button>
     </form>
 
-    <div class="hint-card">
-      <div class="hint-title"><i class="fas fa-info-circle"></i>Default Credentials</div>
-      <div>Email: <strong>admin@bmc.edu.pk</strong></div>
-      <div>Password: <strong>Admin@2025</strong></div>
-    </div>
   </div>
 
   <a href="<?= SITE_URL ?>/index.php" class="back-link">
