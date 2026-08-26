@@ -398,7 +398,7 @@ $links = getStudentAffairsLinks();
           </div>
           <div class="col-md-2">
             <label class="form-label fw-semibold" style="font-size:.82rem">User / Roll ID <span class="text-danger">*</span></label>
-            <input type="text" name="user_id" class="form-control form-control-sm" required placeholder="e.g. S-2025-001">
+            <input type="text" name="user_id" class="form-control form-control-sm" required placeholder="e.g. 1001">
           </div>
           <div class="col-md-3">
             <label class="form-label fw-semibold" style="font-size:.82rem">Email <small class="text-muted">(optional)</small></label>

@@ -53,16 +53,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } catch (Exception $e) {}
 
             $map = [
-                'student'        => '/student/dashboard.php',
-                'teacher'        => '/teacher/dashboard.php',
-                'admin'          => '/admin/dashboard.php',
-                'finance'        => '/finance/dashboard.php',
-                'ilc_vp'         => '/ilc/dashboard.php',
-                'student_affairs'=> '/student-affairs/dashboard.php',
-                'vp_main'        => '/vp/dashboard.php',
-                'wing_head'      => '/wing-head/dashboard.php',
+                'student'        => '/portal/student/dashboard.php',
+                'teacher'        => '/portal/teacher/dashboard.php',
+                'admin'          => '/portal/admin/dashboard.php',
+                'finance'        => '/portal/finance/dashboard.php',
+                'ilc_vp'         => '/portal/ilc/dashboard.php',
+                'student_affairs'=> '/portal/student-affairs/dashboard.php',
+                'vp_main'        => '/portal/vp/dashboard.php',
+                'wing_head'      => '/portal/wing-head/dashboard.php',
             ];
-            redirect($map[$user['role']] ?? '/index.php');
+            redirect($map[$user['role']] ?? '/portal/index.php');
         } else {
             $error = 'Invalid User ID or password.';
         }
@@ -424,7 +424,7 @@ body {
         <div class="field-group">
           <label for="userId"><i class="fas fa-id-card" style="margin-right:5px;opacity:.55"></i>User ID</label>
           <input type="text" name="user_id" id="userId"
-                 placeholder="e.g. STU001 · T001 · ADM001"
+                 placeholder="e.g. 1001 · 2001 · 3001"
                  value="<?= htmlspecialchars($_POST['user_id'] ?? '') ?>" required autofocus>
         </div>
         <div class="field-group">
@@ -566,41 +566,41 @@ function selectWing(wing) {
 const CREDS = {
   main: {
     student: [
-      ['S901',  'Zubair Ahmed',     'Student'],
-      ['S902',  'Sana Qasim',       'Student'],
-      ['S1001', 'Waqar Ullah',      'Student'],
+      ['1001','Bilal Ahmed',   'Student'],
+      ['1002','Sara Qasim',    'Student'],
+      ['1003','Waqar Ullah',   'Student'],
     ],
     staff: [
-      ['ADM001','Mr. Tariq Mehmood','Admin'],
-      ['T001',  'Dr. Sarah Khan',   'Teacher'],
-      ['T002',  'Mr. Hasan Ali',    'Teacher'],
-      ['FIN001','Ms. Ayesha Rizvi', 'Finance'],
-      ['VP001', 'Mr. Asad Khan',    'VP Main'],
-      ['WH001', 'Ms. Rubina Akhtar','Wing Head'],
+      ['3001','Mr. Tariq Mehmood','Admin'],
+      ['2001','Dr. Sarah Khan',   'Teacher'],
+      ['2002','Mr. Hasan Ali',    'Teacher'],
+      ['3002','Ms. Ayesha Rizvi', 'Finance'],
+      ['3005','Mr. Asad Khan',    'VP Main'],
+      ['3006','Ms. Rubina Akhtar','Wing Head'],
     ],
   },
   montessori: {
     student: [
-      ['M101','Ali Raza',      'Student'],
-      ['M201','Maryam Khalid', 'Student'],
-      ['M301','Hamza Aziz',    'Student'],
+      ['1031','Ali Raza',      'Student'],
+      ['1032','Maryam Khalid', 'Student'],
+      ['1033','Hamza Aziz',    'Student'],
     ],
     staff: [
-      ['T001','Dr. Sarah Khan','Teacher'],
-      ['T002','Mr. Hasan Ali', 'Teacher'],
-      ['WH001','Ms. Rubina Akhtar','Wing Head'],
+      ['2001','Dr. Sarah Khan','Teacher'],
+      ['2002','Mr. Hasan Ali', 'Teacher'],
+      ['3006','Ms. Rubina Akhtar','Wing Head'],
     ],
   },
   ilc: {
     student: [
-      ['ILC101','Hamza Tanveer', 'ILC Student'],
-      ['ILC102','Sara Baig',     'ILC Student'],
-      ['ILC201','Dua Waheed',    'ILC Student'],
+      ['1041','Hamza Tanveer', 'ILC Student'],
+      ['1042','Sara Baig',     'ILC Student'],
+      ['1043','Dua Waheed',    'ILC Student'],
     ],
     staff: [
-      ['ILC001','Dr. Amna Siddiqui','ILC VP'],
-      ['SA001', 'Mr. Tariq Aziz',  'Student Affairs'],
-      ['T007',  'Ms. Asma Riaz',   'ILC Teacher'],
+      ['3003','Dr. Amna Siddiqui','ILC VP'],
+      ['3004','Mr. Tariq Aziz',  'Student Affairs'],
+      ['2003','Ms. Asma Riaz',   'ILC Teacher'],
     ],
   },
 };

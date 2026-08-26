@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
                 $appUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL;
             }
-            $resetLink = rtrim($appUrl, '/') . '/reset-password.php?token=' . $token;
+            $resetLink = rtrim($appUrl, '/') . '/portal/reset-password.php?token=' . $token;
 
             if ($found['email']) {
                 $body = mailTemplate('Reset Your Password',
@@ -148,7 +148,7 @@ if ($fallback) {
       <form method="POST">
         <div class="mb-4">
           <label class="form-label">User ID</label>
-          <input type="text" name="user_id" class="form-control" placeholder="e.g. STU001 / T001 / ADM001"
+          <input type="text" name="user_id" class="form-control" placeholder="e.g. 1001 / 2001 / 3001"
                  value="<?= h($_POST['user_id'] ?? '') ?>" required autofocus autocomplete="off">
           <div style="font-size:.78rem;color:#9ca3af;margin-top:6px">Your roll number or staff ID assigned by the college</div>
         </div>

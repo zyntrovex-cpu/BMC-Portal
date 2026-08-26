@@ -93,7 +93,7 @@ $links = getAdminLinks();
 <form method="GET" class="sec-card mb-3 p-3 d-flex gap-2 flex-wrap align-items-end">
   <div>
     <label class="form-label fw-semibold" style="font-size:.8rem">User ID</label>
-    <input type="text" name="user_id" class="form-control form-control-sm" value="<?= h($filterUser) ?>" placeholder="T001...">
+    <input type="text" name="user_id" class="form-control form-control-sm" value="<?= h($filterUser) ?>" placeholder="e.g. 2001">
   </div>
   <div>
     <label class="form-label fw-semibold" style="font-size:.8rem">Action</label>
