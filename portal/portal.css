@@ -463,6 +463,9 @@ img { max-width: 100%; }
 }
 
 /* ── Bottom navigation bar for mobile ────────────────────────── */
+/* Hidden on desktop by default — only shown via the media query below */
+.mobile-bottom-nav { display: none; }
+
 @media (max-width: 767px) {
   .mobile-bottom-nav {
     display: flex;

@@ -171,8 +171,8 @@ $_activePage = $activePage ?? '';
         <!-- Portal link -->
         <li>
           <a href="<?= BASE_URL ?>/portal/"
-             class="nav-portal-btn <?= $_activePage === 'portal' ? 'active' : '' ?>">
-            <i class="fas fa-sign-in-alt"></i> Portal
+             class="<?= $_activePage === 'portal' ? 'active' : '' ?>">
+            Portal
           </a>
         </li>
 

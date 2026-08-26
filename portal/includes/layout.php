@@ -43,6 +43,8 @@ function pageHead(string $title, string $portal = ''): void {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="' . $base . '/portal/portal.css">
 <style>:root { --accent: ' . $accent . '; --accent-rgb: ' . implode(',', sscanf($accent, '#%02x%02x%02x')) . '; }</style>
+</head>
+<body>
 ';
 }
 
