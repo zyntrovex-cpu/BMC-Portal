@@ -14,6 +14,7 @@ $_activePage = $activePage ?? '';
   <meta name="description" content="<?= sh($pageDesc ?? getSetting('about_short', '')) ?>">
   <meta property="og:title"     content="<?= sh($pageTitle ?? $_siteName) ?>">
   <meta property="og:site_name" content="<?= sh($_siteName) ?>">
+  <link rel="icon" type="image/png" href="<?= BASE_URL ?>/assets/bmc-logo.png">
   <!-- Inter font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -395,7 +395,7 @@ $admissionOpen    = getSetting('admission_open', '1') === '1';
             foreach ($demoEvents as $e):
           ?>
           <div class="event-card">
-            <div class="event-date-col">
+            <div class="event-date-badge">
               <div class="event-day"><?= date('d', strtotime($e['event_date'])) ?></div>
               <div class="event-month"><?= date('M', strtotime($e['event_date'])) ?></div>
             </div>
@@ -410,7 +410,7 @@ $admissionOpen    = getSetting('admission_open', '1') === '1';
           <?php endforeach;
           else: foreach ($events as $e): ?>
           <div class="event-card">
-            <div class="event-date-col">
+            <div class="event-date-badge">
               <div class="event-day"><?= date('d', strtotime($e['event_date'])) ?></div>
               <div class="event-month"><?= date('M', strtotime($e['event_date'])) ?></div>
             </div>
