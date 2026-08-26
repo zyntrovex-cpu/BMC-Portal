@@ -1,0 +1,24 @@
+# BMC Portal — root .htaccess
+Options -Indexes
+
+# Protect config directory from direct access
+<FilesMatch "^config/">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
+# Deny direct web access to /config/
+RedirectMatch 403 ^/config/
+
+# PHP error handling
+php_flag display_errors Off
+
+# Default DirectoryIndex
+DirectoryIndex index.php index.html
+
+# Optional: clean URLs (remove .php extension)
+# Uncomment if desired:
+# RewriteEngine On
+# RewriteCond %{REQUEST_FILENAME} !-d
+# RewriteCond %{REQUEST_FILENAME} !-f
+# RewriteRule ^([^\.]+)$ $1.php [NC,L]

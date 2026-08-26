@@ -1,0 +1,676 @@
+<?php
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/auth.php';
+
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+if (!empty($_SESSION['user'])) {
+    $role = $_SESSION['user']['role'];
+    $map  = [
+        'student'        => '/portal/student/dashboard.php',
+        'teacher'        => '/portal/teacher/dashboard.php',
+        'admin'          => '/portal/admin/dashboard.php',
+        'finance'        => '/portal/finance/dashboard.php',
+        'ilc_vp'         => '/portal/ilc/dashboard.php',
+        'student_affairs'=> '/portal/student-affairs/dashboard.php',
+        'vp_main'        => '/portal/vp/dashboard.php',
+        'wing_head'      => '/portal/wing-head/dashboard.php',
+    ];
+    redirect($map[$role] ?? '/portal/index.php');
+}
+
+$error = '';
+$msg   = $_GET['msg'] ?? '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $userId   = trim($_POST['user_id']  ?? '');
+    $password = trim($_POST['password'] ?? '');
+
+    if (!$userId || !$password) {
+        $error = 'User ID and password are required.';
+    } else {
+        $db = getDB();
+        $st = $db->prepare('SELECT * FROM users WHERE user_id = ? AND status = "active"');
+        $st->execute([$userId]);
+        $user = $st->fetch();
+
+        if ($user && password_verify($password, $user['password'])) {
+            session_regenerate_id(true);
+            $db->prepare('UPDATE users SET last_login = NOW() WHERE id = ?')->execute([$user['id']]);
+            $_SESSION['user'] = [
+                'id'      => $user['id'],
+                'user_id' => $user['user_id'],
+                'name'    => $user['name'],
+                'role'    => $user['role'],
+                'email'   => $user['email'] ?? '',
+            ];
+            try {
+                $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+                $db->prepare('INSERT INTO activity_log (user_id, action, details, ip_address) VALUES (?,?,?,?)')
+                   ->execute([$user['id'], 'login', 'Logged in', $ip]);
+            } catch (Exception $e) {}
+
+            $map = [
+                'student'        => '/portal/student/dashboard.php',
+                'teacher'        => '/portal/teacher/dashboard.php',
+                'admin'          => '/portal/admin/dashboard.php',
+                'finance'        => '/portal/finance/dashboard.php',
+                'ilc_vp'         => '/portal/ilc/dashboard.php',
+                'student_affairs'=> '/portal/student-affairs/dashboard.php',
+                'vp_main'        => '/portal/vp/dashboard.php',
+                'wing_head'      => '/portal/wing-head/dashboard.php',
+            ];
+            redirect($map[$user['role']] ?? '/portal/index.php');
+        } else {
+            $error = 'Invalid User ID or password.';
+        }
+    }
+}
+
+// If there was a POST error, figure out which phase/type to restore
+$postType = $_POST['user_type'] ?? 'student';
+$postWing = $_POST['wing']      ?? 'main';
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Login — BMC Portal</title>
+<link rel="icon" type="image/png" href="<?= BASE_URL ?>/assets/bmc-logo.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { height:100%; }
+body {
+  min-height:100%;
+  background: linear-gradient(135deg,#0f1f3d 0%,#1c3054 50%,#0d2847 100%);
+  background-attachment: fixed;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  display:flex; align-items:flex-start; justify-content:center;
+  padding: 32px 16px 40px;
+}
+
+/* ── Card ── */
+.login-card {
+  width: 520px;
+  max-width: 100%;
+  background:#fff; border-radius:18px;
+  box-shadow:0 24px 64px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.08);
+  overflow:visible;
+  display:flex; flex-direction:column;
+}
+
+/* ── Header ── */
+.login-header {
+  padding:28px 32px 22px; text-align:center;
+  position:relative; overflow:hidden; border-radius:18px 18px 0 0;
+  background: var(--hdr, linear-gradient(160deg,#0f1f3d 0%,#1c3054 60%,#1e3a8a 100%));
+  transition: background .4s ease;
+}
+.login-header::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(ellipse at 50% -10%,rgba(255,255,255,.15) 0%,transparent 65%);
+  pointer-events:none;
+}
+.logo-ring {
+  width:88px; height:88px; border-radius:50%;
+  background:rgba(255,255,255,.96);
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 12px;
+  box-shadow:0 6px 24px rgba(0,0,0,.35), 0 0 0 4px rgba(255,255,255,.2);
+  padding:7px; position:relative; z-index:1;
+}
+.logo-ring img { width:100%; height:100%; object-fit:contain; }
+.login-header h1 { font-size:1.35rem; font-weight:800; color:#fff; position:relative; z-index:1; margin-bottom:4px; }
+.login-header .sub { font-size:.78rem; color:rgba(255,255,255,.72); position:relative; z-index:1; }
+.wing-badge {
+  display:inline-block; margin-top:8px;
+  font-size:.68rem; font-weight:700; letter-spacing:.8px; text-transform:uppercase;
+  background:rgba(255,255,255,.18); color:rgba(255,255,255,.92);
+  border:1px solid rgba(255,255,255,.3); border-radius:20px;
+  padding:3px 14px; position:relative; z-index:1; transition:opacity .3s;
+}
+
+/* ── Card body ── */
+.card-body { border-radius:0 0 18px 18px; overflow:hidden; }
+
+/* ── Phase animations ── */
+@keyframes slideInRight {
+  from { transform:translateX(40px); opacity:0; }
+  to   { transform:translateX(0);    opacity:1; }
+}
+@keyframes slideInLeft {
+  from { transform:translateX(-40px); opacity:0; }
+  to   { transform:translateX(0);     opacity:1; }
+}
+.anim-right { animation: slideInRight .3s cubic-bezier(.4,0,.2,1) forwards; }
+.anim-left  { animation: slideInLeft  .3s cubic-bezier(.4,0,.2,1) forwards; }
+
+/* ── Phase 1 — "Who are you?" ── */
+#phase1 { padding:32px 32px 28px; }
+.phase1-title {
+  text-align:center; font-size:.76rem; font-weight:700; color:#9ca3af;
+  text-transform:uppercase; letter-spacing:.7px; margin-bottom:18px;
+}
+.type-tiles { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.type-tile {
+  border:2.5px solid #e5e7eb; border-radius:14px;
+  padding:26px 16px 22px; text-align:center; cursor:pointer;
+  transition:border-color .2s, background .2s, transform .15s, box-shadow .2s;
+  background:#fafafa; user-select:none;
+}
+.type-tile:hover {
+  border-color: var(--accent,#2563eb); background:var(--accent-light,#eff6ff);
+  transform:translateY(-3px); box-shadow:0 6px 20px rgba(37,99,235,.14);
+}
+.type-tile:active { transform:translateY(0); }
+.type-tile .tile-icon {
+  font-size:2.4rem; margin-bottom:10px; display:block;
+  color: var(--accent,#2563eb);
+}
+.type-tile .tile-label { font-size:1rem; font-weight:800; color:#1e293b; }
+.type-tile .tile-sub   { font-size:.74rem; color:#94a3b8; margin-top:5px; line-height:1.4; }
+
+/* ── Phase 2 — Wing + Credentials ── */
+#phase2 { padding:24px 32px 26px; display:none; }
+
+/* Wing tiles */
+.wing-section-label {
+  font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.6px;
+  color:#94a3b8; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.wing-section-label::after { content:''; flex:1; height:1px; background:#e5e7eb; }
+
+.wing-tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:22px; }
+
+/* Base wing tile */
+.wing-tile {
+  border:2.5px solid transparent;
+  border-radius:16px;
+  padding:20px 10px 16px;
+  text-align:center; cursor:pointer;
+  user-select:none; position:relative; overflow:hidden;
+  transition:transform .18s, box-shadow .18s, border-color .18s;
+}
+.wing-tile::before {
+  content:''; position:absolute; inset:0; opacity:.08;
+  background:radial-gradient(ellipse at 50% 0%,#fff 0%,transparent 70%);
+  pointer-events:none;
+}
+.wing-tile:hover  { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.18); }
+.wing-tile:active { transform:translateY(0); }
+
+/* Per-wing gradient themes */
+#wt-main {
+  background:linear-gradient(145deg,#1c3054 0%,#2563eb 100%);
+  border-color:#2563eb;
+}
+#wt-montessori {
+  background:linear-gradient(145deg,#064e3b 0%,#059669 100%);
+  border-color:#059669;
+}
+#wt-ilc {
+  background:linear-gradient(145deg,#713f12 0%,#d97706 100%);
+  border-color:#d97706;
+}
+
+/* Active glow ring */
+.wing-tile.active {
+  border-width:2.5px;
+  box-shadow:0 0 0 3px rgba(255,255,255,.25), 0 8px 28px rgba(0,0,0,.22);
+  transform:translateY(-2px);
+}
+#wt-main.active        { box-shadow:0 0 0 3px rgba(37,99,235,.4),   0 8px 28px rgba(37,99,235,.3); }
+#wt-montessori.active  { box-shadow:0 0 0 3px rgba(5,150,105,.4),   0 8px 28px rgba(5,150,105,.3); }
+#wt-ilc.active         { box-shadow:0 0 0 3px rgba(217,119,6,.4),   0 8px 28px rgba(217,119,6,.3); }
+
+/* Icon & label on coloured bg */
+.wing-tile .wt-icon {
+  font-size:2rem; display:block; margin-bottom:8px;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.25));
+}
+.wing-tile .wt-label {
+  font-size:.82rem; font-weight:800; color:#fff; letter-spacing:.3px;
+  text-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+.wing-tile .wt-sub {
+  font-size:.67rem; color:rgba(255,255,255,.65);
+  margin-top:3px; font-weight:500;
+}
+
+/* Divider */
+.cred-divider {
+  font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.6px;
+  color:#94a3b8; margin-bottom:14px; display:flex; align-items:center; gap:8px;
+}
+.cred-divider::after { content:''; flex:1; height:1px; background:#e5e7eb; }
+
+/* Alert */
+.alert-msg { font-size:.83rem; border-radius:8px; padding:10px 14px; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.alert-success-msg { background:#f0fdf4; border:1px solid #86efac; color:#166534; }
+.alert-error-msg   { background:#fef2f2; border:1px solid #fca5a5; color:#991b1b; }
+
+/* Fields */
+.field-group { margin-bottom:14px; }
+.field-group label { display:block; font-size:.8rem; font-weight:600; color:#374151; margin-bottom:5px; }
+.field-group input {
+  width:100%; padding:11px 14px; font-size:.92rem;
+  border:1.5px solid #d5dde8; border-radius:8px; outline:none;
+  transition:border-color .2s, box-shadow .2s; color:#1e293b;
+}
+.field-group input:focus { border-color:var(--accent,#2563eb); box-shadow:0 0 0 3px var(--accent-glow,rgba(37,99,235,.12)); }
+.field-group input::placeholder { color:#b0bcc8; }
+
+/* Buttons */
+.btn-login {
+  width:100%; padding:13px;
+  background: var(--btn-bg, linear-gradient(135deg,#1c3054,#2563eb));
+  border:none; border-radius:10px; color:#fff; font-weight:700; font-size:.96rem;
+  cursor:pointer; transition:opacity .15s, transform .1s;
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  margin-top:6px; letter-spacing:.2px;
+}
+.btn-login:hover { opacity:.88; }
+.btn-login:active { transform:scale(.98); }
+
+.btn-back {
+  background:none; border:none; color:#94a3b8; font-size:.8rem;
+  cursor:pointer; display:flex; align-items:center; gap:6px;
+  padding:0; margin-bottom:16px; transition:color .2s;
+}
+.btn-back:hover { color:#374151; }
+
+/* Footer */
+.login-footer {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:14px; padding-top:12px;
+  border-top:1px solid #f1f5f9; font-size:.75rem; color:#9ca3af;
+}
+.login-footer a { color:#6b7280; text-decoration:none; }
+.login-footer a:hover { color:var(--accent,#2563eb); }
+
+/* Cred helper */
+.cred-toggle {
+  width:100%; margin-top:10px; background:none;
+  border:1px dashed #d1d5db; border-radius:8px;
+  padding:7px 12px; font-size:.76rem; color:#9ca3af;
+  cursor:pointer; text-align:center; transition:border-color .2s, color .2s;
+}
+.cred-toggle:hover { border-color:var(--accent,#2563eb); color:var(--accent,#2563eb); }
+.cred-panel { display:none; margin-top:8px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:9px; padding:10px 13px; }
+.cred-panel .cred-title { font-size:.69rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#9ca3af; margin-bottom:7px; }
+.cred-row { display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:6px; cursor:pointer; transition:background .15s; margin-bottom:2px; }
+.cred-row:hover { background:#e0f2fe; }
+.cred-badge { font-size:.64rem; padding:2px 7px; border-radius:10px; font-weight:700; white-space:nowrap; color:#fff; }
+.cred-id   { font-weight:700; color:#1e293b; font-size:.8rem; min-width:60px; }
+.cred-name { color:#6b7280; flex:1; font-size:.76rem; }
+.cred-pass { font-size:.69rem; color:#94a3b8; font-family:monospace; }
+
+/* ── Responsive ── */
+@media (max-width: 560px) {
+  body { padding: 16px 12px 32px; align-items:flex-start; }
+  .login-card { width:100%; border-radius:14px; }
+  .login-header { padding:22px 20px 18px; border-radius:14px 14px 0 0; }
+  .logo-ring { width:74px; height:74px; }
+  .login-header h1 { font-size:1.15rem; }
+  #phase1 { padding:24px 20px 22px; }
+  #phase2 { padding:20px 20px 22px; }
+  .type-tile { padding:20px 10px 18px; }
+  .type-tile .tile-icon { font-size:2rem; }
+  .type-tile .tile-label { font-size:.9rem; }
+  .wing-tile { padding:14px 6px 12px; border-radius:12px; }
+  .wing-tile .wt-icon  { font-size:1.6rem; margin-bottom:6px; }
+  .wing-tile .wt-label { font-size:.76rem; }
+  .wing-tile .wt-sub   { font-size:.62rem; }
+}
+
+@media (max-width: 380px) {
+  .type-tiles { gap:10px; }
+  .wing-tiles  { gap:7px; }
+  .type-tile .tile-icon { font-size:1.7rem; margin-bottom:8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="login-card" id="loginCard">
+
+  <!-- ── Header ── -->
+  <div class="login-header" id="loginHeader">
+    <div class="logo-ring">
+      <img src="<?= BASE_URL ?>/assets/bmc-logo.png" alt="BMC" id="portalLogo">
+    </div>
+    <h1 id="portalTitle">BMC Portal</h1>
+    <div class="sub">Bahria Model College &mdash; <?= SESSION_YEAR ?></div>
+    <div class="wing-badge" id="wingBadge" style="display:none">Main Wing</div>
+  </div>
+
+  <!-- ── Body ── -->
+  <div class="card-body">
+
+    <!-- ─── Phase 1: Choose type ─── -->
+    <div id="phase1">
+
+      <?php if ($msg === 'logout'): ?>
+        <div class="alert-msg alert-success-msg"><i class="fas fa-check-circle"></i>Logged out successfully.</div>
+      <?php elseif ($msg === 'login'): ?>
+        <div class="alert-msg alert-error-msg"><i class="fas fa-lock"></i>Please log in to continue.</div>
+      <?php elseif ($msg === 'unauthorized'): ?>
+        <div class="alert-msg alert-error-msg"><i class="fas fa-ban"></i>Access denied.</div>
+      <?php endif; ?>
+
+      <div class="phase1-title">Who are you?</div>
+
+      <div class="type-tiles">
+        <div class="type-tile" id="tileStudent" onclick="selectType('student')">
+          <span class="tile-icon"><i class="fas fa-user-graduate"></i></span>
+          <div class="tile-label">Student</div>
+          <div class="tile-sub">Main · Montessori · ILC</div>
+        </div>
+        <div class="type-tile" id="tileStaff" onclick="selectType('staff')">
+          <span class="tile-icon"><i class="fas fa-user-tie"></i></span>
+          <div class="tile-label">Staff</div>
+          <div class="tile-sub">Teachers · Admin · Finance</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Phase 2: Credentials ─── -->
+    <div id="phase2">
+
+      <!-- Back button -->
+      <button class="btn-back" type="button" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i> Back
+      </button>
+
+      <?php if ($error): ?>
+        <div class="alert-msg alert-error-msg"><i class="fas fa-exclamation-circle"></i><?= htmlspecialchars($error) ?></div>
+      <?php endif; ?>
+
+      <!-- Wing tiles — only for students -->
+      <div id="wingSection" style="display:none">
+        <div class="wing-section-label">Select Wing</div>
+        <div class="wing-tiles">
+          <div class="wing-tile active" id="wt-main"        onclick="selectWing('main')">
+            <span class="wt-icon">🏫</span>
+            <div class="wt-label">Main</div>
+            <div class="wt-sub">Grades 8 – 12</div>
+          </div>
+          <div class="wing-tile"       id="wt-montessori"   onclick="selectWing('montessori')">
+            <span class="wt-icon">🌱</span>
+            <div class="wt-label">Montessori</div>
+            <div class="wt-sub">Early Years</div>
+          </div>
+          <div class="wing-tile"       id="wt-ilc"          onclick="selectWing('ilc')">
+            <span class="wt-icon">🤝</span>
+            <div class="wt-label">ILC</div>
+            <div class="wt-sub">Language Centre</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Credentials form -->
+      <div class="cred-divider">Enter Credentials</div>
+
+      <form method="POST" id="loginForm">
+        <input type="hidden" name="wing"      id="wingHidden"     value="main">
+        <input type="hidden" name="user_type" id="userTypeHidden" value="student">
+
+        <div class="field-group">
+          <label for="userId"><i class="fas fa-id-card" style="margin-right:5px;opacity:.55"></i>User ID</label>
+          <input type="text" name="user_id" id="userId"
+                 placeholder="e.g. 1001 · 2001 · 3001"
+                 value="<?= htmlspecialchars($_POST['user_id'] ?? '') ?>" required autofocus>
+        </div>
+        <div class="field-group">
+          <label for="password"><i class="fas fa-key" style="margin-right:5px;opacity:.55"></i>Password</label>
+          <input type="password" name="password" id="password"
+                 placeholder="Enter your password" required>
+        </div>
+
+        <button type="submit" class="btn-login" id="loginBtn">
+          <i class="fas fa-sign-in-alt"></i>
+          <span id="btnText">Sign In</span>
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <a href="forgot-password.php"><i class="fas fa-question-circle me-1"></i>Forgot password?</a>
+        <span>&copy; <?= date('Y') ?> BMC</span>
+      </div>
+    </div>
+
+  </div><!-- /card-body -->
+</div><!-- /login-card -->
+
+<script>
+// ── Theme definitions ──────────────────────────────────────────────
+const WING_THEMES = {
+  main: {
+    hdr:   'linear-gradient(160deg,#0f1f3d 0%,#1c3054 60%,#1e3a8a 100%)',
+    btn:   'linear-gradient(135deg,#1c3054,#2563eb)',
+    accent:'#2563eb', glow:'rgba(37,99,235,.13)', light:'#eff6ff',
+    badge: 'Main Wing',
+    logo:  '<?= BASE_URL ?>/assets/bmc-logo.png',
+    title: 'BMC Portal',
+  },
+  montessori: {
+    hdr:   'linear-gradient(160deg,#052e16 0%,#065f46 60%,#059669 100%)',
+    btn:   'linear-gradient(135deg,#065f46,#059669)',
+    accent:'#059669', glow:'rgba(5,150,105,.13)', light:'#f0fdf4',
+    badge: 'Montessori',
+    logo:  '<?= BASE_URL ?>/assets/bmc-logo.png',
+    title: 'BMC Portal',
+  },
+  ilc: {
+    hdr:   'linear-gradient(160deg,#0c4a6e 0%,#0369a1 60%,#0891b2 100%)',
+    btn:   'linear-gradient(135deg,#0369a1,#0891b2)',
+    accent:'#0891b2', glow:'rgba(8,145,178,.13)', light:'#ecfeff',
+    badge: 'ILC',
+    logo:  '<?= BASE_URL ?>/assets/ilc-logo.png',
+    title: 'ILC Portal',
+  },
+};
+const STAFF_THEME = {
+  hdr:   'linear-gradient(160deg,#1e1b4b 0%,#3730a3 60%,#4f46e5 100%)',
+  btn:   'linear-gradient(135deg,#3730a3,#6366f1)',
+  accent:'#6366f1', glow:'rgba(99,102,241,.13)', light:'#eef2ff',
+  badge: null,
+  logo:  '<?= BASE_URL ?>/assets/bmc-logo.png',
+  title: 'BMC Staff Portal',
+};
+
+// ── State ──────────────────────────────────────────────────────────
+let selectedType = 'student';
+let selectedWing = 'main';
+let credOpen     = false;
+
+// ── Apply theme ────────────────────────────────────────────────────
+function applyTheme(t) {
+  document.getElementById('loginHeader').style.background = t.hdr;
+  document.getElementById('loginBtn').style.background    = t.btn;
+  document.getElementById('portalLogo').src               = t.logo;
+  document.getElementById('portalTitle').textContent      = t.title;
+  document.documentElement.style.setProperty('--accent',      t.accent);
+  document.documentElement.style.setProperty('--accent-glow', t.glow);
+  document.documentElement.style.setProperty('--accent-light',t.light);
+  document.documentElement.style.setProperty('--btn-bg',      t.btn);
+  const badge = document.getElementById('wingBadge');
+  if (t.badge) { badge.textContent = t.badge; badge.style.display = ''; }
+  else          { badge.style.display = 'none'; }
+}
+
+// ── Phase transition ───────────────────────────────────────────────
+function selectType(type) {
+  selectedType = type;
+  document.getElementById('userTypeHidden').value = type;
+
+  const isStudent = type === 'student';
+
+  // Theme
+  applyTheme(isStudent ? WING_THEMES[selectedWing] : STAFF_THEME);
+
+  // Wing section
+  document.getElementById('wingSection').style.display = isStudent ? 'block' : 'none';
+
+  // Button label
+  document.getElementById('btnText').textContent = isStudent ? 'Sign In as Student' : 'Sign In as Staff';
+
+  // Animate phase transition
+  const p1 = document.getElementById('phase1');
+  const p2 = document.getElementById('phase2');
+  p1.style.display = 'none';
+  p2.style.display = 'block';
+  p2.classList.remove('anim-left');
+  void p2.offsetWidth; // reflow
+  p2.classList.add('anim-right');
+
+  // Focus user ID field
+  setTimeout(() => document.getElementById('userId').focus(), 340);
+
+  // Refresh cred list
+  if (credOpen) renderCreds();
+}
+
+function goBack() {
+  const p1 = document.getElementById('phase1');
+  const p2 = document.getElementById('phase2');
+  p2.style.display = 'none';
+  p1.style.display = 'block';
+  p1.classList.remove('anim-right');
+  void p1.offsetWidth;
+  p1.classList.add('anim-left');
+  // Reset header to neutral
+  applyTheme(WING_THEMES.main);
+  document.getElementById('wingBadge').style.display = 'none';
+}
+
+// ── Wing selection (student only) ─────────────────────────────────
+function selectWing(wing) {
+  selectedWing = wing;
+  document.getElementById('wingHidden').value = wing;
+  applyTheme(WING_THEMES[wing]);
+  // Update active tile
+  ['main','montessori','ilc'].forEach(w => {
+    document.getElementById('wt-'+w).classList.toggle('active', w === wing);
+  });
+  if (credOpen) renderCreds();
+}
+
+// ── Credential helper ──────────────────────────────────────────────
+const CREDS = {
+  main: {
+    student: [
+      ['1001','Bilal Ahmed',   'Student'],
+      ['1002','Sara Qasim',    'Student'],
+      ['1003','Waqar Ullah',   'Student'],
+    ],
+    staff: [
+      ['3001','Mr. Tariq Mehmood','Admin'],
+      ['2001','Dr. Sarah Khan',   'Teacher'],
+      ['2002','Mr. Hasan Ali',    'Teacher'],
+      ['3002','Ms. Ayesha Rizvi', 'Finance'],
+      ['3005','Mr. Asad Khan',    'VP Main'],
+      ['3006','Ms. Rubina Akhtar','Wing Head'],
+    ],
+  },
+  montessori: {
+    student: [
+      ['1031','Ali Raza',      'Student'],
+      ['1032','Maryam Khalid', 'Student'],
+      ['1033','Hamza Aziz',    'Student'],
+    ],
+    staff: [
+      ['2001','Dr. Sarah Khan','Teacher'],
+      ['2002','Mr. Hasan Ali', 'Teacher'],
+      ['3006','Ms. Rubina Akhtar','Wing Head'],
+    ],
+  },
+  ilc: {
+    student: [
+      ['1041','Hamza Tanveer', 'ILC Student'],
+      ['1042','Sara Baig',     'ILC Student'],
+      ['1043','Dua Waheed',    'ILC Student'],
+    ],
+    staff: [
+      ['3003','Dr. Amna Siddiqui','ILC VP'],
+      ['3004','Mr. Tariq Aziz',  'Student Affairs'],
+      ['2003','Ms. Asma Riaz',   'ILC Teacher'],
+    ],
+  },
+};
+const ROLE_COLORS = {
+  'Admin':'#7c3aed','Teacher':'#059669','Finance':'#d97706',
+  'VP Main':'#0369a1','Wing Head':'#c2410c',
+  'Student':'#1d4ed8','ILC Student':'#0891b2',
+  'ILC VP':'#0891b2','Student Affairs':'#be185d','ILC Teacher':'#059669',
+};
+
+function renderCreds() {
+  const bucket = selectedType === 'staff' ? 'staff' : 'student';
+  // For staff, pool all wings
+  let list = [];
+  if (selectedType === 'staff') {
+    const seen = new Set();
+    ['main','montessori','ilc'].forEach(w => {
+      (CREDS[w].staff || []).forEach(r => { if (!seen.has(r[0])) { seen.add(r[0]); list.push(r); } });
+    });
+  } else {
+    list = (CREDS[selectedWing] || CREDS.main)[bucket] || [];
+  }
+  const el = document.getElementById('credList');
+  if (!list.length) { el.innerHTML = '<div style="color:#9ca3af;text-align:center;padding:4px 0">No accounts for this selection.</div>'; return; }
+  el.innerHTML = list.map(([id, name, role]) =>
+    `<div class="cred-row" onclick="fillCred('${id}')">
+      <span class="cred-id">${id}</span>
+      <span class="cred-name">${name}</span>
+      <span class="cred-badge" style="background:${ROLE_COLORS[role]||'#64748b'}">${role}</span>
+      <span class="cred-pass">student123</span>
+    </div>`
+  ).join('');
+}
+
+function fillCred(userId) {
+  document.getElementById('userId').value   = userId;
+  document.getElementById('password').value = 'student123';
+  document.getElementById('credPanel').style.display = 'none';
+  document.getElementById('credToggle').innerHTML = '<i class="fas fa-key me-1"></i>Show test accounts';
+  credOpen = false;
+}
+
+function toggleCreds() {
+  credOpen = !credOpen;
+  document.getElementById('credPanel').style.display = credOpen ? 'block' : 'none';
+  document.getElementById('credToggle').innerHTML = credOpen
+    ? '<i class="fas fa-times me-1"></i>Hide test accounts'
+    : '<i class="fas fa-key me-1"></i>Show test accounts';
+  if (credOpen) renderCreds();
+}
+
+// ── Init ───────────────────────────────────────────────────────────
+// If there was a POST error, restore the correct phase
+<?php if ($error): ?>
+(function() {
+  const type = '<?= htmlspecialchars($postType) ?>';
+  const wing = '<?= htmlspecialchars($postWing) ?>';
+  selectedType = type; selectedWing = wing;
+  document.getElementById('userTypeHidden').value = type;
+  document.getElementById('wingHidden').value      = wing;
+  const isStudent = type === 'student';
+  applyTheme(isStudent ? WING_THEMES[wing] : STAFF_THEME);
+  document.getElementById('wingSection').style.display = isStudent ? 'block' : 'none';
+  document.getElementById('btnText').textContent = isStudent ? 'Sign In as Student' : 'Sign In as Staff';
+  if (isStudent) selectWing(wing);
+  document.getElementById('phase1').style.display = 'none';
+  document.getElementById('phase2').style.display = 'block';
+})();
+<?php endif; ?>
+</script>
+
+</body>
+</html>
