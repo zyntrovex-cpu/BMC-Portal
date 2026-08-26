@@ -4,7 +4,7 @@ $pageTitle  = 'About Us';
 $activePage = 'about';
 $tab = $_GET['tab'] ?? 'intro';
 include __DIR__ . '/includes/header.php';
-$principalName = getSetting('principal_name', 'Prof. Dr. Muhammad Irfan');
+$principalName = getSetting('principal_name', 'Lt. Cdr. Abu Bakar');
 $principalMsg  = getSetting('principal_message');
 $vision        = getSetting('vision');
 $mission       = getSetting('mission');
@@ -146,7 +146,7 @@ $mission       = getSetting('mission');
           </div>
           <h5 style="font-weight:800;color:var(--primary);margin-bottom:4px"><?= sh($principalName) ?></h5>
           <p style="font-size:.82rem;color:var(--text-2)">Principal, Bahria Model College Bin Qasim</p>
-          <div style="font-size:.78rem;color:var(--text-3);margin-top:8px">PhD Education Management<br>M.Sc. Chemistry<br>30+ Years of Teaching Experience</div>
+          <div style="font-size:.78rem;color:var(--text-3);margin-top:8px">Lieutenant Commander, Pakistan Navy<br>PN Parachutist</div>
         </div>
       </div>
       <div class="col-lg-8">

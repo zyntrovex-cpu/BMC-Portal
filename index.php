@@ -18,7 +18,7 @@ $departments  = getDepartments();
 $partners     = getPartners();
 $videos       = getVideos(3);
 
-$principalName    = getSetting('principal_name', 'Prof. Dr. Muhammad Irfan');
+$principalName    = getSetting('principal_name', 'Lt. Cdr. Abu Bakar');
 $principalMsg     = getSetting('principal_message');
 $principalImg     = getSetting('principal_image');
 $vision           = getSetting('vision');
@@ -148,6 +148,7 @@ $admissionOpen    = getSetting('admission_open', '1') === '1';
             <div class="principal-name-badge">
               <div style="font-weight:800;font-size:1rem"><?= sh($principalName) ?></div>
               <div style="font-size:.78rem;opacity:.8">Principal, Bahria Model College Bin Qasim</div>
+              <div style="font-size:.72rem;opacity:.65;letter-spacing:.03em">Pakistan Navy</div>
             </div>
           </div>
           <div style="padding:24px">
