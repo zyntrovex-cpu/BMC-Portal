@@ -435,7 +435,7 @@ $links = getAdminLinks();
   </div>
   <div class="table-responsive">
     <table class="table table-hover mb-0" style="font-size:.84rem">
-      <thead class="table-light"><tr><th>ID</th><th>Name</th><th>Role</th><th>Wing</th><th>Class</th><th>Email</th><th>Status</th><th>Last Login</th><th></th></tr></thead>
+      <thead class="table-light"><tr><th></th><th>ID</th><th>Name</th><th>Role</th><th>Wing</th><th>Class</th><th>Email</th><th>Status</th><th>Last Login</th><th></th></tr></thead>
       <tbody>
         <?php foreach ($users as $u):
           $roleBadge = match($u['role']) {
@@ -449,8 +449,30 @@ $links = getAdminLinks();
               'wing_head'       => 'warning',
               default           => 'secondary'
           };
+          // Photo thumbnail
+          $thumbUrl   = ($u['photo_status'] ?? '') === 'approved' && !empty($u['profile_photo'])
+                        ? url('/portal/uploads/profile-photos/' . rawurlencode($u['profile_photo']))
+                        : null;
+          $thumbLabel = match($u['photo_status'] ?? 'none') {
+              'pending'  => '<span title="Photo pending review" style="font-size:.65rem;color:#f59e0b"><i class="fas fa-clock"></i></span>',
+              'approved' => '',
+              'rejected' => '<span title="Photo rejected" style="font-size:.65rem;color:#dc2626"><i class="fas fa-ban"></i></span>',
+              default    => '',
+          };
         ?>
         <tr>
+          <!-- Avatar / photo -->
+          <td style="width:44px;padding:6px 8px">
+            <?php if ($thumbUrl): ?>
+            <img src="<?= h($thumbUrl) ?>" alt=""
+                 style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border)">
+            <?php else: ?>
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--t2)">
+              <?= strtoupper(substr($u['name'] ?? '?', 0, 1)) ?>
+            </div>
+            <?php endif; ?>
+            <?= $thumbLabel ?>
+          </td>
           <td class="fw-semibold"><?= h($u['user_id']) ?></td>
           <td><?= h($u['name']) ?></td>
           <td><span class="badge bg-<?= $roleBadge === 'purple' ? 'secondary' : $roleBadge ?>" style="<?= $roleBadge==='purple'?'background:#7c3aed!important':'' ?>"><?= $u['role'] ?></span></td>

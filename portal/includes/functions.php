@@ -254,9 +254,17 @@ function getStudentLinks(): array {
 
 // ── Admin sidebar links ───────────────────────────────────────────
 function getAdminLinks(): array {
+    // Photo approvals badge count
+    $photoPendingCount = 0;
+    try {
+        $photoPendingCount = (int) getDB()->query("SELECT COUNT(*) FROM users WHERE photo_status='pending'")->fetchColumn();
+    } catch (Exception $e) {}
+    $photoLabel = 'Photo Approvals' . ($photoPendingCount ? ' <span class="badge bg-warning text-dark ms-1" style="font-size:.68rem">' . $photoPendingCount . '</span>' : '');
+
     return [
         ['href'=>'/portal/admin/dashboard.php',          'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',         'key'=>'dashboard'],
         ['href'=>'/portal/admin/users.php',              'icon'=>'<i class="fas fa-users"></i>',              'label'=>'Staff & Students',  'key'=>'users'],
+        ['href'=>'/portal/admin/photo-approvals.php',    'icon'=>'<i class="fas fa-user-check"></i>',         'label'=>$photoLabel,         'key'=>'photo-approvals'],
         ['href'=>'/portal/admin/import-students.php',    'icon'=>'<i class="fas fa-file-import"></i>',        'label'=>'Import Students',   'key'=>'import'],
         ['href'=>'/portal/admin/classes.php',            'icon'=>'<i class="fas fa-chalkboard"></i>',         'label'=>'Classes & Subjects','key'=>'classes'],
         ['href'=>'/portal/admin/teachers.php',           'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teacher Accounts',  'key'=>'teachers'],
@@ -349,4 +357,69 @@ function getWingHeadLinks(): array {
         hasPermission('wh_students') ? ['href'=>'/portal/wing-head/students.php', 'icon'=>'<i class="fas fa-user-graduate"></i>', 'label'=>'Students', 'key'=>'students'] : null,
         hasPermission('wh_classes')  ? ['href'=>'/portal/wing-head/classes.php',  'icon'=>'<i class="fas fa-chalkboard"></i>',    'label'=>'Classes',  'key'=>'classes']  : null,
     ]));
+}
+
+// ── Profile photo helpers ─────────────────────────────────────────
+
+/**
+ * Returns the web URL for a user's approved profile photo, or null if none.
+ * Queries DB fresh each call so approval changes are reflected immediately.
+ */
+function getProfilePhotoUrl(int $userId): ?string {
+    if (!$userId) return null;
+    try {
+        $st = getDB()->prepare('SELECT profile_photo, photo_status FROM users WHERE id = ?');
+        $st->execute([$userId]);
+        $row = $st->fetch();
+        if ($row && $row['photo_status'] === 'approved' && $row['profile_photo']) {
+            return url('/portal/uploads/profile-photos/' . rawurlencode($row['profile_photo']));
+        }
+    } catch (Exception $e) {}
+    return null;
+}
+
+/**
+ * Samples border pixels of the image to check if the background is
+ * predominantly white or blue. Returns true if the background passes.
+ * This is a heuristic — it catches obviously wrong backgrounds immediately;
+ * borderline cases go to the admin approval queue.
+ */
+function checkBackgroundColor(string $filepath): bool {
+    $image = imagecreatefromstring(file_get_contents($filepath));
+    if (!$image) return false;
+
+    $width  = imagesx($image);
+    $height = imagesy($image);
+
+    // Sample a border strip around the image (top, bottom, left, right edges)
+    // where background is most likely to be visible, not the subject's face
+    $samplePoints = [];
+    $margin = 5; // px from each edge
+    for ($i = 0; $i < 20; $i++) {
+        $samplePoints[] = [rand($margin, $width  - $margin), $margin];           // top edge
+        $samplePoints[] = [rand($margin, $width  - $margin), $height - $margin]; // bottom edge
+        $samplePoints[] = [$margin,                           rand($margin, $height - $margin)]; // left edge
+        $samplePoints[] = [$width - $margin,                  rand($margin, $height - $margin)]; // right edge
+    }
+
+    $whiteCount = 0;
+    $blueCount  = 0;
+    foreach ($samplePoints as [$x, $y]) {
+        $rgb = imagecolorat($image, $x, $y);
+        $r   = ($rgb >> 16) & 0xFF;
+        $g   = ($rgb >>  8) & 0xFF;
+        $b   =  $rgb        & 0xFF;
+
+        // White-ish: all channels high and close together
+        if ($r > 200 && $g > 200 && $b > 200) $whiteCount++;
+
+        // Blue-ish: blue channel clearly dominant over red, moderate-to-high overall
+        if ($b > 120 && $b > $r + 30 && $b > $g + 10) $blueCount++;
+    }
+
+    imagedestroy($image);
+
+    $total = count($samplePoints);
+    // Require at least 70% of sampled border pixels to be white-ish or blue-ish
+    return (($whiteCount / $total) > 0.7) || (($blueCount / $total) > 0.7);
 }

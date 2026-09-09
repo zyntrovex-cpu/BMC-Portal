@@ -55,6 +55,23 @@ function _initials(string $name): string {
     return $ini ?: '?';
 }
 
+/**
+ * Returns inner HTML for an avatar circle:
+ * - an <img> when the user has an approved profile photo
+ * - the initials string otherwise
+ */
+function _avatarHtml(int $userId, string $initials, int $size = 36): string {
+    if ($userId > 0) {
+        $photoUrl = getProfilePhotoUrl($userId);
+        if ($photoUrl) {
+            return '<img src="' . htmlspecialchars($photoUrl) . '" alt="" '
+                 . 'style="width:' . $size . 'px;height:' . $size . 'px;'
+                 . 'border-radius:50%;object-fit:cover;display:block;">';
+        }
+    }
+    return htmlspecialchars($initials);
+}
+
 function sidebar(string $portal, string $active, array $links, array $user = []): void {
     // Fallback to session
     if (empty($user) && !empty($_SESSION['user'])) $user = $_SESSION['user'];
@@ -74,14 +91,14 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
     $portalLabel  = $portalLabels[$portal] ?? 'Portal';
 
     $profileMap = [
-        'student'         => ['href'=>$base.'/portal/student/profile.php',          'label'=>'My Profile', 'key'=>'profile',   'icon'=>'fas fa-user'],
-        'teacher'         => ['href'=>$base.'/portal/teacher/profile.php',          'label'=>'My Profile', 'key'=>'profile',   'icon'=>'fas fa-user'],
-        'admin'           => ['href'=>$base.'/portal/admin/settings.php',           'label'=>'Settings',   'key'=>'settings',  'icon'=>'fas fa-cog'],
-        'finance'         => null,
-        'ilc_vp'          => ['href'=>$base.'/portal/ilc/dashboard.php',            'label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
-        'student_affairs' => ['href'=>$base.'/portal/student-affairs/dashboard.php','label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
-        'vp_main'         => ['href'=>$base.'/portal/vp/dashboard.php',             'label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
-        'wing_head'       => ['href'=>$base.'/portal/wing-head/dashboard.php',      'label'=>'Dashboard',  'key'=>'dashboard', 'icon'=>'fas fa-home'],
+        'student'         => ['href'=>$base.'/portal/student/profile.php',          'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'teacher'         => ['href'=>$base.'/portal/teacher/profile.php',          'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'admin'           => ['href'=>$base.'/portal/admin/settings.php',           'label'=>'Settings',   'key'=>'settings','icon'=>'fas fa-cog'],
+        'finance'         => ['href'=>$base.'/portal/finance/profile.php',          'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'ilc_vp'          => ['href'=>$base.'/portal/ilc/profile.php',              'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'student_affairs' => ['href'=>$base.'/portal/student-affairs/profile.php',  'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'vp_main'         => ['href'=>$base.'/portal/vp/profile.php',               'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'wing_head'       => ['href'=>$base.'/portal/wing-head/profile.php',        'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
     ];
 
     $userInitials = $user ? _initials($user['name'] ?? '') : '?';
@@ -150,7 +167,7 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
     echo '</ul>
 
   <div class="sb-user">
-    <div class="sb-user-avatar">' . $userInitials . '</div>
+    <div class="sb-user-avatar">' . _avatarHtml($user['id'] ?? 0, $userInitials, 36) . '</div>
     <div class="sb-user-info">
       <div class="sb-user-name">' . $userName . '</div>
       <div class="sb-user-role">' . $userRole . '</div>
@@ -237,7 +254,7 @@ function topbar(string $pageTitle, array $user, string $badge = ''): void {
   <div class="topbar-right">
     <span class="topbar-date"><i class="far fa-calendar me-1"></i>' . $today . '</span>
     ' . $badgeHtml . '
-    <div class="topbar-avatar" title="' . htmlspecialchars($user['name'] ?? '') . '">' . $initials . '</div>
+    <div class="topbar-avatar" title="' . htmlspecialchars($user['name'] ?? '') . '">' . _avatarHtml($user['id'] ?? 0, $initials, 34) . '</div>
   </div>
 </header>
 <script>

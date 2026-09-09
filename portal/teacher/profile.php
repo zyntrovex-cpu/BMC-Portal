@@ -64,6 +64,7 @@ $links = getTeacherLinks();
 
 <div class="row g-3">
   <div class="col-md-4">
+    <?php $returnUrl = '/portal/teacher/profile.php'; include __DIR__ . '/../includes/photo-upload-widget.php'; ?>
     <div class="sec-card">
       <div class="sec-card-header"><i class="fas fa-id-card me-2"></i>Teacher Information</div>
       <div style="padding:16px">

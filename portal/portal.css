@@ -88,6 +88,7 @@ img { max-width: 100%; }
   background: var(--accent); color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700; flex-shrink: 0;
+  overflow: hidden; /* clips profile photo to circle */
 }
 .sb-user-name { font-size: 12px; font-weight: 600; color: #fff; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 148px; }
 .sb-user-role { font-size: 10.5px; color: rgba(255,255,255,.45); line-height: 1.3; }
@@ -131,6 +132,7 @@ img { max-width: 100%; }
   background: var(--accent); color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700; cursor: default; flex-shrink: 0;
+  overflow: hidden; /* clips profile photo to circle */
 }
 
 /* ── Page content ────────────────────────────────────────────── */

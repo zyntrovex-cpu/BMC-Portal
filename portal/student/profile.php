@@ -308,6 +308,7 @@ $links = getStudentLinks();
 
   <!-- Editable fields -->
   <div class="col-md-6">
+    <?php $returnUrl = '/portal/student/profile.php'; include __DIR__ . '/../includes/photo-upload-widget.php'; ?>
     <div class="sec-card">
       <div class="sec-card-header"><i class="fas fa-edit me-2"></i>Edit Profile
         <small class="ms-2 opacity-75" style="font-weight:400">(changes require admin approval)</small>
