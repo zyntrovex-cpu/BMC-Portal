@@ -494,3 +494,316 @@ img { max-width: 100%; }
   /* Push page content above bottom nav */
   .page-content, .content { padding-bottom: 70px; }
 }
+
+/* ================================================================
+   CROSS-BROWSER & MOBILE — Extended Responsive System
+   ================================================================ */
+
+/* ── Cross-browser base fixes ─────────────────────────────────── */
+*    { -webkit-tap-highlight-color: transparent; }
+input, select, textarea, button { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+input[type="checkbox"], input[type="radio"] { -webkit-appearance: checkbox; -moz-appearance: checkbox; appearance: checkbox; }
+
+/* Smooth scrolling for all scroll containers */
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+/* Ensure images never overflow their containers */
+img, video, iframe, embed, object { max-width: 100%; height: auto; }
+
+/* Fix table overflow in all browsers */
+table { border-collapse: collapse; }
+
+/* ── Scrollable table wrapper ─────────────────────────────────── */
+.tbl-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  border-radius: var(--radius);
+}
+
+/* ── d-flex utilities: always use gap-safe flex ───────────────── */
+.flex-wrap-gap { display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; gap: 8px; }
+
+/* ── Portal banner on small screens: always wrap ─────────────── */
+.portal-banner .d-flex { -webkit-flex-wrap: wrap; flex-wrap: wrap; }
+
+/* ── Stats grid: auto-fill into rows of 2 on mobile ──────────── */
+.stats-row { display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; gap: 14px; }
+.stats-row > * { -webkit-flex: 1 1 140px; flex: 1 1 140px; }
+
+/* ── Card actions row: stack on narrow ───────────────────────── */
+.card-actions { display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* ── Data table: sticky first column for wide tables ─────────── */
+.data-table-sticky thead th:first-child,
+.data-table-sticky tbody td:first-child {
+  position: -webkit-sticky;
+  position: sticky;
+  left: 0;
+  background: #f7f9fb;
+  z-index: 1;
+  box-shadow: 2px 0 4px rgba(0,0,0,.06);
+}
+.data-table-sticky tbody td:first-child { background: #fff; }
+.data-table-sticky tbody tr:hover td:first-child { background: #f8fafc; }
+
+/* ── Print helpers ────────────────────────────────────────────── */
+@media print {
+  .sidebar, .topbar, .mobile-bottom-nav { display: none !important; }
+  .main-area, .main { margin-left: 0 !important; }
+  .page-content, .content { padding: 0 !important; }
+  .btn, .no-print { display: none !important; }
+  .sec-card { box-shadow: none !important; border: 1px solid #ddd !important; }
+  body { font-size: 12px !important; }
+  a { color: inherit !important; text-decoration: none !important; }
+}
+
+/* ================================================================
+   TABLET (992px – 1199px)
+   ================================================================ */
+@media (max-width: 1199px) {
+  :root { --sb-w: 220px; }
+  .page-content, .content { padding: 18px 18px 40px; }
+  .stat-val { font-size: 24px; }
+}
+
+/* ================================================================
+   TABLET PORTRAIT (768px – 991px)
+   ================================================================ */
+@media (max-width: 991px) {
+  /* Table cells: allow wrapping text */
+  .data-table thead th,
+  .data-table tbody td { white-space: normal; }
+
+  /* Forms: 2-col to single-col */
+  .form-row-2col > * { width: 100%; }
+
+  /* Sec card header: let buttons wrap below title */
+  .sec-card-header { flex-wrap: wrap; }
+  .sec-head { flex-wrap: wrap; }
+
+  /* Bootstrap overrides for side-by-side → stacked on tablet */
+  .col-lg-4, .col-lg-8 { width: 100%; }
+}
+
+/* ================================================================
+   MOBILE (≤ 767px) — Additional targeted fixes
+   ================================================================ */
+@media (max-width: 767px) {
+
+  /* ── Topbar: show only essential elements ── */
+  .topbar-right > *:not(.topbar-avatar) { gap: 6px; }
+  .topbar-brand-main { font-size: 13px; }
+
+  /* ── Headings: scale down ── */
+  h4.fw-bold { font-size: 1.1rem !important; }
+  h5.fw-bold { font-size: .95rem !important; }
+
+  /* ── Page header rows: stack button below title ── */
+  .d-flex.justify-content-between.mb-4 { flex-direction: column; align-items: flex-start !important; gap: 10px; }
+
+  /* ── Result / marks table ── */
+  .data-table th:nth-child(n+6),
+  .data-table td:nth-child(n+6) { display: none; } /* hide Remarks + Weight on tiny screens */
+
+  /* ── Force any data-table to scroll rather than wrap text ── */
+  .table-responsive { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+  .table-responsive .table,
+  .table-responsive .data-table { min-width: 560px; }
+
+  /* ── Marks entry table: preserve horizontal scroll ── */
+  #marksBody td input { min-width: 80px; }
+
+  /* ── Cards within modals ── */
+  .modal-body .sec-card { margin-bottom: 12px; }
+
+  /* ── Form labels: smaller ── */
+  .form-label { font-size: .8rem; margin-bottom: 3px; }
+
+  /* ── Dropdown menus: full-width on mobile ── */
+  .dropdown-menu { width: 100%; min-width: unset; }
+
+  /* ── Alerts: smaller padding ── */
+  .alert { font-size: .82rem; padding: 10px 12px; }
+
+  /* ── Badges: always readable ── */
+  .badge { font-size: .68rem; }
+
+  /* ── Table of type "data-table" headers: no uppercase on mobile ── */
+  .data-table thead th { text-transform: none; letter-spacing: 0; }
+
+  /* ── Buttons row: allow wrapping ── */
+  .btn-toolbar, .d-flex.gap-2 { flex-wrap: wrap; }
+
+  /* ── Pagination: smaller ── */
+  .pagination .page-link { padding: 5px 9px; font-size: .78rem; }
+
+  /* ── Topbar user section ── */
+  .topbar-right { gap: 8px; }
+
+  /* ── Profile pages: photo + info stack ── */
+  .profile-photo-wrap { text-align: center; margin-bottom: 12px; }
+
+  /* ── Make every .row go to full width on mobile by default ── */
+  .sec-card .row > [class^="col-"]:not(.col-6) { width: 100%; }
+
+  /* ── Import/CSV table: scroll ── */
+  .import-preview { overflow-x: auto; font-size: .78rem; }
+
+  /* ── Notice board: collapse long titles ── */
+  .notice-title { font-size: .85rem; }
+
+  /* ── Timetable: horizontal scroll with fixed time column ── */
+  .timetable-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .timetable-wrap table { min-width: 640px; font-size: .75rem; }
+
+  /* ── Diary entry ── */
+  .diary-entry { padding: 12px; }
+  .diary-subject { font-size: .78rem; }
+
+  /* ── Complaints list ── */
+  .complaint-row td { font-size: .78rem; padding: 8px 8px; }
+
+  /* ── Welcome banner: collapse image on tiny screens ── */
+  .portal-banner img { display: none; }
+
+  /* ── sec-card body padding: reduce on mobile ── */
+  .sec-card > div:not(.sec-card-header):not(.sec-head):not(.table-responsive) { padding-left: 12px !important; padding-right: 12px !important; }
+
+  /* ── Quick action grid: 3 across on phone ── */
+  .qa-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+  /* ── Attendance mark page: period pills ── */
+  .att-pill-group { gap: 4px; }
+
+  /* ── Results page: grade badge ── */
+  .grade { font-size: .7rem; padding: 1px 5px; }
+
+  /* ── House badges ── */
+  .badge-house { font-size: .72rem; padding: 3px 8px; }
+
+  /* ── Admin user table: avatar first col compact ── */
+  .admin-users-table td:first-child { padding: 6px 8px; }
+  .admin-users-table td:first-child img,
+  .admin-users-table td:first-child .user-avatar-sm { width: 28px; height: 28px; }
+}
+
+/* ================================================================
+   SMALL PHONES (≤ 480px) — Additional fixes
+   ================================================================ */
+@media (max-width: 480px) {
+
+  /* ── Page content: tightest padding ── */
+  .page-content, .content { padding: 10px 8px 74px; }
+
+  /* ── Stack ALL grid columns ── */
+  .row > [class*="col-"] { width: 100% !important; }
+  .row > .col-6 { width: 50% !important; }    /* keep 2-col stats */
+  .row > .col-4 { width: 50% !important; }    /* 3-col → 2-col */
+
+  /* ── Stat cards: 2 per row ── */
+  .row > .stat-col,
+  .row > [class*="col-lg-3"],
+  .row > [class*="col-md-3"],
+  .row > [class*="col-md-4"] { width: 50% !important; }
+
+  /* ── Data table: minimal padding ── */
+  .data-table thead th { padding: 5px 6px; font-size: .68rem; }
+  .data-table tbody td { padding: 6px 6px; font-size: .78rem; }
+
+  /* ── Modal full screen ── */
+  .modal-dialog { margin: 0 !important; max-width: 100% !important; }
+  .modal-content { border-radius: 14px 14px 0 0 !important; }
+
+  /* ── Topbar ── */
+  .topbar { padding: 0 8px; }
+  .topbar-brand-main { font-size: 12px; }
+
+  /* ── Buttons: full width in action rows ── */
+  .actions-row .btn { flex: 1 1 auto; font-size: .78rem; }
+
+  /* ── Search bars: full width ── */
+  .search-bar { width: 100%; }
+
+  /* ── Filters: wrap with small gap ── */
+  .filter-row { gap: 6px; flex-wrap: wrap; }
+  .filter-row .form-select { font-size: .8rem; min-height: 36px; }
+
+  /* ── Portal welcome banner: minimal ── */
+  .portal-banner { padding: 12px; }
+  .portal-banner h5 { font-size: .88rem; }
+  .portal-banner p  { font-size: .75rem; }
+
+  /* ── Section card header: minimal ── */
+  .sec-card-header, .sec-head { padding: 8px 10px; font-size: .78rem; }
+
+  /* ── Marks entry: minimal inputs ── */
+  .marks-input { min-width: 64px !important; font-size: .78rem !important; }
+
+  /* ── Profile info rows ── */
+  .info-label { font-size: .72rem; }
+  .info-value { font-size: .82rem; }
+
+  /* ── Bottom nav: smaller icons ── */
+  .mobile-bottom-nav a { font-size: 8px; }
+  .mobile-bottom-nav a i { font-size: 14px; }
+
+  /* ── Attendance calendar: squeeze ── */
+  .att-pill { width: 26px; height: 22px; font-size: .66rem; }
+
+  /* ── Tables within sec-card: minimal ── */
+  .table { font-size: .78rem; }
+  .table > thead > tr > th { font-size: .72rem; }
+}
+
+/* ================================================================
+   TOUCH ENHANCEMENTS (hover media — pointer devices)
+   ================================================================ */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase all tap targets */
+  .btn { min-height: 40px; padding-top: 8px; padding-bottom: 8px; }
+  .btn-sm { min-height: 34px; }
+  .btn-xs { min-height: 28px !important; }
+  .form-control, .form-select { min-height: 44px; font-size: 16px !important; }
+  .sb-link { padding: 12px 16px; }
+  .mobile-bottom-nav a { padding: 8px 4px 6px; }
+  input[type="checkbox"], input[type="radio"] { width: 18px; height: 18px; }
+
+  /* Remove hover effects that don't make sense on touch */
+  .stat-card:hover { transform: none; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+  .sec-card:hover  { box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+}
+
+/* ================================================================
+   BROWSER-SPECIFIC FIXES
+   ================================================================ */
+
+/* Firefox: hide scrollbar within sidebar but keep scrollable */
+.sidebar { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.08) transparent; }
+
+/* Webkit: styled scrollbar for sidebar */
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 2px; }
+
+/* Safari: fix flex gap fallback (Safari <14 doesn't support gap in flex) */
+@supports not (gap: 1px) {
+  .topbar-right > * + *   { margin-left: 12px; }
+  .sb-link > * + *        { margin-left: 10px; }
+  .stats-row > * + *      { margin-left: 14px; }
+  .card-actions > * + *   { margin-left: 8px; }
+}
+
+/* iOS Safari: momentum scroll for horizontal tables */
+.table-responsive,
+.tbl-scroll { -webkit-overflow-scrolling: touch; }
+
+/* IE11 / Edge 18: hide completely broken features */
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  .portal-banner { display: block; }
+  .stats-row { display: block; }
+  .stats-row > * { display: inline-block; width: 23%; margin-right: 1%; }
+}
+
+/* Chrome: consistent font rendering */
+body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }

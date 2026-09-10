@@ -1251,3 +1251,351 @@ label.form-label { font-size: .8rem; font-weight: 600; color: var(--text-2); mar
 }
 
 /* Portal nav link uses the same style as other nav links (no special class needed) */
+
+/* ================================================================
+   EXTENDED RESPONSIVE SYSTEM — Cross-browser / Mobile
+   ================================================================ */
+
+/* ── Base cross-browser fixes ─────────────────────────────────── */
+html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+*, *::before, *::after { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+img, video, iframe { max-width: 100%; height: auto; }
+
+/* ── Scrollable tables on website admin panel ─────────────────── */
+.admin-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.admin-table-wrap .admin-table { min-width: 540px; }
+
+/* ── Nav: mega menu never clips outside viewport ─────────────── */
+.mega-menu { max-width: calc(100vw - 32px); }
+
+/* ── Mobile menu: smooth open/close ──────────────────────────── */
+.mobile-menu {
+  position: fixed; top: 0; right: -320px; width: 320px; height: 100vh;
+  background: var(--bg); z-index: 1100; overflow-y: auto;
+  box-shadow: -4px 0 24px rgba(0,0,0,.18);
+  transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+  display: flex; flex-direction: column;
+}
+.mobile-menu.open { right: 0; }
+.mobile-menu-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  z-index: 1099; display: none;
+}
+.mobile-menu-overlay.show { display: block; }
+.mobile-menu-header {
+  padding: 16px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.mobile-menu-close {
+  background: none; border: none; font-size: 1.2rem;
+  color: var(--text-2); cursor: pointer; padding: 4px;
+}
+.mobile-menu-nav { padding: 12px 0; flex: 1; }
+.mobile-menu-link {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 20px; color: var(--text); font-weight: 500; font-size: .9rem;
+  border-left: 3px solid transparent; transition: all var(--transition);
+  text-decoration: none;
+}
+.mobile-menu-link:hover, .mobile-menu-link.active {
+  background: var(--bg-2); color: var(--blue); border-left-color: var(--blue);
+}
+.mobile-sub-menu { background: var(--bg-2); }
+.mobile-sub-link {
+  display: block; padding: 9px 20px 9px 30px; font-size: .84rem;
+  color: var(--text-2); transition: color var(--transition); text-decoration: none;
+}
+.mobile-sub-link:hover { color: var(--blue); }
+[data-theme="dark"] .mobile-menu { background: var(--bg-2); }
+[data-theme="dark"] .mobile-sub-menu { background: var(--bg-3); }
+
+/* ── Hamburger button ─────────────────────────────────────────── */
+.hamburger {
+  display: none; background: none; border: none;
+  flex-direction: column; justify-content: center;
+  gap: 5px; padding: 6px; cursor: pointer;
+  width: 36px; height: 36px; flex-shrink: 0;
+}
+.hamburger span {
+  display: block; height: 2px; background: var(--primary);
+  border-radius: 2px; transition: all 0.3s ease;
+  transform-origin: center;
+}
+[data-theme="dark"] .hamburger span { background: #fff; }
+.hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.hamburger.active span:nth-child(2) { opacity: 0; }
+.hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+/* ── Skip link for accessibility ──────────────────────────────── */
+.skip-link {
+  position: absolute; top: -100px; left: 8px; z-index: 9999;
+  background: var(--primary); color: #fff;
+  padding: 8px 14px; border-radius: 0 0 var(--radius) var(--radius);
+  font-size: .82rem; font-weight: 600; transition: top .2s;
+}
+.skip-link:focus { top: 0; }
+
+/* ── Section spacing: consistent across viewports ─────────────── */
+.site-section { padding: 72px 0; }
+.section-header { margin-bottom: 48px; text-align: center; }
+.section-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(37,99,235,.08); color: var(--blue);
+  padding: 5px 14px; border-radius: 99px; font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px;
+}
+.section-title { font-size: clamp(1.4rem, 3.5vw, 2.1rem); font-weight: 800; color: var(--primary); line-height: 1.25; margin-bottom: 10px; }
+[data-theme="dark"] .section-title { color: #fff; }
+.section-subtitle { font-size: clamp(.85rem, 2vw, .95rem); color: var(--text-2); max-width: 520px; margin: 0 auto; line-height: 1.7; }
+
+/* ── Grid helpers for cards ───────────────────────────────────── */
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+
+/* ── News/blog card row: auto-wrap ────────────────────────────── */
+.news-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 22px; }
+.event-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+
+/* ── Faculty card: equal height in grid ──────────────────────── */
+.faculty-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+
+/* ── Hero section: safe area for notched phones ───────────────── */
+.hero-section { padding-bottom: env(safe-area-inset-bottom, 0); }
+
+/* ================================================================
+   TABLET (768px – 1024px)
+   ================================================================ */
+@media (max-width: 1024px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .gallery-grid { columns: 3; }
+  .admin-sidebar { width: 220px; }
+  .admin-main { margin-left: 220px; }
+}
+
+/* ================================================================
+   MOBILE (≤ 767px) — Comprehensive overhaul
+   ================================================================ */
+@media (max-width: 767px) {
+  /* ── Base ── */
+  body { padding-top: 64px; }
+  html { font-size: 15px; }
+
+  /* ── Containers: full-width with gutters ── */
+  .container, .container-fluid { padding-left: 16px; padding-right: 16px; }
+
+  /* ── Sections ── */
+  .site-section { padding: 44px 0; }
+  .sec-alt { padding: 44px 0; }
+  .section-header { margin-bottom: 28px; }
+  .section-title { font-size: 1.45rem; }
+  .section-subtitle { font-size: .84rem; }
+
+  /* ── Navigation ── */
+  .hamburger { display: flex !important; }
+  .nav-topbar { display: none !important; }
+  .nav-main { height: 56px; }
+  body { padding-top: 56px; }
+  .hero-section { margin-top: -56px; }
+
+  /* ── Hero section ── */
+  .hero-section { height: auto; min-height: 70vh; padding: 80px 0 52px; }
+  .hero-title { font-size: clamp(1.5rem, 6.5vw, 2rem); line-height: 1.25; }
+  .hero-subtitle { font-size: .9rem; margin-bottom: 24px; }
+  .hero-actions { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .hero-actions .btn { width: 100%; justify-content: center; }
+  .hero-stats { flex-wrap: wrap; gap: 12px; }
+  .hero-stats > div { flex: 1 1 40%; min-width: 120px; }
+
+  /* ── Grids: always 1 column on mobile ── */
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; gap: 14px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; } /* keep 2 for small cards */
+  .news-row, .event-row { grid-template-columns: 1fr; gap: 14px; }
+  .faculty-row { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+
+  /* ── Gallery ── */
+  .gallery-grid { columns: 2; column-gap: 8px; }
+  .gallery-item { margin-bottom: 8px; }
+
+  /* ── Stat cards ── */
+  .stat-card { padding: 20px 14px; }
+  .stat-number { font-size: 2rem; }
+
+  /* ── News card ── */
+  .news-card { border-radius: var(--radius); }
+  .news-card-body { padding: 14px; }
+  .news-card-title { font-size: .9rem; }
+
+  /* ── Event card: horizontal → vertical ── */
+  .event-card { flex-direction: column; }
+  .event-card-date { width: auto; padding: 10px 14px; flex-direction: row; gap: 8px; }
+  .event-card-date .day { font-size: 1.4rem; }
+  .event-card-date .month { font-size: .72rem; }
+  .event-card-body { padding: 12px 14px 14px; }
+
+  /* ── Faculty card ── */
+  .faculty-card { padding: 16px 12px; }
+  .faculty-photo { width: 70px; height: 70px; }
+  .faculty-name { font-size: .88rem; }
+
+  /* ── Principal / about section ── */
+  .about-img-wrap { margin-bottom: 20px; }
+  .about-img-wrap img { max-height: 360px; object-fit: cover; border-radius: var(--radius-lg); }
+
+  /* ── Value / Why / Club cards: 2 per row ── */
+  .row.g-4 > .col-md-3, .row.g-4 > .col-md-4 { flex: 0 0 50%; max-width: 50%; }
+
+  /* ── Contact page ── */
+  .contact-info-card { padding: 20px; border-radius: var(--radius); }
+  .contact-form-card { padding: 20px; border-radius: var(--radius); }
+
+  /* ── Admission steps: no horizontal transform ── */
+  .admission-step:hover { transform: none; }
+  .admission-step { flex-direction: row; padding: 14px; }
+
+  /* ── Download items ── */
+  .download-item { padding: 10px 12px; }
+  .download-icon { width: 34px; height: 34px; font-size: .9rem; }
+  .download-name { font-size: .82rem; }
+
+  /* ── Footer grid ── */
+  .footer-top .row > [class*="col-"] { margin-bottom: 24px; }
+
+  /* ── Admin panel: sidebar off-canvas ── */
+  .admin-sidebar { left: -260px; transition: left 0.3s ease; width: 260px; }
+  .admin-sidebar.show { left: 0; }
+  .admin-main { margin-left: 0 !important; }
+  .admin-content { padding: 16px; }
+  .admin-topbar { padding: 10px 16px; }
+  .stat-widget { padding: 14px; }
+  .stat-widget-num { font-size: 1.25rem; }
+  .admin-table th, .admin-table td { padding: 8px 10px; font-size: .78rem; }
+
+  /* ── Page hero (inner pages) ── */
+  .page-hero { padding: 40px 0 28px; min-height: 140px; }
+  .page-hero h1 { font-size: clamp(1.2rem, 5vw, 1.6rem); }
+
+  /* ── Breadcrumb ── */
+  .breadcrumb-wrap { padding: 10px 0; }
+  .breadcrumb { font-size: .76rem; }
+
+  /* ── Forms on website ── */
+  .form-control-custom { font-size: 16px !important; min-height: 44px; }
+
+  /* ── Testimonials: 1 wide ── */
+  .testimonial-card { padding: 20px; }
+
+  /* ── Timeline ── */
+  .timeline { padding-left: 20px; }
+  .timeline-item::before { left: -27px; }
+
+  /* ── Back to top: clear of safe area ── */
+  #backToTop { bottom: calc(16px + env(safe-area-inset-bottom, 0)); right: 16px; }
+
+  /* ── Filter tabs: scroll horizontally ── */
+  .filter-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .filter-tabs::-webkit-scrollbar { display: none; }
+
+  /* ── Mega menu: hide on mobile (use mobile menu instead) ── */
+  .mega-menu, .dropdown-menu-custom { display: none !important; }
+
+  /* ── Table: horizontal scroll ── */
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .admin-table { min-width: 540px; }
+  .admin-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ── CTA section ── */
+  .cta-section { padding: 44px 0; }
+  .cta-section h2 { font-size: 1.4rem; }
+  .cta-section .d-flex { flex-direction: column; gap: 12px; }
+  .cta-section .btn { width: 100%; justify-content: center; }
+}
+
+/* ================================================================
+   SMALL PHONES (≤ 480px)
+   ================================================================ */
+@media (max-width: 480px) {
+  html { font-size: 14px; }
+  .container, .container-fluid { padding-left: 12px; padding-right: 12px; }
+
+  /* ── Hero ── */
+  .hero-title { font-size: clamp(1.35rem, 7.5vw, 1.7rem); }
+  .hero-actions { gap: 8px; }
+
+  /* ── Value / why cards: 1 per row on very small ── */
+  .row.g-4 > .col-md-3, .row.g-4 > .col-md-4 { flex: 0 0 100%; max-width: 100%; }
+  .grid-2 { grid-template-columns: 1fr; }
+
+  /* ── Faculty: 1 per row ── */
+  .faculty-row { grid-template-columns: 1fr; gap: 12px; }
+
+  /* ── Gallery: 1 column ── */
+  .gallery-grid { columns: 1; }
+
+  /* ── Event date boxes: smaller ── */
+  .event-date-badge { padding: 6px 10px; min-width: 48px; }
+  .event-date-badge .day { font-size: 1.3rem; }
+
+  /* ── Contact form ── */
+  .contact-form-card { padding: 16px; }
+  .contact-info-card { padding: 16px; }
+
+  /* ── Footer ── */
+  .footer-socials { gap: 5px; }
+  .footer-socials a { width: 30px; height: 30px; }
+  .footer-bottom { text-align: center; }
+  .footer-bottom .d-flex { flex-direction: column; gap: 6px; align-items: center; }
+
+  /* ── Stat cards row ── */
+  .stats-section .row > [class*="col-"] { margin-bottom: 12px; }
+
+  /* ── Mobile menu: full width ── */
+  .mobile-menu { width: 100%; right: -100%; }
+  .mobile-menu.open { right: 0; }
+}
+
+/* ================================================================
+   TOUCH ENHANCEMENTS
+   ================================================================ */
+@media (hover: none) and (pointer: coarse) {
+  /* All interactive elements: minimum 44px touch target */
+  .btn, .nav-links a, .mobile-menu-link, .filter-tab,
+  .gallery-filter-btn, .admin-nav-link { min-height: 44px; }
+
+  /* Remove hover transforms on touch */
+  .dept-card:hover, .why-card:hover, .value-card:hover,
+  .career-card:hover, .testimonial-card:hover,
+  .club-card:hover, .news-card:hover,
+  .facility-card:hover img { transform: none; }
+
+  /* Form inputs: prevent iOS zoom */
+  input, select, textarea { font-size: 16px !important; }
+}
+
+/* ================================================================
+   BROWSER-SPECIFIC FIXES
+   ================================================================ */
+/* Safari: flex gap fallback */
+@supports not (gap: 1px) {
+  .hero-actions > * + *   { margin-left: 12px; }
+  .footer-socials > * + * { margin-left: 7px; }
+  .filter-tabs > * + *    { margin-left: 8px; }
+}
+
+/* Safari: hide scrollbars on filter tabs */
+.filter-tabs::-webkit-scrollbar { display: none; }
+.filter-tabs { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Firefox: box-shadow fix */
+@-moz-document url-prefix() {
+  .news-card, .faculty-card, .event-card { box-shadow: 0 1px 6px rgba(0,0,0,.08); }
+}
+
+/* Print styles for public website */
+@media print {
+  .site-nav, .mobile-menu, #backToTop, .cta-section { display: none !important; }
+  body { padding-top: 0 !important; color: #000 !important; background: #fff !important; }
+  a { color: #000 !important; text-decoration: underline; }
+  .hero-section { height: auto !important; min-height: 0 !important; }
+}

@@ -253,7 +253,7 @@ $links = getTeacherLinks();
       <div class="table-responsive">
         <table class="table table-hover mb-0" style="font-size:.85rem">
           <thead class="table-light">
-            <tr><th>#</th><th>Roll No</th><th>Name</th><th style="width:130px">Marks (/ <?= $currentAssessment['max_marks'] ?>)</th><th style="width:80px">%</th><th style="width:80px">Grade</th><th>Remarks</th></tr>
+            <tr><th>#</th><th>Roll No</th><th>Name</th><th style="width:130px">Marks (/ <?= $currentAssessment['max_marks'] ?>)</th><th style="width:80px">%</th><th style="width:80px">Grade</th><th>Remarks</th><th></th></tr>
           </thead>
           <tbody id="marksBody">
             <?php foreach ($students as $i => $st):
@@ -278,6 +278,7 @@ $links = getTeacherLinks();
               <td class="pct-cell"><?= $pct !== '' ? $pct.'%' : '—' ?></td>
               <td class="grade-cell"><?= $grade ? '<span class="grade '.$grade['class'].'">'.$grade['label'].'</span>' : '—' ?></td>
               <td><input type="text" name="marks[<?= $st['id'] ?>][remarks]" class="form-control form-control-sm" value="<?= h($remarks) ?>" placeholder="Optional"></td>
+              <td><a href="/portal/student/progress-report.php?student_id=<?= $st['id'] ?>" class="btn btn-xs btn-outline-info" target="_blank" style="font-size:.72rem;padding:2px 7px;white-space:nowrap" title="View Progress Report"><i class="fas fa-file-chart-bar"></i></a></td>
             </tr>
             <?php endforeach; ?>
           </tbody>
