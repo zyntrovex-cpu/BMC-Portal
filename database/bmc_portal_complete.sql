@@ -887,69 +887,69 @@ INSERT IGNORE INTO disability_subtypes (id, category_id, name) VALUES
 
 -- Admin
 INSERT IGNORE INTO users (id, user_id, name, email, password, role, status) VALUES
-  (1, 'ADM001', 'Mr. Tariq Mehmood', 'admin@bmc.edu.pk',
+  (1, '1001', 'Mr. Tariq Mehmood', 'admin@bmc.edu.pk',
    '$2y$12$qDfXpImX0o5JInILNE1j1u6B/xVuGE.n8gm/G6/c/jHnvxJlFbFmm', 'admin', 'active');
 
 -- Finance
 INSERT IGNORE INTO users (id, user_id, name, email, password, role, status) VALUES
-  (2, 'FIN001', 'Ms. Ayesha Rizvi', 'finance@bmc.edu.pk',
+  (2, '1002', 'Ms. Ayesha Rizvi', 'finance@bmc.edu.pk',
    '$2y$12$cIJe0/OLqblLe9DLbpqc8.BI3LFl5yxCgVBTRl2.fVxJ3nxrqEMHi', 'finance', 'active');
 
 -- ILC VP
 INSERT IGNORE INTO users (id, user_id, name, email, password, role, status) VALUES
-  (3, 'ILC001', 'Dr. Amna Siddiqui', 'amna.ilc@bmc.edu.pk',
+  (3, '1003', 'Dr. Amna Siddiqui', 'amna.ilc@bmc.edu.pk',
    '$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG', 'ilc_vp', 'active');
 
 -- Student Affairs
 INSERT IGNORE INTO users (id, user_id, name, email, password, role, status) VALUES
-  (4, 'SA001', 'Mr. Tariq Aziz', 'tariq.sa@bmc.edu.pk',
+  (4, '1004', 'Mr. Tariq Aziz', 'tariq.sa@bmc.edu.pk',
    '$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG', 'student_affairs', 'active');
 
 -- VP Main
 INSERT IGNORE INTO users (id, user_id, name, email, password, role, status) VALUES
-  (5, 'VP001', 'Mr. Asad Khan', 'asad.vp@bmc.edu.pk',
+  (5, '1005', 'Mr. Asad Khan', 'asad.vp@bmc.edu.pk',
    '$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG', 'vp_main', 'active');
 
 -- Wing Head
 INSERT IGNORE INTO users (id, user_id, name, email, password, role, status) VALUES
-  (6, 'WH001', 'Ms. Rubina Akhtar', 'rubina.wh@bmc.edu.pk',
+  (6, '1006', 'Ms. Rubina Akhtar', 'rubina.wh@bmc.edu.pk',
    '$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG', 'wing_head', 'active');
 
 -- Teachers (IDs 101–106)
 INSERT IGNORE INTO users (id, user_id, name, email, password, role, status) VALUES
-  (101, 'T001', 'Dr. Sarah Khan',     'sarah@bmc.edu.pk',   '$2y$12$wL3VFI9UOKWAnCPNKd6yZe.bJhiNbG4gFP2Pnmur1aqWJy.H9Xt/y', 'teacher', 'active'),
-  (102, 'T002', 'Mr. Hasan Ali',      'hasan@bmc.edu.pk',   '$2y$12$wL3VFI9UOKWAnCPNKd6yZe.bJhiNbG4gFP2Pnmur1aqWJy.H9Xt/y', 'teacher', 'active'),
-  (103, 'T003', 'Ms. Nadia Raza',     'nadia@bmc.edu.pk',   '$2y$12$wL3VFI9UOKWAnCPNKd6yZe.bJhiNbG4gFP2Pnmur1aqWJy.H9Xt/y', 'teacher', 'active'),
-  (104, 'T004', 'Dr. Amina Siddiqui', 'amina@bmc.edu.pk',   '$2y$12$wL3VFI9UOKWAnCPNKd6yZe.bJhiNbG4gFP2Pnmur1aqWJy.H9Xt/y', 'teacher', 'active'),
-  (105, 'T005', 'Mr. Imran Hassan',   'imran@bmc.edu.pk',   '$2y$12$wL3VFI9UOKWAnCPNKd6yZe.bJhiNbG4gFP2Pnmur1aqWJy.H9Xt/y', 'teacher', 'active'),
-  (106, 'T006', 'Mr. Farhan Ahmed',   'farhan@bmc.edu.pk',  '$2y$12$wL3VFI9UOKWAnCPNKd6yZe.bJhiNbG4gFP2Pnmur1aqWJy.H9Xt/y', 'teacher', 'active');
+  (101, '2001', 'Dr. Sarah Khan',     'sarah@bmc.edu.pk',   '$2y$12$wL3VFI9UOKWAnCPNKd6yZe.bJhiNbG4gFP2Pnmur1aqWJy.H9Xt/y', 'teacher', 'active'),
+  (102, '2002', 'Mr. Hasan Ali',      'hasan@bmc.edu.pk',   '$2y$12$wL3VFI9UOKWAnCPNKd6yZe.bJhiNbG4gFP2Pnmur1aqWJy.H9Xt/y', 'teacher', 'active'),
+  (103, '2003', 'Ms. Nadia Raza',     'nadia@bmc.edu.pk',   '$2y$12$wL3VFI9UOKWAnCPNKd6yZe.bJhiNbG4gFP2Pnmur1aqWJy.H9Xt/y', 'teacher', 'active'),
+  (104, '2004', 'Dr. Amina Siddiqui', 'amina@bmc.edu.pk',   '$2y$12$wL3VFI9UOKWAnCPNKd6yZe.bJhiNbG4gFP2Pnmur1aqWJy.H9Xt/y', 'teacher', 'active'),
+  (105, '2005', 'Mr. Imran Hassan',   'imran@bmc.edu.pk',   '$2y$12$wL3VFI9UOKWAnCPNKd6yZe.bJhiNbG4gFP2Pnmur1aqWJy.H9Xt/y', 'teacher', 'active'),
+  (106, '2006', 'Mr. Farhan Ahmed',   'farhan@bmc.edu.pk',  '$2y$12$wL3VFI9UOKWAnCPNKd6yZe.bJhiNbG4gFP2Pnmur1aqWJy.H9Xt/y', 'teacher', 'active');
 
 -- Students (IDs 201–215)
 INSERT IGNORE INTO users (id, user_id, name, email, password, role, status) VALUES
-  (201, 'STU001', 'Ahmed Ali',         'ahmed@bmc.edu.pk',   '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
-  (202, 'STU002', 'Fatima Noor',       'fatima@bmc.edu.pk',  '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
-  (203, 'STU003', 'Hassan Raza',       'hassan@bmc.edu.pk',  '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
-  (204, 'STU004', 'Iqra Shah',         'iqra@bmc.edu.pk',    '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
-  (205, 'STU005', 'Bilal Tariq',       'bilal@bmc.edu.pk',   '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
-  (206, 'STU006', 'Zara Iqbal',        'zara@bmc.edu.pk',    '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
-  (207, 'STU007', 'Saad Qureshi',      'saad@bmc.edu.pk',    '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
-  (208, 'STU008', 'Amna Zahid',        'amna@bmc.edu.pk',    '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
-  (209, 'STU009', 'Usman Ghani',       'usman@bmc.edu.pk',   '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
-  (210, 'STU010', 'Rabia Malik',       'rabia@bmc.edu.pk',   '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
-  (211, 'STU011', 'Faisal Khan',       'faisal@bmc.edu.pk',  '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
-  (212, 'STU012', 'Nida Ansari',       'nida@bmc.edu.pk',    '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
-  (213, 'STU013', 'Asad Mehmood',      'asad@bmc.edu.pk',    '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
-  (214, 'STU014', 'Sana Butt',         'sana@bmc.edu.pk',    '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
-  (215, 'STU015', 'Kamran Elahi',      'kamran@bmc.edu.pk',  '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active');
+  (201, '3001', 'Ahmed Ali',         'ahmed@bmc.edu.pk',   '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
+  (202, '3002', 'Fatima Noor',       'fatima@bmc.edu.pk',  '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
+  (203, '3003', 'Hassan Raza',       'hassan@bmc.edu.pk',  '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
+  (204, '3004', 'Iqra Shah',         'iqra@bmc.edu.pk',    '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
+  (205, '3005', 'Bilal Tariq',       'bilal@bmc.edu.pk',   '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
+  (206, '3006', 'Zara Iqbal',        'zara@bmc.edu.pk',    '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
+  (207, '3007', 'Saad Qureshi',      'saad@bmc.edu.pk',    '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
+  (208, '3008', 'Amna Zahid',        'amna@bmc.edu.pk',    '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
+  (209, '3009', 'Usman Ghani',       'usman@bmc.edu.pk',   '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
+  (210, '3010', 'Rabia Malik',       'rabia@bmc.edu.pk',   '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
+  (211, '3011', 'Faisal Khan',       'faisal@bmc.edu.pk',  '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
+  (212, '3012', 'Nida Ansari',       'nida@bmc.edu.pk',    '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
+  (213, '3013', 'Asad Mehmood',      'asad@bmc.edu.pk',    '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
+  (214, '3014', 'Sana Butt',         'sana@bmc.edu.pk',    '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active'),
+  (215, '3015', 'Kamran Elahi',      'kamran@bmc.edu.pk',  '$2y$12$yQmv/GNaEXY/.UZX9xVbIeN4Dm5sOTIUBkrwjQs6HvGb1OL4uYvRC', 'student', 'active');
 
 -- ── Teachers ──────────────────────────────────────────────────────
 INSERT IGNORE INTO teachers (id, user_id, emp_id, subject_id, designation, qualification, join_date) VALUES
-  (1, 101, 'T001', 1, 'Senior Teacher',   'M.Phil Physics',          '2019-09-05'),
-  (2, 102, 'T002', 2, 'Subject Teacher',  'M.Sc Mathematics',        '2021-03-10'),
-  (3, 103, 'T003', 3, 'Subject Teacher',  'M.A English',             '2020-08-20'),
-  (4, 104, 'T004', 4, 'Senior Teacher',   'M.Sc Chemistry',          '2022-01-15'),
-  (5, 105, 'T005', 5, 'Subject Teacher',  'M.Sc Biology',            '2021-07-12'),
-  (6, 106, 'T006', 6, 'Subject Teacher',  'B.Sc Computer Science',   '2023-02-01');
+  (1, 101, '2001', 1, 'Senior Teacher',   'M.Phil Physics',          '2019-09-05'),
+  (2, 102, '2002', 2, 'Subject Teacher',  'M.Sc Mathematics',        '2021-03-10'),
+  (3, 103, '2003', 3, 'Subject Teacher',  'M.A English',             '2020-08-20'),
+  (4, 104, '2004', 4, 'Senior Teacher',   'M.Sc Chemistry',          '2022-01-15'),
+  (5, 105, '2005', 5, 'Subject Teacher',  'M.Sc Biology',            '2021-07-12'),
+  (6, 106, '2006', 6, 'Subject Teacher',  'B.Sc Computer Science',   '2023-02-01');
 
 -- ── Students ──────────────────────────────────────────────────────
 -- All in class 12-A (id=16)
@@ -958,49 +958,49 @@ INSERT IGNORE INTO students
    phone, address, parent_phone, parent_email, admission_date,
    blood_group, nationality, religion, academic_group)
 VALUES
-  (1,  201, 'STU001', 16, 1, 'Muhammad Ali',   '2007-03-15', 'male',
+  (1,  201, '3001', 16, 1, 'Muhammad Ali',   '2007-03-15', 'male',
    '0300-1234567', 'House 12, Block B, Bahria Town', '0321-9876543', 'mali@gmail.com', '2022-04-01',
    'B+', 'Pakistani', 'Islam', 'Science'),
-  (2,  202, 'STU002', 16, 2, 'Noor Ahmed',     '2007-07-22', 'female',
+  (2,  202, '3002', 16, 2, 'Noor Ahmed',     '2007-07-22', 'female',
    '0301-2345678', 'House 34, Block C, Bahria Town', '0322-8765432', 'noor@gmail.com', '2022-04-01',
    'O+', 'Pakistani', 'Islam', 'Science'),
-  (3,  203, 'STU003', 16, 3, 'Raza Khan',      '2007-01-10', 'male',
+  (3,  203, '3003', 16, 3, 'Raza Khan',      '2007-01-10', 'male',
    '0302-3456789', 'Flat 5, Tower A, Bahria Town',   '0323-7654321', 'raza@gmail.com', '2022-04-01',
    'A+', 'Pakistani', 'Islam', 'Pre-Medical'),
-  (4,  204, 'STU004', 16, 4, 'Shahid Hussain', '2007-11-05', 'female',
+  (4,  204, '3004', 16, 4, 'Shahid Hussain', '2007-11-05', 'female',
    '0303-4567890', 'House 78, Street 3, Bahria Town','0324-6543210', 'shah@gmail.com', '2022-04-01',
    'A-', 'Pakistani', 'Islam', 'Science'),
-  (5,  205, 'STU005', 16, 1, 'Tariq Mehmood',  '2007-08-18', 'male',
+  (5,  205, '3005', 16, 1, 'Tariq Mehmood',  '2007-08-18', 'male',
    '0304-5678901', 'House 22, Block D, Bahria Town', '0325-5432109', 'tariq@gmail.com', '2022-04-01',
    'B-', 'Pakistani', 'Islam', 'Commerce'),
-  (6,  206, 'STU006', 16, 2, 'Iqbal Hussain',  '2007-06-25', 'female',
+  (6,  206, '3006', 16, 2, 'Iqbal Hussain',  '2007-06-25', 'female',
    '0305-6789012', 'House 56, Street 9, Bahria Town','0326-4321098', 'iqb@gmail.com', '2022-04-01',
    'O-', 'Pakistani', 'Islam', 'Science'),
-  (7,  207, 'STU007', 16, 3, 'Qureshi Sahib',  '2007-04-12', 'male',
+  (7,  207, '3007', 16, 3, 'Qureshi Sahib',  '2007-04-12', 'male',
    '0306-7890123', 'House 88, Block E, Bahria Town', '0327-3210987', 'qur@gmail.com', '2022-04-01',
    'AB+','Pakistani', 'Islam', 'Arts'),
-  (8,  208, 'STU008', 16, 4, 'Zahid Ali',      '2007-09-30', 'female',
+  (8,  208, '3008', 16, 4, 'Zahid Ali',      '2007-09-30', 'female',
    '0307-8901234', 'House 10, Street 7, Bahria Town','0328-2109876', 'zah@gmail.com', '2022-04-01',
    'A+', 'Pakistani', 'Islam', 'Science'),
-  (9,  209, 'STU009', 16, 1, 'Ghani Sahib',    '2007-12-14', 'male',
+  (9,  209, '3009', 16, 1, 'Ghani Sahib',    '2007-12-14', 'male',
    '0308-9012345', 'House 43, Block F, Bahria Town', '0329-1098765', 'gha@gmail.com', '2022-04-01',
    'B+', 'Pakistani', 'Islam', 'Pre-Medical'),
-  (10, 210, 'STU010', 16, 2, 'Malik Sahib',    '2007-02-08', 'female',
+  (10, 210, '3010', 16, 2, 'Malik Sahib',    '2007-02-08', 'female',
    '0309-0123456', 'House 67, Street 2, Bahria Town','0330-0987654', 'mal@gmail.com', '2022-04-01',
    'O+', 'Pakistani', 'Islam', 'Arts'),
-  (11, 211, 'STU011', 16, 3, 'Khan Bahadur',   '2007-05-20', 'male',
+  (11, 211, '3011', 16, 3, 'Khan Bahadur',   '2007-05-20', 'male',
    '0310-1234560', 'House 91, Block G, Bahria Town', '0331-9876540', 'kha@gmail.com', '2022-04-01',
    'A-', 'Pakistani', 'Islam', 'Commerce'),
-  (12, 212, 'STU012', 16, 4, 'Ansari Sahib',   '2007-10-03', 'female',
+  (12, 212, '3012', 16, 4, 'Ansari Sahib',   '2007-10-03', 'female',
    '0311-2345671', 'House 25, Street 6, Bahria Town','0332-8765431', 'ans@gmail.com', '2022-04-01',
    'B-', 'Pakistani', 'Islam', 'Science'),
-  (13, 213, 'STU013', 16, 1, 'Mehmood Sahib',  '2007-07-17', 'male',
+  (13, 213, '3013', 16, 1, 'Mehmood Sahib',  '2007-07-17', 'male',
    '0312-3456782', 'House 49, Block H, Bahria Town', '0333-7654322', 'meh@gmail.com', '2022-04-01',
    'AB-','Pakistani', 'Islam', 'Pre-Medical'),
-  (14, 214, 'STU014', 16, 2, 'Butt Sahib',     '2007-03-28', 'female',
+  (14, 214, '3014', 16, 2, 'Butt Sahib',     '2007-03-28', 'female',
    '0313-4567893', 'House 73, Street 1, Bahria Town','0334-6543213', 'but@gmail.com', '2022-04-01',
    'O-', 'Pakistani', 'Islam', 'Science'),
-  (15, 215, 'STU015', 16, 3, 'Elahi Sahib',    '2007-09-11', 'male',
+  (15, 215, '3015', 16, 3, 'Elahi Sahib',    '2007-09-11', 'male',
    '0314-5678904', 'House 97, Block I, Bahria Town', '0335-5432104', 'ela@gmail.com', '2022-04-01',
    'A+', 'Pakistani', 'Islam', 'Commerce');
 
@@ -1274,15 +1274,25 @@ INSERT IGNORE INTO site_events (title, slug, description, event_date, event_time
 -- ============================================================
 --  SUMMARY
 -- ============================================================
--- Portal login credentials:
---   admin@bmc.edu.pk   / admin123    (role: admin)
---   finance@bmc.edu.pk / finance123  (role: finance)
---   sarah@bmc.edu.pk   / teacher123  (T001 Physics — role: teacher)
---   ahmed@bmc.edu.pk   / student123  (STU001 — role: student, class 12-A)
---   amna.ilc@bmc.edu.pk / Admin@2025 (ILC VP)
---   tariq.sa@bmc.edu.pk / Admin@2025 (Student Affairs)
---   asad.vp@bmc.edu.pk  / Admin@2025 (VP Main)
---   rubina.wh@bmc.edu.pk/ Admin@2025 (Wing Head)
+-- Portal login credentials (use email OR numeric user_id to log in):
+--
+--   Email                  Password     user_id  Role
+--   admin@bmc.edu.pk       admin123     1001     Admin
+--   finance@bmc.edu.pk     finance123   1002     Finance
+--   amna.ilc@bmc.edu.pk    Admin@2025   1003     ILC VP
+--   tariq.sa@bmc.edu.pk    Admin@2025   1004     Student Affairs
+--   asad.vp@bmc.edu.pk     Admin@2025   1005     VP Main
+--   rubina.wh@bmc.edu.pk   Admin@2025   1006     Wing Head
+--   sarah@bmc.edu.pk       teacher123   2001     Teacher (Physics)
+--   hasan@bmc.edu.pk       teacher123   2002     Teacher (Mathematics)
+--   nadia@bmc.edu.pk       teacher123   2003     Teacher (English)
+--   amina@bmc.edu.pk       teacher123   2004     Teacher (Chemistry)
+--   imran@bmc.edu.pk       teacher123   2005     Teacher (Biology)
+--   farhan@bmc.edu.pk      teacher123   2006     Teacher (CS)
+--   ahmed@bmc.edu.pk       student123   3001     Student (12-A)
+--   fatima@bmc.edu.pk      student123   3002     Student (12-A)
+--   hassan@bmc.edu.pk      student123   3003     Student (12-A)
+--   ... (3004–3015 follow same pattern)
 --
 -- Website admin:
 --   admin@bmc.edu.pk / Admin@2025
