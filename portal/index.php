@@ -37,32 +37,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $st->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
-            session_regenerate_id(true);
-            $db->prepare('UPDATE users SET last_login = NOW() WHERE id = ?')->execute([$user['id']]);
-            $_SESSION['user'] = [
-                'id'      => $user['id'],
-                'user_id' => $user['user_id'],
-                'name'    => $user['name'],
-                'role'    => $user['role'],
-                'email'   => $user['email'] ?? '',
-            ];
-            try {
-                $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-                $db->prepare('INSERT INTO activity_log (user_id, action, details, ip_address) VALUES (?,?,?,?)')
-                   ->execute([$user['id'], 'login', 'Logged in', $ip]);
-            } catch (Exception $e) {}
 
-            $map = [
-                'student'        => '/portal/student/dashboard.php',
-                'teacher'        => '/portal/teacher/dashboard.php',
-                'admin'          => '/portal/admin/dashboard.php',
-                'finance'        => '/portal/finance/dashboard.php',
-                'ilc_vp'         => '/portal/ilc/dashboard.php',
-                'student_affairs'=> '/portal/student-affairs/dashboard.php',
-                'vp_main'        => '/portal/vp/dashboard.php',
-                'wing_head'      => '/portal/wing-head/dashboard.php',
-            ];
-            redirect($map[$user['role']] ?? '/portal/index.php');
+            // ── Role / portal-type restriction ────────────────────────
+            $selectedType  = $_POST['user_type'] ?? 'student';
+            $isStudentRole = $user['role'] === 'student';
+
+            if ($selectedType === 'student' && !$isStudentRole) {
+                $error = 'This ID belongs to a staff account. Please go back and use the <strong>Staff</strong> login.';
+            } elseif ($selectedType === 'staff' && $isStudentRole) {
+                $error = 'This ID belongs to a student account. Please go back and use the <strong>Student</strong> login.';
+            } else {
+                // Credentials + type both match — proceed
+                session_regenerate_id(true);
+                $db->prepare('UPDATE users SET last_login = NOW() WHERE id = ?')->execute([$user['id']]);
+                $_SESSION['user'] = [
+                    'id'      => $user['id'],
+                    'user_id' => $user['user_id'],
+                    'name'    => $user['name'],
+                    'role'    => $user['role'],
+                    'email'   => $user['email'] ?? '',
+                ];
+                try {
+                    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+                    $db->prepare('INSERT INTO activity_log (user_id, action, details, ip_address) VALUES (?,?,?,?)')
+                       ->execute([$user['id'], 'login', 'Logged in', $ip]);
+                } catch (Exception $e) {}
+
+                $map = [
+                    'student'        => '/portal/student/dashboard.php',
+                    'teacher'        => '/portal/teacher/dashboard.php',
+                    'admin'          => '/portal/admin/dashboard.php',
+                    'finance'        => '/portal/finance/dashboard.php',
+                    'ilc_vp'         => '/portal/ilc/dashboard.php',
+                    'student_affairs'=> '/portal/student-affairs/dashboard.php',
+                    'vp_main'        => '/portal/vp/dashboard.php',
+                    'wing_head'      => '/portal/wing-head/dashboard.php',
+                ];
+                redirect($map[$user['role']] ?? '/portal/index.php');
+            }
         } else {
             $error = 'Invalid User ID or password.';
         }
@@ -389,7 +401,7 @@ body {
       </button>
 
       <?php if ($error): ?>
-        <div class="alert-msg alert-error-msg"><i class="fas fa-exclamation-circle"></i><?= htmlspecialchars($error) ?></div>
+        <div class="alert-msg alert-error-msg"><i class="fas fa-exclamation-circle"></i><?= $error ?></div>
       <?php endif; ?>
 
       <!-- Wing tiles — only for students -->
