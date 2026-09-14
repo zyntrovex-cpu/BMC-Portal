@@ -278,6 +278,7 @@ function getAdminLinks(): array {
         ['href'=>'/portal/admin/view-as.php',            'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',      'key'=>'viewas'],
         ['href'=>'/portal/admin/activity.php',           'icon'=>'<i class="fas fa-history"></i>',            'label'=>'Activity Log',      'key'=>'activity'],
         ['href'=>'/portal/admin/settings.php',           'icon'=>'<i class="fas fa-cog"></i>',               'label'=>'Settings',           'key'=>'settings'],
+        ['href'=>'/portal/admin/profile.php',            'icon'=>'<i class="fas fa-user-circle"></i>',        'label'=>'My Profile',         'key'=>'profile'],
     ];
 }
 
@@ -285,6 +286,7 @@ function getAdminLinks(): array {
 function getTeacherLinks(): array {
     return array_values(array_filter([
         ['href'=>'/portal/teacher/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',                'label'=>'Dashboard',           'key'=>'dashboard'],
+        ['href'=>'/portal/teacher/profile.php',   'icon'=>'<i class="fas fa-user-circle"></i>',         'label'=>'My Profile',          'key'=>'profile'],
         hasPermission('marks')      ? ['href'=>'/portal/teacher/marks.php',      'icon'=>'<i class="fas fa-pen-alt"></i>',              'label'=>'Assessments & Marks', 'key'=>'marks']       : null,
         hasPermission('attendance') ? ['href'=>'/portal/teacher/attendance.php', 'icon'=>'<i class="fas fa-calendar-check"></i>',       'label'=>'Attendance',          'key'=>'attendance']  : null,
         hasPermission('timetable')  ? ['href'=>'/portal/teacher/timetable.php',  'icon'=>'<i class="fas fa-table"></i>',                'label'=>'My Timetable',        'key'=>'timetable']   : null,

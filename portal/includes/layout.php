@@ -93,7 +93,7 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
     $profileMap = [
         'student'         => ['href'=>$base.'/portal/student/profile.php',          'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
         'teacher'         => ['href'=>$base.'/portal/teacher/profile.php',          'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
-        'admin'           => ['href'=>$base.'/portal/admin/settings.php',           'label'=>'Settings',   'key'=>'settings','icon'=>'fas fa-cog'],
+        'admin'           => ['href'=>$base.'/portal/admin/profile.php',            'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
         'finance'         => ['href'=>$base.'/portal/finance/profile.php',          'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
         'ilc_vp'          => ['href'=>$base.'/portal/ilc/profile.php',              'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
         'student_affairs' => ['href'=>$base.'/portal/student-affairs/profile.php',  'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
