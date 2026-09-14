@@ -142,6 +142,7 @@ pageHead('Dashboard', 'teacher');
             <h4 class="mb-1 text-white fw-bold">Welcome, <?= h($user['name']) ?>!</h4>
             <div class="text-white opacity-75" style="font-size:13px;">
                 <?= h($teacher['subject_name'] ?? 'Teacher') ?> &mdash; <?= h($teacher['emp_id'] ?? $user['user_id']) ?>
+                &nbsp;|&nbsp; <?= wingLabel($teacher['wing'] ?? 'main') ?>
                 &nbsp;|&nbsp; Session <?= SESSION_YEAR ?>
             </div>
         </div>

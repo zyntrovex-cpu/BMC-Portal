@@ -121,6 +121,7 @@ $links = getStudentLinks();
       <h5 class="mb-1 fw-bold text-white">Welcome, <?= h($student['name']) ?>!</h5>
       <small style="color:rgba(255,255,255,.82)">
         Class: <?= h($student['class_name']) ?> &nbsp;&middot;&nbsp; Roll No: <?= h($student['roll_no']) ?>
+        &nbsp;&middot;&nbsp; <?= wingLabel($studentWing) ?>
         &nbsp;&middot;&nbsp; <?= date('l, d M Y') ?>
       </small>
       </div><!-- /text -->

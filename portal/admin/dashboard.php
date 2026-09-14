@@ -56,7 +56,7 @@ echo flashHtml();
       endif; ?>
     <div>
       <h5 class="mb-1 fw-bold text-white">Welcome, <?= h($user['name']) ?>!</h5>
-      <small style="color:rgba(255,255,255,.82)">Admin Portal &nbsp;&middot;&nbsp; <?= date('l, d M Y') ?></small>
+      <small style="color:rgba(255,255,255,.82)">Admin Portal &nbsp;&middot;&nbsp; All Wings &nbsp;&middot;&nbsp; <?= date('l, d M Y') ?></small>
     </div>
   </div>
 </div>

@@ -50,7 +50,8 @@ $links = getStudentAffairsLinks();
     <div>
       <h4 class="mb-1 text-white fw-bold" style="font-size:1.1rem">Welcome, <?= h($user['name']) ?>!</h4>
       <div style="color:rgba(255,255,255,.75);font-size:.82rem">
-        Student Affairs Office &nbsp;&middot;&nbsp; <?= h($user['user_id']) ?> &nbsp;&middot;&nbsp; Session <?= SESSION_YEAR ?>
+        Student Affairs Office &nbsp;&middot;&nbsp; <?= h($user['user_id']) ?>
+        &nbsp;&middot;&nbsp; <?= wingBadge('main') ?> &nbsp;&middot;&nbsp; Session <?= SESSION_YEAR ?>
       </div>
     </div>
     <div class="ms-auto d-none d-md-block" style="opacity:.12;">

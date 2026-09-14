@@ -118,6 +118,10 @@ $links = getAdminLinks();
             <td><?= h($adminUser['email'] ?: '—') ?></td>
           </tr>
           <tr>
+            <th style="color:#6b7280;font-weight:500">Wing</th>
+            <td><span style="display:inline-block;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:20px;background:#7c3aed;color:#fff">All Wings</span></td>
+          </tr>
+          <tr>
             <th style="color:#6b7280;font-weight:500">Status</th>
             <td><span class="badge bg-success" style="font-size:.72rem">Active</span></td>
           </tr>

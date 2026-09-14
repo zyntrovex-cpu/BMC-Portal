@@ -10,6 +10,8 @@ $db   = getDB();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
+    $allowedWings = ['main', 'montessori', 'ilc'];
+
     if ($action === 'add_teacher') {
         $name     = trim($_POST['name']    ?? '');
         $empId    = trim($_POST['emp_id']  ?? '');
@@ -17,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = trim($_POST['password'] ?? '');
         $subjectId = (int)$_POST['subject_id'];
         $qual      = trim($_POST['qualification'] ?? '');
+        $wing      = in_array($_POST['wing'] ?? '', $allowedWings) ? $_POST['wing'] : 'main';
 
         if ($name && $empId && $password) {
             $check = $db->prepare('SELECT id FROM users WHERE user_id = ?');
@@ -30,9 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $db->prepare('INSERT INTO users (user_id, name, email, password, role, status) VALUES (?,?,?,?,?,?)')
                    ->execute([$empId, $name, $email ?: null, $hash, 'teacher', 'active']);
                 $newId = (int)$db->lastInsertId();
-                $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification, phone, join_date) VALUES (?,?,?,?,?,?)')
-                   ->execute([$newId, $empId, $subjectId ?: null, $qual, $phone ?: null, $joinDate]);
-                logActivity($user['id'], 'teacher_create', "Created teacher $empId");
+                $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification, phone, join_date, wing) VALUES (?,?,?,?,?,?,?)')
+                   ->execute([$newId, $empId, $subjectId ?: null, $qual, $phone ?: null, $joinDate, $wing]);
+                logActivity($user['id'], 'teacher_create', "Created teacher $empId (wing: $wing)");
                 setFlash('success', "Teacher $name created.");
             }
         } else {
@@ -45,7 +48,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $phone = trim($_POST['phone'] ?? '');
         $qual  = trim($_POST['qualification'] ?? '');
         $subjectId = (int)$_POST['subject_id'];
-        $db->prepare('UPDATE teachers SET phone=?, qualification=?, subject_id=? WHERE id=?')->execute([$phone, $qual, $subjectId ?: null, $id]);
+        $wing  = in_array($_POST['wing'] ?? '', $allowedWings) ? $_POST['wing'] : 'main';
+        $db->prepare('UPDATE teachers SET phone=?, qualification=?, subject_id=?, wing=? WHERE id=?')
+           ->execute([$phone, $qual, $subjectId ?: null, $wing, $id]);
+        logActivity($user['id'], 'teacher_edit', "Updated teacher #$id wing → $wing");
         setFlash('success', 'Teacher updated.');
     }
 
@@ -107,6 +113,13 @@ $links = getAdminLinks();
           <div class="col-md-4"><label class="form-label fw-semibold" style="font-size:.82rem">Qualification</label><input type="text" name="qualification" class="form-control form-control-sm" placeholder="e.g. M.Phil Chemistry"></div>
           <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:.82rem">Phone</label><input type="tel" name="phone" class="form-control form-control-sm" placeholder="+92..."></div>
           <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:.82rem">Join Date</label><input type="date" name="join_date" class="form-control form-control-sm" value="<?= date('Y-m-d') ?>"></div>
+          <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:.82rem">Wing</label>
+            <select name="wing" class="form-select form-select-sm">
+              <option value="main">Main Wing</option>
+              <option value="montessori">Montessori</option>
+              <option value="ilc">ILC</option>
+            </select>
+          </div>
           <div class="col-md-2 d-flex align-items-end"><button type="submit" class="btn btn-sm btn-success w-100">Add Teacher</button></div>
         </div>
       </form>
@@ -119,12 +132,13 @@ $links = getAdminLinks();
   <div class="sec-card-header"><i class="fas fa-chalkboard-teacher me-2"></i>All Teachers (<?= count($teachers) ?>)</div>
   <div class="table-responsive">
     <table class="table table-hover mb-0" style="font-size:.84rem">
-      <thead class="table-light"><tr><th>Name</th><th>ID</th><th>Subject</th><th>Qualification</th><th>Classes</th><th>Status</th><th>Last Login</th><th></th></tr></thead>
+      <thead class="table-light"><tr><th>Name</th><th>ID</th><th>Wing</th><th>Subject</th><th>Qualification</th><th>Classes</th><th>Status</th><th>Last Login</th><th></th></tr></thead>
       <tbody>
         <?php foreach ($teachers as $t): ?>
         <tr>
           <td class="fw-semibold"><?= h($t['name']) ?></td>
           <td><?= h($t['uid']) ?></td>
+          <td><?= wingBadge($t['wing'] ?? 'main') ?></td>
           <td><?= h($t['subject_name'] ?? '—') ?></td>
           <td style="font-size:.8rem"><?= h($t['qualification'] ?: '—') ?></td>
           <td><?= $t['class_count'] ?></td>
@@ -134,7 +148,8 @@ $links = getAdminLinks();
             <button class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:2px 7px"
                     data-bs-toggle="modal" data-bs-target="#editTeacherModal"
                     data-id="<?= $t['id'] ?>" data-phone="<?= h($t['phone'] ?? '') ?>"
-                    data-qual="<?= h($t['qualification'] ?? '') ?>" data-subject="<?= $t['subject_id'] ?>">Edit</button>
+                    data-qual="<?= h($t['qualification'] ?? '') ?>" data-subject="<?= $t['subject_id'] ?>"
+                    data-wing="<?= h($t['wing'] ?? 'main') ?>">Edit</button>
             <form method="POST" class="d-inline">
               <input type="hidden" name="action" value="toggle_status">
               <input type="hidden" name="user_id" value="<?= $t['users_id'] ?>">
@@ -165,6 +180,13 @@ $links = getAdminLinks();
               <?php foreach ($subjects as $s): ?><option value="<?= $s['id'] ?>"><?= h($s['name']) ?></option><?php endforeach; ?>
             </select>
           </div>
+          <div class="mb-3"><label class="form-label fw-semibold" style="font-size:.85rem">Wing</label>
+            <select name="wing" id="editWing" class="form-select">
+              <option value="main">Main Wing</option>
+              <option value="montessori">Montessori</option>
+              <option value="ilc">ILC</option>
+            </select>
+          </div>
         </div>
         <div class="modal-footer"><button type="submit" class="btn btn-sm btn-success">Save</button></div>
       </form>
@@ -177,10 +199,11 @@ $links = getAdminLinks();
 <script>
 document.getElementById('editTeacherModal').addEventListener('show.bs.modal', e => {
     const btn = e.relatedTarget;
-    document.getElementById('editTeacherId').value = btn.dataset.id;
-    document.getElementById('editPhone').value     = btn.dataset.phone;
-    document.getElementById('editQual').value      = btn.dataset.qual;
-    document.getElementById('editSubjectId').value = btn.dataset.subject;
+    document.getElementById('editTeacherId').value  = btn.dataset.id;
+    document.getElementById('editPhone').value      = btn.dataset.phone;
+    document.getElementById('editQual').value       = btn.dataset.qual;
+    document.getElementById('editSubjectId').value  = btn.dataset.subject;
+    document.getElementById('editWing').value       = btn.dataset.wing || 'main';
 });
 </script>
 </body></html>

@@ -93,7 +93,8 @@ $links = getFinanceLinks();
       <div>
       <h5 class="mb-1 fw-bold text-white">Welcome, <?= h($user['name']) ?>!</h5>
       <small style="color:rgba(255,255,255,.82)">
-        Finance Portal &nbsp;&middot;&nbsp; <?= $monthNames[$curMonth] . ' ' . $curYear ?>
+        Finance Portal &nbsp;&middot;&nbsp; All Wings
+        &nbsp;&middot;&nbsp; <?= $monthNames[$curMonth] . ' ' . $curYear ?>
         &nbsp;&middot;&nbsp; <?= date('l, d M Y') ?>
       </small>
       </div><!-- /text -->

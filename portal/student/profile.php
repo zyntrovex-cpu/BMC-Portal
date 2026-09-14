@@ -179,6 +179,8 @@ $links = getStudentLinks();
         <div class="bio-section-label">Academic Information</div>
         <table class="table table-sm mb-2" style="font-size:.86rem">
           <tr><th style="width:42%;color:#6b7280;font-weight:500">Class</th><td><?= h($student['class_name']) ?></td></tr>
+          <tr><th style="color:#6b7280;font-weight:500">Wing</th>
+              <td><?= wingBadge($student['wing'] ?? 'main') ?></td></tr>
           <?php bioRow('Academic Group', $student['academic_group'] ?? null); ?>
           <?php bioRow('Category', $student['category'] ?? null); ?>
           <?php if ($houseName): ?>

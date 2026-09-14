@@ -127,6 +127,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $db->prepare('UPDATE students SET class_id=? WHERE user_id=?')->execute([$cId, $id]);
             }
 
+            if ($uRole === 'teacher' && isset($_POST['wing'])) {
+                $allowedWings = ['main', 'montessori', 'ilc'];
+                $w = in_array($_POST['wing'], $allowedWings) ? $_POST['wing'] : 'main';
+                $db->prepare('UPDATE teachers SET wing=? WHERE user_id=?')->execute([$w, $id]);
+            }
+
             // Save permissions if role has them
             $rolePerms = getRolePermissions($uRole);
             if ($rolePerms) {

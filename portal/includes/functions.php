@@ -6,6 +6,27 @@ function h(mixed $v): string {
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 
+/** Canonical wing label for display. */
+function wingLabel(string $wing): string {
+    return match($wing) {
+        'montessori' => 'Montessori',
+        'ilc'        => 'ILC',
+        default      => 'Main Wing',
+    };
+}
+
+/** Wing badge HTML (coloured pill). */
+function wingBadge(string $wing): string {
+    [$label, $color] = match($wing) {
+        'montessori' => ['Montessori', '#059669'],
+        'ilc'        => ['ILC',        '#0891b2'],
+        default      => ['Main Wing',  '#2563eb'],
+    };
+    return '<span style="display:inline-block;font-size:.72rem;font-weight:700;padding:2px 9px;'
+         . 'border-radius:20px;background:' . $color . ';color:#fff;letter-spacing:.3px">'
+         . $label . '</span>';
+}
+
 function redirect(string $url): never {
     // Prepend BASE_URL for site-relative paths so subdirectory installs work
     if (str_starts_with($url, '/') && defined('BASE_URL') && BASE_URL !== '') {
@@ -63,7 +84,8 @@ function getClassStudents(int $classId): array {
 
 function getStudentByUserId(int $userId): ?array {
     $st = getDB()->prepare(
-        'SELECT s.*, u.name, u.email, u.user_id AS login_id, c.name AS class_name
+        'SELECT s.*, u.name, u.email, u.user_id AS login_id,
+                c.name AS class_name, c.wing AS wing
          FROM students s
          JOIN users u ON s.user_id = u.id
          LEFT JOIN classes c ON s.class_id = c.id
@@ -75,7 +97,8 @@ function getStudentByUserId(int $userId): ?array {
 
 function getTeacherByUserId(int $userId): ?array {
     $st = getDB()->prepare(
-        'SELECT t.*, u.name, u.email, u.user_id AS emp_id_login, sb.name AS subject_name, sb.code AS subject_code
+        'SELECT t.*, u.name, u.email, u.user_id AS emp_id_login,
+                sb.name AS subject_name, sb.code AS subject_code
          FROM teachers t
          JOIN users u ON t.user_id = u.id
          LEFT JOIN subjects sb ON t.subject_id = sb.id
