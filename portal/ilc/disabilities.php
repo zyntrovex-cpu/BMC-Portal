@@ -8,6 +8,62 @@ $user = requireAuth('ilc_vp');
 requirePermission('ilc_disabilities');
 $db   = getDB();
 
+// ── POST: add/delete category or subtype ──────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    if ($action === 'add_category') {
+        $name = trim($_POST['cat_name'] ?? '');
+        if ($name) {
+            try {
+                $db->prepare('INSERT INTO disability_categories (name) VALUES (?)')->execute([$name]);
+                logActivity($user['id'], 'disability_cat_add', "Added category: $name");
+                setFlash('success', "Category "$name" added.");
+            } catch (Exception $e) {
+                setFlash('danger', 'Could not add category (may already exist).');
+            }
+        } else {
+            setFlash('danger', 'Category name is required.');
+        }
+    }
+
+    if ($action === 'add_subtype') {
+        $catId = (int)($_POST['sub_cat_id'] ?? 0);
+        $name  = trim($_POST['sub_name'] ?? '');
+        if ($catId && $name) {
+            try {
+                $db->prepare('INSERT INTO disability_subtypes (category_id, name) VALUES (?,?)')->execute([$catId, $name]);
+                logActivity($user['id'], 'disability_subtype_add', "Added subtype: $name (cat #$catId)");
+                setFlash('success', "Subtype "$name" added.");
+            } catch (Exception $e) {
+                setFlash('danger', 'Could not add subtype (may already exist).');
+            }
+        } else {
+            setFlash('danger', 'Category and subtype name are required.');
+        }
+    }
+
+    if ($action === 'delete_category') {
+        $id = (int)($_POST['cat_id'] ?? 0);
+        if ($id) {
+            $db->prepare('DELETE FROM disability_categories WHERE id = ?')->execute([$id]);
+            logActivity($user['id'], 'disability_cat_delete', "Deleted category #$id");
+            setFlash('success', 'Category deleted.');
+        }
+    }
+
+    if ($action === 'delete_subtype') {
+        $id = (int)($_POST['sub_id'] ?? 0);
+        if ($id) {
+            $db->prepare('DELETE FROM disability_subtypes WHERE id = ?')->execute([$id]);
+            logActivity($user['id'], 'disability_subtype_delete', "Deleted subtype #$id");
+            setFlash('success', 'Subtype deleted.');
+        }
+    }
+
+    redirect('/portal/ilc/disabilities.php');
+}
+
 $catFilter = (int)($_GET['cat'] ?? 0);
 $search    = trim($_GET['q'] ?? '');
 
@@ -40,7 +96,8 @@ $st = $db->prepare($sql);
 $st->execute($params);
 $records = $st->fetchAll();
 
-$categories = $db->query('SELECT * FROM disability_categories ORDER BY name')->fetchAll();
+$categories    = $db->query('SELECT * FROM disability_categories ORDER BY name')->fetchAll();
+$allSubtypes   = $db->query('SELECT dst.*, dc.name AS cat_name FROM disability_subtypes dst JOIN disability_categories dc ON dc.id=dst.category_id ORDER BY dc.name, dst.name')->fetchAll();
 
 // Category counts for summary
 $catCounts = $db->query(
@@ -143,6 +200,107 @@ $links = getIlcLinks();
         </table>
       </div>
       <?php endif; ?>
+    </div>
+  </div>
+</div>
+
+<!-- Manage Taxonomy: Categories + Subtypes -->
+<div class="row g-3 mt-1">
+  <div class="col-lg-6">
+    <div class="sec-card">
+      <div class="sec-card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-tags me-2"></i>Manage Categories</span>
+        <button class="btn btn-xs btn-success" data-bs-toggle="collapse" data-bs-target="#addCatForm" style="font-size:.76rem;padding:2px 9px">
+          <i class="fas fa-plus me-1"></i>Add
+        </button>
+      </div>
+      <!-- Add category form (collapsed by default) -->
+      <div id="addCatForm" class="collapse" style="padding:12px 16px;border-bottom:1px solid var(--border)">
+        <form method="POST" class="d-flex gap-2">
+          <input type="hidden" name="action" value="add_category">
+          <input type="text" name="cat_name" class="form-control form-control-sm" placeholder="New category name…" required style="max-width:220px">
+          <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-plus me-1"></i>Add</button>
+        </form>
+      </div>
+      <div style="padding:0">
+        <?php if (empty($categories)): ?>
+        <div style="padding:20px;text-align:center;color:var(--t2);font-size:.84rem">No categories yet.</div>
+        <?php else: ?>
+        <table class="table table-sm mb-0" style="font-size:.83rem">
+          <thead class="table-light"><tr><th>#</th><th>Name</th><th style="width:60px"></th></tr></thead>
+          <tbody>
+            <?php foreach ($categories as $cat): ?>
+            <tr>
+              <td class="text-muted"><?= $cat['id'] ?></td>
+              <td class="fw-semibold"><?= h($cat['name']) ?></td>
+              <td>
+                <form method="POST" class="d-inline" onsubmit="return confirm('Delete category &quot;<?= h(addslashes($cat['name'])) ?>&quot; and ALL its subtypes?')">
+                  <input type="hidden" name="action" value="delete_category">
+                  <input type="hidden" name="cat_id" value="<?= $cat['id'] ?>">
+                  <button class="btn btn-xs btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="sec-card">
+      <div class="sec-card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-tag me-2"></i>Manage Subtypes</span>
+        <button class="btn btn-xs btn-success" data-bs-toggle="collapse" data-bs-target="#addSubForm" style="font-size:.76rem;padding:2px 9px">
+          <i class="fas fa-plus me-1"></i>Add
+        </button>
+      </div>
+      <!-- Add subtype form (collapsed by default) -->
+      <div id="addSubForm" class="collapse" style="padding:12px 16px;border-bottom:1px solid var(--border)">
+        <form method="POST" class="row g-2">
+          <input type="hidden" name="action" value="add_subtype">
+          <div class="col-5">
+            <select name="sub_cat_id" class="form-select form-select-sm" required>
+              <option value="">— Category —</option>
+              <?php foreach ($categories as $cat): ?>
+              <option value="<?= $cat['id'] ?>"><?= h($cat['name']) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="col-5">
+            <input type="text" name="sub_name" class="form-control form-control-sm" placeholder="Subtype name…" required>
+          </div>
+          <div class="col-2">
+            <button type="submit" class="btn btn-sm btn-success w-100"><i class="fas fa-plus"></i></button>
+          </div>
+        </form>
+      </div>
+      <div style="padding:0;max-height:300px;overflow-y:auto">
+        <?php if (empty($allSubtypes)): ?>
+        <div style="padding:20px;text-align:center;color:var(--t2);font-size:.84rem">No subtypes yet.</div>
+        <?php else: ?>
+        <table class="table table-sm mb-0" style="font-size:.81rem">
+          <thead class="table-light"><tr><th>Category</th><th>Subtype</th><th style="width:60px"></th></tr></thead>
+          <tbody>
+            <?php foreach ($allSubtypes as $sub): ?>
+            <tr>
+              <td><span class="badge" style="background:#0891b2;font-size:.68rem"><?= h($sub['cat_name']) ?></span></td>
+              <td><?= h($sub['name']) ?></td>
+              <td>
+                <form method="POST" class="d-inline" onsubmit="return confirm('Delete subtype &quot;<?= h(addslashes($sub['name'])) ?>&quot;?')">
+                  <input type="hidden" name="action" value="delete_subtype">
+                  <input type="hidden" name="sub_id" value="<?= $sub['id'] ?>">
+                  <button class="btn btn-xs btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+        <?php endif; ?>
+      </div>
     </div>
   </div>
 </div>

@@ -338,15 +338,19 @@ function getFinanceLinks(): array {
 function getIlcLinks(): array {
     return array_values(array_filter([
         ['href'=>'/portal/ilc/dashboard.php',         'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',          'key'=>'dashboard'],
-        hasPermission('ilc_students')     ? ['href'=>'/portal/ilc/students.php',           'icon'=>'<i class="fas fa-user-graduate"></i>',      'label'=>'ILC Students',       'key'=>'students']     : null,
-        hasPermission('ilc_teachers')     ? ['href'=>'/portal/ilc/teachers.php',           'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'ILC Teachers',       'key'=>'teachers']     : null,
-        hasPermission('ilc_disabilities') ? ['href'=>'/portal/ilc/disabilities.php',       'icon'=>'<i class="fas fa-heartbeat"></i>',          'label'=>'Disability Records', 'key'=>'disabilities'] : null,
-        hasPermission('ilc_admissions')   ? ['href'=>'/portal/ilc/admission-requests.php', 'icon'=>'<i class="fas fa-file-medical-alt"></i>',   'label'=>'Admission Requests', 'key'=>'admissions']   : null,
-        hasPermission('ilc_records')      ? ['href'=>'/portal/ilc/records.php',            'icon'=>'<i class="fas fa-folder-open"></i>',        'label'=>'Session Records',    'key'=>'records']      : null,
-        hasPermission('ilc_attendance')   ? ['href'=>'/portal/ilc/attendance.php',         'icon'=>'<i class="fas fa-calendar-check"></i>',     'label'=>'ILC Attendance',     'key'=>'attendance']   : null,
-        hasPermission('ilc_results')      ? ['href'=>'/portal/ilc/results.php',            'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'ILC Results',        'key'=>'results']      : null,
-        hasPermission('ilc_timetable')    ? ['href'=>'/portal/ilc/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',              'label'=>'ILC Timetable',      'key'=>'timetable']    : null,
-        hasPermission('ilc_viewas')       ? ['href'=>'/portal/ilc/view-as.php',            'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',       'key'=>'viewas']       : null,
+        hasPermission('ilc_students')     ? ['href'=>'/portal/ilc/students.php',           'icon'=>'<i class="fas fa-user-graduate"></i>',      'label'=>'ILC Students',       'key'=>'students']          : null,
+        hasPermission('ilc_teachers')     ? ['href'=>'/portal/ilc/teachers.php',           'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'ILC Teachers',       'key'=>'teachers']          : null,
+        hasPermission('ilc_disabilities') ? ['href'=>'/portal/ilc/disabilities.php',       'icon'=>'<i class="fas fa-heartbeat"></i>',          'label'=>'Disability Records', 'key'=>'disabilities']      : null,
+        hasPermission('ilc_admissions')   ? ['href'=>'/portal/ilc/admission-requests.php', 'icon'=>'<i class="fas fa-file-medical-alt"></i>',   'label'=>'Admission Requests', 'key'=>'admissions']        : null,
+        hasPermission('ilc_records')      ? ['href'=>'/portal/ilc/records.php',            'icon'=>'<i class="fas fa-folder-open"></i>',        'label'=>'Session Records',    'key'=>'records']           : null,
+        hasPermission('ilc_attendance')   ? ['href'=>'/portal/ilc/attendance.php',         'icon'=>'<i class="fas fa-calendar-check"></i>',     'label'=>'ILC Attendance',     'key'=>'attendance']        : null,
+        hasPermission('ilc_results')      ? ['href'=>'/portal/ilc/results.php',            'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'ILC Results',        'key'=>'results']           : null,
+        hasPermission('ilc_timetable')    ? ['href'=>'/portal/ilc/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',              'label'=>'ILC Timetable',      'key'=>'timetable']         : null,
+        ['href'=>'/portal/ilc/behaviour-therapy.php', 'icon'=>'<i class="fas fa-brain"></i>',              'label'=>'Behaviour Therapy',  'key'=>'behaviour-therapy'],
+        ['href'=>'/portal/ilc/speech-therapy.php',    'icon'=>'<i class="fas fa-comment-medical"></i>',    'label'=>'Speech Therapy',     'key'=>'speech-therapy'],
+        ['href'=>'/portal/ilc/assessments.php',       'icon'=>'<i class="fas fa-clipboard-list"></i>',     'label'=>'Assessments',        'key'=>'assessments'],
+        ['href'=>'/portal/ilc/fee-status.php',        'icon'=>'<i class="fas fa-money-bill-wave"></i>',    'label'=>'Fee Status',         'key'=>'fee-status'],
+        hasPermission('ilc_viewas')       ? ['href'=>'/portal/ilc/view-as.php',            'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',       'key'=>'viewas']            : null,
     ]));
 }
 

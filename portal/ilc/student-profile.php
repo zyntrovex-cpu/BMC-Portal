@@ -103,6 +103,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('/portal/ilc/student-profile.php?id=' . $studentId);
 }
 
+// ── New ILC feature table checks + latest data ────────────────────
+$hasBTherapy = false;
+try { $db->query('SELECT 1 FROM behaviour_therapy_reports LIMIT 1'); $hasBTherapy = true; } catch (Exception $e) {}
+
+$hasSTherapy = false;
+try { $db->query('SELECT 1 FROM speech_therapy_reports LIMIT 1'); $hasSTherapy = true; } catch (Exception $e) {}
+
+$hasAssessments = false;
+try { $db->query('SELECT 1 FROM ilc_assessments LIMIT 1'); $hasAssessments = true; } catch (Exception $e) {}
+
+$hasFeePay = false;
+try { $db->query('SELECT 1 FROM ilc_fee_payments LIMIT 1'); $hasFeePay = true; } catch (Exception $e) {}
+
+$latestBTherapy = null;
+if ($hasBTherapy) {
+    $st = $db->prepare('SELECT r.*, u.name AS recorder_name FROM behaviour_therapy_reports r JOIN users u ON u.id=r.recorded_by WHERE r.student_id=? ORDER BY r.month DESC LIMIT 1');
+    $st->execute([$studentId]);
+    $latestBTherapy = $st->fetch();
+}
+
+$latestSTherapy = null;
+if ($hasSTherapy) {
+    $st = $db->prepare('SELECT r.*, u.name AS recorder_name FROM speech_therapy_reports r JOIN users u ON u.id=r.recorded_by WHERE r.student_id=? ORDER BY r.month DESC LIMIT 1');
+    $st->execute([$studentId]);
+    $latestSTherapy = $st->fetch();
+}
+
+$latestAssessment = null;
+if ($hasAssessments) {
+    $st = $db->prepare('SELECT a.*, u.name AS conductor_name FROM ilc_assessments a JOIN users u ON u.id=a.conducted_by WHERE a.student_id=? ORDER BY a.assessment_date DESC LIMIT 1');
+    $st->execute([$studentId]);
+    $latestAssessment = $st->fetch();
+}
+
+$currentFeeStatus  = null;
+$currentMonthDate  = date('Y-m') . '-01';
+if ($hasFeePay) {
+    $st = $db->prepare('SELECT * FROM ilc_fee_payments WHERE student_id=? AND month=?');
+    $st->execute([$studentId, $currentMonthDate]);
+    $currentFeeStatus = $st->fetch();
+}
+
 // Existing disability records
 $disRecords = $db->prepare(
     'SELECT sd.*, dc.name AS cat_name, dst.name AS subtype_name, u.name AS recorded_by_name
@@ -206,77 +248,248 @@ $links = getIlcLinks();
     </div>
   </div>
 
-  <!-- Disability records -->
+  <!-- Tabbed right panel -->
   <div class="col-lg-8">
-    <!-- Existing records -->
-    <div class="sec-card mb-3">
-      <div class="sec-card-header d-flex justify-content-between">
-        <span><i class="fas fa-heartbeat me-2"></i>Disability Records (<?= count($disabilities) ?>)</span>
-      </div>
-      <?php if (empty($disabilities)): ?>
-      <div style="padding:20px;text-align:center;color:var(--t2);font-size:.85rem">No disability records assigned yet.</div>
-      <?php else: ?>
-      <div style="padding:12px 16px">
-        <?php foreach ($disabilities as $d): ?>
-        <div class="mb-3 p-3" style="background:#f7f9fb;border-radius:8px;border:1px solid var(--border)">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <span class="badge mb-1" style="background:#0891b2;font-size:.72rem"><?= h($d['cat_name']) ?></span>
-              <div class="fw-semibold" style="font-size:.9rem"><?= h($d['subtype_name']) ?></div>
-              <div style="font-size:.75rem;color:var(--t2)">Recorded by <?= h($d['recorded_by_name']) ?> · <?= fDate($d['created_at']) ?></div>
+    <ul class="nav nav-tabs" id="profileTabs" role="tablist" style="font-size:.84rem;flex-wrap:wrap">
+      <li class="nav-item" role="presentation">
+        <a class="nav-link active" data-bs-toggle="tab" href="#tabDis" role="tab">
+          <i class="fas fa-heartbeat me-1"></i>Disabilities
+          <span class="badge bg-secondary ms-1" style="font-size:.7rem"><?= count($disabilities) ?></span>
+        </a>
+      </li>
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" data-bs-toggle="tab" href="#tabBT" role="tab">
+          <i class="fas fa-brain me-1"></i>Behaviour Therapy
+          <?php if ($latestBTherapy): ?><span class="badge bg-success ms-1" style="font-size:.7rem">✓</span><?php endif; ?>
+        </a>
+      </li>
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" data-bs-toggle="tab" href="#tabST" role="tab">
+          <i class="fas fa-comment-medical me-1"></i>Speech Therapy
+          <?php if ($latestSTherapy): ?><span class="badge bg-success ms-1" style="font-size:.7rem">✓</span><?php endif; ?>
+        </a>
+      </li>
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" data-bs-toggle="tab" href="#tabAss" role="tab">
+          <i class="fas fa-clipboard-list me-1"></i>Assessments
+          <?php if ($latestAssessment): ?><span class="badge bg-success ms-1" style="font-size:.7rem">✓</span><?php endif; ?>
+        </a>
+      </li>
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" data-bs-toggle="tab" href="#tabFee" role="tab">
+          <i class="fas fa-money-bill-wave me-1"></i>Fee
+          <?php $feeStatus = $currentFeeStatus['status'] ?? 'unpaid'; ?>
+          <span class="badge <?= $feeStatus === 'paid' ? 'bg-success' : 'bg-danger' ?> ms-1" style="font-size:.7rem">
+            <?= $feeStatus === 'paid' ? 'Paid' : 'Unpaid' ?>
+          </span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="tab-content sec-card" style="border-radius:0 4px 4px 4px;border-top:none">
+
+      <!-- ── Tab 1: Disabilities ─────────────────────────────────── -->
+      <div class="tab-pane fade show active" id="tabDis" role="tabpanel">
+        <?php if (empty($disabilities)): ?>
+        <div style="padding:20px;text-align:center;color:var(--t2);font-size:.85rem">No disability records assigned yet.</div>
+        <?php else: ?>
+        <div style="padding:12px 16px">
+          <?php foreach ($disabilities as $d): ?>
+          <div class="mb-3 p-3" style="background:#f7f9fb;border-radius:8px;border:1px solid var(--border)">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <span class="badge mb-1" style="background:#0891b2;font-size:.72rem"><?= h($d['cat_name']) ?></span>
+                <div class="fw-semibold" style="font-size:.9rem"><?= h($d['subtype_name']) ?></div>
+                <div style="font-size:.75rem;color:var(--t2)">Recorded by <?= h($d['recorded_by_name']) ?> · <?= fDate($d['created_at']) ?></div>
+              </div>
+              <form method="POST" class="d-inline" onsubmit="return confirm('Remove this record?')">
+                <input type="hidden" name="action" value="remove_disability">
+                <input type="hidden" name="dis_id" value="<?= $d['id'] ?>">
+                <button class="btn btn-xs btn-outline-danger" style="font-size:.72rem;padding:2px 7px">Remove</button>
+              </form>
             </div>
-            <form method="POST" class="d-inline" onsubmit="return confirm('Remove this record?')">
-              <input type="hidden" name="action" value="remove_disability">
+            <form method="POST" class="mt-2 d-flex gap-2">
+              <input type="hidden" name="action" value="update_notes">
               <input type="hidden" name="dis_id" value="<?= $d['id'] ?>">
-              <button class="btn btn-xs btn-outline-danger" style="font-size:.72rem;padding:2px 7px">Remove</button>
+              <input type="text" name="notes" class="form-control form-control-sm" style="font-size:.78rem"
+                     placeholder="Notes / accommodations…" value="<?= h($d['notes'] ?? '') ?>">
+              <button class="btn btn-sm btn-outline-primary" style="white-space:nowrap;font-size:.78rem">Save</button>
             </form>
           </div>
-          <!-- Notes -->
-          <form method="POST" class="mt-2 d-flex gap-2">
-            <input type="hidden" name="action" value="update_notes">
-            <input type="hidden" name="dis_id" value="<?= $d['id'] ?>">
-            <input type="text" name="notes" class="form-control form-control-sm" style="font-size:.78rem"
-                   placeholder="Notes / accommodations…" value="<?= h($d['notes'] ?? '') ?>">
-            <button class="btn btn-sm btn-outline-primary" style="white-space:nowrap;font-size:.78rem">Save</button>
+          <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+        <!-- Add disability form -->
+        <div style="padding:12px 16px;border-top:1px solid var(--border)">
+          <div class="fw-semibold mb-2" style="font-size:.82rem"><i class="fas fa-plus me-1"></i>Add Disability Record</div>
+          <form method="POST" class="row g-2">
+            <input type="hidden" name="action" value="add_disability">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:.82rem">Category → Subtype <span class="text-danger">*</span></label>
+              <select name="subtype_id" class="form-select form-select-sm" required>
+                <option value="">— Select subtype —</option>
+                <?php foreach ($grouped as $catName => $subtypes): ?>
+                <optgroup label="<?= h($catName) ?>">
+                  <?php foreach ($subtypes as $sub): ?>
+                  <option value="<?= $sub['sub_id'] ?>"><?= h($sub['sub_name']) ?></option>
+                  <?php endforeach; ?>
+                </optgroup>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:.82rem">Notes / Accommodations</label>
+              <input type="text" name="notes" class="form-control form-control-sm" placeholder="Optional…">
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus me-1"></i>Add Record
+              </button>
+            </div>
           </form>
         </div>
-        <?php endforeach; ?>
       </div>
-      <?php endif; ?>
-    </div>
 
-    <!-- Add disability form -->
-    <div class="sec-card">
-      <div class="sec-card-header"><i class="fas fa-plus me-2"></i>Add Disability Record</div>
-      <div style="padding:16px">
-        <form method="POST" class="row g-2">
-          <input type="hidden" name="action" value="add_disability">
-          <div class="col-md-6">
-            <label class="form-label fw-semibold" style="font-size:.82rem">Category → Subtype <span class="text-danger">*</span></label>
-            <select name="subtype_id" class="form-select form-select-sm" required>
-              <option value="">— Select subtype —</option>
-              <?php foreach ($grouped as $catName => $subtypes): ?>
-              <optgroup label="<?= h($catName) ?>">
-                <?php foreach ($subtypes as $sub): ?>
-                <option value="<?= $sub['sub_id'] ?>"><?= h($sub['sub_name']) ?></option>
-                <?php endforeach; ?>
-              </optgroup>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-semibold" style="font-size:.82rem">Notes / Accommodations</label>
-            <input type="text" name="notes" class="form-control form-control-sm" placeholder="Optional…">
-          </div>
-          <div class="col-12">
-            <button type="submit" class="btn btn-sm btn-primary">
-              <i class="fas fa-plus me-1"></i>Add Record
-            </button>
-          </div>
-        </form>
+      <!-- ── Tab 2: Behaviour Therapy ────────────────────────────── -->
+      <div class="tab-pane fade" id="tabBT" role="tabpanel" style="padding:16px">
+        <?php if (!$hasBTherapy): ?>
+        <div class="alert alert-warning mb-0" style="font-size:.83rem">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Run <code>database/migrations/ilc_features.sql</code> to enable this feature.
+        </div>
+        <?php elseif (!$latestBTherapy): ?>
+        <div style="text-align:center;padding:30px;color:var(--t2);font-size:.85rem">
+          <i class="fas fa-brain fa-2x mb-3 d-block opacity-20"></i>
+          No behaviour therapy reports yet.
+        </div>
+        <?php else: ?>
+        <div class="mb-2 d-flex justify-content-between align-items-center">
+          <span class="badge" style="background:#0891b2"><?= date('F Y', strtotime($latestBTherapy['month'])) ?></span>
+          <span style="font-size:.74rem;color:var(--t2)">By <?= h($latestBTherapy['recorder_name']) ?></span>
+        </div>
+        <?php if ($latestBTherapy['therapist_notes']): ?>
+        <div style="font-size:.83rem;margin-bottom:8px"><strong>Notes:</strong> <?= nl2br(h($latestBTherapy['therapist_notes'])) ?></div>
+        <?php endif; ?>
+        <?php if ($latestBTherapy['progress_summary']): ?>
+        <div style="font-size:.83rem;margin-bottom:8px"><strong>Progress:</strong> <?= nl2br(h($latestBTherapy['progress_summary'])) ?></div>
+        <?php endif; ?>
+        <?php if ($latestBTherapy['goals_next_month']): ?>
+        <div style="font-size:.83rem;color:#0369a1"><strong>Next month:</strong> <?= nl2br(h($latestBTherapy['goals_next_month'])) ?></div>
+        <?php endif; ?>
+        <?php endif; ?>
+        <div class="mt-3">
+          <a href="<?= url('/portal/ilc/behaviour-therapy.php') ?>?student_id=<?= $studentId ?>"
+             class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-history me-1"></i>View Full History
+          </a>
+        </div>
       </div>
-    </div>
-  </div>
+
+      <!-- ── Tab 3: Speech Therapy ───────────────────────────────── -->
+      <div class="tab-pane fade" id="tabST" role="tabpanel" style="padding:16px">
+        <?php if (!$hasSTherapy): ?>
+        <div class="alert alert-warning mb-0" style="font-size:.83rem">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Run <code>database/migrations/ilc_features.sql</code> to enable this feature.
+        </div>
+        <?php elseif (!$latestSTherapy): ?>
+        <div style="text-align:center;padding:30px;color:var(--t2);font-size:.85rem">
+          <i class="fas fa-comment-medical fa-2x mb-3 d-block opacity-20"></i>
+          No speech therapy reports yet.
+        </div>
+        <?php else: ?>
+        <div class="mb-2 d-flex justify-content-between align-items-center">
+          <span class="badge" style="background:#0891b2"><?= date('F Y', strtotime($latestSTherapy['month'])) ?></span>
+          <span style="font-size:.74rem;color:var(--t2)">By <?= h($latestSTherapy['recorder_name']) ?></span>
+        </div>
+        <?php if ($latestSTherapy['therapist_notes']): ?>
+        <div style="font-size:.83rem;margin-bottom:8px"><strong>Notes:</strong> <?= nl2br(h($latestSTherapy['therapist_notes'])) ?></div>
+        <?php endif; ?>
+        <?php if ($latestSTherapy['progress_summary']): ?>
+        <div style="font-size:.83rem;margin-bottom:8px"><strong>Progress:</strong> <?= nl2br(h($latestSTherapy['progress_summary'])) ?></div>
+        <?php endif; ?>
+        <?php if ($latestSTherapy['goals_next_month']): ?>
+        <div style="font-size:.83rem;color:#0369a1"><strong>Next month:</strong> <?= nl2br(h($latestSTherapy['goals_next_month'])) ?></div>
+        <?php endif; ?>
+        <?php endif; ?>
+        <div class="mt-3">
+          <a href="<?= url('/portal/ilc/speech-therapy.php') ?>?student_id=<?= $studentId ?>"
+             class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-history me-1"></i>View Full History
+          </a>
+        </div>
+      </div>
+
+      <!-- ── Tab 4: Assessments ──────────────────────────────────── -->
+      <div class="tab-pane fade" id="tabAss" role="tabpanel" style="padding:16px">
+        <?php if (!$hasAssessments): ?>
+        <div class="alert alert-warning mb-0" style="font-size:.83rem">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Run <code>database/migrations/ilc_features.sql</code> to enable this feature.
+        </div>
+        <?php elseif (!$latestAssessment): ?>
+        <div style="text-align:center;padding:30px;color:var(--t2);font-size:.85rem">
+          <i class="fas fa-clipboard-list fa-2x mb-3 d-block opacity-20"></i>
+          No assessments on record yet.
+        </div>
+        <?php else: ?>
+        <div class="mb-2 d-flex justify-content-between align-items-center flex-wrap gap-1">
+          <div>
+            <span class="badge" style="background:#0891b2"><?= h($latestAssessment['assessment_type']) ?></span>
+            <span class="ms-2 fw-semibold" style="font-size:.84rem"><?= date('d M Y', strtotime($latestAssessment['assessment_date'])) ?></span>
+          </div>
+          <span style="font-size:.74rem;color:var(--t2)">By <?= h($latestAssessment['conductor_name']) ?></span>
+        </div>
+        <?php if ($latestAssessment['strengths']): ?>
+        <div style="font-size:.83rem;margin-bottom:8px"><strong class="text-success">Strengths:</strong> <?= nl2br(h($latestAssessment['strengths'])) ?></div>
+        <?php endif; ?>
+        <?php if ($latestAssessment['challenges']): ?>
+        <div style="font-size:.83rem;margin-bottom:8px"><strong class="text-danger">Challenges:</strong> <?= nl2br(h($latestAssessment['challenges'])) ?></div>
+        <?php endif; ?>
+        <?php if ($latestAssessment['recommendations']): ?>
+        <div style="font-size:.83rem"><strong class="text-primary">Recommendations:</strong> <?= nl2br(h($latestAssessment['recommendations'])) ?></div>
+        <?php endif; ?>
+        <?php endif; ?>
+        <div class="mt-3">
+          <a href="<?= url('/portal/ilc/assessments.php') ?>?student_id=<?= $studentId ?>"
+             class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-history me-1"></i>View All Assessments
+          </a>
+        </div>
+      </div>
+
+      <!-- ── Tab 5: Fee Status ───────────────────────────────────── -->
+      <div class="tab-pane fade" id="tabFee" role="tabpanel" style="padding:16px">
+        <?php if (!$hasFeePay): ?>
+        <div class="alert alert-warning mb-0" style="font-size:.83rem">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Run <code>database/migrations/ilc_features.sql</code> to enable this feature.
+        </div>
+        <?php else: ?>
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div>
+            <div style="font-size:.78rem;color:var(--t2)">Current Month (<?= date('F Y') ?>)</div>
+            <span class="badge <?= ($currentFeeStatus['status'] ?? 'unpaid') === 'paid' ? 'bg-success' : 'bg-danger' ?>" style="font-size:.9rem;padding:6px 14px">
+              <i class="fas fa-<?= ($currentFeeStatus['status'] ?? 'unpaid') === 'paid' ? 'check-circle' : 'times-circle' ?> me-1"></i>
+              <?= ($currentFeeStatus['status'] ?? 'unpaid') === 'paid' ? 'Fee Paid' : 'Fee Unpaid' ?>
+            </span>
+            <?php if (!empty($currentFeeStatus['paid_on'])): ?>
+            <div style="font-size:.76rem;color:var(--t2);margin-top:4px">Paid on <?= date('d M Y', strtotime($currentFeeStatus['paid_on'])) ?></div>
+            <?php endif; ?>
+            <?php if (!empty($currentFeeStatus['amount'])): ?>
+            <div style="font-size:.8rem;margin-top:2px">Amount: <strong>Rs <?= number_format($currentFeeStatus['amount']) ?></strong></div>
+            <?php endif; ?>
+          </div>
+        </div>
+        <?php endif; ?>
+        <a href="<?= url('/portal/ilc/fee-status.php') ?>?student_id=<?= $studentId ?>"
+           class="btn btn-sm btn-outline-primary">
+          <i class="fas fa-history me-1"></i>View Fee History
+        </a>
+      </div>
+
+    </div><!-- /.tab-content -->
+  </div><!-- /.col-lg-8 -->
 </div>
 
 </div></div></div>
