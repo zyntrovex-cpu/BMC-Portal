@@ -132,7 +132,12 @@ pageHead('Dashboard', 'teacher');
 <!-- Welcome Banner -->
 <div class="portal-banner mb-4" style="background: linear-gradient(135deg, #059669, #047857);">
     <div class="d-flex align-items-center gap-3">
-        <div style="font-size:2.4rem; line-height:1;">👨‍🏫</div>
+        <?php
+          $_av = _avatarHtml($user['id'], _initials($user['name']), 60);
+          if (str_starts_with($_av, '<img')):
+        ?><div style="width:60px;height:60px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid rgba(255,255,255,.5);box-shadow:0 2px 8px rgba(0,0,0,.25)"><?= $_av ?></div><?php
+          else: ?><div style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:#fff;flex-shrink:0;border:2px solid rgba(255,255,255,.4)"><?= $_av ?></div><?php
+          endif; ?>
         <div>
             <h4 class="mb-1 text-white fw-bold">Welcome, <?= h($user['name']) ?>!</h4>
             <div class="text-white opacity-75" style="font-size:13px;">

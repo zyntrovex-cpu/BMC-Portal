@@ -41,9 +41,12 @@ $links = getStudentAffairsLinks();
 <div class="portal-banner mb-4" style="background:linear-gradient(135deg,#831843,#be185d);padding:0;overflow:hidden;position:relative;">
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(255,255,255,.08) 0%,transparent 70%);pointer-events:none;"></div>
   <div class="d-flex align-items-center gap-4 p-3 ps-4">
-    <div style="width:68px;height:68px;border-radius:50%;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:6px;box-shadow:0 4px 16px rgba(0,0,0,.25);">
-      <img src="<?= url('/assets/ilc-logo.png') ?>" alt="ILC Logo" style="width:100%;height:100%;object-fit:contain;">
-    </div>
+    <?php
+      $_av = _avatarHtml($user['id'], _initials($user['name']), 64);
+      if (str_starts_with($_av, '<img')):
+    ?><div style="width:64px;height:64px;border-radius:50%;overflow:hidden;flex-shrink:0;border:3px solid rgba(255,255,255,.6);box-shadow:0 4px 16px rgba(0,0,0,.25)"><?= $_av ?></div><?php
+      else: ?><div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:#fff;flex-shrink:0;border:3px solid rgba(255,255,255,.4);box-shadow:0 4px 16px rgba(0,0,0,.25)"><?= $_av ?></div><?php
+      endif; ?>
     <div>
       <h4 class="mb-1 text-white fw-bold" style="font-size:1.1rem">Welcome, <?= h($user['name']) ?>!</h4>
       <div style="color:rgba(255,255,255,.75);font-size:.82rem">

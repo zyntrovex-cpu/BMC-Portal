@@ -83,13 +83,21 @@ $links = getFinanceLinks();
 <!-- Welcome Banner -->
 <div class="portal-banner mb-4" style="background:linear-gradient(135deg,#92400e,#d97706);">
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-    <div>
+    <div class="d-flex align-items-center gap-3">
+      <?php
+        $_av = _avatarHtml($user['id'], _initials($user['name']), 60);
+        if (str_starts_with($_av, '<img')):
+      ?><div style="width:60px;height:60px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid rgba(255,255,255,.5);box-shadow:0 2px 8px rgba(0,0,0,.25)"><?= $_av ?></div><?php
+        else: ?><div style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:#fff;flex-shrink:0;border:2px solid rgba(255,255,255,.4)"><?= $_av ?></div><?php
+        endif; ?>
+      <div>
       <h5 class="mb-1 fw-bold text-white">Welcome, <?= h($user['name']) ?>!</h5>
       <small style="color:rgba(255,255,255,.82)">
         Finance Portal &nbsp;&middot;&nbsp; <?= $monthNames[$curMonth] . ' ' . $curYear ?>
         &nbsp;&middot;&nbsp; <?= date('l, d M Y') ?>
       </small>
-    </div>
+      </div><!-- /text -->
+    </div><!-- /left flex -->
     <div class="d-flex gap-2 flex-wrap">
       <a href="<?= url('/portal/finance/collection.php') ?>" class="btn btn-light btn-sm fw-semibold">
         <i class="fas fa-hand-holding-usd me-1"></i>Collect Fee

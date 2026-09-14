@@ -61,39 +61,46 @@ if (!$imgInfo || $imgInfo[0] < 300 || $imgInfo[1] < 300) {
 }
 [$origW, $origH, $imgType] = $imgInfo;
 
-// ── Background colour heuristic ───────────────────────────────────
-if (!checkBackgroundColor($tmpPath)) {
-    setFlash('danger', 'Your photo\'s background doesn\'t appear to be plain white or blue. Please retake the photo against a plain white or blue wall and try again.');
-    redirect($returnUrl);
-}
-
-// ── Load source image with GD ─────────────────────────────────────
-$src = match($imgType) {
-    IMAGETYPE_JPEG => imagecreatefromjpeg($tmpPath),
-    IMAGETYPE_PNG  => imagecreatefrompng($tmpPath),
-    default        => null,
-};
-if (!$src) {
-    setFlash('danger', 'Could not read the image file. Please try a different photo.');
-    redirect($returnUrl);
-}
-
-// ── Convert to JPEG and save ──────────────────────────────────────
+// ── Save the image ────────────────────────────────────────────────
 $userId    = $user['id'];
-$filename  = $userId . '_' . time() . '.jpg';
 $uploadDir = __DIR__ . '/../uploads/profile-photos/';
-$destPath  = $uploadDir . $filename;
 
-$dest = imagecreatetruecolor($origW, $origH);
-// Fill white background first (handles PNG transparency)
-imagefill($dest, 0, 0, imagecolorallocate($dest, 255, 255, 255));
-imagecopy($dest, $src, 0, 0, 0, 0, $origW, $origH);
-$saved = imagejpeg($dest, $destPath, 90);
-imagedestroy($src);
-imagedestroy($dest);
+// Ensure upload directory exists
+if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0755, true);
+}
+
+$saved = false;
+
+// Try to normalise to JPEG via GD (flattens PNG transparency, strips EXIF)
+if (function_exists('imagecreatefromjpeg') && function_exists('imagejpeg')) {
+    $src = match($imgType) {
+        IMAGETYPE_JPEG => imagecreatefromjpeg($tmpPath),
+        IMAGETYPE_PNG  => imagecreatefrompng($tmpPath),
+        default        => null,
+    };
+    if ($src) {
+        $filename = $userId . '_' . time() . '.jpg';
+        $destPath = $uploadDir . $filename;
+        $dest = imagecreatetruecolor($origW, $origH);
+        imagefill($dest, 0, 0, imagecolorallocate($dest, 255, 255, 255));
+        imagecopy($dest, $src, 0, 0, 0, 0, $origW, $origH);
+        $saved = imagejpeg($dest, $destPath, 90);
+        imagedestroy($src);
+        imagedestroy($dest);
+    }
+}
+
+// Fallback: move the file as-is if GD is unavailable or conversion failed
+if (!$saved) {
+    $ext      = $mimeType === 'image/png' ? 'png' : 'jpg';
+    $filename = $userId . '_' . time() . '.' . $ext;
+    $destPath = $uploadDir . $filename;
+    $saved    = move_uploaded_file($tmpPath, $destPath);
+}
 
 if (!$saved) {
-    setFlash('danger', 'Could not save the uploaded file. Please contact admin.');
+    setFlash('danger', 'Could not save the uploaded file. Please check server permissions and try again.');
     redirect($returnUrl);
 }
 

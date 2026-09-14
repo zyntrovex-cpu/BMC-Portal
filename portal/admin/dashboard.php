@@ -45,6 +45,22 @@ echo '<div class="page-content" style="padding:20px 22px 32px">';
 echo flashHtml();
 ?>
 
+<!-- Welcome Banner -->
+<div class="portal-banner mb-4" style="background:linear-gradient(135deg,#4c1d95,#7c3aed);">
+  <div class="d-flex align-items-center gap-3">
+    <?php
+      $_av = _avatarHtml($user['id'], _initials($user['name']), 60);
+      if (str_starts_with($_av, '<img')):
+    ?><div style="width:60px;height:60px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid rgba(255,255,255,.5);box-shadow:0 2px 8px rgba(0,0,0,.25)"><?= $_av ?></div><?php
+      else: ?><div style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:#fff;flex-shrink:0;border:2px solid rgba(255,255,255,.4)"><?= $_av ?></div><?php
+      endif; ?>
+    <div>
+      <h5 class="mb-1 fw-bold text-white">Welcome, <?= h($user['name']) ?>!</h5>
+      <small style="color:rgba(255,255,255,.82)">Admin Portal &nbsp;&middot;&nbsp; <?= date('l, d M Y') ?></small>
+    </div>
+  </div>
+</div>
+
 <!-- Stat cards -->
 <div class="row g-3 mb-4">
   <div class="col-6 col-lg-3">
