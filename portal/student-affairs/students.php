@@ -37,6 +37,7 @@ $hasMedicalInfo  = isset($_stuCols['medical_info']);
 $hasSkills       = isset($_stuCols['skills']);
 $hasSports       = isset($_stuCols['sports']);
 $hasAwards       = isset($_stuCols['awards']);
+$hasDeletedAt    = isset($_stuCols['deleted_at']);
 
 // ── POST handlers ─────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -161,13 +162,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/portal/student-affairs/students.php');
     }
 
-    // ── Delete student ────────────────────────────────────────────
+    // ── Enroll student in class ───────────────────────────────────
+    if ($action === 'enroll_student') {
+        $studentId = (int)($_POST['student_id'] ?? 0);
+        $classId   = (int)($_POST['class_id']   ?? 0) ?: null;
+        if ($studentId) {
+            $db->prepare('UPDATE students SET class_id=? WHERE id=?')->execute([$classId, $studentId]);
+            logActivity($user['id'], 'student_enroll', "Enrolled student #$studentId in class #$classId");
+            setFlash('success', 'Student enrollment updated.');
+        }
+        redirect('/portal/student-affairs/students.php');
+    }
+
+    // ── Delete student (soft-delete) ──────────────────────────────
     if ($action === 'delete_student') {
         $uid = (int)($_POST['uid'] ?? 0);
         if ($uid) {
-            $db->prepare("DELETE FROM users WHERE id=? AND role='student'")->execute([$uid]);
-            logActivity($user['id'], 'student_delete', "Deleted student user #$uid");
-            setFlash('success', 'Student deleted.');
+            // Check whether students table has deleted_at (migration applied)
+            $colCheck = array_flip(
+                $db->query("SHOW COLUMNS FROM students")->fetchAll(PDO::FETCH_COLUMN)
+            );
+            if (isset($colCheck['deleted_at'])) {
+                // Soft delete: mark deleted_at on students row
+                $db->prepare("UPDATE students SET deleted_at=NOW() WHERE user_id=?")->execute([$uid]);
+                logActivity($user['id'], 'student_soft_delete', "Soft-deleted student user #$uid");
+                setFlash('success', 'Student moved to recycle bin.');
+            } else {
+                // Migration not yet applied — hard delete (legacy)
+                $db->prepare("DELETE FROM users WHERE id=? AND role='student'")->execute([$uid]);
+                logActivity($user['id'], 'student_delete', "Deleted student user #$uid");
+                setFlash('success', 'Student deleted.');
+            }
         }
         redirect('/portal/student-affairs/students.php');
     }
@@ -208,6 +233,7 @@ $page      = max(1, (int)($_GET['page'] ?? 1));
 $perPage   = 25;
 
 $where  = ["u.role='student'"];
+if ($hasDeletedAt) $where[] = 's.deleted_at IS NULL';
 $params = [];
 if ($search !== '') {
     $where[]  = '(u.name LIKE ? OR s.roll_no LIKE ? OR u.email LIKE ?)';
@@ -275,9 +301,10 @@ $studentsSt = $db->prepare(
 $studentsSt->execute($params);
 $students = $studentsSt->fetchAll();
 
-// Stats
-$totalCount  = (int)$db->query("SELECT COUNT(*) FROM users WHERE role='student'")->fetchColumn();
-$activeCount = (int)$db->query("SELECT COUNT(*) FROM users WHERE role='student' AND status='active'")->fetchColumn();
+// Stats (exclude soft-deleted)
+$deletedJoin  = $hasDeletedAt ? "JOIN students s ON s.user_id=u.id AND s.deleted_at IS NULL" : '';
+$totalCount   = (int)$db->query("SELECT COUNT(*) FROM users u $deletedJoin WHERE u.role='student'")->fetchColumn();
+$activeCount  = (int)$db->query("SELECT COUNT(*) FROM users u $deletedJoin WHERE u.role='student' AND u.status='active'")->fetchColumn();
 
 // Pending profile change requests
 $pendingRequests = [];
@@ -489,6 +516,12 @@ $links = getStudentAffairsLinks();
                     title="Edit">
               <i class="fas fa-edit"></i>
             </button>
+            <!-- Enroll in Class -->
+            <button class="btn btn-xs btn-outline-success me-1"
+                    data-bs-toggle="modal" data-bs-target="#enrollModal<?= $s['student_id'] ?>"
+                    title="Enroll in Class">
+              <i class="fas fa-chalkboard"></i>
+            </button>
             <!-- Toggle status -->
             <form method="POST" class="d-inline"
                   onsubmit="return confirm('<?= $s['status']==='active' ? 'Deactivate' : 'Activate' ?> this student?')">
@@ -499,12 +532,12 @@ $links = getStudentAffairsLinks();
                 <i class="fas fa-<?= $s['status']==='active'?'user-slash':'user-check' ?>"></i>
               </button>
             </form>
-            <!-- Delete -->
+            <!-- Delete (soft if migration applied) -->
             <form method="POST" class="d-inline"
-                  onsubmit="return confirm('Permanently delete <?= h(addslashes($s['name'])) ?>? This cannot be undone.')">
+                  onsubmit="return confirm('Move <?= h(addslashes($s['name'])) ?> to recycle bin?')">
               <input type="hidden" name="action" value="delete_student">
               <input type="hidden" name="uid" value="<?= $s['uid'] ?>">
-              <button class="btn btn-xs btn-outline-danger" title="Delete">
+              <button class="btn btn-xs btn-outline-danger" title="Delete (moves to recycle bin)">
                 <i class="fas fa-trash"></i>
               </button>
             </form>
@@ -757,6 +790,42 @@ $links = getStudentAffairsLinks();
                   <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
                   <button type="submit" class="btn btn-sm btn-primary">
                     <i class="fas fa-save me-1"></i>Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enroll Modal -->
+        <div class="modal fade" id="enrollModal<?= $s['student_id'] ?>" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header py-2" style="background:#f0fdf4;border-bottom:1px solid #bbf7d0">
+                <h6 class="modal-title" style="color:#166534">
+                  <i class="fas fa-chalkboard me-2"></i>Enroll in Class — <?= h($s['name']) ?>
+                </h6>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+              </div>
+              <form method="POST">
+                <input type="hidden" name="action" value="enroll_student">
+                <input type="hidden" name="student_id" value="<?= $s['student_id'] ?>">
+                <div class="modal-body">
+                  <p class="text-muted mb-2" style="font-size:.84rem">
+                    Current class: <strong><?= $s['class_name'] ? h($s['class_name']) : '— None —' ?></strong>
+                  </p>
+                  <label class="form-label fw-semibold" style="font-size:.84rem">Select Class</label>
+                  <select name="class_id" class="form-select form-select-sm">
+                    <option value="">— No class (remove enrollment) —</option>
+                    <?php foreach ($classes as $c): ?>
+                    <option value="<?= $c['id'] ?>" <?= $s['class_id']==$c['id']?'selected':'' ?>><?= h($c['name']) ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <div class="modal-footer py-2">
+                  <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-sm btn-success">
+                    <i class="fas fa-save me-1"></i>Save Enrollment
                   </button>
                 </div>
               </form>

@@ -294,6 +294,7 @@ function getAdminLinks(): array {
         ['href'=>'/portal/admin/promote.php',            'icon'=>'<i class="fas fa-level-up-alt"></i>',       'label'=>'Class Promotion',   'key'=>'promote'],
         ['href'=>'/portal/admin/houses.php',             'icon'=>'<i class="fas fa-shield-alt"></i>',         'label'=>'Houses',            'key'=>'houses'],
         ['href'=>'/portal/admin/warnings.php',           'icon'=>'<i class="fas fa-exclamation-triangle"></i>','label'=>'Student Warnings', 'key'=>'warnings'],
+        ['href'=>'/portal/admin/recycle-bin.php',        'icon'=>'<i class="fas fa-trash-alt"></i>',           'label'=>'Recycle Bin',       'key'=>'recycle-bin'],
         ['href'=>'/portal/admin/notices.php',            'icon'=>'<i class="fas fa-bell"></i>',               'label'=>'Notice Board',      'key'=>'notices'],
         ['href'=>'/portal/admin/academic-calendar.php',  'icon'=>'<i class="fas fa-calendar-week"></i>',      'label'=>'Academic Calendar', 'key'=>'calendar'],
         ['href'=>'/portal/admin/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',         'key'=>'timetable'],
@@ -352,11 +353,15 @@ function getIlcLinks(): array {
 // ── Student Affairs sidebar links (permission-filtered) ───────────
 function getStudentAffairsLinks(): array {
     return array_values(array_filter([
-        ['href'=>'/portal/student-affairs/dashboard.php',       'icon'=>'<i class="fas fa-home"></i>',             'label'=>'Dashboard',          'key'=>'dashboard'],
+        ['href'=>'/portal/student-affairs/dashboard.php',       'icon'=>'<i class="fas fa-home"></i>',              'label'=>'Dashboard',          'key'=>'dashboard'],
         hasPermission('sa_students')   ? ['href'=>'/portal/student-affairs/students.php',        'icon'=>'<i class="fas fa-user-graduate"></i>',    'label'=>'Students',           'key'=>'students']   : null,
+        hasPermission('sa_students')   ? ['href'=>'/portal/student-affairs/enroll.php',          'icon'=>'<i class="fas fa-chalkboard"></i>',       'label'=>'Class Enrollment',   'key'=>'enroll']     : null,
         hasPermission('sa_admissions') ? ['href'=>'/portal/student-affairs/admissions.php',      'icon'=>'<i class="fas fa-file-medical-alt"></i>', 'label'=>'Admission Requests', 'key'=>'admissions'] : null,
         hasPermission('sa_medical')    ? ['href'=>'/portal/student-affairs/medical-records.php', 'icon'=>'<i class="fas fa-notes-medical"></i>',    'label'=>'Medical Records',    'key'=>'medical']    : null,
-        hasPermission('sa_calendar')   ? ['href'=>'/portal/admin/academic-calendar.php',         'icon'=>'<i class="fas fa-calendar-week"></i>',    'label'=>'Academic Calendar',  'key'=>'calendar']   : null,
+        ['href'=>'/portal/student-affairs/results.php',         'icon'=>'<i class="fas fa-chart-bar"></i>',        'label'=>'Results (View)',      'key'=>'results'],
+        ['href'=>'/portal/student-affairs/attendance.php',      'icon'=>'<i class="fas fa-calendar-check"></i>',   'label'=>'Attendance (View)',   'key'=>'attendance'],
+        ['href'=>'/portal/student-affairs/notices.php',         'icon'=>'<i class="fas fa-bell"></i>',             'label'=>'Notices',             'key'=>'notices'],
+        hasPermission('sa_calendar')   ? ['href'=>'/portal/admin/academic-calendar.php',         'icon'=>'<i class="fas fa-calendar-week"></i>',   'label'=>'Academic Calendar',  'key'=>'calendar']   : null,
     ]));
 }
 

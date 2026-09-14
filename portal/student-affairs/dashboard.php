@@ -55,7 +55,7 @@ $links = getStudentAffairsLinks();
       </div>
     </div>
     <div class="ms-auto d-none d-md-block" style="opacity:.12;">
-      <img src="<?= url('/assets/ilc-logo.png') ?>" alt="" style="height:76px;width:auto;filter:brightness(0) invert(1);">
+      <img src="<?= url('/assets/bmc-logo.png') ?>" alt="" style="height:76px;width:auto;filter:brightness(0) invert(1);">
     </div>
   </div>
 </div>

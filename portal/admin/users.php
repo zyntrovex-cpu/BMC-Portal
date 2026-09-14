@@ -106,9 +106,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'delete_user') {
         $id = (int)$_POST['id'];
         if ($id !== $user['id']) {
-            $db->prepare('DELETE FROM users WHERE id = ?')->execute([$id]);
-            logActivity($user['id'], 'user_delete', "Deleted user #$id");
-            setFlash('success', 'User deleted.');
+            // Check if this is a student and soft-delete migration is applied
+            $uSt = $db->prepare('SELECT role FROM users WHERE id = ?');
+            $uSt->execute([$id]);
+            $uRow = $uSt->fetch();
+            if ($uRow && $uRow['role'] === 'student') {
+                $cols = array_flip($db->query("SHOW COLUMNS FROM students")->fetchAll(PDO::FETCH_COLUMN));
+                if (isset($cols['deleted_at'])) {
+                    $db->prepare('UPDATE students SET deleted_at = NOW() WHERE user_id = ?')->execute([$id]);
+                    logActivity($user['id'], 'student_soft_delete', "Soft-deleted student user #$id");
+                    setFlash('success', 'Student moved to recycle bin.');
+                } else {
+                    $db->prepare('DELETE FROM users WHERE id = ?')->execute([$id]);
+                    logActivity($user['id'], 'user_delete', "Deleted user #$id");
+                    setFlash('success', 'User deleted.');
+                }
+            } else {
+                $db->prepare('DELETE FROM users WHERE id = ?')->execute([$id]);
+                logActivity($user['id'], 'user_delete', "Deleted user #$id");
+                setFlash('success', 'User deleted.');
+            }
         }
     }
 
