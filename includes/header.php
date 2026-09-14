@@ -24,7 +24,7 @@ $_activePage = $activePage ?? '';
   <!-- FontAwesome 6.5 -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <!-- AOS -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <!-- Swiper -->
   <link href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" rel="stylesheet">
   <!-- GLightbox -->
@@ -32,7 +32,7 @@ $_activePage = $activePage ?? '';
   <!-- Site CSS -->
   <link href="<?= SITE_URL ?>/assets/css/style.css" rel="stylesheet">
 </head>
-<body class="<?= htmlspecialchars($bodyClass ?? '') ?>">
+<body>
 
 <!-- ══ Loading Screen ══ -->
 <div id="site-loader">
@@ -169,6 +169,14 @@ $_activePage = $activePage ?? '';
              class="<?= $_activePage === 'admissions' ? 'active' : '' ?>">Admissions</a>
         </li>
 
+        <!-- Portal link -->
+        <li>
+          <a href="<?= BASE_URL ?>/portal/"
+             class="<?= $_activePage === 'portal' ? 'active' : '' ?>">
+            Portal
+          </a>
+        </li>
+
         <!-- News dropdown -->
         <li class="has-dropdown">
           <a href="<?= SITE_URL ?>/news.php"
@@ -201,15 +209,9 @@ $_activePage = $activePage ?? '';
 
       <!-- Right actions -->
       <div class="nav-actions ms-auto">
-        <a href="<?= SITE_URL ?>/admissions.php" class="nav-apply-btn d-none d-lg-inline-flex">
-          <i class="fas fa-graduation-cap me-1"></i> Apply Now
-        </a>
-        <a href="<?= BASE_URL ?>/portal/" class="nav-portal-btn d-none d-lg-inline-flex">
-          <i class="fas fa-sign-in-alt me-1"></i> Portal
-        </a>
-        <button class="nav-search-btn" id="searchToggle" title="Search (Ctrl+K)" type="button">
+        <a href="<?= SITE_URL ?>/search.php" class="search-toggle" id="searchToggle" title="Search (Ctrl+K)">
           <i class="fas fa-search"></i>
-        </button>
+        </a>
         <button class="hamburger" id="hamburger" type="button" aria-label="Toggle menu">
           <span></span><span></span><span></span>
         </button>
