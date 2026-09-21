@@ -140,7 +140,7 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
         $href = $base . $link['href'];
         echo '<li><a class="sb-link' . $cls . '" href="' . htmlspecialchars($href) . '" onclick="closeSidebar()">
           <span class="sb-icon">' . ($link['icon'] ?? '') . '</span>
-          <span>' . htmlspecialchars($link['label']) . '</span>
+          <span>' . $link['label'] . '</span>
         </a></li>';
     }
 
@@ -184,7 +184,7 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
         $bCls  = str_contains($active, $bl['key'] ?? '') ? ' active' : '';
         $bHref = $base . $bl['href'];
         $bIconHtml = $bl['icon'] ?? '<i class="fas fa-circle"></i>';
-        $bLbl  = htmlspecialchars($bl['label']);
+        $bLbl  = $bl['label'];
         echo '<a href="' . htmlspecialchars($bHref) . '" class="' . trim($bCls) . '">'
            . $bIconHtml          // already safe HTML like <i class="fas fa-home"></i>
            . '<span>' . $bLbl . '</span></a>';
