@@ -330,8 +330,6 @@ if ($hasHouseId) {
 pageHead('Students — Student Affairs', 'student_affairs');
 $links = getStudentAffairsLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('student_affairs', 'students', $links, $user); ?>
 <div class="main-area">

@@ -32,8 +32,6 @@ if ($classId) {
 pageHead('ILC Results', 'ilc_vp');
 $links = getIlcLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('ilc_vp', 'results', $links, $user); ?>
 <div class="main-area">

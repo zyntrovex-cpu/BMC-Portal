@@ -97,8 +97,6 @@ try {
 pageHead('View As User — ILC', 'ilc_vp');
 $links = getIlcLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('ilc_vp', 'viewas', $links, $user); ?>
 <div class="main-area">

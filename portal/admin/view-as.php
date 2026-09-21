@@ -84,8 +84,6 @@ $roleLabels = [
 pageHead('View As User', 'admin');
 $links = getAdminLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('admin', 'viewas', $links, $user); ?>
 <div class="main-area">

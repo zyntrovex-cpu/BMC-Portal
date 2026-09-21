@@ -95,8 +95,6 @@ if ($fallback) {
   .btn-primary { background:linear-gradient(135deg,#1c3054,#2563eb); border:none; border-radius:8px; padding:12px; font-weight:700; font-size:.95rem; }
   .link-box { background:#f0f9ff; border:1.5px solid #38bdf8; border-radius:10px; padding:16px; }
 </style>
-</head>
-<body>
 <div class="card">
   <div class="card-header">
     <div style="font-size:2.4rem;margin-bottom:8px">🔑</div>

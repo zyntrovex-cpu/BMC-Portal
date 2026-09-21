@@ -54,8 +54,6 @@ try {
 pageHead('ILC Dashboard', 'ilc_vp');
 $links = getIlcLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('ilc_vp', 'dashboard', $links, $user); ?>
 <div class="main-area">

@@ -94,8 +94,6 @@ if ($studentId) {
 pageHead('Behaviour Therapy — ILC', 'ilc_vp');
 $links = getIlcLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('ilc_vp', 'behaviour-therapy', $links, $user); ?>
 <div class="main-area">

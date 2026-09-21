@@ -95,8 +95,6 @@ if ($studentId) {
 pageHead('Medical Records', 'student_affairs');
 $links = getStudentAffairsLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('student_affairs', 'medical', $links, $user); ?>
 <div class="main-area">

@@ -88,8 +88,6 @@ if ($tableExists) {
 pageHead('Attendance Edit Requests', 'vp_main');
 $links = getVpLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('vp_main', 'att_requests', $links, $user); ?>
 <div class="main-area">

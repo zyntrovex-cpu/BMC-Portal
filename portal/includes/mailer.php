@@ -162,7 +162,6 @@ function mailTemplate(string $title, string $body): string {
   .footer { background:#f8fafc; padding:16px 32px; text-align:center; font-size:.78rem; color:#8a9ab0; border-top:1px solid #e5e7eb; }
   .otp { font-size:2rem; font-weight:700; letter-spacing:.3em; color:#1c3054; background:#f0f4ff; padding:16px 24px; border-radius:6px; display:inline-block; margin:16px 0; }
 </style></head>
-<body>
 <div class="wrap">
   <div class="header"><h1>🎓 BMC Portal</h1><p>$school</p></div>
   <div class="body"><h2 style="margin-top:0">$title</h2>$body</div>

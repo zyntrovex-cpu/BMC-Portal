@@ -113,8 +113,6 @@ $catCounts = $db->query(
 pageHead('Disability Records', 'ilc_vp');
 $links = getIlcLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('ilc_vp', 'disabilities', $links, $user); ?>
 <div class="main-area">

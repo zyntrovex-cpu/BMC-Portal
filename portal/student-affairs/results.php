@@ -57,8 +57,6 @@ if ($classId && $subjectId) {
 pageHead('Results — Student Affairs', 'student_affairs');
 $links = getStudentAffairsLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('student_affairs', 'results', $links, $user); ?>
 <div class="main-area">

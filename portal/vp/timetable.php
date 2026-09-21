@@ -73,8 +73,6 @@ foreach ($timetable as $row) $grouped[$row['day']][] = $row;
 pageHead('Timetable', 'vp_main');
 $links = getVpLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('vp_main', 'timetable', $links, $user); ?>
 <div class="main-area">

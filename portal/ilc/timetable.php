@@ -83,8 +83,6 @@ foreach ($timetable as $row) $grouped[$row['day']][] = $row;
 pageHead('ILC Timetable', 'ilc_vp');
 $links = getIlcLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('ilc_vp', 'timetable', $links, $user); ?>
 <div class="main-area">

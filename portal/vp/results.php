@@ -32,8 +32,6 @@ if ($classId) {
 pageHead('Results', 'vp_main');
 $links = getVpLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('vp_main', 'results', $links, $user); ?>
 <div class="main-area">

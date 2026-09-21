@@ -218,8 +218,6 @@ try { $houses = $db->query('SELECT id, name, color FROM houses ORDER BY name')->
 pageHead('Student Profile — ILC', 'ilc_vp');
 $links = getIlcLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('ilc_vp', 'students', $links, $user); ?>
 <div class="main-area">

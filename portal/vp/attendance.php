@@ -34,8 +34,6 @@ foreach ($attendance as $a) if (isset($summary[$a['status']])) $summary[$a['stat
 pageHead('Attendance', 'vp_main');
 $links = getVpLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('vp_main', 'attendance', $links, $user); ?>
 <div class="main-area">

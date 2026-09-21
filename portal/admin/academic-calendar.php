@@ -93,8 +93,6 @@ $sidebarKey = match($portal) {
 
 pageHead('Academic Calendar', $sidebarKey);
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar($sidebarKey, 'calendar', $links, $user); ?>
 <div class="main-area">

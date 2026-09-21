@@ -347,8 +347,6 @@ body {
   .type-tile .tile-icon { font-size:1.7rem; margin-bottom:8px; }
 }
 </style>
-</head>
-<body>
 
 <div class="login-card" id="loginCard">
 

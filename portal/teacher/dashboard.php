@@ -119,8 +119,6 @@ $links = getTeacherLinks();
 
 pageHead('Dashboard', 'teacher');
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('teacher', 'dashboard', $links, $user); ?>
 <div class="main-area">

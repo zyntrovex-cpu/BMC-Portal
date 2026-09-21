@@ -79,8 +79,6 @@ if ($hasHouseId) {
 pageHead('Students', 'vp_main');
 $links = getVpLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('vp_main', 'students', $links, $user); ?>
 <div class="main-area">

@@ -46,8 +46,6 @@ $categories = $db->query('SELECT * FROM disability_categories ORDER BY name')->f
 pageHead('ILC Students', 'ilc_vp');
 $links = getIlcLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('ilc_vp', 'students', $links, $user); ?>
 <div class="main-area">

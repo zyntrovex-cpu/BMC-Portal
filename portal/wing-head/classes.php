@@ -19,8 +19,6 @@ $classes = $db->query(
 pageHead('Montessori Classes', 'wing_head');
 $links = getWingHeadLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('wing_head', 'classes', $links, $user); ?>
 <div class="main-area">

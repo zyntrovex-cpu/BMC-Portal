@@ -102,8 +102,6 @@ if ($viewStudent && $tableExists) {
 pageHead('Fee Status — ILC', 'ilc_vp');
 $links = getIlcLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('ilc_vp', 'fee-status', $links, $user); ?>
 <div class="main-area">

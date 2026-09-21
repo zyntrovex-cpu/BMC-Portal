@@ -57,8 +57,6 @@ $requests = $st->fetchAll();
 pageHead('Admission Requests', 'ilc_vp');
 $links = getIlcLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('ilc_vp', 'admissions', $links, $user); ?>
 <div class="main-area">

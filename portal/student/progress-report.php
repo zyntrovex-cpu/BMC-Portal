@@ -485,8 +485,6 @@ body {
   .screen-toolbar .title { display: none; }
 }
 </style>
-</head>
-<body>
 
 <!-- Screen toolbar (hidden on print) -->
 <div class="screen-toolbar">

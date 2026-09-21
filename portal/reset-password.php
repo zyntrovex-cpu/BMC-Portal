@@ -57,8 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $user) {
   .btn-success { border-radius:8px; padding:12px; font-weight:700; font-size:.95rem; }
   .strength-bar { height:4px; border-radius:2px; transition:all .3s; background:#e5e7eb; }
 </style>
-</head>
-<body>
 <div class="card">
   <div class="card-header">
     <div style="font-size:2.4rem;margin-bottom:8px">🔒</div>

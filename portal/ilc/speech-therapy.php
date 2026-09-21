@@ -94,8 +94,6 @@ if ($studentId) {
 pageHead('Speech Therapy — ILC', 'ilc_vp');
 $links = getIlcLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('ilc_vp', 'speech-therapy', $links, $user); ?>
 <div class="main-area">

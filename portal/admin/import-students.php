@@ -503,8 +503,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
 pageHead('Import Students', 'admin');
 $links = getAdminLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('admin', 'import', $links, $user); ?>
 <div class="main-area">

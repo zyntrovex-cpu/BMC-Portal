@@ -28,8 +28,6 @@ try {
 pageHead('Student Affairs Dashboard', 'student_affairs');
 $links = getStudentAffairsLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('student_affairs', 'dashboard', $links, $user); ?>
 <div class="main-area">

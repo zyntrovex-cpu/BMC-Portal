@@ -8,11 +8,16 @@ $user = requireAuth('wing_head');
 requirePermission('wh_students');
 $db   = getDB();
 
+$hasStudentCategory = false;
+try { $db->query('SELECT student_category FROM students LIMIT 0'); $hasStudentCategory = true; } catch (Exception $e) {}
+
 // ── Update student category ───────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_category') {
     $sid = (int)$_POST['student_id'];
     $cat = in_array($_POST['category'], ['civilian','cpo','sailor','']) ? ($_POST['category'] ?: null) : null;
-    $db->prepare('UPDATE students SET student_category=? WHERE id=?')->execute([$cat, $sid]);
+    if ($hasStudentCategory) {
+        $db->prepare('UPDATE students SET student_category=? WHERE id=?')->execute([$cat, $sid]);
+    }
     setFlash('success', 'Category updated.');
     redirect('/portal/wing-head/students.php' . (isset($_GET['class_id']) ? '?class_id='.(int)$_GET['class_id'] : ''));
 }
@@ -21,14 +26,15 @@ $classId  = (int)($_GET['class_id'] ?? 0);
 $search   = trim($_GET['q'] ?? '');
 $classes  = $db->query('SELECT * FROM classes WHERE is_montessori=1 ORDER BY name')->fetchAll();
 
-$sql = 'SELECT u.id, u.user_id, u.name, u.email, u.status,
+$catCol = $hasStudentCategory ? 's.student_category,' : 'NULL AS student_category,';
+$sql = "SELECT u.id, u.user_id, u.name, u.email, u.status,
                s.id AS student_id, s.roll_no, s.dob, s.phone,
-               s.student_category, s.parent_name, s.parent_phone,
+               $catCol s.parent_name, s.parent_phone,
                c.name AS class_name
         FROM users u
         JOIN students s ON s.user_id = u.id
         JOIN classes c  ON c.id = s.class_id
-        WHERE c.is_montessori = 1';
+        WHERE c.is_montessori = 1";
 $params = [];
 if ($classId) { $sql .= ' AND c.id = ?'; $params[] = $classId; }
 if ($search) {
@@ -44,8 +50,6 @@ $students = $st->fetchAll();
 pageHead('Montessori Students', 'wing_head');
 $links = getWingHeadLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('wing_head', 'students', $links, $user); ?>
 <div class="main-area">

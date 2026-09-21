@@ -112,8 +112,6 @@ pageHead('Student Warnings', 'admin');
 $links = $user['role'] === 'admin' ? getAdminLinks() : getTeacherLinks();
 $portal = $user['role'] === 'admin' ? 'admin' : 'teacher';
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar($portal, 'warnings', $links, $user); ?>
 <div class="main-area">

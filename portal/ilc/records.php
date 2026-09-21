@@ -100,8 +100,6 @@ if ($tableExists) {
 pageHead('ILC Session Records', 'ilc_vp');
 $links = getIlcLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('ilc_vp', 'records', $links, $user); ?>
 <div class="main-area">

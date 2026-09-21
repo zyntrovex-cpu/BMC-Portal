@@ -84,8 +84,6 @@ try {
 pageHead('Houses', 'admin');
 $links = getAdminLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('admin', 'houses', $links, $user); ?>
 <div class="main-area">

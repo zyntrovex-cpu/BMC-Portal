@@ -96,8 +96,6 @@ if ($studentId) {
 pageHead('Assessments — ILC', 'ilc_vp');
 $links = getIlcLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('ilc_vp', 'assessments', $links, $user); ?>
 <div class="main-area">

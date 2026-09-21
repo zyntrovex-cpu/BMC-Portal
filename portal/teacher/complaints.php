@@ -86,8 +86,6 @@ if (isset($_GET['print']) && $tableExists) {
   .box { background: #f9fafb; border: 1px solid #ddd; border-radius: 4px; padding: 10px; margin-bottom: 12px; white-space: pre-wrap; }
   @media print { button { display: none; } }
 </style>
-</head>
-<body>
 <div style="text-align:center;margin-bottom:20px">
   <h2>Bahria Model College Bin Qasim</h2>
   <div style="font-size:14px;color:#555">Student Complaint — Official Record</div>

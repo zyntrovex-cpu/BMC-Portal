@@ -79,8 +79,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 pageHead('Class Promotion', 'admin');
 $links = getAdminLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('admin', 'promote', $links, $user); ?>
 <div class="main-area">

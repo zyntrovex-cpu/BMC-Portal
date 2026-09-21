@@ -90,8 +90,6 @@ $prios     = ['Normal','Important','Urgent'];
 pageHead('Notices — Student Affairs', 'student_affairs');
 $links = getStudentAffairsLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('student_affairs', 'notices', $links, $user); ?>
 <div class="main-area">

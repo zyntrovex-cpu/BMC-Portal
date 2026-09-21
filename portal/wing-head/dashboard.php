@@ -39,8 +39,6 @@ try {
 pageHead('Wing Head Dashboard', 'wing_head');
 $links = getWingHeadLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('wing_head', 'dashboard', $links, $user); ?>
 <div class="main-area">

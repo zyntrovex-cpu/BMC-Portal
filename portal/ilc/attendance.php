@@ -33,8 +33,6 @@ foreach ($attendance as $a) if (isset($summary[$a['status']])) $summary[$a['stat
 pageHead('ILC Attendance', 'ilc_vp');
 $links = getIlcLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('ilc_vp', 'attendance', $links, $user); ?>
 <div class="main-area">

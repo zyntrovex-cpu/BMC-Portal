@@ -76,8 +76,6 @@ $unassigned = array_sum(array_map(fn($s) => is_null($s['class_id']) ? 1 : 0, $st
 pageHead('Class Enrollment — Student Affairs', 'student_affairs');
 $links = getStudentAffairsLinks();
 ?>
-</head>
-<body>
 <div class="portal-wrap">
 <?php sidebar('student_affairs', 'enroll', $links, $user); ?>
 <div class="main-area">
