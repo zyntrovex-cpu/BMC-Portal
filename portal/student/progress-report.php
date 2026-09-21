@@ -30,18 +30,33 @@ if ($role === 'student') {
 }
 
 // ── Fetch student record ──────────────────────────────────────────
-$st = $db->prepare(
-    'SELECT s.*, u.name, u.email, u.user_id AS login_id, u.status AS account_status,
-            u.profile_photo, u.photo_status,
-            c.name AS class_name, c.id AS class_id,
-            h.name AS house_name, h.color AS house_color
-     FROM students s
-     JOIN users u ON s.user_id = u.id
-     LEFT JOIN classes c ON s.class_id = c.id
-     LEFT JOIN houses h ON s.house_id = h.id
-     WHERE s.id = ?'
-);
-$st->execute([$studentId]);
+// Fetch student — graceful fallback if houses table / house_id column missing
+try {
+    $st = $db->prepare(
+        'SELECT s.*, u.name, u.email, u.user_id AS login_id, u.status AS account_status,
+                u.profile_photo, u.photo_status,
+                c.name AS class_name, c.id AS class_id,
+                h.name AS house_name, h.color AS house_color
+         FROM students s
+         JOIN users u ON s.user_id = u.id
+         LEFT JOIN classes c ON s.class_id = c.id
+         LEFT JOIN houses h ON s.house_id = h.id
+         WHERE s.id = ?'
+    );
+    $st->execute([$studentId]);
+} catch (Exception $e) {
+    $st = $db->prepare(
+        'SELECT s.*, u.name, u.email, u.user_id AS login_id, u.status AS account_status,
+                u.profile_photo, u.photo_status,
+                c.name AS class_name, c.id AS class_id,
+                NULL AS house_name, NULL AS house_color
+         FROM students s
+         JOIN users u ON s.user_id = u.id
+         LEFT JOIN classes c ON s.class_id = c.id
+         WHERE s.id = ?'
+    );
+    $st->execute([$studentId]);
+}
 $student = $st->fetch();
 if (!$student) { header('Location: /portal/index.php?msg=unauthorized'); exit; }
 

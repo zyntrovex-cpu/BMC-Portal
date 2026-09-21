@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $db->prepare('INSERT INTO disability_categories (name) VALUES (?)')->execute([$name]);
                 logActivity($user['id'], 'disability_cat_add', "Added category: $name");
-                setFlash('success', "Category "$name" added.");
+                setFlash('success', "Category \"$name\" added.");
             } catch (Exception $e) {
                 setFlash('danger', 'Could not add category (may already exist).');
             }
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $db->prepare('INSERT INTO disability_subtypes (category_id, name) VALUES (?,?)')->execute([$catId, $name]);
                 logActivity($user['id'], 'disability_subtype_add', "Added subtype: $name (cat #$catId)");
-                setFlash('success', "Subtype "$name" added.");
+                setFlash('success', "Subtype \"$name\" added.");
             } catch (Exception $e) {
                 setFlash('danger', 'Could not add subtype (may already exist).');
             }

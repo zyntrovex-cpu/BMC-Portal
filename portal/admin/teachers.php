@@ -7,6 +7,10 @@ require_once __DIR__ . '/../../config/config.php';
 $user = requireAuth('admin');
 $db   = getDB();
 
+// Detect whether wing column exists on teachers table (added by wing-migration.sql)
+$hasTeacherWing = false;
+try { $db->query('SELECT wing FROM teachers LIMIT 0'); $hasTeacherWing = true; } catch (Exception $e) {}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -33,8 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $db->prepare('INSERT INTO users (user_id, name, email, password, role, status) VALUES (?,?,?,?,?,?)')
                    ->execute([$empId, $name, $email ?: null, $hash, 'teacher', 'active']);
                 $newId = (int)$db->lastInsertId();
-                $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification, phone, join_date, wing) VALUES (?,?,?,?,?,?,?)')
-                   ->execute([$newId, $empId, $subjectId ?: null, $qual, $phone ?: null, $joinDate, $wing]);
+                if ($hasTeacherWing) {
+                    $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification, phone, join_date, wing) VALUES (?,?,?,?,?,?,?)')
+                       ->execute([$newId, $empId, $subjectId ?: null, $qual, $phone ?: null, $joinDate, $wing]);
+                } else {
+                    $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification, phone, join_date) VALUES (?,?,?,?,?,?)')
+                       ->execute([$newId, $empId, $subjectId ?: null, $qual, $phone ?: null, $joinDate]);
+                }
                 logActivity($user['id'], 'teacher_create', "Created teacher $empId (wing: $wing)");
                 setFlash('success', "Teacher $name created.");
             }
@@ -49,8 +58,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $qual  = trim($_POST['qualification'] ?? '');
         $subjectId = (int)$_POST['subject_id'];
         $wing  = in_array($_POST['wing'] ?? '', $allowedWings) ? $_POST['wing'] : 'main';
-        $db->prepare('UPDATE teachers SET phone=?, qualification=?, subject_id=?, wing=? WHERE id=?')
-           ->execute([$phone, $qual, $subjectId ?: null, $wing, $id]);
+        if ($hasTeacherWing) {
+            $db->prepare('UPDATE teachers SET phone=?, qualification=?, subject_id=?, wing=? WHERE id=?')
+               ->execute([$phone, $qual, $subjectId ?: null, $wing, $id]);
+        } else {
+            $db->prepare('UPDATE teachers SET phone=?, qualification=?, subject_id=? WHERE id=?')
+               ->execute([$phone, $qual, $subjectId ?: null, $id]);
+        }
         logActivity($user['id'], 'teacher_edit', "Updated teacher #$id wing → $wing");
         setFlash('success', 'Teacher updated.');
     }

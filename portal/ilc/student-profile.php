@@ -11,16 +11,30 @@ $studentId = (int)($_GET['id'] ?? 0);
 if (!$studentId) { setFlash('danger','Invalid student.'); redirect('/portal/ilc/students.php'); }
 
 // Fetch student — must be ILC class
-$stSt = $db->prepare(
-    'SELECT s.*, u.name, u.user_id, u.email, u.status,
-            c.name AS class_name, h.name AS house_name, h.color AS house_color
-     FROM students s
-     JOIN users u ON u.id = s.user_id
-     JOIN classes c ON c.id = s.class_id
-     LEFT JOIN houses h ON h.id = s.house_id
-     WHERE s.id = ? AND c.is_ilc = 1'
-);
-$stSt->execute([$studentId]);
+// Fetch student — with graceful fallback if houses table / house_id column missing
+try {
+    $stSt = $db->prepare(
+        'SELECT s.*, u.name, u.user_id, u.email, u.status,
+                c.name AS class_name, h.name AS house_name, h.color AS house_color
+         FROM students s
+         JOIN users u ON u.id = s.user_id
+         JOIN classes c ON c.id = s.class_id
+         LEFT JOIN houses h ON h.id = s.house_id
+         WHERE s.id = ? AND c.is_ilc = 1'
+    );
+    $stSt->execute([$studentId]);
+} catch (Exception $e) {
+    // houses table or house_id column not yet created — load without it
+    $stSt = $db->prepare(
+        'SELECT s.*, u.name, u.user_id, u.email, u.status,
+                c.name AS class_name, NULL AS house_name, NULL AS house_color
+         FROM students s
+         JOIN users u ON u.id = s.user_id
+         JOIN classes c ON c.id = s.class_id
+         WHERE s.id = ? AND c.is_ilc = 1'
+    );
+    $stSt->execute([$studentId]);
+}
 $student = $stSt->fetch();
 if (!$student) { setFlash('danger','Student not found in ILC.'); redirect('/portal/ilc/students.php'); }
 
@@ -199,7 +213,7 @@ foreach ($categories as $row) {
 }
 
 $classes = getAllClasses();
-$houses  = $db->query('SELECT id, name, color FROM houses ORDER BY name')->fetchAll();
+try { $houses = $db->query('SELECT id, name, color FROM houses ORDER BY name')->fetchAll(); } catch (Exception $e) { $houses = []; }
 
 pageHead('Student Profile — ILC', 'ilc_vp');
 $links = getIlcLinks();
