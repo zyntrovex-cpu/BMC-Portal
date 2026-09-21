@@ -39,13 +39,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             if ($ck->fetch()) {
                 setFlash('warning', 'A pending request already exists for this record.');
             } else {
-                $db->prepare(
-                    'INSERT INTO attendance_edit_requests
-                     (teacher_id, student_id, class_id, subject_id, date, old_status, new_status, reason)
-                     VALUES (?,?,?,?,?,?,?,?)'
-                )->execute([$teacher['id'], $studentId, $classId, $subjectId, $reqDate, $oldStatus, $newStatus, $reason]);
-                logActivity($user['id'], 'att_edit_request', "Requested attendance edit for student #$studentId on $reqDate");
-                setFlash('success', 'Edit request submitted for VP approval.');
+                try {
+                    $db->prepare(
+                        'INSERT INTO attendance_edit_requests
+                         (teacher_id, student_id, class_id, subject_id, date, old_status, new_status, reason)
+                         VALUES (?,?,?,?,?,?,?,?)'
+                    )->execute([$teacher['id'], $studentId, $classId, $subjectId, $reqDate, $oldStatus, $newStatus, $reason]);
+                    logActivity($user['id'], 'att_edit_request', "Requested attendance edit for student #$studentId on $reqDate");
+                    setFlash('success', 'Edit request submitted for VP approval.');
+                } catch (Exception $e) {
+                    setFlash('danger', 'Failed to submit request: ' . $e->getMessage());
+                }
             }
         } else {
             setFlash('danger', 'All fields are required.');
@@ -77,14 +81,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 // Get classes assigned to this teacher
-$classesSt = $db->prepare('SELECT DISTINCT c.id, c.name FROM class_subjects cs JOIN classes c ON cs.class_id = c.id WHERE cs.teacher_id = ? ORDER BY c.grade, c.section');
-$classesSt->execute([$teacher['id']]);
-$assignedClasses = $classesSt->fetchAll();
+$assignedClasses = [];
+try {
+    $classesSt = $db->prepare('SELECT DISTINCT c.id, c.name FROM class_subjects cs JOIN classes c ON cs.class_id = c.id WHERE cs.teacher_id = ? ORDER BY c.grade, c.section');
+    $classesSt->execute([$teacher['id']]);
+    $assignedClasses = $classesSt->fetchAll();
+} catch (Exception $e) {}
 
 // Get subjects assigned to this teacher across all their classes
-$subjectsSt = $db->prepare('SELECT DISTINCT s.id, s.name FROM class_subjects cs JOIN subjects s ON cs.subject_id = s.id WHERE cs.teacher_id = ? ORDER BY s.name');
-$subjectsSt->execute([$teacher['id']]);
-$assignedSubjects = $subjectsSt->fetchAll();
+$assignedSubjects = [];
+try {
+    $subjectsSt = $db->prepare('SELECT DISTINCT s.id, s.name FROM class_subjects cs JOIN subjects s ON cs.subject_id = s.id WHERE cs.teacher_id = ? ORDER BY s.name');
+    $subjectsSt->execute([$teacher['id']]);
+    $assignedSubjects = $subjectsSt->fetchAll();
+} catch (Exception $e) {}
 
 // Get students if class selected
 $students      = [];
@@ -130,23 +140,25 @@ if ($tab === 'requests') {
 // History tab
 $history = [];
 if ($tab === 'history') {
-    $histSt = $db->prepare(
-        'SELECT a.date, a.subject_id, sb.name AS subject_name, c.name AS class_name,
-                COUNT(*) AS total,
-                SUM(a.status="P") AS present,
-                SUM(a.status="A") AS absent,
-                SUM(a.status="L") AS `leave`
-         FROM attendance a
-         JOIN subjects sb ON a.subject_id = sb.id
-         JOIN students st ON a.student_id = st.id
-         JOIN classes c ON st.class_id = c.id
-         WHERE a.teacher_id = ?
-         GROUP BY a.date, a.subject_id
-         ORDER BY a.date DESC, sb.name
-         LIMIT 50'
-    );
-    $histSt->execute([$teacher['id']]);
-    $history = $histSt->fetchAll();
+    try {
+        $histSt = $db->prepare(
+            'SELECT a.date, a.subject_id, sb.name AS subject_name, c.name AS class_name,
+                    COUNT(*) AS total,
+                    SUM(a.status="P") AS present,
+                    SUM(a.status="A") AS absent,
+                    SUM(a.status="L") AS `leave`
+             FROM attendance a
+             JOIN subjects sb ON a.subject_id = sb.id
+             JOIN students st ON a.student_id = st.id
+             JOIN classes c ON st.class_id = c.id
+             WHERE a.teacher_id = ?
+             GROUP BY a.date, a.subject_id
+             ORDER BY a.date DESC, sb.name
+             LIMIT 50'
+        );
+        $histSt->execute([$teacher['id']]);
+        $history = $histSt->fetchAll();
+    } catch (Exception $e) {}
 }
 
 pageHead('Attendance', 'teacher');
