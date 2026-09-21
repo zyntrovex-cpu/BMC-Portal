@@ -83,16 +83,32 @@ function getClassStudents(int $classId): array {
 }
 
 function getStudentByUserId(int $userId): ?array {
-    $st = getDB()->prepare(
-        'SELECT s.*, u.name, u.email, u.user_id AS login_id,
-                c.name AS class_name, c.wing AS wing
-         FROM students s
-         JOIN users u ON s.user_id = u.id
-         LEFT JOIN classes c ON s.class_id = c.id
-         WHERE s.user_id = ?'
-    );
-    $st->execute([$userId]);
-    return $st->fetch() ?: null;
+    $db = getDB();
+    // Try with wing column (requires wing-migration.sql to have been run)
+    try {
+        $st = $db->prepare(
+            'SELECT s.*, u.name, u.email, u.user_id AS login_id,
+                    c.name AS class_name, c.wing AS wing
+             FROM students s
+             JOIN users u ON s.user_id = u.id
+             LEFT JOIN classes c ON s.class_id = c.id
+             WHERE s.user_id = ?'
+        );
+        $st->execute([$userId]);
+        return $st->fetch() ?: null;
+    } catch (Exception $e) {
+        // wing column doesn't exist yet — fall back gracefully
+        $st = $db->prepare(
+            'SELECT s.*, u.name, u.email, u.user_id AS login_id,
+                    c.name AS class_name, NULL AS wing
+             FROM students s
+             JOIN users u ON s.user_id = u.id
+             LEFT JOIN classes c ON s.class_id = c.id
+             WHERE s.user_id = ?'
+        );
+        $st->execute([$userId]);
+        return $st->fetch() ?: null;
+    }
 }
 
 function getTeacherByUserId(int $userId): ?array {
