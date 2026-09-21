@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fee'])) {
 
     logActivity($user['id'], 'fees_save', "Fee collection saved for class #$pClassId, {$pMonth}/{$pYear}");
     setFlash('success','Fee records saved successfully.');
-    redirect("/finance/collection.php?class_id=$pClassId&month=$pMonth&year=$pYear");
+    redirect("/portal/finance/collection.php?class_id=$pClassId&month=$pMonth&year=$pYear");
 }
 
 $classes = getAllClasses();

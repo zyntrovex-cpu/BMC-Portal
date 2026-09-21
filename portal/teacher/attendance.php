@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     logActivity($user['id'], 'attendance_save', "Attendance for class #$pClassId, date $pDate ($saved students)");
     setFlash('success', "Attendance saved for $saved students.");
-    redirect("/teacher/attendance.php?tab=take&class_id=$pClassId&subject_id=$pSubjectId&date=$pDate");
+    redirect("/portal/teacher/attendance.php?tab=take&class_id=$pClassId&subject_id=$pSubjectId&date=$pDate");
 }
 
 // Get classes assigned to this teacher
