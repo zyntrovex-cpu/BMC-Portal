@@ -64,10 +64,12 @@ try {
     $st->execute($params);
     $students = $st->fetchAll();
 } catch (PDOException $e) {
-    // Retry without house columns if something fails
-    $st = $db->prepare("SELECT u.id, u.user_id, u.name, u.email, u.status, s.id AS student_id, s.roll_no, s.phone, s.student_category, s.parent_name, c.name AS class_name, c.is_montessori FROM users u JOIN students s ON s.user_id = u.id JOIN classes c ON c.id = s.class_id WHERE u.role='student' AND c.is_ilc=0 ORDER BY c.name, u.name");
-    $st->execute();
-    $students = $st->fetchAll();
+    // Retry without optional columns (houses, student_category)
+    try {
+        $st = $db->prepare("SELECT u.id, u.user_id, u.name, u.email, u.status, s.id AS student_id, s.roll_no, s.phone, NULL AS student_category, s.parent_name, c.name AS class_name, c.is_montessori, NULL AS house_id, NULL AS house_name FROM users u JOIN students s ON s.user_id = u.id JOIN classes c ON c.id = s.class_id WHERE u.role='student' AND c.is_ilc=0 ORDER BY c.name, u.name");
+        $st->execute();
+        $students = $st->fetchAll();
+    } catch (PDOException $e2) {}
 }
 
 $classes = $db->query('SELECT * FROM classes WHERE is_ilc=0 ORDER BY is_montessori, name')->fetchAll();
