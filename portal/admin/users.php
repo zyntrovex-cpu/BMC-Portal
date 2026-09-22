@@ -181,16 +181,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $req = $db->prepare('SELECT * FROM profile_change_requests WHERE id = ?');
         $req->execute([$reqId]);
         $r = $req->fetch();
-        if ($r && in_array($r['field'], ['phone','address','parent_name','parent_phone'])) {
-            $db->prepare("UPDATE students SET {$r['field']} = ? WHERE id = ?")->execute([$r['new_value'], $r['student_id']]);
-            $db->prepare("UPDATE profile_change_requests SET status='approved' WHERE id = ?")->execute([$reqId]);
-            setFlash('success','Profile change approved.');
+        $editableFields = ['phone','address','permanent_address','parent_name','parent_phone',
+                           'parent_email','father_name','father_occupation',
+                           'whatsapp_no','emergency_phone','cnic'];
+        if ($r && in_array($r['field'], $editableFields)) {
+            try {
+                $db->prepare("UPDATE students SET {$r['field']} = ? WHERE id = ?")->execute([$r['new_value'], $r['student_id']]);
+            } catch (Exception $e) {}
+            $db->prepare("UPDATE profile_change_requests SET status='approved',reviewed_by=?,reviewed_at=NOW() WHERE id = ?")
+               ->execute([$user['id'], $reqId]);
+            setFlash('success','Profile change approved and applied.');
         }
     }
 
     if ($action === 'reject_request') {
         $reqId = (int)$_POST['request_id'];
-        $db->prepare("UPDATE profile_change_requests SET status='rejected' WHERE id = ?")->execute([$reqId]);
+        $db->prepare("UPDATE profile_change_requests SET status='rejected',reviewed_by=?,reviewed_at=NOW() WHERE id = ?")
+           ->execute([$user['id'], $reqId]);
         setFlash('success','Request rejected.');
     }
 
@@ -307,17 +314,25 @@ $usersSt = $db->prepare(
 $usersSt->execute($params);
 $users = $usersSt->fetchAll();
 
-// Pending profile requests
-$pendingSt = $db->prepare(
-    'SELECT pcr.*, u.name AS student_name, u.user_id AS student_roll
-     FROM profile_change_requests pcr
-     JOIN students s ON pcr.student_id = s.id
-     JOIN users u ON s.user_id = u.id
-     WHERE pcr.status = "pending"
-     ORDER BY pcr.created_at DESC'
-);
-$pendingSt->execute();
-$pendingRequests = $pendingSt->fetchAll();
+// Pending profile requests (Admin sees only SA-approved requests awaiting final approval)
+$pendingRequests = [];
+try {
+    $_hasSaCol = false;
+    try { $db->query('SELECT sa_status FROM profile_change_requests LIMIT 0'); $_hasSaCol = true; } catch (Exception $e) {}
+    $adminWhere = $_hasSaCol
+        ? "pcr.status = 'pending' AND pcr.sa_status = 'approved'"
+        : "pcr.status = 'pending'";
+    $pendingSt = $db->prepare(
+        "SELECT pcr.*, u.name AS student_name, u.user_id AS student_roll
+         FROM profile_change_requests pcr
+         JOIN students s ON pcr.student_id = s.id
+         JOIN users u ON s.user_id = u.id
+         WHERE $adminWhere
+         ORDER BY pcr.created_at DESC"
+    );
+    $pendingSt->execute();
+    $pendingRequests = $pendingSt->fetchAll();
+} catch (PDOException $e) {}
 
 $classes  = getAllClasses();
 $subjects = getAllSubjects();
@@ -347,10 +362,13 @@ $links = getAdminLinks();
 <?php unset($_SESSION['new_user_link'], $_SESSION['new_user_id']); ?>
 <?php endif; ?>
 
-<!-- Pending profile requests -->
+<!-- Pending profile requests (SA-approved, awaiting Admin final approval) -->
 <?php if (!empty($pendingRequests)): ?>
 <div class="sec-card mb-3 border-warning">
-  <div class="sec-card-header text-warning"><i class="fas fa-clock me-2"></i>Pending Profile Change Requests (<?= count($pendingRequests) ?>)</div>
+  <div class="sec-card-header text-warning">
+    <i class="fas fa-clock me-2"></i>Profile Change Requests — Awaiting Final Approval (<?= count($pendingRequests) ?>)
+    <small class="ms-2 opacity-75" style="font-weight:400">SA-reviewed, approve to apply</small>
+  </div>
   <div class="table-responsive">
     <table class="table table-sm mb-0" style="font-size:.84rem">
       <thead class="table-light"><tr><th>Student</th><th>Field</th><th>Old Value</th><th>New Value</th><th>Date</th><th></th></tr></thead>

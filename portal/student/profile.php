@@ -9,6 +9,21 @@ $db      = getDB();
 $student = getStudentByUserId($user['id']);
 if (!$student) { setFlash('danger','Student record not found.'); redirect('/portal/index.php'); }
 
+// Auto-migrate: add two-stage workflow columns to profile_change_requests if absent
+$_pcrCols = [];
+try { $_pcrCols = array_flip($db->query("SHOW COLUMNS FROM profile_change_requests")->fetchAll(PDO::FETCH_COLUMN)); } catch (Exception $e) {}
+if (!isset($_pcrCols['sa_status'])) {
+    try {
+        $db->exec("ALTER TABLE `profile_change_requests`
+            ADD COLUMN `sa_status` ENUM('pending','approved','rejected') DEFAULT 'pending' AFTER `status`,
+            ADD COLUMN `sa_reviewed_by` INT DEFAULT NULL AFTER `sa_status`,
+            ADD COLUMN `sa_reviewed_at` DATETIME DEFAULT NULL AFTER `sa_reviewed_by`");
+        // Grandfather existing pending requests so admin can still process them
+        $db->exec("UPDATE `profile_change_requests` SET `sa_status` = 'approved' WHERE `status` = 'pending'");
+    } catch (Exception $e) {}
+}
+$hasSaStatus = isset($_pcrCols['sa_status']) || true; // true after migration attempt
+
 // Handle profile change request
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? 'field_request';
@@ -35,10 +50,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $field    = $_POST['field_name']  ?? '';
     $newValue = trim($_POST['new_value'] ?? '');
-    $allowed  = ['phone','address','permanent_address','parent_name','parent_phone','whatsapp_no','emergency_phone'];
+    $allowed  = [
+        'phone','whatsapp_no','emergency_phone',
+        'address','permanent_address',
+        'parent_name','parent_phone','parent_email',
+        'father_name','father_occupation',
+    ];
 
     if (in_array($field, $allowed) && $newValue) {
-        // Check no pending request for same field
+        // Check no active (pending or SA-approved-awaiting-admin) request for same field
         $check = $db->prepare("SELECT id FROM profile_change_requests WHERE student_id = ? AND field = ? AND status = 'pending'");
         $check->execute([$student['id'], $field]);
         if ($check->fetch()) {
@@ -48,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare('INSERT INTO profile_change_requests (student_id, field, old_value, new_value, status) VALUES (?,?,?,?,?)')
                ->execute([$student['id'], $field, $old, $newValue, 'pending']);
             logActivity($user['id'], 'profile_change_request', "Requested change: $field");
-            setFlash('success','Change request submitted. Pending admin approval.');
+            setFlash('success','Change request submitted. It will be reviewed by Student Affairs, then Admin.');
         }
     } else {
         setFlash('danger','Invalid request.');
@@ -56,7 +76,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('/portal/student/profile.php');
 }
 
-// Pending requests
+// Pending requests (re-check sa_status column exists after migration attempt)
+$_hasSa = false;
+try { $db->query('SELECT sa_status FROM profile_change_requests LIMIT 0'); $_hasSa = true; } catch (Exception $e) {}
+
 $pendingSt = $db->prepare("SELECT * FROM profile_change_requests WHERE student_id = ? ORDER BY created_at DESC");
 $pendingSt->execute([$student['id']]);
 $pending = $pendingSt->fetchAll();
@@ -256,14 +279,23 @@ $links = getStudentLinks();
       <div class="sec-card-header"><i class="fas fa-clock me-2"></i>Change Requests</div>
       <div style="padding:12px 16px">
         <?php foreach ($pending as $r):
-          $statusClass = match($r['status']) { 'approved'=>'success','rejected'=>'danger',default=>'warning' };
+          // Determine display status
+          if ($r['status'] === 'approved') {
+              $statusClass = 'success'; $statusLabel = 'Approved';
+          } elseif ($r['status'] === 'rejected') {
+              $statusClass = 'danger';  $statusLabel = 'Rejected';
+          } elseif ($_hasSa && ($r['sa_status'] ?? 'pending') === 'approved') {
+              $statusClass = 'info';    $statusLabel = 'Awaiting Admin';
+          } else {
+              $statusClass = 'warning'; $statusLabel = 'Awaiting SA Review';
+          }
         ?>
         <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="font-size:.84rem">
           <div>
             <strong><?= h(ucwords(str_replace('_',' ',$r['field']))) ?></strong>
             <div style="color:#6b7280;font-size:.78rem"><?= h($r['new_value']) ?></div>
           </div>
-          <span class="badge bg-<?= $statusClass ?>"><?= ucfirst($r['status']) ?></span>
+          <span class="badge bg-<?= $statusClass ?>"><?= $statusLabel ?></span>
         </div>
         <?php endforeach; ?>
       </div>
@@ -312,8 +344,8 @@ $links = getStudentLinks();
   <div class="col-md-6">
     <?php $returnUrl = '/portal/student/profile.php'; include __DIR__ . '/../includes/photo-upload-widget.php'; ?>
     <div class="sec-card">
-      <div class="sec-card-header"><i class="fas fa-edit me-2"></i>Edit Profile
-        <small class="ms-2 opacity-75" style="font-weight:400">(changes require admin approval)</small>
+      <div class="sec-card-header"><i class="fas fa-edit me-2"></i>Request Profile Change
+        <small class="ms-2 opacity-75" style="font-weight:400">(reviewed by Student Affairs, then Admin)</small>
       </div>
       <div style="padding:16px">
         <?php
@@ -323,7 +355,11 @@ $links = getStudentLinks();
             'emergency_phone'   => ['label'=>'Emergency Phone',    'type'=>'tel'],
             'address'           => ['label'=>'Present Address',    'type'=>'text'],
             'permanent_address' => ['label'=>'Permanent Address',  'type'=>'text'],
+            'parent_name'       => ['label'=>'Parent Name',        'type'=>'text'],
             'parent_phone'      => ['label'=>'Parent Phone',       'type'=>'tel'],
+            'parent_email'      => ['label'=>'Parent Email',       'type'=>'email'],
+            'father_name'       => ['label'=>'Father Name',        'type'=>'text'],
+            'father_occupation' => ['label'=>'Father Occupation',  'type'=>'text'],
         ];
         // Only show fields that exist as columns in this installation
         $stuKeys = array_keys($student);

@@ -325,8 +325,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
         }
     }
 
-    // Decide strategy: header-based (at least name OR user_id found) or positional
-    $headerBased = isset($colIndexMap['name']) || isset($colIndexMap['user_id']);
+    // Decide strategy: header-based (at least name OR gr_no/user_id found) or positional
+    $headerBased = isset($colIndexMap['name']) || isset($colIndexMap['gr_no']) || isset($colIndexMap['user_id']);
 
     $imported   = 0;
     $skipped    = [];
@@ -350,21 +350,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
             }
 
             $name   = trim($map['name']    ?? '');
-            $userId = trim($map['user_id'] ?? '');
+            $grNo   = trim($map['gr_no']   ?? '');
+            // Accept user_id column as fallback GR if gr_no not provided
+            if ($grNo === '') $grNo = trim($map['user_id'] ?? '');
 
             // Skip entirely empty rows (common in XLSX trailing rows)
-            if ($name === '' && $userId === '') continue;
+            if ($name === '' && $grNo === '') continue;
 
-            if (!$name || !$userId) {
-                $skipped[] = "Row $rowNum: 'name' and 'user_id' are required — skipped.";
+            if (!$name || !$grNo) {
+                $skipped[] = "Row $rowNum: 'name' and 'gr_no' are required — skipped.";
                 continue;
             }
 
-            // Duplicate user_id check
+            // Duplicate GR No check (gr_no becomes users.user_id / login)
             $ck = $db->prepare('SELECT id FROM users WHERE user_id = ?');
-            $ck->execute([$userId]);
+            $ck->execute([$grNo]);
             if ($ck->fetch()) {
-                $skipped[] = "Row $rowNum ($userId): Duplicate user_id — skipped.";
+                $skipped[] = "Row $rowNum ($grNo): Duplicate GR No — skipped.";
                 continue;
             }
 
@@ -396,7 +398,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
 
             // Parse & sanitise values
             $email           = $map['email']             !== '' ? $map['email']             : null;
-            $rollNo          = $map['roll_no']           !== '' ? $map['roll_no']           : $userId;
+            $rollNo          = $map['roll_no']           !== '' ? $map['roll_no']           : $grNo;
             $dobSql          = parseDateToSql($map['dob'] ?? '');
             $gender          = in_array(strtolower($map['gender'] ?? ''), ['male','female','other'])
                                  ? strtolower($map['gender']) : null;
@@ -444,10 +446,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
                 // Default: student123 — lets test accounts work immediately
                 $hash = '$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG';
             }
+            // gr_no is the student's unique login username
             $db->prepare(
                 'INSERT INTO users (user_id, name, email, password, role, status)
                  VALUES (?,?,?,?,?,?)'
-            )->execute([$userId, $name, $email, $hash, 'student', 'active']);
+            )->execute([$grNo, $name, $email, $hash, 'student', 'active']);
             $newUserId = (int)$db->lastInsertId();
 
             // Insert student (all columns)
@@ -568,9 +571,9 @@ $links = getAdminLinks();
         <div class="alert alert-warning mb-3" style="font-size:.82rem;padding:8px 12px">
           <i class="fas fa-info-circle me-1"></i>
           <strong>All <?= $importResults['total_rows'] ?> data rows were silently skipped</strong>
-          — this usually means <code>name</code> and <code>user_id</code> columns were both empty
+          — this usually means <code>name</code> and <code>gr_no</code> columns were both empty
           after mapping. Check that your file uses column headers matching the template
-          (e.g. <code>name</code>, <code>user_id</code>).
+          (e.g. <code>name</code>, <code>gr_no</code>).
         </div>
         <?php endif; ?>
 
@@ -621,20 +624,22 @@ $links = getAdminLinks();
         </div>
         <div style="font-size:.8rem;color:var(--t2)">
           <strong>Required columns:</strong>
-          <code>name</code>, <code>user_id</code> — all others are optional.<br>
+          <code>name</code>, <code>gr_no</code> — all others are optional.<br>
           <div class="alert alert-info mt-2 mb-0" style="font-size:.8rem;padding:8px 12px">
             <i class="fas fa-info-circle me-1"></i>
             Column order doesn't matter — the import reads column names from the header row.
+            The student's <strong>GR Number</strong> (<code>gr_no</code>) becomes their login username.
             Default password for all imported students is <strong>student123</strong>.
             Add an optional <code>password</code> column to set a custom password per student.
           </div>
           <ul class="mt-2 mb-0">
+            <li><code>gr_no</code> is used as the student's unique login ID (e.g. <code>0818</code>)</li>
             <li><code>class_name</code> must exactly match an existing class: <code>8-A</code>, <code>9-A</code>, <code>10-A</code> … <code>ILC-A</code>, <code>ILC-B</code>, <code>Beginner</code>, <code>Advance</code>, <code>Prep</code>, <code>Class-1</code></li>
             <li><code>house_name</code> optional; must match: <code>Allama Iqbal</code>, <code>Quaid-e-Azam</code>, <code>Fatima Jinnah</code>, <code>Sir Syed</code></li>
             <li><code>dob</code> format: YYYY-MM-DD (other formats also accepted)</li>
             <li><code>gender</code>: <code>male</code> / <code>female</code> / <code>other</code></li>
             <li><code>blood_group</code>: A+, A-, B+, B-, O+, O-, AB+, AB-</li>
-            <li>Rows with duplicate <code>user_id</code> are skipped automatically</li>
+            <li>Rows with duplicate <code>gr_no</code> are skipped automatically</li>
             <li>Both <code>.xlsx</code> and <code>.csv</code> files are accepted</li>
           </ul>
         </div>

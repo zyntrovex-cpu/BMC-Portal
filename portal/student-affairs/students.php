@@ -197,19 +197,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/portal/student-affairs/students.php');
     }
 
-    // ── Approve/Reject profile change request ─────────────────────
+    // ── Approve/Reject profile change request (SA = first level) ────
     if ($action === 'approve_request') {
         $reqId = (int)($_POST['request_id'] ?? 0);
-        $st    = $db->prepare('SELECT * FROM profile_change_requests WHERE id=?');
-        $st->execute([$reqId]);
-        $r = $st->fetch();
-        $editableFields = ['phone','address','permanent_address','father_name','parent_name',
-                           'parent_phone','parent_email','cnic','whatsapp_no','emergency_phone'];
-        if ($r && in_array($r['field'], $editableFields)) {
-            $db->prepare("UPDATE students SET {$r['field']}=? WHERE id=?")->execute([$r['new_value'], $r['student_id']]);
-            $db->prepare("UPDATE profile_change_requests SET status='approved',reviewed_by=?,reviewed_at=NOW() WHERE id=?")
-               ->execute([$user['id'], $reqId]);
-            setFlash('success', 'Profile change approved.');
+        if ($reqId) {
+            // Detect two-stage column
+            $_hasSa = false;
+            try { $db->query('SELECT sa_status FROM profile_change_requests LIMIT 0'); $_hasSa = true; } catch (Exception $e) {}
+            if ($_hasSa) {
+                // First-level: SA approves → forward to Admin, don't apply yet
+                $db->prepare("UPDATE profile_change_requests SET sa_status='approved',sa_reviewed_by=?,sa_reviewed_at=NOW() WHERE id=?")
+                   ->execute([$user['id'], $reqId]);
+                setFlash('success', 'Request forwarded to Admin for final approval.');
+            } else {
+                // Fallback (single-stage): apply immediately
+                $st = $db->prepare('SELECT * FROM profile_change_requests WHERE id=?');
+                $st->execute([$reqId]);
+                $r = $st->fetch();
+                $editableFields = ['phone','address','permanent_address','father_name','parent_name',
+                                   'parent_phone','parent_email','cnic','whatsapp_no','emergency_phone',
+                                   'father_occupation'];
+                if ($r && in_array($r['field'], $editableFields)) {
+                    $db->prepare("UPDATE students SET {$r['field']}=? WHERE id=?")->execute([$r['new_value'], $r['student_id']]);
+                    $db->prepare("UPDATE profile_change_requests SET status='approved',reviewed_by=?,reviewed_at=NOW() WHERE id=?")
+                       ->execute([$user['id'], $reqId]);
+                    setFlash('success', 'Profile change approved.');
+                }
+            }
         }
         redirect('/portal/student-affairs/students.php');
     }
@@ -306,15 +320,20 @@ $deletedJoin  = $hasDeletedAt ? "JOIN students s ON s.user_id=u.id AND s.deleted
 $totalCount   = (int)$db->query("SELECT COUNT(*) FROM users u $deletedJoin WHERE u.role='student'")->fetchColumn();
 $activeCount  = (int)$db->query("SELECT COUNT(*) FROM users u $deletedJoin WHERE u.role='student' AND u.status='active'")->fetchColumn();
 
-// Pending profile change requests
+// Pending profile change requests (SA sees only those awaiting first-level review)
 $pendingRequests = [];
 try {
+    $_hasSaCol = false;
+    try { $db->query('SELECT sa_status FROM profile_change_requests LIMIT 0'); $_hasSaCol = true; } catch (Exception $e) {}
+    $saWhere = $_hasSaCol
+        ? "pcr.status='pending' AND (pcr.sa_status='pending' OR pcr.sa_status IS NULL)"
+        : "pcr.status='pending'";
     $pr = $db->prepare(
         "SELECT pcr.*, u.name AS student_name, u.user_id AS student_roll
          FROM profile_change_requests pcr
          JOIN students s ON pcr.student_id=s.id
          JOIN users u ON s.user_id=u.id
-         WHERE pcr.status='pending'
+         WHERE $saWhere
          ORDER BY pcr.created_at DESC"
     );
     $pr->execute();
@@ -373,7 +392,8 @@ $links = getStudentAffairsLinks();
 <?php if (!empty($pendingRequests)): ?>
 <div class="sec-card mb-3" style="border:1px solid #fbbf24">
   <div class="sec-card-header" style="color:#92400e;background:#fffbeb">
-    <i class="fas fa-clock me-2"></i>Pending Profile Change Requests (<?= count($pendingRequests) ?>)
+    <i class="fas fa-clock me-2"></i>Profile Change Requests — Awaiting SA Review (<?= count($pendingRequests) ?>)
+    <small class="ms-2 opacity-75" style="font-weight:400">Approve to forward to Admin</small>
   </div>
   <div class="table-responsive">
     <table class="table table-sm mb-0" style="font-size:.84rem">
