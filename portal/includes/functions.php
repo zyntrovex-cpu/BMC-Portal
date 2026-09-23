@@ -49,7 +49,18 @@ function jsonResponse(mixed $data, int $code = 200): never {
 }
 
 function getAllClasses(): array {
-    return getDB()->query('SELECT * FROM classes ORDER BY grade, section')->fetchAll();
+    try {
+        return getDB()->query(
+            "SELECT id, name, grade, section,
+                    COALESCE(is_montessori,0) AS is_montessori,
+                    COALESCE(is_ilc,0)        AS is_ilc,
+                    COALESCE(wing,'main')      AS wing
+             FROM classes
+             ORDER BY wing, grade, name"
+        )->fetchAll();
+    } catch (PDOException $e) {
+        return getDB()->query('SELECT * FROM classes ORDER BY grade, section')->fetchAll();
+    }
 }
 
 function getAllSubjects(): array {
@@ -376,6 +387,7 @@ function getStudentAffairsLinks(): array {
         ['href'=>'/portal/student-affairs/dashboard.php',       'icon'=>'<i class="fas fa-home"></i>',              'label'=>'Dashboard',          'key'=>'dashboard'],
         hasPermission('sa_students')   ? ['href'=>'/portal/student-affairs/students.php',        'icon'=>'<i class="fas fa-user-graduate"></i>',    'label'=>'Students',           'key'=>'students']   : null,
         hasPermission('sa_students')   ? ['href'=>'/portal/student-affairs/enroll.php',          'icon'=>'<i class="fas fa-chalkboard"></i>',       'label'=>'Class Enrollment',   'key'=>'enroll']     : null,
+        ['href'=>'/portal/admin/classes.php',                    'icon'=>'<i class="fas fa-chalkboard-teacher"></i>',  'label'=>'Classes & Teachers', 'key'=>'classes'],
         hasPermission('sa_admissions') ? ['href'=>'/portal/student-affairs/admissions.php',      'icon'=>'<i class="fas fa-file-medical-alt"></i>', 'label'=>'Admission Requests', 'key'=>'admissions'] : null,
         hasPermission('sa_medical')    ? ['href'=>'/portal/student-affairs/medical-records.php', 'icon'=>'<i class="fas fa-notes-medical"></i>',    'label'=>'Medical Records',    'key'=>'medical']    : null,
         ['href'=>'/portal/student-affairs/results.php',         'icon'=>'<i class="fas fa-chart-bar"></i>',        'label'=>'Results (View)',      'key'=>'results'],
