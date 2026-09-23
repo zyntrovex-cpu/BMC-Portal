@@ -550,6 +550,12 @@ $links = getStudentAffairsLinks();
                 <i class="fas fa-<?= $s['status']==='active'?'user-slash':'user-check' ?>"></i>
               </button>
             </form>
+            <!-- Report Card -->
+            <a href="<?= url('/portal/report-card.php?student_id=' . $s['student_id']) ?>"
+               class="btn btn-xs btn-outline-dark me-1"
+               title="Official Report Card" target="_blank">
+              <i class="fas fa-file-alt"></i>
+            </a>
             <!-- Delete (soft if migration applied) -->
             <form method="POST" class="d-inline"
                   onsubmit="return confirm('Move <?= h(addslashes($s['name'])) ?> to recycle bin?')">

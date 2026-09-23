@@ -80,7 +80,7 @@ if ($role === 'teacher') {
 
 // ── Fetch assessments + marks grouped by subject ──────────────────
 $st = $db->prepare(
-    'SELECT a.id AS assessment_id, a.title, a.type, a.max_marks, a.weight, a.date,
+    'SELECT a.id AS assessment_id, a.name AS title, a.type, a.max_marks, a.weight, a.date,
             sb.id AS subject_id, sb.name AS subject_name, sb.code AS subject_code,
             m.marks_obtained, m.remarks
      FROM assessments a

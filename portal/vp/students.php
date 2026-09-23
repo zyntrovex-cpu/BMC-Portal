@@ -154,6 +154,11 @@ $links = getVpLinks();
                 <i class="fas fa-eye"></i>
               </button>
             </form>
+            <a href="<?= url('/portal/report-card.php?student_id=' . $s['student_id']) ?>"
+               class="btn btn-xs btn-outline-dark" style="font-size:.74rem;padding:2px 7px"
+               title="Official Report Card" target="_blank">
+              <i class="fas fa-file-alt"></i>
+            </a>
           </td>
         </tr>
 
