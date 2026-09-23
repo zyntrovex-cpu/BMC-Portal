@@ -52,12 +52,12 @@ $links = getStudentAffairsLinks();
 <div class="page-content">
 <?= flashHtml() ?>
 
-<!-- ILC branding strip -->
-<div class="d-flex align-items-center gap-3 mb-4 p-3" style="background:linear-gradient(90deg,#fdf2f8,#fce7f3);border-radius:10px;border:1px solid #fbcfe8;">
-  <img src="<?= url('/assets/ilc-logo.png') ?>" alt="ILC" style="width:48px;height:48px;object-fit:contain;flex-shrink:0;">
+<!-- Main Campus branding strip -->
+<div class="d-flex align-items-center gap-3 mb-4 p-3" style="background:linear-gradient(90deg,#eff6ff,#dbeafe);border-radius:10px;border:1px solid #bfdbfe;">
+  <img src="<?= url('/assets/bmc-logo.png') ?>" alt="BMC" style="width:48px;height:48px;object-fit:contain;flex-shrink:0;" onerror="this.style.display='none'">
   <div>
-    <div style="font-size:.72rem;font-weight:700;color:#be185d;letter-spacing:.8px;text-transform:uppercase">Student Affairs Office</div>
-    <div style="font-size:.8rem;color:#475569">Inclusive Learning Centre &mdash; Bahria Model College Bin Qasim</div>
+    <div style="font-size:.72rem;font-weight:700;color:#1e40af;letter-spacing:.8px;text-transform:uppercase">Student Affairs Office</div>
+    <div style="font-size:.8rem;color:#475569"><?= h(getSetting('school_name', 'BMC Bin Qasim')) ?> &mdash; Main Campus</div>
   </div>
 </div>
 
@@ -134,7 +134,7 @@ $links = getStudentAffairsLinks();
           <div class="col-md-6">
             <label class="form-label fw-semibold" style="font-size:.78rem">Review Notes</label>
             <input type="text" name="review_notes" class="form-control form-control-sm"
-                   placeholder="Optional notes for ILC VP…" value="<?= h($r['review_notes'] ?? '') ?>">
+                   placeholder="Optional review notes…" value="<?= h($r['review_notes'] ?? '') ?>">
           </div>
           <div class="col-md-3">
             <button type="submit" class="btn btn-sm btn-success w-100">Save</button>
