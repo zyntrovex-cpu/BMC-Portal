@@ -15,7 +15,7 @@ $db = getDB();
 
 // ── Fetch all assessments for this class with student marks ───────
 $st = $db->prepare(
-    'SELECT a.id AS assessment_id, a.title, a.type, a.max_marks, a.weight, a.date,
+    'SELECT a.id AS assessment_id, a.name AS title, a.type, a.max_marks, a.weight, a.date,
             sb.id AS subject_id, sb.name AS subject_name, sb.code AS subject_code,
             m.marks_obtained, m.remarks
      FROM assessments a
@@ -53,9 +53,14 @@ $links = getStudentLinks();
     <h4 class="fw-bold mb-0" style="color:#1d4ed8"><i class="fas fa-chart-bar me-2"></i>My Results</h4>
     <small class="text-muted"><?= h($student['name']) ?> &nbsp;&middot;&nbsp; Class: <?= h($student['class_name']) ?> &nbsp;&middot;&nbsp; Roll: <?= h($student['roll_no']) ?></small>
   </div>
-  <a href="/portal/student/progress-report.php" class="btn btn-primary btn-sm" target="_blank">
-    <i class="fas fa-download me-1"></i> Download Progress Report
-  </a>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="/portal/student/progress-report.php" class="btn btn-outline-primary btn-sm" target="_blank">
+      <i class="fas fa-chart-line me-1"></i> Progress Report
+    </a>
+    <a href="/portal/report-card.php" class="btn btn-primary btn-sm" target="_blank">
+      <i class="fas fa-file-alt me-1"></i> Official Report Card
+    </a>
+  </div>
 </div>
 
 <?php if (empty($bySubject)): ?>

@@ -304,7 +304,8 @@ $pages = (int)ceil($total / $perPage);
 
 $usersSt = $db->prepare(
     "SELECT u.*, c.name AS class_name,
-            ($wingExpr) AS user_wing
+            ($wingExpr) AS user_wing,
+            s.id AS student_id
      FROM users u
      LEFT JOIN students s ON s.user_id = u.id AND u.role = 'student'
      LEFT JOIN classes c  ON c.id = s.class_id
@@ -543,6 +544,14 @@ $links = getAdminLinks();
                 <i class="fas fa-eye"></i>
               </button>
             </form>
+            <?php endif; ?>
+            <!-- Report Card (students only) -->
+            <?php if ($u['role'] === 'student' && !empty($u['student_id'])): ?>
+            <a href="<?= url('/portal/report-card.php?student_id=' . $u['student_id']) ?>"
+               class="btn btn-xs btn-outline-dark" style="font-size:.74rem;padding:2px 7px"
+               title="Report Card" target="_blank">
+              <i class="fas fa-file-alt"></i>
+            </a>
             <?php endif; ?>
             <!-- Toggle status -->
             <form method="POST" class="d-inline">

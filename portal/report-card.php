@@ -2,13 +2,17 @@
 /**
  * Official Student Report Card
  *
- * Access: admin, vp_main (vp_results), student_affairs (sa_students)
- * Students, teachers, and all other roles are denied.
+ * Access:
+ *  student        – own report card only (no student_id param needed)
+ *  admin          – any student
+ *  vp_main        – any student (vp_results perm)
+ *  student_affairs – any student (sa_students perm)
+ *  wing_head      – any student (wh_students perm)
  */
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
 
-$user = requireAuth('admin', 'vp_main', 'student_affairs');
+$user = requireAuth('admin', 'vp_main', 'student_affairs', 'student', 'wing_head');
 $db   = getDB();
 $role = $user['role'];
 
@@ -17,12 +21,19 @@ if ($role === 'vp_main') {
     requirePermission('vp_results');
 } elseif ($role === 'student_affairs') {
     requirePermission('sa_students');
+} elseif ($role === 'wing_head') {
+    requirePermission('wh_students');
 }
 
-$studentId = (int)($_GET['student_id'] ?? 0);
-if (!$studentId) {
-    header('Location: /portal/index.php?msg=unauthorized');
-    exit;
+// Resolve student ID
+if ($role === 'student') {
+    // Students always see their own report only — ignore any GET param
+    $me = getStudentByUserId($user['id']);
+    if (!$me) { header('Location: /portal/student/dashboard.php'); exit; }
+    $studentId = (int)$me['id'];
+} else {
+    $studentId = (int)($_GET['student_id'] ?? 0);
+    if (!$studentId) { header('Location: /portal/index.php?msg=unauthorized'); exit; }
 }
 
 // ── Fetch student record ──────────────────────────────────────
@@ -211,7 +222,9 @@ $base          = defined('BASE_URL') ? BASE_URL : '';
 $backUrl = match($role) {
     'admin'           => '/portal/admin/users.php',
     'vp_main'         => '/portal/vp/students.php',
-    'student_affairs' => '/portal/student-affairs/students.php',
+    'student_affairs' => '/portal/student-affairs/results.php',
+    'wing_head'       => '/portal/wing-head/students.php',
+    'student'         => '/portal/student/results.php',
     default           => '/portal/index.php',
 };
 

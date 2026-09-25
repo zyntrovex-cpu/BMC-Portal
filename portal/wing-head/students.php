@@ -77,7 +77,7 @@ $links = getWingHeadLinks();
   <div class="table-responsive">
     <table class="table table-hover mb-0" style="font-size:.84rem">
       <thead class="table-light">
-        <tr><th>Roll No</th><th>Name</th><th>Class</th><th>Category</th><th>Parent</th><th>Phone</th><th>Set Category</th></tr>
+        <tr><th>Roll No</th><th>Name</th><th>Class</th><th>Category</th><th>Parent</th><th>Phone</th><th>Report Card</th><th>Set Category</th></tr>
       </thead>
       <tbody>
         <?php foreach ($students as $s): ?>
@@ -92,6 +92,13 @@ $links = getWingHeadLinks();
           </td>
           <td><?= h($s['parent_name'] ?: '—') ?></td>
           <td><?= h($s['phone'] ?: '—') ?></td>
+          <td>
+            <a href="<?= url('/portal/report-card.php?student_id=' . $s['student_id']) ?>"
+               class="btn btn-xs btn-outline-primary" style="font-size:.76rem;padding:2px 10px"
+               target="_blank" title="View Report Card">
+              <i class="fas fa-file-alt me-1"></i>View
+            </a>
+          </td>
           <td>
             <form method="POST" class="d-inline">
               <input type="hidden" name="action" value="set_category">
