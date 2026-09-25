@@ -234,6 +234,17 @@ $campusLabel = match($student['class_wing'] ?? 'main') {
     'ilc'        => 'ILC Campus',
     default      => 'Main Campus',
 };
+
+// ── Build per-subject assessment breakdown strings ────────────
+foreach ($subjects as $sid => &$sub) {
+    $parts = [];
+    foreach ($sub['assessments'] as $a) {
+        $obtained = $a['marks_obtained'] !== null ? $a['marks_obtained'] : '—';
+        $parts[]  = h($a['assessment_name']) . ': ' . $obtained . '/' . $a['max_marks'];
+    }
+    $sub['breakdown'] = implode('<span class="rc-sep">·</span>', $parts);
+}
+unset($sub);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -242,844 +253,465 @@ $campusLabel = match($student['class_wing'] ?? 'main') {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Report Card — <?= h($student['name']) ?></title>
 <link rel="icon" type="image/png" href="<?= $base ?>/assets/bmc-logo.png">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-/* ── Screen chrome ───────────────────────────────────────────── */
-:root {
-  --navy:   #0f2456;
-  --gold:   #b8860b;
-  --accent: #1d4ed8;
+/* ── Variables ────────────────────────────────────────────── */
+:root { --navy:#0f2456; --gold:#b8860b; --accent:#1d4ed8; }
+
+/* ── Screen chrome ───────────────────────────────────────── */
+body { font-family:'Segoe UI',Arial,sans-serif; background:#e2e8f0; color:#1e293b; margin:0; padding:0; }
+.toolbar {
+  background:var(--navy); color:#fff; padding:9px 16px;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  position:sticky; top:0; z-index:200; box-shadow:0 2px 8px rgba(0,0,0,.3);
 }
-body {
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background: #e8ecf0;
-  color: #1e293b;
-  margin: 0;
-  padding: 0;
+.toolbar a, .toolbar button {
+  color:#fff; text-decoration:none; font-size:12.5px;
+  background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.28);
+  border-radius:5px; padding:4px 13px; cursor:pointer;
+  display:inline-flex; align-items:center; gap:5px; transition:background .15s;
 }
-.screen-toolbar {
-  background: var(--navy);
-  color: #fff;
-  padding: 10px 18px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  position: sticky;
-  top: 0;
-  z-index: 200;
-  box-shadow: 0 2px 10px rgba(0,0,0,.3);
+.toolbar a:hover,.toolbar button:hover { background:rgba(255,255,255,.26); }
+.toolbar .ttl { flex:1; font-weight:600; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.tbadge { background:#fbbf24; color:#78350f; font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; letter-spacing:.04em; border:none; }
+
+/* ── Page wrapper ────────────────────────────────────────── */
+.pw { max-width:820px; margin:20px auto; padding:0 14px 36px; }
+
+/* ── Card shell ──────────────────────────────────────────── */
+.rc { background:#fff; border:1px solid #cbd5e1; box-shadow:0 3px 16px rgba(0,0,0,.1); }
+
+/* ── Letterhead ──────────────────────────────────────────── */
+.rc-lh {
+  border-bottom:4px double var(--gold);
+  padding:14px 20px 12px;
+  display:flex; align-items:center; gap:14px;
 }
-.screen-toolbar a, .screen-toolbar button {
-  color: #fff;
-  text-decoration: none;
-  font-size: 13px;
-  background: rgba(255,255,255,.14);
-  border: 1px solid rgba(255,255,255,.28);
-  border-radius: 6px;
-  padding: 5px 14px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: background .15s;
+.rc-lh img { width:62px; height:62px; object-fit:contain; flex-shrink:0; }
+.rc-lh-init {
+  width:62px; height:62px; border-radius:50%;
+  background:var(--navy); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.3rem; font-weight:700; flex-shrink:0; border:3px solid var(--gold);
 }
-.screen-toolbar a:hover, .screen-toolbar button:hover { background: rgba(255,255,255,.26); }
-.screen-toolbar .toolbar-title {
-  flex: 1;
-  font-weight: 600;
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
+.rc-lh-info { flex:1; min-width:0; }
+.rc-lh-name { font-size:1.2rem; font-weight:800; color:var(--navy); line-height:1.2; }
+.rc-lh-sub  { font-size:.74rem; color:#64748b; margin-top:1px; }
+.rc-lh-tag  { display:inline-block; background:var(--navy); color:#fff; font-size:.64rem; font-weight:600; padding:2px 9px; border-radius:20px; margin-top:5px; letter-spacing:.05em; }
+.rc-lh-meta { text-align:right; flex-shrink:0; font-size:.72rem; color:#475569; line-height:1.65; }
+.rc-lh-meta strong { font-size:.9rem; font-weight:800; color:var(--navy); display:block; letter-spacing:.05em; text-transform:uppercase; margin-bottom:1px; }
+.rc-lh-meta small  { font-size:.64rem; color:#94a3b8; }
+
+/* ── Title band ──────────────────────────────────────────── */
+.rc-band {
+  background:var(--navy); color:#fff; text-align:center;
+  padding:6px 16px; font-size:.72rem; font-weight:600;
+  letter-spacing:.16em; text-transform:uppercase;
 }
-.toolbar-badge {
-  background: #fbbf24;
-  color: #78350f;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 20px;
-  letter-spacing: .04em;
-  border: none;
+.rc-band em { color:var(--gold); font-style:normal; margin:0 5px; font-size:.56rem; }
+
+/* ── Student block ───────────────────────────────────────── */
+.rc-stu {
+  display:grid; grid-template-columns:auto 1fr;
+  gap:14px; padding:12px 20px; border-bottom:2px solid #e2e8f0; align-items:start;
+}
+.rc-stu-photo { width:72px; height:72px; border-radius:4px; object-fit:cover; border:2px solid var(--navy); flex-shrink:0; }
+.rc-stu-init  { width:72px; height:72px; border-radius:4px; background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:700; flex-shrink:0; }
+.rc-stu-name  { font-size:1.05rem; font-weight:800; color:var(--navy); grid-column:1/-1; margin-bottom:5px; padding-bottom:5px; border-bottom:1px dashed #cbd5e1; }
+.rc-grid3     { display:grid; grid-template-columns:repeat(3,1fr); gap:3px 14px; }
+.rc-fld .lbl  { font-size:.64rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.04em; display:block; margin-bottom:1px; }
+.rc-fld       { font-size:.76rem; color:#1e293b; }
+
+/* ── Summary bar ─────────────────────────────────────────── */
+.rc-sum { display:grid; grid-template-columns:repeat(5,1fr); border-bottom:2px solid #e2e8f0; }
+.rc-sum-cell { text-align:center; padding:10px 6px; border-right:1px solid #e2e8f0; }
+.rc-sum-cell:last-child { border-right:none; }
+.rc-sum-val  { font-size:1.25rem; font-weight:800; color:var(--accent); line-height:1; }
+.rc-sum-lbl  { font-size:.6rem; color:#94a3b8; margin-top:3px; text-transform:uppercase; letter-spacing:.06em; }
+
+/* ── Section heading ─────────────────────────────────────── */
+.rc-sh {
+  background:#f1f5f9; border-top:1px solid #e2e8f0; border-bottom:2px solid var(--navy);
+  padding:5px 20px; font-size:.68rem; font-weight:700; color:var(--navy);
+  text-transform:uppercase; letter-spacing:.1em;
+  display:flex; align-items:center; gap:7px;
 }
 
-/* ── Page wrapper ────────────────────────────────────────────── */
-.page-wrap {
-  max-width: 860px;
-  margin: 24px auto;
-  padding: 0 16px 48px;
+/* ── Consolidated subject table ──────────────────────────── */
+.rc-tbl {
+  width:100%; border-collapse:collapse; font-size:.76rem;
 }
-
-/* ── Report card shell ───────────────────────────────────────── */
-.report-card {
-  background: #fff;
-  border: 1px solid #cbd5e1;
-  box-shadow: 0 4px 20px rgba(0,0,0,.12);
+.rc-tbl th {
+  background:var(--navy); color:#fff; padding:5px 8px;
+  font-size:.64rem; font-weight:600; text-transform:uppercase;
+  letter-spacing:.05em; white-space:nowrap; text-align:left;
 }
-
-/* ── Official letterhead ─────────────────────────────────────── */
-.rc-letterhead {
-  border-bottom: 4px double var(--gold);
-  padding: 20px 28px 16px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
+.rc-tbl th.r, .rc-tbl td.r { text-align:right; }
+.rc-tbl td { padding:6px 8px; border-bottom:1px solid #e8ecf1; vertical-align:top; }
+.rc-tbl tbody tr:nth-child(even) td { background:#f8fafc; }
+.rc-tbl tfoot td {
+  background:#1e3a6e; color:#fff; font-weight:700;
+  padding:7px 8px; border-top:2px solid var(--navy); font-size:.78rem;
 }
-.rc-logo {
-  width: 72px;
-  height: 72px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-.rc-logo-placeholder {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: var(--navy);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #fff;
-  flex-shrink: 0;
-  border: 3px solid var(--gold);
-}
-.rc-school-block { flex: 1; min-width: 0; }
-.rc-school-name {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--navy);
-  letter-spacing: .02em;
-  line-height: 1.2;
-}
-.rc-school-sub {
-  font-size: .78rem;
-  color: #64748b;
-  margin-top: 2px;
-}
-.rc-campus-tag {
-  display: inline-block;
-  background: var(--navy);
-  color: #fff;
-  font-size: .68rem;
-  font-weight: 600;
-  padding: 2px 10px;
-  border-radius: 20px;
-  margin-top: 6px;
-  letter-spacing: .05em;
-}
-.rc-doc-meta {
-  text-align: right;
-  flex-shrink: 0;
-  font-size: .75rem;
-  color: #475569;
-  line-height: 1.7;
-}
-.rc-doc-meta .rc-doc-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--navy);
-  display: block;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-.rc-doc-meta .rc-serial {
-  font-size: .68rem;
-  color: #94a3b8;
-}
-
-/* ── Title banner ────────────────────────────────────────────── */
-.rc-title-band {
-  background: var(--navy);
-  color: #fff;
-  text-align: center;
-  padding: 8px 20px;
-  font-size: .8rem;
-  font-weight: 600;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-}
-.rc-title-band span { color: var(--gold) !important; margin: 0 6px; font-size: .6rem; }
-
-/* ── Student details block ───────────────────────────────────── */
-.rc-student-block {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 20px;
-  padding: 18px 28px;
-  border-bottom: 2px solid #e2e8f0;
-  align-items: start;
-}
-.rc-photo {
-  width: 88px;
-  height: 88px;
-  border-radius: 4px;
-  object-fit: cover;
-  border: 2px solid var(--navy);
-}
-.rc-photo-init {
-  width: 88px;
-  height: 88px;
-  border-radius: 4px;
-  background: var(--navy);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #fff;
-  flex-shrink: 0;
-  border: 2px solid var(--navy);
-}
-.rc-detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px 20px;
-}
-.rc-student-name {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--navy);
-  grid-column: 1 / -1;
-  margin-bottom: 6px;
-  padding-bottom: 6px;
-  border-bottom: 1px dashed #cbd5e1;
-}
-.rc-field {
-  font-size: .8rem;
-  color: #374151;
-  padding: 2px 0;
-}
-.rc-field .lbl {
-  font-weight: 600;
-  color: #64748b;
-  font-size: .72rem;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-  display: block;
-  margin-bottom: 1px;
-}
-
-/* ── Result summary bar ──────────────────────────────────────── */
-.rc-summary {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  border-bottom: 2px solid #e2e8f0;
-}
-.rc-summary-cell {
-  text-align: center;
-  padding: 14px 8px;
-  border-right: 1px solid #e2e8f0;
-}
-.rc-summary-cell:last-child { border-right: none; }
-.rc-sum-value {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--accent);
-  line-height: 1;
-}
-.rc-sum-label {
-  font-size: .65rem;
-  color: #94a3b8;
-  margin-top: 4px;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-}
-
-/* ── Section heading ─────────────────────────────────────────── */
-.rc-sec-head {
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 8px 28px;
-  font-size: .72rem;
-  font-weight: 700;
-  color: var(--navy);
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* ── Subject performance tables ──────────────────────────────── */
-.rc-subj-block {
-  padding: 12px 28px 16px;
-  border-bottom: 1px solid #f1f5f9;
-}
-.rc-subj-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.rc-subj-title {
-  font-size: .9rem;
-  font-weight: 700;
-  color: var(--navy);
-}
-.rc-subj-code {
-  font-size: .72rem;
-  color: #94a3b8;
-  font-weight: 400;
-}
-.rc-subj-pct {
-  margin-left: auto;
-  font-size: .85rem;
-  font-weight: 700;
-  color: var(--accent);
-}
-.rc-table {
-  width: 100%;
-  font-size: .76rem;
-  border-collapse: collapse;
-  border: 1px solid #e2e8f0;
-}
-.rc-table th {
-  background: var(--navy);
-  color: #fff;
-  padding: 6px 10px;
-  text-align: left;
-  font-size: .68rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  white-space: nowrap;
-}
-.rc-table td {
-  padding: 5px 10px;
-  border-bottom: 1px solid #f1f5f9;
-  vertical-align: middle;
-}
-.rc-table tbody tr:nth-child(even) td { background: #f8fafc; }
-.rc-table tfoot td {
-  background: #f1f5f9;
-  font-weight: 700;
-  border-top: 2px solid #cbd5e1;
-  font-size: .78rem;
-  border-bottom: none;
-}
+.rc-subj-name { font-weight:700; color:var(--navy); }
+.rc-subj-code { font-size:.68rem; color:#94a3b8; font-weight:400; }
+.rc-breakdown { font-size:.7rem; color:#374151; line-height:1.7; }
+.rc-sep { color:#cbd5e1; margin:0 5px; user-select:none; }
 .rc-badge {
-  display: inline-block;
-  padding: 1px 8px;
-  border-radius: 3px;
-  font-size: .68rem;
-  font-weight: 700;
-  letter-spacing: .03em;
+  display:inline-block; padding:1px 7px; border-radius:3px;
+  font-size:.67rem; font-weight:700; letter-spacing:.03em;
 }
-.rc-type-badge {
-  display: inline-block;
-  padding: 1px 8px;
-  border-radius: 20px;
-  font-size: .68rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
+.rc-no-data { color:#94a3b8; font-style:italic; }
 
-/* ── Attendance section ──────────────────────────────────────── */
-.rc-att-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 10px;
-  padding: 14px 28px;
+/* ── Attendance table ────────────────────────────────────── */
+.rc-att-tbl { width:100%; border-collapse:collapse; font-size:.75rem; }
+.rc-att-tbl th {
+  background:#334155; color:#fff; padding:5px 8px;
+  font-size:.63rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em;
 }
-.rc-att-card {
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
-  padding: 10px 12px;
-  font-size: .77rem;
-}
-.rc-att-subj { font-weight: 700; color: var(--navy); margin-bottom: 6px; font-size: .8rem; }
-.rc-att-row  { display: flex; justify-content: space-between; color: #64748b; margin-bottom: 2px; }
-.rc-att-bar  { height: 3px; background: #e2e8f0; border-radius: 2px; margin-top: 8px; overflow: hidden; }
-.rc-att-fill { height: 100%; border-radius: 2px; }
+.rc-att-tbl td { padding:5px 8px; border-bottom:1px solid #e8ecf1; }
+.rc-att-tbl tbody tr:nth-child(even) td { background:#f8fafc; }
+.rc-att-tbl td.pct-cell { font-weight:700; }
+.rc-att-bar { height:3px; background:#e2e8f0; border-radius:2px; margin-top:3px; overflow:hidden; }
+.rc-att-fill { height:100%; border-radius:2px; }
 
-/* ── Grade scale legend ──────────────────────────────────────── */
-.rc-grade-legend {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 10px 28px;
-  font-size: .7rem;
-  color: #64748b;
-  border-top: 1px solid #e2e8f0;
+/* ── Grade legend ────────────────────────────────────────── */
+.rc-legend {
+  display:flex; gap:7px; flex-wrap:wrap; padding:7px 20px;
+  font-size:.67rem; color:#64748b; border-top:1px solid #e2e8f0; align-items:center;
 }
-.rc-grade-legend .gl-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
+.rc-legend .gl { display:flex; align-items:center; gap:3px; }
 
-/* ── Remarks + Signature ─────────────────────────────────────── */
-.rc-remarks-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  border-top: 2px solid #e2e8f0;
-}
-.rc-remarks-cell {
-  padding: 14px 28px;
-  font-size: .78rem;
-  border-right: 1px solid #e2e8f0;
-}
-.rc-remarks-cell:last-child { border-right: none; }
-.rc-remarks-label {
-  font-size: .68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: #64748b;
-  margin-bottom: 6px;
-}
-.rc-remarks-lines {
-  border-bottom: 1px solid #94a3b8;
-  min-height: 24px;
-  margin-bottom: 4px;
-}
-.rc-sig-block {
-  display: flex;
-  gap: 0;
-  border-top: 1px solid #e2e8f0;
-}
-.rc-sig-cell {
-  flex: 1;
-  text-align: center;
-  padding: 28px 12px 14px;
-  border-right: 1px solid #e2e8f0;
-  font-size: .74rem;
-  color: #475569;
-}
-.rc-sig-cell:last-child { border-right: none; }
-.rc-sig-line {
-  border-top: 1px solid #374151;
-  padding-top: 6px;
-  margin-top: 0;
-}
-.rc-sig-title { font-weight: 700; color: var(--navy); font-size: .8rem; }
+/* ── Remarks ─────────────────────────────────────────────── */
+.rc-rem { display:grid; grid-template-columns:1fr 1fr; border-top:2px solid #e2e8f0; }
+.rc-rem-cell { padding:10px 20px; font-size:.74rem; border-right:1px solid #e2e8f0; }
+.rc-rem-cell:last-child { border-right:none; }
+.rc-rem-lbl { font-size:.64rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#64748b; margin-bottom:5px; }
+.rc-rem-line { border-bottom:1px solid #94a3b8; min-height:20px; margin-bottom:4px; }
 
-/* ── Verification footer ─────────────────────────────────────── */
-.rc-footer {
-  background: var(--navy);
-  color: rgba(255,255,255,.7);
-  font-size: .68rem;
-  text-align: center;
-  padding: 8px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.rc-footer span { color: rgba(255,255,255,.5); }
-.rc-footer .verified-tag {
-  background: #166534;
-  color: #dcfce7;
-  font-size: .65rem;
-  font-weight: 600;
-  padding: 2px 10px;
-  border-radius: 20px;
-  letter-spacing: .06em;
-}
+/* ── Signatures ──────────────────────────────────────────── */
+.rc-sig { display:flex; border-top:1px solid #e2e8f0; }
+.rc-sig-cell { flex:1; text-align:center; padding:22px 10px 12px; border-right:1px solid #e2e8f0; font-size:.7rem; color:#475569; }
+.rc-sig-cell:last-child { border-right:none; }
+.rc-sig-line { border-top:1px solid #374151; padding-top:5px; }
+.rc-sig-title { font-weight:700; color:var(--navy); font-size:.76rem; }
 
-/* ── Print styles ────────────────────────────────────────────── */
+/* ── Footer ──────────────────────────────────────────────── */
+.rc-foot {
+  background:var(--navy); color:rgba(255,255,255,.7);
+  font-size:.64rem; padding:7px 18px;
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;
+}
+.rc-foot .vtag { background:#166534; color:#dcfce7; font-size:.62rem; font-weight:600; padding:2px 9px; border-radius:20px; letter-spacing:.06em; }
+
+/* ── Print ───────────────────────────────────────────────── */
 @media print {
-  @page {
-    size: A4;
-    margin: 10mm 12mm;
-  }
-  * {
-    -webkit-print-color-adjust: exact !important;
-    color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  body {
-    background: #fff !important;
-    font-size: 10pt;
-  }
-  .screen-toolbar { display: none !important; }
-  .page-wrap {
-    padding: 0;
-    max-width: 100%;
-    margin: 0;
-  }
-  .report-card {
-    border: none;
-    box-shadow: none;
-  }
-  .rc-subj-block    { page-break-inside: avoid; }
-  .rc-att-grid      { page-break-inside: avoid; }
-  .rc-sig-block     { page-break-inside: avoid; }
-  .rc-remarks-row   { page-break-inside: avoid; }
-  .rc-letterhead    { padding: 14px 20px 10px; }
-  .rc-student-block { padding: 14px 20px; }
-  .rc-subj-block    { padding: 8px 20px 12px; }
-  .rc-att-grid      { padding: 10px 20px; }
-  .rc-sec-head      { padding: 6px 20px; }
-  .rc-footer        { display: flex !important; }
+  @page { size:A4; margin:8mm 10mm; }
+  * { -webkit-print-color-adjust:exact!important; color-adjust:exact!important; print-color-adjust:exact!important; }
+  body { background:#fff!important; font-size:9.5pt; }
+  .toolbar { display:none!important; }
+  .pw { padding:0; max-width:100%; margin:0; }
+  .rc { border:none; box-shadow:none; }
+  .rc-sig    { page-break-inside:avoid; }
+  .rc-rem    { page-break-inside:avoid; }
+  .rc-legend { page-break-inside:avoid; }
+  .rc-att-tbl { page-break-inside:avoid; }
 }
 
-/* ── Responsive ──────────────────────────────────────────────── */
-@media (max-width: 640px) {
-  .rc-letterhead    { flex-direction: column; text-align: center; padding: 16px; }
-  .rc-doc-meta      { text-align: center; }
-  .rc-student-block { grid-template-columns: 1fr; text-align: center; padding: 14px; }
-  .rc-photo, .rc-photo-init { margin: 0 auto; }
-  .rc-detail-grid   { grid-template-columns: 1fr; }
-  .rc-student-name  { text-align: center; }
-  .rc-summary       { grid-template-columns: repeat(3, 1fr); }
-  .rc-subj-block    { padding: 10px 14px; }
-  .rc-att-grid      { padding: 10px 14px; }
-  .rc-sec-head      { padding: 7px 14px; }
-  .rc-remarks-row   { grid-template-columns: 1fr; }
-  .rc-sig-block     { flex-wrap: wrap; }
-  .rc-sig-cell      { min-width: 50%; }
-  .screen-toolbar .toolbar-title { display: none; }
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width:600px) {
+  .rc-lh     { flex-direction:column; text-align:center; padding:12px; }
+  .rc-lh-meta { text-align:center; }
+  .rc-stu    { grid-template-columns:1fr; text-align:center; padding:10px; }
+  .rc-stu-photo,.rc-stu-init { margin:0 auto; }
+  .rc-grid3  { grid-template-columns:1fr 1fr; }
+  .rc-sum    { grid-template-columns:repeat(3,1fr); }
+  .rc-rem    { grid-template-columns:1fr; }
+  .rc-sig    { flex-wrap:wrap; }
+  .rc-sig-cell { min-width:50%; }
+  .toolbar .ttl { display:none; }
 }
 </style>
 </head>
 <body>
 
-<!-- Screen toolbar -->
-<div class="screen-toolbar">
-  <a href="<?= $base . $backUrl ?>">
-    <i class="fas fa-arrow-left"></i> Back
-  </a>
-  <span class="toolbar-title">
-    Official Report Card — <?= h($student['name']) ?>
-  </span>
-  <span class="toolbar-badge">RESTRICTED</span>
-  <button onclick="window.print()">
-    <i class="fas fa-print"></i> Print / Save PDF
-  </button>
+<div class="toolbar">
+  <a href="<?= $base . $backUrl ?>"><i class="fas fa-arrow-left"></i> Back</a>
+  <span class="ttl">Report Card — <?= h($student['name']) ?></span>
+  <span class="tbadge">RESTRICTED</span>
+  <button onclick="window.print()"><i class="fas fa-print"></i> Print / Save PDF</button>
 </div>
 
-<div class="page-wrap">
-<div class="report-card">
+<div class="pw">
+<div class="rc">
 
-  <!-- ── Letterhead ─────────────────────────────────────────── -->
-  <div class="rc-letterhead">
+  <!-- Letterhead -->
+  <div class="rc-lh">
     <?php if (file_exists(__DIR__ . '/../assets/bmc-logo.png')): ?>
-    <img class="rc-logo" src="<?= $base ?>/assets/bmc-logo.png" alt="School Logo"
+    <img src="<?= $base ?>/assets/bmc-logo.png" alt="Logo"
          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="rc-logo-placeholder" style="display:none">BMC</div>
-    <?php else: ?>
-    <div class="rc-logo-placeholder">BMC</div>
-    <?php endif; ?>
-    <div class="rc-school-block">
-      <div class="rc-school-name"><?= h($schoolName) ?></div>
-      <?php if ($schoolAddr): ?>
-      <div class="rc-school-sub"><?= h($schoolAddr) ?></div>
-      <?php endif; ?>
-      <div class="rc-campus-tag"><?= h($campusLabel) ?></div>
+    <div class="rc-lh-init" style="display:none">BMC</div>
+    <?php else: ?><div class="rc-lh-init">BMC</div><?php endif; ?>
+    <div class="rc-lh-info">
+      <div class="rc-lh-name"><?= h($schoolName) ?></div>
+      <?php if ($schoolAddr): ?><div class="rc-lh-sub"><?= h($schoolAddr) ?></div><?php endif; ?>
+      <div class="rc-lh-tag"><?= h($campusLabel) ?></div>
     </div>
-    <div class="rc-doc-meta">
-      <span class="rc-doc-title">Report Card</span>
+    <div class="rc-lh-meta">
+      <strong>Report Card</strong>
       Session: <?= h($sessionYear) ?><br>
       <?php if ($currentTerm): ?>Term: <?= h($currentTerm) ?><br><?php endif; ?>
       Date: <?= $reportDate ?>
-      <div class="rc-serial">GR# <?= h($student['gr_no'] ?? '—') ?></div>
+      <small>GR# <?= h($student['gr_no'] ?? '—') ?></small>
     </div>
   </div>
 
-  <!-- ── Title band ─────────────────────────────────────────── -->
-  <div class="rc-title-band">
-    OFFICIAL STUDENT REPORT CARD
-    <span>&#9670;</span>
-    ACADEMIC SESSION <?= h($sessionYear) ?>
-    <span>&#9670;</span>
-    <?= h(strtoupper($campusLabel)) ?>
+  <!-- Title band -->
+  <div class="rc-band">
+    Official Student Report Card
+    <em>&#9670;</em>
+    Academic Session <?= h($sessionYear) ?>
+    <em>&#9670;</em>
+    <?= h($campusLabel) ?>
   </div>
 
-  <!-- ── Student details ────────────────────────────────────── -->
-  <div class="rc-student-block">
+  <!-- Student details -->
+  <div class="rc-stu">
     <?php if ($photoUrl): ?>
-    <img class="rc-photo" src="<?= h($photoUrl) ?>" alt="Student Photo">
+    <img class="rc-stu-photo" src="<?= h($photoUrl) ?>" alt="Photo">
     <?php else: ?>
-    <div class="rc-photo-init"><?= h(mb_strtoupper(mb_substr($student['name'], 0, 2))) ?></div>
+    <div class="rc-stu-init"><?= h(mb_strtoupper(mb_substr($student['name'], 0, 2))) ?></div>
     <?php endif; ?>
     <div>
-      <div class="rc-student-name"><?= h($student['name']) ?></div>
-      <div class="rc-detail-grid">
-        <div class="rc-field">
-          <span class="lbl">GR Number / Student ID</span>
-          <?= h($student['gr_no'] ?? '—') ?>
-        </div>
-        <div class="rc-field">
-          <span class="lbl">Roll No.</span>
-          <?= h($student['roll_no'] ?? '—') ?>
-        </div>
-        <div class="rc-field">
-          <span class="lbl">Class / Section</span>
-          <?= h($student['class_name'] ?? '—') ?>
-        </div>
-        <div class="rc-field">
-          <span class="lbl">Academic Session</span>
-          <?= h($sessionYear) ?>
-        </div>
+      <div class="rc-stu-name"><?= h($student['name']) ?></div>
+      <div class="rc-grid3">
+        <div class="rc-fld"><span class="lbl">GR Number / Student ID</span><?= h($student['gr_no'] ?? '—') ?></div>
+        <div class="rc-fld"><span class="lbl">Roll No.</span><?= h($student['roll_no'] ?? '—') ?></div>
+        <div class="rc-fld"><span class="lbl">Class / Section</span><?= h($student['class_name'] ?? '—') ?></div>
+        <div class="rc-fld"><span class="lbl">Academic Session</span><?= h($sessionYear) ?></div>
         <?php if (!empty($student['father_name'])): ?>
-        <div class="rc-field">
-          <span class="lbl">Father's Name</span>
-          <?= h($student['father_name']) ?>
-        </div>
+        <div class="rc-fld"><span class="lbl">Father's Name</span><?= h($student['father_name']) ?></div>
         <?php elseif (!empty($student['parent_name'])): ?>
-        <div class="rc-field">
-          <span class="lbl">Parent / Guardian</span>
-          <?= h($student['parent_name']) ?>
-        </div>
+        <div class="rc-fld"><span class="lbl">Parent / Guardian</span><?= h($student['parent_name']) ?></div>
         <?php endif; ?>
         <?php if (!empty($student['dob'])): ?>
-        <div class="rc-field">
-          <span class="lbl">Date of Birth</span>
-          <?= fDate($student['dob']) ?>
-        </div>
+        <div class="rc-fld"><span class="lbl">Date of Birth</span><?= fDate($student['dob']) ?></div>
         <?php endif; ?>
         <?php if (!empty($student['gender'])): ?>
-        <div class="rc-field">
-          <span class="lbl">Gender</span>
-          <?= ucfirst(h($student['gender'])) ?>
-        </div>
+        <div class="rc-fld"><span class="lbl">Gender</span><?= ucfirst(h($student['gender'])) ?></div>
         <?php endif; ?>
         <?php if (!empty($student['house_name'])): ?>
-        <div class="rc-field">
+        <div class="rc-fld">
           <span class="lbl">House</span>
-          <span style="color:<?= h($student['house_color'] ?? '#1c3054') ?>;font-weight:700">
-            <?= h($student['house_name']) ?>
-          </span>
+          <span style="color:<?= h($student['house_color'] ?? '#0f2456') ?>;font-weight:700"><?= h($student['house_name']) ?></span>
         </div>
         <?php endif; ?>
       </div>
     </div>
   </div>
 
-  <!-- ── Result summary ─────────────────────────────────────── -->
+  <!-- Summary bar -->
   <?php if ($grandMax > 0): ?>
-  <div class="rc-summary">
-    <div class="rc-summary-cell">
-      <div class="rc-sum-value"><?= $grandPct ?>%</div>
-      <div class="rc-sum-label">Overall %</div>
+  <div class="rc-sum">
+    <div class="rc-sum-cell">
+      <div class="rc-sum-val"><?= $grandPct ?>%</div>
+      <div class="rc-sum-lbl">Overall %</div>
     </div>
-    <div class="rc-summary-cell">
-      <div class="rc-sum-value"
-           style="color:<?= gradeColor($overallGrade) ?>;background:<?= gradeBg($overallGrade) ?>;border-radius:4px;padding:2px 10px;display:inline-block">
+    <div class="rc-sum-cell">
+      <div class="rc-sum-val" style="color:<?= gradeColor($overallGrade) ?>;background:<?= gradeBg($overallGrade) ?>;border-radius:4px;padding:1px 10px;display:inline-block">
         <?= $overallGrade ?>
       </div>
-      <div class="rc-sum-label">Grade</div>
+      <div class="rc-sum-lbl">Final Grade</div>
     </div>
-    <div class="rc-summary-cell">
-      <div class="rc-sum-value"><?= round($grandObtained, 0) ?> / <?= round($grandMax, 0) ?></div>
-      <div class="rc-sum-label">Marks Obtained</div>
+    <div class="rc-sum-cell">
+      <div class="rc-sum-val"><?= round($grandObtained, 0) ?>&nbsp;/&nbsp;<?= round($grandMax, 0) ?></div>
+      <div class="rc-sum-lbl">Marks (Obt / Total)</div>
     </div>
-    <div class="rc-summary-cell">
-      <div class="rc-sum-value" style="color:<?= $attPct >= 75 ? '#15803d' : '#dc2626' ?>">
-        <?= $attPct ?>%
-      </div>
-      <div class="rc-sum-label">Attendance</div>
+    <div class="rc-sum-cell">
+      <div class="rc-sum-val" style="color:<?= $attPct >= 75 ? '#15803d' : '#dc2626' ?>"><?= $attPct ?>%</div>
+      <div class="rc-sum-lbl">Attendance</div>
     </div>
-    <div class="rc-summary-cell">
-      <div class="rc-sum-value"><?= count($subjects) ?></div>
-      <div class="rc-sum-label">Subjects</div>
+    <div class="rc-sum-cell">
+      <div class="rc-sum-val"><?= count($subjects) ?></div>
+      <div class="rc-sum-lbl">Subjects</div>
     </div>
   </div>
   <?php else: ?>
-  <div style="padding:16px 28px;background:#fffbeb;border-bottom:1px solid #fde68a;font-size:.82rem;color:#92400e">
-    <i class="fas fa-info-circle me-1"></i>
-    No assessment data has been recorded for this student yet.
+  <div style="padding:12px 20px;background:#fffbeb;border-bottom:1px solid #fde68a;font-size:.8rem;color:#92400e">
+    <i class="fas fa-info-circle me-1"></i> No assessment data recorded for this student yet.
   </div>
   <?php endif; ?>
 
-  <!-- ── Subject-wise performance ───────────────────────────── -->
-  <div class="rc-sec-head" style="margin-top:0">
+  <!-- Consolidated subject results table -->
+  <div class="rc-sh">
     <i class="fas fa-book-open" style="color:var(--accent)"></i>
-    Subject-wise Academic Performance
+    Academic Performance — All Subjects
   </div>
 
   <?php if (empty($subjects)): ?>
-  <div style="padding:18px 28px;color:#64748b;font-size:.84rem">
-    No assessments found for this student's class.
-  </div>
-  <?php else: foreach ($subjects as $sub):
-    $hasMarks = $sub['total_max'] > 0;
-    $g        = $sub['grade'];
-  ?>
-  <div class="rc-subj-block">
-    <div class="rc-subj-head">
-      <div class="rc-subj-title">
-        <?= h($sub['name']) ?>
-        <span class="rc-subj-code">(<?= h($sub['code']) ?>)</span>
-      </div>
-      <?php if ($hasMarks): ?>
-      <div class="rc-subj-pct">
-        <span class="rc-badge" style="background:<?= gradeBg($g) ?>;color:<?= gradeColor($g) ?>">
-          <?= $g ?>
-        </span>
-        &nbsp;<?= $sub['overall_pct'] ?>%
-      </div>
-      <?php endif; ?>
-    </div>
-    <div style="overflow-x:auto">
-    <table class="rc-table">
-      <thead>
-        <tr>
-          <th style="width:32%">Assessment / Exam</th>
-          <th>Type</th>
-          <th>Date</th>
-          <th style="text-align:right">Max Marks</th>
-          <th style="text-align:right">Obtained</th>
-          <th style="text-align:right">%</th>
-          <th style="text-align:right">Weightage</th>
-          <th>Grade</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($sub['assessments'] as $a):
-          $hasMark = $a['marks_obtained'] !== null;
-          $aPct    = ($hasMark && $a['max_marks'] > 0)
-                     ? round($a['marks_obtained'] / $a['max_marks'] * 100, 1)
-                     : 0;
-          $aGrade  = $hasMark ? getGradeLetter($aPct, true) : '—';
-        ?>
-        <tr>
-          <td style="font-weight:600"><?= h($a['assessment_name']) ?></td>
-          <td>
-            <span class="rc-type-badge" style="<?= typeBadgeStyle($a['type']) ?>">
-              <?= typeLabel($a['type']) ?>
-            </span>
-          </td>
-          <td style="white-space:nowrap"><?= fDate($a['date']) ?></td>
-          <td style="text-align:right"><?= h($a['max_marks']) ?></td>
-          <td style="text-align:right;font-weight:700">
-            <?= $hasMark ? h($a['marks_obtained']) : '<span style="color:#94a3b8">—</span>' ?>
-          </td>
-          <td style="text-align:right;color:var(--accent);font-weight:600">
-            <?= $hasMark ? $aPct . '%' : '<span style="color:#94a3b8">—</span>' ?>
-          </td>
-          <td style="text-align:right;color:#64748b">
-            <?= $a['weight'] > 0 ? $a['weight'] . '%' : '<span style="color:#cbd5e1">—</span>' ?>
-          </td>
-          <td>
-            <?php if ($hasMark): ?>
-            <span class="rc-badge" style="background:<?= gradeBg($aGrade) ?>;color:<?= gradeColor($aGrade) ?>">
-              <?= $aGrade ?>
-            </span>
+  <div style="padding:14px 20px;color:#64748b;font-size:.82rem">No assessments found for this student's class.</div>
+  <?php else: ?>
+  <table class="rc-tbl">
+    <thead>
+      <tr>
+        <th style="width:4%">#</th>
+        <th style="width:18%">Subject</th>
+        <th>Assessment Breakdown</th>
+        <th class="r" style="width:8%">Obtained</th>
+        <th class="r" style="width:7%">Total</th>
+        <th class="r" style="width:7%">%</th>
+        <th style="width:7%">Grade</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php $rowNum = 1; foreach ($subjects as $sub):
+        $hasMarks = $sub['total_max'] > 0;
+        $g        = $sub['grade'];
+      ?>
+      <tr>
+        <td style="color:#94a3b8;font-size:.68rem"><?= $rowNum++ ?></td>
+        <td>
+          <span class="rc-subj-name"><?= h($sub['name']) ?></span><br>
+          <span class="rc-subj-code"><?= h($sub['code']) ?></span>
+        </td>
+        <td>
+          <div class="rc-breakdown">
+            <?php if (empty($sub['assessments'])): ?>
+            <span class="rc-no-data">No assessments</span>
             <?php else: ?>
-            <span style="color:#94a3b8">—</span>
+            <?= $sub['breakdown'] ?>
             <?php endif; ?>
-          </td>
-        </tr>
-        <?php endforeach; ?>
-      </tbody>
-      <?php if ($hasMarks): ?>
-      <tfoot>
-        <tr>
-          <td colspan="3">
-            <strong>Subject Total</strong>
-          </td>
-          <td style="text-align:right"><?= round($sub['total_max'], 0) ?></td>
-          <td style="text-align:right"><?= round($sub['total_obtained'], 1) ?></td>
-          <td style="text-align:right;color:var(--accent)"><?= $sub['overall_pct'] ?>%</td>
-          <td></td>
-          <td>
-            <span class="rc-badge" style="background:<?= gradeBg($g) ?>;color:<?= gradeColor($g) ?>">
-              <?= $g ?>
-            </span>
-          </td>
-        </tr>
-      </tfoot>
-      <?php endif; ?>
-    </table>
-    </div>
-  </div>
-  <?php endforeach; endif; ?>
+          </div>
+        </td>
+        <td class="r" style="font-weight:700">
+          <?= $hasMarks ? round($sub['total_obtained'], 1) : '<span class="rc-no-data">—</span>' ?>
+        </td>
+        <td class="r" style="color:#64748b">
+          <?= $hasMarks ? round($sub['total_max'], 0) : '—' ?>
+        </td>
+        <td class="r" style="color:var(--accent);font-weight:700">
+          <?= $hasMarks ? $sub['overall_pct'].'%' : '—' ?>
+        </td>
+        <td>
+          <?php if ($hasMarks): ?>
+          <span class="rc-badge" style="background:<?= gradeBg($g) ?>;color:<?= gradeColor($g) ?>"><?= $g ?></span>
+          <?php else: ?><span class="rc-no-data">—</span><?php endif; ?>
+        </td>
+      </tr>
+      <?php endforeach; ?>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="3" style="letter-spacing:.05em">
+          OVERALL RESULT
+          <?php if ($grandWTotal > 0): ?>
+          <span style="font-size:.64rem;opacity:.75;font-weight:400;margin-left:6px">* weighted by assessment weightage</span>
+          <?php endif; ?>
+        </td>
+        <td class="r"><?= round($grandObtained, 0) ?></td>
+        <td class="r"><?= round($grandMax, 0) ?></td>
+        <td class="r"><?= $grandPct ?>%</td>
+        <td>
+          <span class="rc-badge" style="background:<?= gradeBg($overallGrade) ?>;color:<?= gradeColor($overallGrade) ?>;font-size:.75rem">
+            <?= $overallGrade ?>
+          </span>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+  <?php endif; ?>
 
-  <!-- ── Attendance summary ─────────────────────────────────── -->
+  <!-- Attendance table -->
   <?php if (!empty($attendance)): ?>
-  <div class="rc-sec-head">
+  <div class="rc-sh" style="margin-top:0">
     <i class="fas fa-calendar-check" style="color:#16a34a"></i>
     Attendance Summary
   </div>
-  <div class="rc-att-grid">
-    <?php foreach ($attendance as $att):
-      $subPct   = $att['total'] > 0 ? round($att['present'] / $att['total'] * 100) : 0;
-      $barColor = $subPct >= 75 ? '#16a34a' : ($subPct >= 60 ? '#d97706' : '#dc2626');
-    ?>
-    <div class="rc-att-card">
-      <div class="rc-att-subj">
-        <?= h($att['subject']) ?>
-        <span style="font-size:.68rem;color:#94a3b8;font-weight:400">(<?= h($att['code']) ?>)</span>
-      </div>
-      <div class="rc-att-row"><span>Present</span><strong style="color:#16a34a"><?= $att['present'] ?></strong></div>
-      <div class="rc-att-row"><span>Absent</span><strong style="color:#dc2626"><?= $att['absent'] ?></strong></div>
-      <div class="rc-att-row"><span>Leave</span><strong style="color:#d97706"><?= $att['leave'] ?></strong></div>
-      <div class="rc-att-row" style="border-top:1px dashed #e2e8f0;margin-top:4px;padding-top:4px">
-        <span>Total</span><strong><?= $att['total'] ?></strong>
-      </div>
-      <div class="rc-att-bar">
-        <div class="rc-att-fill" style="width:<?= $subPct ?>%;background:<?= $barColor ?>"></div>
-      </div>
-      <div style="font-size:.68rem;color:#64748b;text-align:right;margin-top:3px"><?= $subPct ?>% present</div>
-    </div>
-    <?php endforeach; ?>
-  </div>
+  <table class="rc-att-tbl">
+    <thead>
+      <tr>
+        <th>Subject</th>
+        <th style="text-align:right">Present</th>
+        <th style="text-align:right">Absent</th>
+        <th style="text-align:right">Leave</th>
+        <th style="text-align:right">Total</th>
+        <th style="text-align:left;width:110px">Attendance %</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php foreach ($attendance as $att):
+        $subPct   = $att['total'] > 0 ? round($att['present'] / $att['total'] * 100) : 0;
+        $barColor = $subPct >= 75 ? '#16a34a' : ($subPct >= 60 ? '#d97706' : '#dc2626');
+      ?>
+      <tr>
+        <td>
+          <span style="font-weight:600"><?= h($att['subject']) ?></span>
+          <span style="font-size:.66rem;color:#94a3b8;margin-left:4px">(<?= h($att['code']) ?>)</span>
+        </td>
+        <td style="text-align:right;color:#16a34a;font-weight:600"><?= $att['present'] ?></td>
+        <td style="text-align:right;color:#dc2626;font-weight:600"><?= $att['absent'] ?></td>
+        <td style="text-align:right;color:#d97706;font-weight:600"><?= $att['leave'] ?></td>
+        <td style="text-align:right;font-weight:600"><?= $att['total'] ?></td>
+        <td class="pct-cell">
+          <span style="color:<?= $barColor ?>"><?= $subPct ?>%</span>
+          <div class="rc-att-bar"><div class="rc-att-fill" style="width:<?= $subPct ?>%;background:<?= $barColor ?>"></div></div>
+        </td>
+      </tr>
+      <?php endforeach; ?>
+    </tbody>
+  </table>
   <?php endif; ?>
 
-  <!-- ── Grade scale legend ─────────────────────────────────── -->
-  <div class="rc-grade-legend">
-    <strong style="color:#374151;margin-right:4px">Grade Scale:</strong>
+  <!-- Grade legend -->
+  <div class="rc-legend">
+    <strong style="color:#1e293b;margin-right:3px">Grade Scale:</strong>
     <?php foreach (['A+'=>'≥90%','A'=>'≥80%','B'=>'≥70%','C'=>'≥60%','D'=>'≥50%','F'=>'<50%'] as $gr => $rng): ?>
-    <span class="gl-item">
+    <span class="gl">
       <span class="rc-badge" style="background:<?= gradeBg($gr) ?>;color:<?= gradeColor($gr) ?>"><?= $gr ?></span>
       <?= $rng ?>
     </span>
     <?php endforeach; ?>
-    <?php if ($grandWTotal > 0): ?>
-    <span style="margin-left:auto;color:#94a3b8;font-style:italic">* Overall % uses configured assessment weightage</span>
-    <?php endif; ?>
   </div>
 
-  <!-- ── Remarks ────────────────────────────────────────────── -->
-  <div class="rc-remarks-row">
-    <div class="rc-remarks-cell">
-      <div class="rc-remarks-label">Class Teacher Remarks</div>
-      <div class="rc-remarks-lines"></div>
-      <div class="rc-remarks-lines" style="margin-top:6px"></div>
+  <!-- Remarks -->
+  <div class="rc-rem">
+    <div class="rc-rem-cell">
+      <div class="rc-rem-lbl">Class Teacher Remarks</div>
+      <div class="rc-rem-line"></div>
+      <div class="rc-rem-line" style="margin-top:5px"></div>
     </div>
-    <div class="rc-remarks-cell">
-      <div class="rc-remarks-label">Principal Remarks</div>
-      <div class="rc-remarks-lines"></div>
-      <div class="rc-remarks-lines" style="margin-top:6px"></div>
+    <div class="rc-rem-cell">
+      <div class="rc-rem-lbl">Principal Remarks</div>
+      <div class="rc-rem-line"></div>
+      <div class="rc-rem-line" style="margin-top:5px"></div>
     </div>
   </div>
 
-  <!-- ── Signatures ─────────────────────────────────────────── -->
-  <div class="rc-sig-block">
+  <!-- Signatures -->
+  <div class="rc-sig">
     <div class="rc-sig-cell">
-      <div style="height:36px"></div>
+      <div style="height:30px"></div>
       <div class="rc-sig-line">
         <div class="rc-sig-title">Class Teacher</div>
         <div>Signature &amp; Date</div>
       </div>
     </div>
     <div class="rc-sig-cell">
-      <div style="height:36px"></div>
+      <div style="height:30px"></div>
       <div class="rc-sig-line">
         <div class="rc-sig-title">Head of Department</div>
         <div>Signature &amp; Date</div>
       </div>
     </div>
     <div class="rc-sig-cell">
-      <div style="height:36px"></div>
+      <div style="height:30px"></div>
       <div class="rc-sig-line">
         <div class="rc-sig-title"><?= h($principalName) ?></div>
         <div>Principal / Vice Principal</div>
       </div>
     </div>
     <div class="rc-sig-cell">
-      <div style="height:36px"></div>
+      <div style="height:30px"></div>
       <div class="rc-sig-line">
         <div class="rc-sig-title">Parent / Guardian</div>
         <div>Signature &amp; Date</div>
@@ -1087,20 +719,14 @@ body {
     </div>
   </div>
 
-  <!-- ── Footer ─────────────────────────────────────────────── -->
-  <div class="rc-footer">
+  <!-- Footer -->
+  <div class="rc-foot">
     <span><?= h($schoolName) ?> &nbsp;·&nbsp; <?= h($campusLabel) ?></span>
-    <span class="verified-tag">OFFICIAL DOCUMENT</span>
-    <span>Generated: <?= $reportDate ?> &nbsp;·&nbsp; Confidential — For Authorised Use Only</span>
+    <span class="vtag">OFFICIAL DOCUMENT</span>
+    <span>Generated: <?= $reportDate ?> &nbsp;·&nbsp; Confidential — Authorised Use Only</span>
   </div>
 
-</div><!-- /report-card -->
-</div><!-- /page-wrap -->
-
-<script>
-document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'p') { /* let browser print handle it */ }
-});
-</script>
+</div><!-- /rc -->
+</div><!-- /pw -->
 </body>
 </html>
