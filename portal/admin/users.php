@@ -253,8 +253,10 @@ $perPage    = 20;
 $offset     = ($page - 1) * $perPage;
 
 // Detect whether wing columns exist (wing-migration.sql may not have been run yet)
-$hasWingCol = false;
-try { $db->query('SELECT wing FROM classes LIMIT 0'); $hasWingCol = true; } catch (Exception $e) {}
+$hasWingCol        = false;
+$hasTeacherWingCol = false;
+try { $db->query('SELECT wing FROM classes LIMIT 0');  $hasWingCol        = true; } catch (Exception $e) {}
+try { $db->query('SELECT wing FROM teachers LIMIT 0'); $hasTeacherWingCol = true; } catch (Exception $e) {}
 
 // Detect is_ilc / is_montessori as fallback
 $hasIlcCol  = false;
@@ -266,8 +268,9 @@ if (!$hasWingCol) {
 
 // Wing expression used in SELECT and WHERE
 if ($hasWingCol) {
+    $teacherWingExpr = $hasTeacherWingCol ? "COALESCE(t.wing,'main')" : "'main'";
     $wingExpr = "CASE WHEN u.role='student' THEN COALESCE(c.wing,'main')
-                      WHEN u.role='teacher' THEN COALESCE(t.wing,'main')
+                      WHEN u.role='teacher' THEN $teacherWingExpr
                       ELSE 'main' END";
 } elseif ($hasIlcCol) {
     $ilcPart  = "WHEN COALESCE(c.is_ilc,0)=1 THEN 'ilc'" . ($hasMonCol ? " WHEN COALESCE(c.is_montessori,0)=1 THEN 'montessori'" : '');
