@@ -316,6 +316,9 @@ function getStudentLinks(): array {
         $isIlcStudent
             ? ['href'=>'/portal/student/behaviour-therapy.php', 'icon'=>'<i class="fas fa-brain"></i>', 'label'=>'Behaviour Therapy', 'key'=>'behaviour-therapy']
             : null,
+        $isIlcStudent
+            ? ['href'=>'/portal/student/fba.php', 'icon'=>'<i class="fas fa-clipboard-check"></i>', 'label'=>'FBA', 'key'=>'fba']
+            : null,
         ['href'=>'/portal/student/profile.php',            'icon'=>'<i class="fas fa-user"></i>',            'label'=>'My Profile',         'key'=>'profile'],
     ]));
 }
@@ -392,6 +395,7 @@ function getIlcLinks(): array {
         hasPermission('ilc_results')      ? ['href'=>'/portal/ilc/results.php',            'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'ILC Results',        'key'=>'results']           : null,
         hasPermission('ilc_timetable')    ? ['href'=>'/portal/ilc/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',              'label'=>'ILC Timetable',      'key'=>'timetable']         : null,
         ['href'=>'/portal/ilc/behaviour-therapy.php', 'icon'=>'<i class="fas fa-brain"></i>',              'label'=>'Behaviour Therapy',  'key'=>'behaviour-therapy'],
+        ['href'=>'/portal/ilc/fba.php',               'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>'FBA',                'key'=>'fba'],
         ['href'=>'/portal/ilc/speech-therapy.php',    'icon'=>'<i class="fas fa-comment-medical"></i>',    'label'=>'Speech Therapy',     'key'=>'speech-therapy'],
         ['href'=>'/portal/ilc/assessments.php',       'icon'=>'<i class="fas fa-clipboard-list"></i>',     'label'=>'Assessments',        'key'=>'assessments'],
         ['href'=>'/portal/ilc/fee-status.php',        'icon'=>'<i class="fas fa-money-bill-wave"></i>',    'label'=>'Fee Status',         'key'=>'fee-status'],
