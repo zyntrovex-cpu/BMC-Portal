@@ -537,7 +537,7 @@ $s2Keys = [
 </div>
 
 <!-- §8 Therapist Recommendations -->
-<div style="<?= $secStyle ?>">8. THERAPIST RECOMMENDATIONS</div>
+<div style="<?= $secStyle ?>">8. RECOMMENDATIONS</div>
 <div class="mb-2">
   <textarea name="s8_recommendations" class="form-control form-control-sm" rows="4"
             placeholder="Therapist recommendations..."><?= h($ed['s8']['recommendations'] ?? '') ?></textarea>
