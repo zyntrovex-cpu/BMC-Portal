@@ -273,4 +273,82 @@ function closeSidebar(){
 })();
 </script>';
     viewAsBanner();
+    feePendingBanner($user);
+}
+
+// ── Persistent fee-pending banner ─────────────────────────────────────────────
+// Shown live on every page for affected students (auto-disappears when paid).
+// Also shown to ILC VP when any ILC student has outstanding fees.
+function feePendingBanner(array $user): void {
+    $role = $user['role'] ?? '';
+    if (!in_array($role, ['student', 'ilc_vp'], true)) return;
+
+    try {
+        $db   = getDB();
+        $base = defined('BASE_URL') ? BASE_URL : '';
+
+        if ($role === 'student') {
+            $st = $db->prepare(
+                'SELECT s.id AS sid, COALESCE(c.is_ilc, 0) AS is_ilc
+                 FROM students s
+                 LEFT JOIN classes c ON c.id = s.class_id
+                 WHERE s.user_id = ?'
+            );
+            $st->execute([$user['id']]);
+            $stu = $st->fetch();
+            if (!$stu) return;
+
+            $sid   = (int)$stu['sid'];
+            $isIlc = (bool)(int)$stu['is_ilc'];
+            $count = 0;
+
+            if ($isIlc) {
+                try {
+                    $c2 = $db->prepare(
+                        "SELECT COUNT(*) FROM ilc_fee_payments WHERE student_id = ? AND status = 'unpaid'"
+                    );
+                    $c2->execute([$sid]);
+                    $count = (int)$c2->fetchColumn();
+                } catch (Exception $e) {}
+            } else {
+                try {
+                    $c2 = $db->prepare('SELECT COUNT(*) FROM fees WHERE student_id = ? AND paid = 0');
+                    $c2->execute([$sid]);
+                    $count = (int)$c2->fetchColumn();
+                } catch (Exception $e) {}
+            }
+
+            if ($count <= 0) return;
+
+            echo '<div style="background:#fee2e2;border-bottom:2px solid #fca5a5;color:#7f1d1d;'
+               . 'padding:10px 20px;font-size:.83rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+               . '<i class="fas fa-exclamation-circle" style="color:#dc2626;font-size:1rem;flex-shrink:0"></i>'
+               . '<span><strong>Fee Pending &mdash;</strong> Your school fee payment is outstanding. '
+               . 'Please settle your dues to avoid any disruption. '
+               . '<a href="' . $base . '/portal/student/fees.php" '
+               . 'style="color:#991b1b;font-weight:600;text-decoration:underline;margin-left:4px">'
+               . 'View Fee Details &rsaquo;</a></span></div>';
+
+        } elseif ($role === 'ilc_vp') {
+            try {
+                $st = $db->prepare(
+                    "SELECT COUNT(DISTINCT student_id) FROM ilc_fee_payments WHERE status = 'unpaid'"
+                );
+                $st->execute();
+                $count = (int)$st->fetchColumn();
+                if ($count <= 0) return;
+
+                $label = $count === 1 ? '1 ILC student has' : "$count ILC students have";
+                echo '<div style="background:#fff7ed;border-bottom:2px solid #fdba74;color:#7c2d12;'
+                   . 'padding:10px 20px;font-size:.83rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+                   . '<i class="fas fa-bell" style="color:#ea580c;font-size:1rem;flex-shrink:0"></i>'
+                   . '<span><strong>' . $label . ' unpaid fees.</strong> '
+                   . 'Review and update payment records as needed. '
+                   . '<a href="' . $base . '/portal/ilc/fee-status.php" '
+                   . 'style="color:#9a3412;font-weight:600;text-decoration:underline;margin-left:4px">'
+                   . 'Open Fee Status &rsaquo;</a></span></div>';
+            } catch (Exception $e) {}
+        }
+
+    } catch (Exception $e) {}
 }

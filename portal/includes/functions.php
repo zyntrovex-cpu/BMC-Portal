@@ -313,6 +313,7 @@ function getStudentLinks(): array {
         ['href'=>'/portal/student/diary.php',              'icon'=>'<i class="fas fa-book-open"></i>',       'label'=>'Class Diary',        'key'=>'diary'],
         ['href'=>'/portal/student/complaints.php',         'icon'=>'<i class="fas fa-comment-alt"></i>',     'label'=>'Complaints',         'key'=>'complaints'],
         ['href'=>'/portal/student/calendar.php',           'icon'=>'<i class="fas fa-calendar-week"></i>',   'label'=>'Calendar',           'key'=>'calendar'],
+        ['href'=>'/portal/student/fees.php',               'icon'=>'<i class="fas fa-money-bill-wave"></i>',  'label'=>'Fee Status',         'key'=>'fees'],
         $isIlcStudent
             ? ['href'=>'/portal/student/session-records.php', 'icon'=>'<i class="fas fa-folder-open"></i>', 'label'=>'Session Records', 'key'=>'session-records']
             : null,
