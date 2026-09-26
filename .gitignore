@@ -1,0 +1,3 @@
+.claude/
+portal/uploads/profile-photos/*
+!portal/uploads/profile-photos/.gitignore
