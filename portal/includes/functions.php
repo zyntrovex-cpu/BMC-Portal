@@ -317,6 +317,9 @@ function getStudentLinks(): array {
             ? ['href'=>'/portal/student/behaviour-therapy.php', 'icon'=>'<i class="fas fa-brain"></i>', 'label'=>'Behaviour Therapy', 'key'=>'behaviour-therapy']
             : null,
         $isIlcStudent
+            ? ['href'=>'/portal/student/speech-therapy.php', 'icon'=>'<i class="fas fa-comment-medical"></i>', 'label'=>'Speech Therapy', 'key'=>'speech-therapy']
+            : null,
+        $isIlcStudent
             ? ['href'=>'/portal/student/fba.php', 'icon'=>'<i class="fas fa-clipboard-check"></i>', 'label'=>'FBA', 'key'=>'fba']
             : null,
         ['href'=>'/portal/student/profile.php',            'icon'=>'<i class="fas fa-user"></i>',            'label'=>'My Profile',         'key'=>'profile'],
