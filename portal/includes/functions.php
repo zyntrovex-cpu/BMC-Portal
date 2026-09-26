@@ -289,17 +289,35 @@ function requirePermission(string $perm): void {
 
 // ── Student sidebar links ─────────────────────────────────────────
 function getStudentLinks(): array {
-    return [
-        ['href'=>'/portal/student/dashboard.php',   'icon'=>'<i class="fas fa-home"></i>',            'label'=>'Dashboard',    'key'=>'dashboard'],
-        ['href'=>'/portal/student/results.php',     'icon'=>'<i class="fas fa-chart-bar"></i>',       'label'=>'My Results',   'key'=>'results'],
-        ['href'=>'/portal/student/attendance.php',  'icon'=>'<i class="fas fa-calendar-check"></i>',  'label'=>'Attendance',   'key'=>'attendance'],
-        ['href'=>'/portal/student/timetable.php',   'icon'=>'<i class="fas fa-table"></i>',           'label'=>'Timetable',    'key'=>'timetable'],
-        ['href'=>'/portal/student/notices.php',     'icon'=>'<i class="fas fa-bell"></i>',            'label'=>'Notices',      'key'=>'notices'],
-        ['href'=>'/portal/student/diary.php',       'icon'=>'<i class="fas fa-book-open"></i>',       'label'=>'Class Diary',  'key'=>'diary'],
-        ['href'=>'/portal/student/complaints.php',  'icon'=>'<i class="fas fa-comment-alt"></i>',     'label'=>'Complaints',   'key'=>'complaints'],
-        ['href'=>'/portal/student/calendar.php',    'icon'=>'<i class="fas fa-calendar-week"></i>',   'label'=>'Calendar',     'key'=>'calendar'],
-        ['href'=>'/portal/student/profile.php',     'icon'=>'<i class="fas fa-user"></i>',            'label'=>'My Profile',   'key'=>'profile'],
-    ];
+    // Check if this student is in an ILC class
+    $isIlcStudent = false;
+    try {
+        $db = getDB();
+        $sess = $_SESSION['user'] ?? [];
+        if (!empty($sess['id'])) {
+            $chk = $db->prepare(
+                'SELECT 1 FROM students s JOIN classes c ON c.id = s.class_id
+                 WHERE s.user_id = ? AND c.is_ilc = 1 LIMIT 1'
+            );
+            $chk->execute([$sess['id']]);
+            $isIlcStudent = (bool)$chk->fetchColumn();
+        }
+    } catch (Exception $e) {}
+
+    return array_values(array_filter([
+        ['href'=>'/portal/student/dashboard.php',          'icon'=>'<i class="fas fa-home"></i>',            'label'=>'Dashboard',          'key'=>'dashboard'],
+        ['href'=>'/portal/student/results.php',            'icon'=>'<i class="fas fa-chart-bar"></i>',       'label'=>'My Results',         'key'=>'results'],
+        ['href'=>'/portal/student/attendance.php',         'icon'=>'<i class="fas fa-calendar-check"></i>',  'label'=>'Attendance',         'key'=>'attendance'],
+        ['href'=>'/portal/student/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',           'label'=>'Timetable',          'key'=>'timetable'],
+        ['href'=>'/portal/student/notices.php',            'icon'=>'<i class="fas fa-bell"></i>',            'label'=>'Notices',            'key'=>'notices'],
+        ['href'=>'/portal/student/diary.php',              'icon'=>'<i class="fas fa-book-open"></i>',       'label'=>'Class Diary',        'key'=>'diary'],
+        ['href'=>'/portal/student/complaints.php',         'icon'=>'<i class="fas fa-comment-alt"></i>',     'label'=>'Complaints',         'key'=>'complaints'],
+        ['href'=>'/portal/student/calendar.php',           'icon'=>'<i class="fas fa-calendar-week"></i>',   'label'=>'Calendar',           'key'=>'calendar'],
+        $isIlcStudent
+            ? ['href'=>'/portal/student/behaviour-therapy.php', 'icon'=>'<i class="fas fa-brain"></i>', 'label'=>'Behaviour Therapy', 'key'=>'behaviour-therapy']
+            : null,
+        ['href'=>'/portal/student/profile.php',            'icon'=>'<i class="fas fa-user"></i>',            'label'=>'My Profile',         'key'=>'profile'],
+    ]));
 }
 
 // ── Admin sidebar links ───────────────────────────────────────────
