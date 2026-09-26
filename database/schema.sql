@@ -265,7 +265,11 @@ INSERT IGNORE INTO classes (name, grade, section) VALUES
 INSERT IGNORE INTO subjects (name, code) VALUES
   ('Physics','PHY'),('Mathematics','MAT'),('English','ENG'),
   ('Chemistry','CHE'),('Biology','BIO'),('Computer Science','CS'),
-  ('Urdu','URD'),('Islamiat','ISL'),('Pakistan Studies','PKS');
+  ('Urdu','URD'),('Islamiat','ISL'),('Pakistan Studies','PKS'),
+  ('Science','SCI'),('General Knowledge','GK'),('Islamic Studies','IS'),
+  ('Art and Drawing','ARTD'),('Physical and Social Development','PSD'),
+  ('Nazra Quran','NZQ'),('Computer Studies','CSTU'),('Sindhi','SND'),
+  ('Moalamul Quran','MLQ'),('Biology (Botany and Zoology)','BZO'),('Art','ART');
 
 -- Users (passwords: student123, teacher123, admin123, finance123 — bcrypt)
 INSERT IGNORE INTO users (user_id, name, email, password, role) VALUES

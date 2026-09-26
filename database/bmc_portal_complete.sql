@@ -821,16 +821,26 @@ INSERT IGNORE INTO classes (id, name, grade, section, is_ilc, is_montessori, win
 
 -- ── Subjects ──────────────────────────────────────────────────────
 INSERT IGNORE INTO subjects (id, name, code) VALUES
-  (1,  'Physics',          'PHY'),
-  (2,  'Mathematics',      'MAT'),
-  (3,  'English',          'ENG'),
-  (4,  'Chemistry',        'CHE'),
-  (5,  'Biology',          'BIO'),
-  (6,  'Computer Science', 'CS'),
-  (7,  'Urdu',             'URD'),
-  (8,  'Islamiat',         'ISL'),
-  (9,  'Pakistan Studies', 'PKS'),
-  (10, 'Science',          'SCI');
+  (1,  'Physics',                        'PHY'),
+  (2,  'Mathematics',                    'MAT'),
+  (3,  'English',                        'ENG'),
+  (4,  'Chemistry',                      'CHE'),
+  (5,  'Biology',                        'BIO'),
+  (6,  'Computer Science',               'CS'),
+  (7,  'Urdu',                           'URD'),
+  (8,  'Islamiat',                       'ISL'),
+  (9,  'Pakistan Studies',               'PKS'),
+  (10, 'Science',                        'SCI'),
+  (11, 'General Knowledge',              'GK'),
+  (12, 'Islamic Studies',                'IS'),
+  (13, 'Art and Drawing',                'ARTD'),
+  (14, 'Physical and Social Development','PSD'),
+  (15, 'Nazra Quran',                    'NZQ'),
+  (16, 'Computer Studies',               'CSTU'),
+  (17, 'Sindhi',                         'SND'),
+  (18, 'Moalamul Quran',                 'MLQ'),
+  (19, 'Biology (Botany and Zoology)',   'BZO'),
+  (20, 'Art',                            'ART');
 
 -- ── Houses ────────────────────────────────────────────────────────
 INSERT IGNORE INTO houses (id, name, color) VALUES
