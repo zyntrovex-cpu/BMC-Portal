@@ -327,6 +327,9 @@ function getStudentLinks(): array {
             ? ['href'=>'/portal/student/academic-result1.php', 'icon'=>'<i class="fas fa-graduation-cap"></i>', 'label'=>'Academic Result 1', 'key'=>'academic-result1']
             : null,
         $isIlcStudent
+            ? ['href'=>'/portal/student/academic-result2.php', 'icon'=>'<i class="fas fa-chart-bar"></i>', 'label'=>'Academic Result 2', 'key'=>'academic-result2']
+            : null,
+        $isIlcStudent
             ? ['href'=>'/portal/student/behaviour-therapy.php', 'icon'=>'<i class="fas fa-brain"></i>', 'label'=>'Behaviour Therapy', 'key'=>'behaviour-therapy']
             : null,
         $isIlcStudent
@@ -412,6 +415,7 @@ function getIlcLinks(): array {
         hasPermission('ilc_timetable')    ? ['href'=>'/portal/ilc/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',              'label'=>'ILC Timetable',      'key'=>'timetable']         : null,
         ['href'=>'/portal/ilc/behaviour-therapy.php',   'icon'=>'<i class="fas fa-brain"></i>',              'label'=>'Behaviour Therapy',  'key'=>'behaviour-therapy'],
         ['href'=>'/portal/ilc/academic-result1.php',  'icon'=>'<i class="fas fa-graduation-cap"></i>',    'label'=>'Academic Result 1',  'key'=>'academic-result1'],
+        ['href'=>'/portal/ilc/academic-result2.php',  'icon'=>'<i class="fas fa-chart-bar"></i>',         'label'=>'Academic Result 2',  'key'=>'academic-result2'],
         ['href'=>'/portal/ilc/fba.php',               'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>'FBA',                'key'=>'fba'],
         ['href'=>'/portal/ilc/speech-therapy.php',    'icon'=>'<i class="fas fa-comment-medical"></i>',    'label'=>'Speech Therapy',     'key'=>'speech-therapy'],
         ['href'=>'/portal/ilc/assessments.php',       'icon'=>'<i class="fas fa-clipboard-list"></i>',     'label'=>'Assessments',        'key'=>'assessments'],
