@@ -314,6 +314,12 @@ function getStudentLinks(): array {
         ['href'=>'/portal/student/complaints.php',         'icon'=>'<i class="fas fa-comment-alt"></i>',     'label'=>'Complaints',         'key'=>'complaints'],
         ['href'=>'/portal/student/calendar.php',           'icon'=>'<i class="fas fa-calendar-week"></i>',   'label'=>'Calendar',           'key'=>'calendar'],
         $isIlcStudent
+            ? ['href'=>'/portal/student/ilc-assessments.php', 'icon'=>'<i class="fas fa-clipboard-list"></i>', 'label'=>'Assessments', 'key'=>'ilc-assessments']
+            : null,
+        $isIlcStudent
+            ? ['href'=>'/portal/student/ilc-results.php', 'icon'=>'<i class="fas fa-chart-bar"></i>', 'label'=>'Results', 'key'=>'ilc-results']
+            : null,
+        $isIlcStudent
             ? ['href'=>'/portal/student/behaviour-therapy.php', 'icon'=>'<i class="fas fa-brain"></i>', 'label'=>'Behaviour Therapy', 'key'=>'behaviour-therapy']
             : null,
         $isIlcStudent
