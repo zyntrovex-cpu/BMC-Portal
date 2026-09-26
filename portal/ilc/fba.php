@@ -146,6 +146,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
             ];
         }
 
+        // Section 8: Reviews
+        $reviews = [];
+        foreach ((array)($_POST['rv_date'] ?? []) as $i => $rvDate) {
+            $rvNote = trim($_POST['rv_note'][$i] ?? '');
+            if (trim($rvDate) === '' && $rvNote === '') continue;
+            $reviews[] = [
+                'date'       => trim($rvDate),
+                'note'       => $rvNote,
+                'outcome'    => trim($_POST['rv_outcome'][$i]    ?? ''),
+                'next_steps' => trim($_POST['rv_next_steps'][$i] ?? ''),
+            ];
+        }
+
         // Section 9: Notes
         $notes = trim($_POST['notes'] ?? '');
 
@@ -157,6 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
             'smart_goals'      => $smartGoals,
             'daily_monitoring' => $dailyMonitoring,
             'progress_rating'  => $progressRating,
+            'reviews'          => $reviews,
             'notes'            => $notes,
         ], JSON_UNESCAPED_UNICODE);
 
@@ -247,6 +261,13 @@ $fdGoals   = $fd['smart_goals']      ?? array_fill(0, 5, ['goal'=>'','baseline'=
 $fdDM      = $fd['daily_monitoring'] ?? array_fill(0, 5, ['date'=>'','trigger'=>'','emotion'=>'','response'=>'','healthy_strategy'=>'','result'=>'']);
 $fdPR      = $fd['progress_rating']  ?? [];
 $fdNotes   = $fd['notes']            ?? '';
+$fdReviews = $fd['reviews'] ?? [
+    ['date'=>'', 'note'=>'Review progress weekly or according to the treatment schedule.',           'outcome'=>'', 'next_steps'=>''],
+    ['date'=>'', 'note'=>'Identify strategies that are effective and continue them consistently.',   'outcome'=>'', 'next_steps'=>''],
+    ['date'=>'', 'note'=>'Modify goals when progress is stable or when new concerns emerge.',        'outcome'=>'', 'next_steps'=>''],
+    ['date'=>'', 'note'=>"Use objective behavioural observations rather than labels such as 'bad' or 'difficult'.", 'outcome'=>'', 'next_steps'=>''],
+    ['date'=>'', 'note'=>'If behaviour includes threats, violence, severe impairment, self-harm, or risk to others, seek assessment from a qualified mental-health professional promptly.', 'outcome'=>'', 'next_steps'=>''],
+];
 
 while (count($fdFbaRows) < 5) $fdFbaRows[] = ['trigger'=>'','thought'=>'','behaviour'=>'','consequence'=>'','healthy_alt'=>''];
 while (count($fdGoals)   < 5) $fdGoals[]   = ['goal'=>'','baseline'=>'','target'=>'','strategy'=>'','outcome'=>''];
@@ -627,17 +648,61 @@ $links = getIlcLinks();
               </div>
             </div>
 
-            <!-- ── §8 Review & Follow-Up (static) ── -->
+            <!-- ── §8 Review & Follow-Up (editable table) ── -->
             <div class="fba-sec mb-3">
-              <div class="fba-sh">8. Review &amp; Follow-Up</div>
-              <div class="fba-sb">
-                <ul style="font-size:.8rem;color:#374151;padding-left:20px;margin:0">
-                  <li>Review progress weekly or according to the treatment schedule.</li>
-                  <li>Identify strategies that are effective and continue them consistently.</li>
-                  <li>Modify goals when progress is stable or when new concerns emerge.</li>
-                  <li>Use objective behavioural observations rather than labels such as 'bad' or 'difficult'.</li>
-                  <li>If behaviour includes threats, violence, severe impairment, self-harm, or risk to others, seek assessment from a qualified mental-health professional promptly.</li>
-                </ul>
+              <div class="fba-sh d-flex justify-content-between align-items-center">
+                <span>8. Review &amp; Follow-Up</span>
+                <button type="button" onclick="addReviewRow()"
+                        class="btn btn-xs"
+                        style="background:rgba(255,255,255,.22);color:#fff;font-size:.72rem;padding:2px 9px;border:1px solid rgba(255,255,255,.35)">
+                  <i class="fas fa-plus me-1"></i>Add Review
+                </button>
+              </div>
+              <div class="fba-sb" style="padding:0">
+                <div class="table-responsive">
+                  <table class="table table-sm mb-0" style="font-size:.8rem">
+                    <thead style="background:#fef9c3">
+                      <tr>
+                        <th style="width:100px;padding:6px 8px">Date</th>
+                        <th style="padding:6px 8px">Review Note / Action Taken</th>
+                        <th style="width:22%;padding:6px 8px">Outcome / Observation</th>
+                        <th style="width:22%;padding:6px 8px">Next Steps</th>
+                        <th style="width:36px;padding:6px 8px"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="reviewBody">
+                      <?php foreach ($fdReviews as $rv): ?>
+                      <tr class="rv-row">
+                        <td style="padding:4px 6px;vertical-align:top">
+                          <input type="date" name="rv_date[]"
+                                 class="form-control form-control-sm border-0 p-0"
+                                 style="min-width:88px"
+                                 value="<?= h($rv['date']) ?>">
+                        </td>
+                        <td style="padding:4px 6px;vertical-align:top">
+                          <textarea name="rv_note[]"
+                                    class="form-control form-control-sm border-0 p-0"
+                                    rows="2" style="resize:vertical"><?= h($rv['note']) ?></textarea>
+                        </td>
+                        <td style="padding:4px 6px;vertical-align:top">
+                          <textarea name="rv_outcome[]"
+                                    class="form-control form-control-sm border-0 p-0"
+                                    rows="2" style="resize:vertical"><?= h($rv['outcome']) ?></textarea>
+                        </td>
+                        <td style="padding:4px 6px;vertical-align:top">
+                          <textarea name="rv_next_steps[]"
+                                    class="form-control form-control-sm border-0 p-0"
+                                    rows="2" style="resize:vertical"><?= h($rv['next_steps']) ?></textarea>
+                        </td>
+                        <td class="text-center" style="padding:4px 6px;vertical-align:top">
+                          <button type="button" class="btn btn-xs btn-outline-danger border-0"
+                                  onclick="this.closest('tr').remove()">×</button>
+                        </td>
+                      </tr>
+                      <?php endforeach; ?>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
 
@@ -807,6 +872,18 @@ function addDmRow() {
     '<td><input type="text" name="dm_healthy_strategy[]" class="form-control form-control-sm border-0 p-0"></td>' +
     '<td><input type="text" name="dm_result[]"           class="form-control form-control-sm border-0 p-0"></td>' +
     '<td class="text-center"><button type="button" class="btn btn-xs btn-outline-danger border-0" onclick="this.closest(\'tr\').remove()">×</button></td>';
+  body.appendChild(tr);
+}
+function addReviewRow() {
+  var body = document.getElementById('reviewBody');
+  var tr   = document.createElement('tr');
+  tr.className = 'rv-row';
+  tr.innerHTML =
+    '<td style="padding:4px 6px;vertical-align:top"><input type="date" name="rv_date[]" class="form-control form-control-sm border-0 p-0" style="min-width:88px"></td>' +
+    '<td style="padding:4px 6px;vertical-align:top"><textarea name="rv_note[]"       class="form-control form-control-sm border-0 p-0" rows="2" style="resize:vertical"></textarea></td>' +
+    '<td style="padding:4px 6px;vertical-align:top"><textarea name="rv_outcome[]"    class="form-control form-control-sm border-0 p-0" rows="2" style="resize:vertical"></textarea></td>' +
+    '<td style="padding:4px 6px;vertical-align:top"><textarea name="rv_next_steps[]" class="form-control form-control-sm border-0 p-0" rows="2" style="resize:vertical"></textarea></td>' +
+    '<td class="text-center" style="padding:4px 6px;vertical-align:top"><button type="button" class="btn btn-xs btn-outline-danger border-0" onclick="this.closest(\'tr\').remove()">×</button></td>';
   body.appendChild(tr);
 }
 </script>
