@@ -10,6 +10,12 @@ $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
 if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
 
+// Montessori teachers use Progress Report instead of Assessments & Marks
+if (($teacher['wing'] ?? 'main') === 'montessori') {
+    setFlash('info', 'Montessori teachers use <strong>Progress Report</strong> instead of Assessments &amp; Marks.');
+    redirect('/portal/progress-report/form.php');
+}
+
 $tab = $_GET['tab'] ?? 'assessments';
 $assessmentId = (int)($_GET['assessment_id'] ?? 0);
 

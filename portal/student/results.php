@@ -11,6 +11,11 @@ if (!$student) {
     redirect('/portal/logout.php');
 }
 
+// Montessori students use Progress Report instead of Results
+if (($student['wing'] ?? 'main') === 'montessori') {
+    redirect('/portal/student/progress-report.php');
+}
+
 $db = getDB();
 
 // ── Fetch all assessments for this class with student marks ───────

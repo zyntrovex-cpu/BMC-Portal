@@ -817,7 +817,9 @@ INSERT IGNORE INTO classes (id, name, grade, section, is_ilc, is_montessori, win
   (20, 'Beginner', 0, 'A', 0, 1, 'montessori'),
   (21, 'Advance',  0, 'B', 0, 1, 'montessori'),
   (22, 'Prep',     0, 'C', 0, 1, 'montessori'),
-  (23, 'Class-1',  1, 'A', 0, 1, 'montessori');
+  (23, 'Class-1',  1, 'A', 0, 1, 'montessori'),
+  (24, 'Class-2',  2, 'A', 0, 1, 'montessori'),
+  (25, 'Class-3',  3, 'A', 0, 1, 'montessori');
 
 -- ── Subjects ──────────────────────────────────────────────────────
 INSERT IGNORE INTO subjects (id, name, code) VALUES

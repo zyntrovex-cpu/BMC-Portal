@@ -289,8 +289,9 @@ function requirePermission(string $perm): void {
 
 // ── Student sidebar links ─────────────────────────────────────────
 function getStudentLinks(): array {
-    // Check if this student is in an ILC class
+    // Check if this student is in an ILC class or a Montessori class
     $isIlcStudent = false;
+    $isMontessoriStudent = false;
     try {
         $db = getDB();
         $sess = $_SESSION['user'] ?? [];
@@ -302,11 +303,22 @@ function getStudentLinks(): array {
             $chk->execute([$sess['id']]);
             $isIlcStudent = (bool)$chk->fetchColumn();
         }
+        if (!$isIlcStudent && !empty($sess['id'])) {
+            $chkM = $db->prepare(
+                'SELECT 1 FROM students s JOIN classes c ON c.id = s.class_id
+                 WHERE s.user_id = ? AND c.is_montessori = 1 LIMIT 1'
+            );
+            $chkM->execute([$sess['id']]);
+            $isMontessoriStudent = (bool)$chkM->fetchColumn();
+        }
     } catch (Exception $e) {}
 
     return array_values(array_filter([
         ['href'=>'/portal/student/dashboard.php',          'icon'=>'<i class="fas fa-home"></i>',            'label'=>'Dashboard',          'key'=>'dashboard'],
-        ['href'=>'/portal/student/results.php',            'icon'=>'<i class="fas fa-chart-bar"></i>',       'label'=>'My Results',         'key'=>'results'],
+        // Results hidden for Montessori and ILC students (they use Progress Report or ILC-specific pages)
+        (!$isIlcStudent && !$isMontessoriStudent)
+            ? ['href'=>'/portal/student/results.php',      'icon'=>'<i class="fas fa-chart-bar"></i>',       'label'=>'My Results',         'key'=>'results']
+            : null,
         ['href'=>'/portal/student/attendance.php',         'icon'=>'<i class="fas fa-calendar-check"></i>',  'label'=>'Attendance',         'key'=>'attendance'],
         ['href'=>'/portal/student/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',           'label'=>'Timetable',          'key'=>'timetable'],
         ['href'=>'/portal/student/notices.php',            'icon'=>'<i class="fas fa-bell"></i>',            'label'=>'Notices',            'key'=>'notices'],
@@ -378,11 +390,26 @@ function getAdminLinks(): array {
 
 // ── Teacher sidebar links (permission-filtered) ───────────────────
 function getTeacherLinks(): array {
+    // Montessori teachers have Progress Report instead of Assessments & Marks
+    $isMontessoriTeacher = false;
+    try {
+        $sess = $_SESSION['user'] ?? [];
+        if (!empty($sess['id'])) {
+            $st = getDB()->prepare('SELECT wing FROM teachers WHERE user_id = ? LIMIT 1');
+            $st->execute([$sess['id']]);
+            $row = $st->fetch();
+            $isMontessoriTeacher = ($row && ($row['wing'] ?? 'main') === 'montessori');
+        }
+    } catch (Exception $e) {}
+
     return array_values(array_filter([
         ['href'=>'/portal/teacher/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',                'label'=>'Dashboard',           'key'=>'dashboard'],
         ['href'=>'/portal/teacher/profile.php',   'icon'=>'<i class="fas fa-user-circle"></i>',         'label'=>'My Profile',          'key'=>'profile'],
         ['href'=>'/portal/progress-report/form.php', 'icon'=>'<i class="fas fa-file-alt"></i>', 'label'=>'Progress Report', 'key'=>'progress-report'],
-        hasPermission('marks')      ? ['href'=>'/portal/teacher/marks.php',      'icon'=>'<i class="fas fa-pen-alt"></i>',              'label'=>'Assessments & Marks', 'key'=>'marks']       : null,
+        // Montessori teachers use Progress Report instead of Assessments & Marks
+        (!$isMontessoriTeacher && hasPermission('marks'))
+            ? ['href'=>'/portal/teacher/marks.php', 'icon'=>'<i class="fas fa-pen-alt"></i>', 'label'=>'Assessments & Marks', 'key'=>'marks']
+            : null,
         hasPermission('attendance') ? ['href'=>'/portal/teacher/attendance.php', 'icon'=>'<i class="fas fa-calendar-check"></i>',       'label'=>'Attendance',          'key'=>'attendance']  : null,
         hasPermission('timetable')  ? ['href'=>'/portal/teacher/timetable.php',  'icon'=>'<i class="fas fa-table"></i>',                'label'=>'My Timetable',        'key'=>'timetable']   : null,
         hasPermission('diary')      ? ['href'=>'/portal/teacher/diary.php',      'icon'=>'<i class="fas fa-book-open"></i>',            'label'=>'Daily Diary',         'key'=>'diary']       : null,

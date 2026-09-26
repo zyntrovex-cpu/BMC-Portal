@@ -141,16 +141,63 @@ $links = getAdminLinks();
   </div>
 </div>
 
+<?php
+$wingFilter = $_GET['wing'] ?? 'all';
+$allowedWingFilters = ['all', 'main', 'montessori', 'ilc'];
+if (!in_array($wingFilter, $allowedWingFilters)) $wingFilter = 'all';
+$filteredTeachers = ($wingFilter === 'all') ? $teachers
+    : array_filter($teachers, fn($t) => ($t['wing'] ?? 'main') === $wingFilter);
+$counts = ['all' => count($teachers)];
+foreach (['main','montessori','ilc'] as $w)
+    $counts[$w] = count(array_filter($teachers, fn($t) => ($t['wing'] ?? 'main') === $w));
+?>
+
+<?php if ($wingFilter === 'montessori'): ?>
+<div class="d-flex align-items-start gap-3 mb-3 p-3"
+     style="background:#fdf4ff;border:1px solid #e9d5ff;border-radius:8px;font-size:.82rem">
+  <i class="fas fa-info-circle mt-1" style="color:#7c3aed"></i>
+  <div>
+    <strong style="color:#5b21b6">Montessori Teacher Portal</strong> —
+    Montessori teachers have a dedicated portal experience:
+    <strong>Assessments &amp; Marks</strong> is replaced by <strong>Progress Report</strong>,
+    while all other features (Attendance, Diary, Timetable, etc.) remain unchanged.
+    Montessori students in their classes similarly see <strong>Progress Report</strong> instead of Results.
+  </div>
+</div>
+<?php endif; ?>
+
 <!-- Teachers table -->
 <div class="sec-card">
-  <div class="sec-card-header"><i class="fas fa-chalkboard-teacher me-2"></i>All Teachers (<?= count($teachers) ?>)</div>
+  <div class="sec-card-header d-flex justify-content-between align-items-center">
+    <span><i class="fas fa-chalkboard-teacher me-2"></i>Teacher Accounts</span>
+  </div>
+  <!-- Wing filter tabs -->
+  <div class="px-3 pt-2 pb-0">
+    <ul class="nav nav-tabs nav-tabs-sm" style="font-size:.82rem">
+      <?php foreach (['all'=>'All','main'=>'Main Wing','montessori'=>'Montessori','ilc'=>'ILC'] as $w=>$label): ?>
+      <li class="nav-item">
+        <a class="nav-link <?= $wingFilter===$w?'active':'' ?>" href="?wing=<?= $w ?>">
+          <?= $label ?>
+          <span class="badge ms-1" style="background:<?= $wingFilter===$w?'#3730a3':'#94a3b8' ?>;font-size:.68rem">
+            <?= $counts[$w] ?>
+          </span>
+        </a>
+      </li>
+      <?php endforeach; ?>
+    </ul>
+  </div>
   <div class="table-responsive">
     <table class="table table-hover mb-0" style="font-size:.84rem">
-      <thead class="table-light"><tr><th>Name</th><th>ID</th><th>Wing</th><th>Subject</th><th>Qualification</th><th>Classes</th><th>Status</th><th>Last Login</th><th></th></tr></thead>
+      <thead class="table-light"><tr><th>Name</th><th>ID</th><th>Wing / Type</th><th>Subject</th><th>Qualification</th><th>Classes</th><th>Status</th><th>Last Login</th><th></th></tr></thead>
       <tbody>
-        <?php foreach ($teachers as $t): ?>
+        <?php foreach ($filteredTeachers as $t): ?>
         <tr>
-          <td class="fw-semibold"><?= h($t['name']) ?></td>
+          <td class="fw-semibold">
+            <?= h($t['name']) ?>
+            <?php if (($t['wing'] ?? 'main') === 'montessori'): ?>
+            <span style="font-size:.68rem;font-weight:600;color:#5b21b6;margin-left:4px">Montessori</span>
+            <?php endif; ?>
+          </td>
           <td><?= h($t['uid']) ?></td>
           <td><?= wingBadge($t['wing'] ?? 'main') ?></td>
           <td><?= h($t['subject_name'] ?? '—') ?></td>
@@ -172,6 +219,11 @@ $links = getAdminLinks();
           </td>
         </tr>
         <?php endforeach; ?>
+        <?php if (empty($filteredTeachers)): ?>
+        <tr><td colspan="9" class="text-center text-muted py-4" style="font-size:.84rem">
+          No <?= $wingFilter!=='all'?wingLabel($wingFilter).' ':'' ?>teachers found.
+        </td></tr>
+        <?php endif; ?>
       </tbody>
     </table>
   </div>
