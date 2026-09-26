@@ -314,6 +314,9 @@ function getStudentLinks(): array {
         ['href'=>'/portal/student/complaints.php',         'icon'=>'<i class="fas fa-comment-alt"></i>',     'label'=>'Complaints',         'key'=>'complaints'],
         ['href'=>'/portal/student/calendar.php',           'icon'=>'<i class="fas fa-calendar-week"></i>',   'label'=>'Calendar',           'key'=>'calendar'],
         ['href'=>'/portal/student/fees.php',               'icon'=>'<i class="fas fa-money-bill-wave"></i>',  'label'=>'Fee Status',         'key'=>'fees'],
+        !$isIlcStudent
+            ? ['href'=>'/portal/student/progress-report.php', 'icon'=>'<i class="fas fa-file-alt"></i>', 'label'=>'Progress Report', 'key'=>'progress-report']
+            : null,
         $isIlcStudent
             ? ['href'=>'/portal/student/session-records.php', 'icon'=>'<i class="fas fa-folder-open"></i>', 'label'=>'Session Records', 'key'=>'session-records']
             : null,
@@ -378,6 +381,7 @@ function getTeacherLinks(): array {
     return array_values(array_filter([
         ['href'=>'/portal/teacher/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',                'label'=>'Dashboard',           'key'=>'dashboard'],
         ['href'=>'/portal/teacher/profile.php',   'icon'=>'<i class="fas fa-user-circle"></i>',         'label'=>'My Profile',          'key'=>'profile'],
+        ['href'=>'/portal/progress-report/form.php', 'icon'=>'<i class="fas fa-file-alt"></i>', 'label'=>'Progress Report', 'key'=>'progress-report'],
         hasPermission('marks')      ? ['href'=>'/portal/teacher/marks.php',      'icon'=>'<i class="fas fa-pen-alt"></i>',              'label'=>'Assessments & Marks', 'key'=>'marks']       : null,
         hasPermission('attendance') ? ['href'=>'/portal/teacher/attendance.php', 'icon'=>'<i class="fas fa-calendar-check"></i>',       'label'=>'Attendance',          'key'=>'attendance']  : null,
         hasPermission('timetable')  ? ['href'=>'/portal/teacher/timetable.php',  'icon'=>'<i class="fas fa-table"></i>',                'label'=>'My Timetable',        'key'=>'timetable']   : null,
@@ -452,6 +456,7 @@ function getVpLinks(): array {
         hasPermission('vp_timetable')    ? ['href'=>'/portal/vp/timetable.php',              'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',            'key'=>'timetable']    : null,
         hasPermission('vp_calendar')     ? ['href'=>'/portal/admin/academic-calendar.php',   'icon'=>'<i class="fas fa-calendar-week"></i>',      'label'=>'Academic Calendar',    'key'=>'calendar']     : null,
         hasPermission('vp_viewas')       ? ['href'=>'/portal/vp/view-as.php',                'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',         'key'=>'viewas']       : null,
+        ['href'=>'/portal/progress-report/form.php', 'icon'=>'<i class="fas fa-file-alt"></i>', 'label'=>'Progress Report', 'key'=>'progress-report'],
     ]));
 }
 
@@ -461,6 +466,7 @@ function getWingHeadLinks(): array {
         ['href'=>'/portal/wing-head/dashboard.php', 'icon'=>'<i class="fas fa-home"></i>',          'label'=>'Dashboard', 'key'=>'dashboard'],
         hasPermission('wh_students') ? ['href'=>'/portal/wing-head/students.php', 'icon'=>'<i class="fas fa-user-graduate"></i>', 'label'=>'Students', 'key'=>'students'] : null,
         hasPermission('wh_classes')  ? ['href'=>'/portal/wing-head/classes.php',  'icon'=>'<i class="fas fa-chalkboard"></i>',    'label'=>'Classes',  'key'=>'classes']  : null,
+        ['href'=>'/portal/progress-report/form.php', 'icon'=>'<i class="fas fa-file-alt"></i>', 'label'=>'Progress Report', 'key'=>'progress-report'],
     ]));
 }
 
