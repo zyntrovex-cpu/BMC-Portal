@@ -227,6 +227,14 @@ function getRolePermissions(string $role): array {
             'diary'       => ['label' => 'Daily Diary',         'icon' => 'fa-book-open'],
             'complaints'  => ['label' => 'View Complaints',     'icon' => 'fa-comment-alt'],
         ],
+        'montessori_teacher' => [
+            'attendance'  => ['label' => 'Mark Attendance',     'icon' => 'fa-calendar-check'],
+            'timetable'   => ['label' => 'View Timetable',      'icon' => 'fa-table'],
+            'notices'     => ['label' => 'Post Notices',        'icon' => 'fa-bell'],
+            'warnings'    => ['label' => 'Issue Warnings',      'icon' => 'fa-exclamation-triangle'],
+            'diary'       => ['label' => 'Daily Diary',         'icon' => 'fa-book-open'],
+            'complaints'  => ['label' => 'View Complaints',     'icon' => 'fa-comment-alt'],
+        ],
         'finance' => [
             'fee_collection' => ['label' => 'Fee Collection',  'icon' => 'fa-hand-holding-usd'],
             'fee_monthly'    => ['label' => 'Monthly Report',  'icon' => 'fa-calendar-alt'],

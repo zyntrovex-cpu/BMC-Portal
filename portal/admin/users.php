@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email  = trim($_POST['email']   ?? '');
         $role   = $_POST['role'] ?? '';
 
-        if ($name && $userId && in_array($role, ['student','teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head'])) {
+        if ($name && $userId && in_array($role, ['student','teacher','montessori_teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head'])) {
             $check = $db->prepare('SELECT id FROM users WHERE user_id = ?');
             $check->execute([$userId]);
             if ($check->fetch()) {
@@ -39,6 +39,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $joinDate = $_POST['join_date'] ?? date('Y-m-d');
                     $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification, phone, join_date) VALUES (?,?,?,?,?,?)')
                        ->execute([$newId, $userId, $_POST['subject_id'] ?: null, trim($_POST['qualification'] ?? ''), $phone ?: null, $joinDate]);
+                } elseif ($role === 'montessori_teacher') {
+                    $phone    = trim($_POST['phone'] ?? '');
+                    $joinDate = $_POST['join_date'] ?? date('Y-m-d');
+                    try {
+                        $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification, phone, join_date, wing) VALUES (?,?,?,?,?,?,?)')
+                           ->execute([$newId, $userId, $_POST['subject_id'] ?: null, trim($_POST['qualification'] ?? ''), $phone ?: null, $joinDate, 'montessori']);
+                    } catch (Exception $e) {
+                        $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification, phone, join_date) VALUES (?,?,?,?,?,?)')
+                           ->execute([$newId, $userId, $_POST['subject_id'] ?: null, trim($_POST['qualification'] ?? ''), $phone ?: null, $joinDate]);
+                    }
                 }
 
                 // Generate set-password link and send welcome email
@@ -241,7 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $allowedRoles = ['student','teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head'];
+    $allowedRoles = ['student','teacher','montessori_teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head'];
     $backRole = in_array($_POST['role_filter'] ?? '', $allowedRoles) ? $_POST['role_filter'] : '';
     redirect('/portal/admin/users.php' . ($backRole ? '?role=' . $backRole : ''));
 }
@@ -270,11 +280,13 @@ if (!$hasWingCol) {
 if ($hasWingCol) {
     $teacherWingExpr = $hasTeacherWingCol ? "COALESCE(t.wing,'main')" : "'main'";
     $wingExpr = "CASE WHEN u.role='student' THEN COALESCE(c.wing,'main')
+                      WHEN u.role='montessori_teacher' THEN 'montessori'
                       WHEN u.role='teacher' THEN $teacherWingExpr
                       ELSE 'main' END";
 } elseif ($hasIlcCol) {
     $ilcPart  = "WHEN COALESCE(c.is_ilc,0)=1 THEN 'ilc'" . ($hasMonCol ? " WHEN COALESCE(c.is_montessori,0)=1 THEN 'montessori'" : '');
     $wingExpr = "CASE WHEN u.role='student' THEN (CASE $ilcPart ELSE 'main' END)
+                      WHEN u.role='montessori_teacher' THEN 'montessori'
                       WHEN u.role='teacher' THEN (CASE WHEN COALESCE(t.is_ilc,0)=1 THEN 'ilc' ELSE 'main' END)
                       ELSE 'main' END";
 } else {
@@ -298,7 +310,7 @@ $countSt = $db->prepare(
     "SELECT COUNT(*) FROM users u
      LEFT JOIN students s ON s.user_id = u.id AND u.role = 'student'
      LEFT JOIN classes c  ON c.id = s.class_id
-     LEFT JOIN teachers t ON t.user_id = u.id AND u.role = 'teacher'
+     LEFT JOIN teachers t ON t.user_id = u.id AND u.role IN ('teacher','montessori_teacher')
      $whereSQL"
 );
 $countSt->execute($params);
@@ -312,7 +324,7 @@ $usersSt = $db->prepare(
      FROM users u
      LEFT JOIN students s ON s.user_id = u.id AND u.role = 'student'
      LEFT JOIN classes c  ON c.id = s.class_id
-     LEFT JOIN teachers t ON t.user_id = u.id AND u.role = 'teacher'
+     LEFT JOIN teachers t ON t.user_id = u.id AND u.role IN ('teacher','montessori_teacher')
      $whereSQL ORDER BY u.role, u.name LIMIT $perPage OFFSET $offset"
 );
 $usersSt->execute($params);
@@ -420,7 +432,8 @@ $links = getAdminLinks();
             <select name="role" id="roleSelect" class="form-select form-select-sm" required onchange="toggleRoleFields(this.value)">
               <option value="">Select</option>
               <option value="student">Student</option>
-              <option value="teacher">Teacher</option>
+              <option value="teacher">Teacher (Main Wing)</option>
+              <option value="montessori_teacher">Mont Teacher (Montessori Wing)</option>
               <option value="admin">Admin</option>
               <option value="finance">Finance</option>
               <option value="ilc_vp">ILC VP</option>
@@ -471,7 +484,7 @@ $links = getAdminLinks();
     <span><i class="fas fa-users me-2"></i>All Users (<?= $total ?>)</span>
     <div class="d-flex flex-wrap gap-1">
       <span class="text-muted" style="font-size:.72rem;padding:2px 4px;align-self:center">Role:</span>
-      <?php foreach ([''=>'All','student'=>'Student','teacher'=>'Teacher','admin'=>'Admin','finance'=>'Finance','ilc_vp'=>'ILC VP','student_affairs'=>'Stu. Affairs','vp_main'=>'VP Main','wing_head'=>'Wing Head'] as $r => $lbl): ?>
+      <?php foreach ([''=>'All','student'=>'Student','teacher'=>'Teacher','montessori_teacher'=>'Mont Teacher','admin'=>'Admin','finance'=>'Finance','ilc_vp'=>'ILC VP','student_affairs'=>'Stu. Affairs','vp_main'=>'VP Main','wing_head'=>'Wing Head'] as $r => $lbl): ?>
         <a href="?role=<?= $r ?>&wing=<?= urlencode($wingFilter) ?>" class="btn btn-xs <?= $roleFilter===$r?'btn-primary':'btn-outline-secondary' ?>" style="font-size:.72rem;padding:2px 7px"><?= $lbl ?></a>
       <?php endforeach; ?>
       <span class="text-muted ms-2" style="font-size:.72rem;padding:2px 4px;align-self:center">Wing:</span>
@@ -486,15 +499,16 @@ $links = getAdminLinks();
       <tbody>
         <?php foreach ($users as $u):
           $roleBadge = match($u['role']) {
-              'student'         => 'primary',
-              'teacher'         => 'success',
-              'admin'           => 'purple',
-              'finance'         => 'warning',
-              'ilc_vp'          => 'info',
-              'student_affairs' => 'danger',
-              'vp_main'         => 'dark',
-              'wing_head'       => 'warning',
-              default           => 'secondary'
+              'student'            => 'primary',
+              'teacher'            => 'success',
+              'montessori_teacher' => 'purple',
+              'admin'              => 'purple',
+              'finance'            => 'warning',
+              'ilc_vp'             => 'info',
+              'student_affairs'    => 'danger',
+              'vp_main'            => 'dark',
+              'wing_head'          => 'warning',
+              default              => 'secondary'
           };
           // Photo thumbnail
           $thumbUrl   = ($u['photo_status'] ?? '') === 'approved' && !empty($u['profile_photo'])
@@ -522,11 +536,21 @@ $links = getAdminLinks();
           </td>
           <td class="fw-semibold"><?= h($u['user_id']) ?></td>
           <td><?= h($u['name']) ?></td>
-          <td><span class="badge bg-<?= $roleBadge === 'purple' ? 'secondary' : $roleBadge ?>" style="<?= $roleBadge==='purple'?'background:#7c3aed!important':'' ?>"><?= $u['role'] ?></span></td>
+          <?php
+            $roleDisplay = match($u['role']) {
+                'montessori_teacher' => 'Mont Teacher',
+                'student_affairs'    => 'Stu. Affairs',
+                'ilc_vp'             => 'ILC VP',
+                'vp_main'            => 'VP Main',
+                'wing_head'          => 'Wing Head',
+                default              => ucfirst($u['role']),
+            };
+          ?>
+          <td><span class="badge bg-<?= $roleBadge === 'purple' ? 'secondary' : $roleBadge ?>" style="<?= $roleBadge==='purple'?'background:#7c3aed!important':'' ?>"><?= $roleDisplay ?></span></td>
           <td><?php
             $wingColors = ['ilc'=>['bg'=>'#ecfeff','color'=>'#0e7490'],'montessori'=>['bg'=>'#f0fdf4','color'=>'#166534'],'main'=>['bg'=>'#f8fafc','color'=>'#475569']];
             $wc = $wingColors[$u['user_wing'] ?? 'main'] ?? $wingColors['main'];
-            if (in_array($u['role'], ['student','teacher'])):
+            if (in_array($u['role'], ['student','teacher','montessori_teacher'])):
           ?><span class="badge" style="background:<?= $wc['bg'] ?>;color:<?= $wc['color'] ?>;border:1px solid <?= $wc['bg'] ?>"><?= h($u['user_wing'] ?? 'main') ?></span><?php
             else: ?><span class="text-muted" style="font-size:.78rem">—</span><?php endif; ?></td>
           <td><?= !empty($u['class_name']) ? '<span class="badge bg-secondary">'.h($u['class_name']).'</span>' : '<span class="text-muted" style="font-size:.78rem">—</span>' ?></td>
@@ -688,11 +712,12 @@ $links = getAdminLinks();
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 function toggleRoleFields(role) {
+    const isTeacher = role === 'teacher' || role === 'montessori_teacher';
     document.getElementById('studentFields').classList.toggle('d-none', role !== 'student');
-    document.getElementById('teacherFields').classList.toggle('d-none', role !== 'teacher');
-    document.getElementById('qualFields').classList.toggle('d-none', role !== 'teacher');
-    document.getElementById('teacherPhoneField').classList.toggle('d-none', role !== 'teacher');
-    document.getElementById('teacherJoinDateField').classList.toggle('d-none', role !== 'teacher');
+    document.getElementById('teacherFields').classList.toggle('d-none', !isTeacher);
+    document.getElementById('qualFields').classList.toggle('d-none', !isTeacher);
+    document.getElementById('teacherPhoneField').classList.toggle('d-none', !isTeacher);
+    document.getElementById('teacherJoinDateField').classList.toggle('d-none', !isTeacher);
 }
 </script>
 </body></html>
