@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher');
+$user    = requireAuth('teacher', 'montessori_teacher');
 requirePermission('complaints');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
@@ -118,11 +118,11 @@ if (isset($_GET['print']) && $tableExists) {
     endif;
 }
 
-pageHead('Student Complaints', 'teacher');
-$links = getTeacherLinks();
+pageHead('Student Complaints', $user['role']);
+$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
 ?>
 <div class="portal-wrap">
-<?php sidebar('teacher', 'complaints', $links, $user); ?>
+<?php sidebar($user['role'], 'complaints', $links, $user); ?>
 <div class="main-area">
 <?php topbar('Student Complaints', $user); ?>
 <div class="page-content">

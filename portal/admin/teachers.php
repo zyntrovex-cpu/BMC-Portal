@@ -34,8 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $phone    = trim($_POST['phone'] ?? '');
                 $joinDate = $_POST['join_date'] ?? date('Y-m-d');
                 $hash = password_hash($password, PASSWORD_BCRYPT);
+                $roleVal = ($wing === 'montessori') ? 'montessori_teacher' : 'teacher';
                 $db->prepare('INSERT INTO users (user_id, name, email, password, role, status) VALUES (?,?,?,?,?,?)')
-                   ->execute([$empId, $name, $email ?: null, $hash, 'teacher', 'active']);
+                   ->execute([$empId, $name, $email ?: null, $hash, $roleVal, 'active']);
                 $newId = (int)$db->lastInsertId();
                 if ($hasTeacherWing) {
                     $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification, phone, join_date, wing) VALUES (?,?,?,?,?,?,?)')
@@ -65,6 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare('UPDATE teachers SET phone=?, qualification=?, subject_id=? WHERE id=?')
                ->execute([$phone, $qual, $subjectId ?: null, $id]);
         }
+        // Sync users.role with wing assignment
+        $newRole = ($wing === 'montessori') ? 'montessori_teacher' : 'teacher';
+        $db->prepare('UPDATE users u JOIN teachers t ON t.user_id=u.id SET u.role=? WHERE t.id=?')
+           ->execute([$newRole, $id]);
         logActivity($user['id'], 'teacher_edit', "Updated teacher #$id wing → $wing");
         setFlash('success', 'Teacher updated.');
     }

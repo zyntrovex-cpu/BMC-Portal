@@ -3,7 +3,7 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user = requireAuth('teacher', 'vp_main', 'wing_head', 'admin', 'student_affairs', 'student');
+$user = requireAuth('montessori_teacher', 'teacher', 'vp_main', 'wing_head', 'admin', 'student_affairs', 'student');
 $db   = getDB();
 
 $id = (int)($_GET['id'] ?? 0);

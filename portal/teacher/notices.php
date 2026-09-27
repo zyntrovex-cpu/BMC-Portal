@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher');
+$user    = requireAuth('teacher', 'montessori_teacher');
 requirePermission('notices');
 $db      = getDB();
 
@@ -65,11 +65,11 @@ if ($q)   $notices = array_filter($notices, fn($n) => stripos($n['title'],$q)!==
 
 $categories = ['General','Academic','Exam','Holiday','Finance','Emergency'];
 
-pageHead('Notices', 'teacher');
-$links = getTeacherLinks();
+pageHead('Notices', $user['role']);
+$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
 ?>
 <div class="portal-wrap">
-<?php sidebar('teacher', 'notices', $links, $user); ?>
+<?php sidebar($user['role'], 'notices', $links, $user); ?>
 <div class="main-area">
 <?php topbar('Notices', $user); ?>
 <div class="page-content">

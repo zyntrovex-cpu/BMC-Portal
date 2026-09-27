@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher');
+$user    = requireAuth('teacher', 'montessori_teacher');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
 if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
@@ -52,11 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('/portal/teacher/profile.php');
 }
 
-pageHead('My Profile', 'teacher');
-$links = getTeacherLinks();
+pageHead('My Profile', $user['role']);
+$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
 ?>
 <div class="portal-wrap">
-<?php sidebar('teacher', 'profile', $links, $user); ?>
+<?php sidebar($user['role'], 'profile', $links, $user); ?>
 <div class="main-area">
 <?php topbar('My Profile', $user); ?>
 <div class="page-content">

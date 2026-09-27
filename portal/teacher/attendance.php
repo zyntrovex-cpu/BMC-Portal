@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher');
+$user    = requireAuth('teacher', 'montessori_teacher');
 requirePermission('attendance');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
@@ -161,11 +161,11 @@ if ($tab === 'history') {
     } catch (Exception $e) {}
 }
 
-pageHead('Attendance', 'teacher');
-$links = getTeacherLinks();
+pageHead('Attendance', $user['role']);
+$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
 ?>
 <div class="portal-wrap">
-<?php sidebar('teacher', 'attendance', $links, $user); ?>
+<?php sidebar($user['role'], 'attendance', $links, $user); ?>
 <div class="main-area">
 <?php topbar('Attendance', $user); ?>
 <div class="page-content">

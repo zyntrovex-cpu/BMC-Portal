@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher');
+$user    = requireAuth('teacher', 'montessori_teacher');
 $teacher = getTeacherByUserId($user['id']);
 
 if (!$teacher) {
@@ -115,12 +115,12 @@ try {
 $notices = array_slice(getNoticesForPortal('teacher'), 0, 3);
 
 // ── Sidebar setup ────────────────────────────────────────────────
-$links = getTeacherLinks();
+$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
 
-pageHead('Dashboard', 'teacher');
+pageHead('Dashboard', $user['role']);
 ?>
 <div class="portal-wrap">
-<?php sidebar('teacher', 'dashboard', $links, $user); ?>
+<?php sidebar($user['role'], 'dashboard', $links, $user); ?>
 <div class="main-area">
 <?php topbar('Dashboard', $user); ?>
 <div class="page-content">

@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher');
+$user    = requireAuth('teacher', 'montessori_teacher');
 requirePermission('timetable');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
@@ -29,11 +29,11 @@ foreach ($rows as $r) { $grid[$r['day']][$r['period']] = $r; }
 $days    = ['monday','tuesday','wednesday','thursday','friday'];
 $periods = range(1, 8);
 
-pageHead('Timetable', 'teacher');
-$links = getTeacherLinks();
+pageHead('Timetable', $user['role']);
+$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
 ?>
 <div class="portal-wrap">
-<?php sidebar('teacher', 'timetable', $links, $user); ?>
+<?php sidebar($user['role'], 'timetable', $links, $user); ?>
 <div class="main-area">
 <?php topbar('My Timetable', $user); ?>
 <div class="page-content">

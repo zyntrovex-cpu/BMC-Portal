@@ -4,12 +4,12 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user = requireAuth('teacher', 'vp_main', 'wing_head');
+$user = requireAuth('montessori_teacher', 'vp_main', 'wing_head');
 $db   = getDB();
 $role = $user['role'];
 
 $teacher = null;
-if ($role === 'teacher') {
+if ($role === 'montessori_teacher') {
     $teacher = getTeacherByUserId($user['id']);
     if (!$teacher) { setFlash('danger', 'Teacher record not found.'); redirect('/portal/index.php'); }
 }
@@ -68,12 +68,12 @@ function prCountFilled(array $rfd): array {
 // Student list
 $students = [];
 try {
-    if ($role === 'teacher') {
+    if ($role === 'montessori_teacher') {
         $st = $db->prepare(
             'SELECT DISTINCT st.id, u.name AS student_name, st.roll_no, c.name AS class_name
              FROM class_subjects cs JOIN classes c ON cs.class_id=c.id
              JOIN students st ON st.class_id=cs.class_id JOIN users u ON st.user_id=u.id
-             WHERE cs.teacher_id=? AND c.is_ilc=0 ORDER BY c.name, st.roll_no'
+             WHERE cs.teacher_id=? AND c.is_montessori=1 ORDER BY c.name, st.roll_no'
         );
         $st->execute([$teacher['id']]);
     } else {
@@ -160,10 +160,10 @@ $fdBasic = $fd['basic'] ?? ['term'=>'Final Term','session'=>'','attendance'=>'',
 $fdRem   = $fd['remarks'] ?? '';
 
 $links = match($role) {
-    'teacher'  => getTeacherLinks(),
-    'vp_main'  => getVpLinks(),
-    'wing_head'=> getWingHeadLinks(),
-    default    => getTeacherLinks(),
+    'montessori_teacher' => getMonteTeacherLinks(),
+    'vp_main'            => getVpLinks(),
+    'wing_head'          => getWingHeadLinks(),
+    default              => getMonteTeacherLinks(),
 };
 
 pageHead('Progress Report', $role);

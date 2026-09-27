@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user = requireAuth('teacher');
+$user = requireAuth('teacher', 'montessori_teacher');
 $db   = getDB();
 
 $tableExists = false;
@@ -19,11 +19,11 @@ if ($tableExists) {
     )->fetchAll();
 }
 
-pageHead('Academic Calendar', 'teacher');
-$links = getTeacherLinks();
+pageHead('Academic Calendar', $user['role']);
+$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
 ?>
 <div class="portal-wrap">
-<?php sidebar('teacher', 'calendar', $links, $user); ?>
+<?php sidebar($user['role'], 'calendar', $links, $user); ?>
 <div class="main-area">
 <?php topbar('Academic Calendar', $user); ?>
 <div class="page-content">

@@ -21,14 +21,15 @@ function pageHead(string $title, string $portal = ''): void {
     }
 
     $accents = [
-        'student'         => '#1d4ed8',
-        'teacher'         => '#059669',
-        'admin'           => '#7c3aed',
-        'finance'         => '#d97706',
-        'ilc_vp'          => '#0891b2',
-        'student_affairs' => '#be185d',
-        'vp_main'         => '#0369a1',
-        'wing_head'       => '#c2410c',
+        'student'             => '#1d4ed8',
+        'teacher'             => '#059669',
+        'admin'               => '#7c3aed',
+        'finance'             => '#d97706',
+        'ilc_vp'              => '#0891b2',
+        'student_affairs'     => '#be185d',
+        'vp_main'             => '#0369a1',
+        'wing_head'           => '#c2410c',
+        'montessori_teacher'  => '#7c3aed',
     ];
     $accent = $accents[$portal] ?? '#1c3054';
     $base = defined('BASE_URL') ? BASE_URL : '';
@@ -77,39 +78,42 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
     $base = defined('BASE_URL') ? BASE_URL : '';
 
     $portalLabels = [
-        'student'         => 'Student Portal',
-        'teacher'         => 'Teacher Portal',
-        'admin'           => 'Admin Panel',
-        'finance'         => 'Finance Portal',
-        'ilc_vp'          => 'ILC VP Portal',
-        'student_affairs' => 'Student Affairs',
-        'vp_main'         => 'VP — Main & Montessori',
-        'wing_head'       => 'Montessori Wing Head',
+        'student'            => 'Student Portal',
+        'teacher'            => 'Teacher Portal',
+        'admin'              => 'Admin Panel',
+        'finance'            => 'Finance Portal',
+        'ilc_vp'             => 'ILC VP Portal',
+        'student_affairs'    => 'Student Affairs',
+        'vp_main'            => 'VP — Main & Montessori',
+        'wing_head'          => 'Montessori Wing Head',
+        'montessori_teacher' => 'Montessori Teacher Portal',
     ];
     $portalLabel  = $portalLabels[$portal] ?? 'Portal';
 
     $profileMap = [
-        'student'         => ['href'=>$base.'/portal/student/profile.php',          'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
-        'teacher'         => ['href'=>$base.'/portal/teacher/profile.php',          'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
-        'admin'           => ['href'=>$base.'/portal/admin/profile.php',            'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
-        'finance'         => ['href'=>$base.'/portal/finance/profile.php',          'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
-        'ilc_vp'          => ['href'=>$base.'/portal/ilc/profile.php',              'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
-        'student_affairs' => ['href'=>$base.'/portal/student-affairs/profile.php',  'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
-        'vp_main'         => ['href'=>$base.'/portal/vp/profile.php',               'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
-        'wing_head'       => ['href'=>$base.'/portal/wing-head/profile.php',        'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'student'            => ['href'=>$base.'/portal/student/profile.php',         'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'teacher'            => ['href'=>$base.'/portal/teacher/profile.php',         'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'montessori_teacher' => ['href'=>$base.'/portal/teacher/profile.php',         'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'admin'              => ['href'=>$base.'/portal/admin/profile.php',           'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'finance'            => ['href'=>$base.'/portal/finance/profile.php',         'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'ilc_vp'             => ['href'=>$base.'/portal/ilc/profile.php',             'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'student_affairs'    => ['href'=>$base.'/portal/student-affairs/profile.php', 'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'vp_main'            => ['href'=>$base.'/portal/vp/profile.php',              'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'wing_head'          => ['href'=>$base.'/portal/wing-head/profile.php',       'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
     ];
 
     $userInitials = $user ? _initials($user['name'] ?? '') : '?';
     $userName     = htmlspecialchars($user['name'] ?? '');
     $roleLabels   = [
-        'student'         => 'Student',
-        'teacher'         => 'Teacher',
-        'admin'           => 'Administrator',
-        'finance'         => 'Finance Staff',
-        'ilc_vp'          => 'VP — ILC',
-        'student_affairs' => 'Student Affairs',
-        'vp_main'         => 'VP — Main & Montessori',
-        'wing_head'       => 'Wing Head',
+        'student'            => 'Student',
+        'teacher'            => 'Teacher',
+        'admin'              => 'Administrator',
+        'finance'            => 'Finance Staff',
+        'ilc_vp'             => 'VP — ILC',
+        'student_affairs'    => 'Student Affairs',
+        'vp_main'            => 'VP — Main & Montessori',
+        'wing_head'          => 'Wing Head',
+        'montessori_teacher' => 'Montessori Teacher',
     ];
     $userRole     = $roleLabels[$user['role'] ?? ''] ?? ucfirst($user['role'] ?? '');
 
