@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher');
+$user    = requireAuth('teacher', 'ilc_teacher');
 requirePermission('marks');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
@@ -117,11 +117,11 @@ if (empty($assignedSubjects) && !empty($teacher['subject_id'])) {
     $assignedSubjects = [['id' => $teacher['subject_id'], 'name' => $teacher['subject_name'] ?? '']];
 }
 
-pageHead('Marks', 'teacher');
+pageHead('Marks', $user['role']);
 $links = getTeacherLinks();
 ?>
 <div class="portal-wrap">
-<?php sidebar('teacher', 'marks', $links, $user); ?>
+<?php sidebar($user['role'], 'marks', $links, $user); ?>
 <div class="main-area">
 <?php topbar('Marks & Assessments', $user); ?>
 <div class="page-content">

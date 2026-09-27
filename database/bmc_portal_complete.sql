@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS users (
                           'student','teacher','admin','finance',
                           'ilc_vp','student_affairs',
                           'vp_main','wing_head',
-                          'montessori_teacher'
+                          'montessori_teacher','ilc_teacher'
                         ) NOT NULL,
   status                ENUM('active','inactive','pending') DEFAULT 'active',
   profile_photo         VARCHAR(255)  DEFAULT NULL,

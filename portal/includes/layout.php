@@ -30,6 +30,7 @@ function pageHead(string $title, string $portal = ''): void {
         'vp_main'             => '#0369a1',
         'wing_head'           => '#c2410c',
         'montessori_teacher'  => '#7c3aed',
+        'ilc_teacher'         => '#d97706',
     ];
     $accent = $accents[$portal] ?? '#1c3054';
     $base = defined('BASE_URL') ? BASE_URL : '';
@@ -87,6 +88,7 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
         'vp_main'            => 'VP — Main & Montessori',
         'wing_head'          => 'Montessori Wing Head',
         'montessori_teacher' => 'Montessori Teacher Portal',
+        'ilc_teacher'        => 'ILC Teacher Portal',
     ];
     $portalLabel  = $portalLabels[$portal] ?? 'Portal';
 
@@ -94,6 +96,7 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
         'student'            => ['href'=>$base.'/portal/student/profile.php',         'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
         'teacher'            => ['href'=>$base.'/portal/teacher/profile.php',         'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
         'montessori_teacher' => ['href'=>$base.'/portal/teacher/profile.php',         'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'ilc_teacher'        => ['href'=>$base.'/portal/teacher/profile.php',         'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
         'admin'              => ['href'=>$base.'/portal/admin/profile.php',           'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
         'finance'            => ['href'=>$base.'/portal/finance/profile.php',         'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
         'ilc_vp'             => ['href'=>$base.'/portal/ilc/profile.php',             'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
@@ -114,6 +117,7 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
         'vp_main'            => 'VP — Main & Montessori',
         'wing_head'          => 'Wing Head',
         'montessori_teacher' => 'Montessori Teacher',
+        'ilc_teacher'        => 'ILC Teacher',
     ];
     $userRole     = $roleLabels[$user['role'] ?? ''] ?? ucfirst($user['role'] ?? '');
 
