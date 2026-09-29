@@ -490,6 +490,7 @@ function getStudentAffairsLinks(): array {
         ['href'=>'/portal/student-affairs/attendance.php',      'icon'=>'<i class="fas fa-calendar-check"></i>',   'label'=>'Attendance (View)',   'key'=>'attendance'],
         ['href'=>'/portal/student-affairs/notices.php',         'icon'=>'<i class="fas fa-bell"></i>',             'label'=>'Notices',             'key'=>'notices'],
         ['href'=>'/portal/student-affairs/exam-datesheet.php',  'icon'=>'<i class="fas fa-calendar-day"></i>',    'label'=>'Exam Date Sheets',    'key'=>'exam-datesheet'],
+        ['href'=>'/portal/student-affairs/alumni.php',          'icon'=>'<i class="fas fa-graduation-cap"></i>',  'label'=>'Graduated / Alumni',  'key'=>'alumni'],
         hasPermission('sa_calendar')   ? ['href'=>'/portal/admin/academic-calendar.php',         'icon'=>'<i class="fas fa-calendar-week"></i>',   'label'=>'Academic Calendar',  'key'=>'calendar']   : null,
     ]));
 }
