@@ -38,6 +38,17 @@ $logSt = $db->prepare(
 $logSt->execute($params);
 $logs = $logSt->fetchAll();
 
+// Staff profile changes (recent 15)
+$profileChangesSt = $db->query(
+    "SELECT al.created_at, al.details, u.name, u.user_id AS uid, u.role
+     FROM activity_log al
+     JOIN users u ON al.user_id = u.id
+     WHERE al.action = 'profile_update' AND u.role != 'student'
+     ORDER BY al.created_at DESC
+     LIMIT 15"
+);
+$profileChanges = $profileChangesSt->fetchAll();
+
 // Teacher summary
 $teacherSummarySt = $db->query(
     'SELECT u.name, u.user_id AS uid,
@@ -63,6 +74,51 @@ $links = getAdminLinks();
 <?php topbar('Activity Log', $user); ?>
 <div class="page-content">
 <?= flashHtml() ?>
+
+<!-- Staff Profile Changes -->
+<?php if (!empty($profileChanges)): ?>
+<div class="sec-card mb-3">
+  <div class="sec-card-header d-flex justify-content-between align-items-center">
+    <span><i class="fas fa-user-edit me-2 text-primary"></i>Recent Staff Profile Changes</span>
+    <a href="?action=profile_update" class="btn btn-xs btn-outline-primary" style="font-size:.76rem;padding:2px 8px">View All</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover mb-0" style="font-size:.83rem">
+      <thead class="table-light"><tr><th>Date / Time</th><th>Staff Member</th><th>Role</th><th>Changes Made</th></tr></thead>
+      <tbody>
+        <?php foreach ($profileChanges as $pc):
+          $roleBadge = match($pc['role'] ?? '') {
+              'teacher','montessori_teacher','ilc_teacher' => 'success',
+              'finance'           => 'warning',
+              'admin'             => 'danger',
+              'vp_main'           => 'info',
+              'ilc_vp'            => 'primary',
+              'wing_head'         => 'secondary',
+              'student_affairs'   => 'dark',
+              default             => 'secondary',
+          };
+          $roleLabel = match($pc['role'] ?? '') {
+              'montessori_teacher' => 'Mont Teacher',
+              'ilc_teacher'        => 'ILC Teacher',
+              'student_affairs'    => 'Stu. Affairs',
+              'vp_main'            => 'VP Main',
+              'ilc_vp'             => 'ILC VP',
+              'wing_head'          => 'Wing Head',
+              default              => ucfirst($pc['role'] ?? ''),
+          };
+        ?>
+        <tr>
+          <td style="white-space:nowrap;font-size:.78rem"><?= date('d M y H:i', strtotime($pc['created_at'])) ?></td>
+          <td><strong><?= h($pc['name']) ?></strong><div style="font-size:.76rem;color:#9ca3af"><?= h($pc['uid']) ?></div></td>
+          <td><span class="badge bg-<?= $roleBadge ?>"><?= $roleLabel ?></span></td>
+          <td style="font-size:.79rem;max-width:320px"><?= h($pc['details']) ?></td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+</div>
+<?php endif; ?>
 
 <!-- Teacher summary -->
 <?php if (!empty($teacherSummary)): ?>

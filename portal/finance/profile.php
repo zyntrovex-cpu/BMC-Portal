@@ -7,25 +7,54 @@ require_once __DIR__ . '/../../config/config.php';
 $user = requireAuth('finance');
 $db   = getDB();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'change_password') {
-    $current = trim($_POST['current_password'] ?? '');
-    $new     = trim($_POST['new_password']     ?? '');
-    $confirm = trim($_POST['confirm_password'] ?? '');
-    if ($new !== $confirm) {
-        setFlash('danger', 'Passwords do not match.');
-    } elseif (strlen($new) < 6) {
-        setFlash('danger', 'Password must be at least 6 characters.');
-    } else {
-        $uSt = $db->prepare('SELECT password FROM users WHERE id = ?');
-        $uSt->execute([$user['id']]);
-        $u = $uSt->fetch();
-        if ($u && password_verify($current, $u['password'])) {
-            $db->prepare('UPDATE users SET password = ? WHERE id = ?')
-               ->execute([password_hash($new, PASSWORD_BCRYPT), $user['id']]);
-            logActivity($user['id'], 'password_change', 'Changed password');
-            setFlash('success', 'Password changed successfully.');
+// Fetch current DB values (phone not in session)
+$uRow = $db->prepare('SELECT email, phone FROM users WHERE id = ?');
+$uRow->execute([$user['id']]);
+$uRow = $uRow->fetch();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    if ($action === 'update_profile') {
+        $email = trim($_POST['email'] ?? '');
+        $phone = trim($_POST['phone'] ?? '');
+        try {
+            $changed = [];
+            if ($email !== ($uRow['email'] ?? '')) $changed[] = "Email: '" . ($uRow['email'] ?? '') . "' → '{$email}'";
+            if ($phone !== ($uRow['phone'] ?? '')) $changed[] = "Phone: '" . ($uRow['phone'] ?? '') . "' → '{$phone}'";
+            $db->prepare('UPDATE users SET email = ?, phone = ? WHERE id = ?')
+               ->execute([$email, $phone, $user['id']]);
+            $_SESSION['user']['email'] = $email;
+            $uRow['email'] = $email;
+            $uRow['phone'] = $phone;
+            $details = $changed
+                ? 'Updated: ' . implode('; ', $changed)
+                : 'Submitted profile update (no fields changed)';
+            logActivity($user['id'], 'profile_update', $details);
+            setFlash('success', 'Profile updated successfully.');
+        } catch (Exception $e) {
+            setFlash('danger', 'Profile update failed. Contact admin if this persists.');
+        }
+    } elseif ($action === 'change_password') {
+        $current = trim($_POST['current_password'] ?? '');
+        $new     = trim($_POST['new_password']     ?? '');
+        $confirm = trim($_POST['confirm_password'] ?? '');
+        if ($new !== $confirm) {
+            setFlash('danger', 'Passwords do not match.');
+        } elseif (strlen($new) < 6) {
+            setFlash('danger', 'Password must be at least 6 characters.');
         } else {
-            setFlash('danger', 'Current password is incorrect.');
+            $pSt = $db->prepare('SELECT password FROM users WHERE id = ?');
+            $pSt->execute([$user['id']]);
+            $p = $pSt->fetch();
+            if ($p && password_verify($current, $p['password'])) {
+                $db->prepare('UPDATE users SET password = ? WHERE id = ?')
+                   ->execute([password_hash($new, PASSWORD_BCRYPT), $user['id']]);
+                logActivity($user['id'], 'password_change', 'Changed password');
+                setFlash('success', 'Password changed successfully.');
+            } else {
+                setFlash('danger', 'Current password is incorrect.');
+            }
         }
     }
     redirect('/portal/finance/profile.php');
@@ -50,7 +79,8 @@ $links = getFinanceLinks();
         <table class="table table-sm mb-0" style="font-size:.86rem">
           <tr><th style="color:#6b7280;width:45%">Name</th><td><?= h($user['name']) ?></td></tr>
           <tr><th style="color:#6b7280">User ID</th><td><?= h($user['user_id']) ?></td></tr>
-          <tr><th style="color:#6b7280">Email</th><td><?= h($user['email'] ?: '—') ?></td></tr>
+          <tr><th style="color:#6b7280">Email</th><td><?= h($uRow['email'] ?: '—') ?></td></tr>
+          <tr><th style="color:#6b7280">Phone</th><td><?= h($uRow['phone'] ?: '—') ?></td></tr>
           <tr><th style="color:#6b7280">Role</th><td>Finance Staff</td></tr>
         </table>
       </div>
@@ -59,6 +89,24 @@ $links = getFinanceLinks();
 
   <div class="col-md-8">
     <div class="sec-card">
+      <div class="sec-card-header"><i class="fas fa-edit me-2"></i>Edit Profile</div>
+      <div style="padding:20px">
+        <form method="POST">
+          <input type="hidden" name="action" value="update_profile">
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.85rem">Email</label>
+            <input type="email" name="email" class="form-control" value="<?= h($uRow['email'] ?? '') ?>">
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold" style="font-size:.85rem">Phone</label>
+            <input type="tel" name="phone" class="form-control" value="<?= h($uRow['phone'] ?? '') ?>" placeholder="e.g. 0300-1234567">
+          </div>
+          <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i>Save Changes</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="sec-card mt-3">
       <div class="sec-card-header"><i class="fas fa-lock me-2"></i>Change Password</div>
       <div style="padding:20px">
         <form method="POST">

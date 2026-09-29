@@ -38,12 +38,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim($_POST['email'] ?? '');
         $qual  = trim($_POST['qualification'] ?? '');
         try {
+            $changed = [];
+            if ($phone !== ($teacher['phone'] ?? ''))         $changed[] = "Phone: '" . ($teacher['phone'] ?? '') . "' → '{$phone}'";
+            if ($email && $email !== ($teacher['email'] ?? '')) $changed[] = "Email: '" . ($teacher['email'] ?? '') . "' → '{$email}'";
+            if ($qual  !== ($teacher['qualification'] ?? '')) $changed[] = "Qualification: '" . ($teacher['qualification'] ?? '') . "' → '{$qual}'";
             $db->prepare('UPDATE teachers SET phone = ?, qualification = ? WHERE user_id = ?')
                ->execute([$phone, $qual, $user['id']]);
             if ($email) {
                 $db->prepare('UPDATE users SET email = ? WHERE id = ?')->execute([$email, $user['id']]);
+                $_SESSION['user']['email'] = $email;
             }
-            logActivity($user['id'], 'profile_update', 'Updated profile');
+            $details = $changed
+                ? 'Updated: ' . implode('; ', $changed)
+                : 'Submitted profile update (no fields changed)';
+            logActivity($user['id'], 'profile_update', $details);
             setFlash('success','Profile updated successfully.');
         } catch (Exception $e) {
             setFlash('danger', 'Profile update failed. Contact admin if this persists.');

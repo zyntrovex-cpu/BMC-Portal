@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS users (
                           COMMENT 'Roll No / T001 / ADM001 / FIN001',
   name                  VARCHAR(100) NOT NULL,
   email                 VARCHAR(100),
+  phone                 VARCHAR(20)  DEFAULT NULL,
   password              VARCHAR(255) NOT NULL,
   role                  ENUM(
                           'student','teacher','admin','finance',
