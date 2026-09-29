@@ -169,6 +169,10 @@ CREATE TABLE IF NOT EXISTS students (
   skills              TEXT         DEFAULT NULL,
   sports              TEXT         DEFAULT NULL,
   awards              TEXT         DEFAULT NULL,
+  graduated_at        TIMESTAMP    NULL DEFAULT NULL
+                        COMMENT 'Set when student graduates; NULL = active',
+  graduation_year     VARCHAR(20)  DEFAULT NULL
+                        COMMENT 'Batch/session year e.g. 2025',
   FOREIGN KEY (user_id)  REFERENCES users(id)    ON DELETE CASCADE,
   FOREIGN KEY (class_id) REFERENCES classes(id)  ON DELETE SET NULL,
   FOREIGN KEY (house_id) REFERENCES houses(id)   ON DELETE SET NULL
@@ -812,6 +816,27 @@ CREATE TABLE IF NOT EXISTS exam_date_sheet_entries (
   sort_order      INT           NOT NULL DEFAULT 0,
   FOREIGN KEY (date_sheet_id) REFERENCES exam_date_sheets(id) ON DELETE CASCADE,
   FOREIGN KEY (class_id)      REFERENCES classes(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- ============================================================
+--  TABLE 33 — student_promotion_history
+-- ============================================================
+CREATE TABLE IF NOT EXISTS student_promotion_history (
+  id               INT          PRIMARY KEY AUTO_INCREMENT,
+  student_id       INT          NOT NULL,
+  student_name     VARCHAR(100) NOT NULL,
+  roll_no          VARCHAR(20)  NOT NULL,
+  from_class_id    INT          DEFAULT NULL,
+  from_class_name  VARCHAR(50)  DEFAULT NULL,
+  to_class_id      INT          DEFAULT NULL,
+  to_class_name    VARCHAR(50)  DEFAULT NULL,
+  action           ENUM('promoted','demoted','graduated','ungraduated') NOT NULL,
+  promoted_by      INT          NOT NULL,
+  promoted_by_name VARCHAR(100) NOT NULL,
+  notes            VARCHAR(255) DEFAULT NULL,
+  created_at       TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (student_id)  REFERENCES students(id) ON DELETE CASCADE,
+  FOREIGN KEY (promoted_by) REFERENCES users(id)    ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 SET FOREIGN_KEY_CHECKS = 1;
