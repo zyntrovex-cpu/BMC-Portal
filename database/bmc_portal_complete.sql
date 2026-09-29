@@ -780,6 +780,40 @@ CREATE TABLE IF NOT EXISTS site_careers (
   created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+-- ============================================================
+--  TABLE 31 — exam_date_sheets
+-- ============================================================
+CREATE TABLE IF NOT EXISTS exam_date_sheets (
+  id            INT PRIMARY KEY AUTO_INCREMENT,
+  title         VARCHAR(200)  NOT NULL               COMMENT 'e.g. Mid-Term Exams 2025-2026',
+  wing          ENUM('main','montessori','ilc','all') NOT NULL DEFAULT 'all',
+  academic_year VARCHAR(20)   NOT NULL,
+  status        ENUM('draft','published')            NOT NULL DEFAULT 'draft',
+  notes         TEXT          DEFAULT NULL,
+  created_by    INT           NOT NULL,
+  created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ============================================================
+--  TABLE 32 — exam_date_sheet_entries
+-- ============================================================
+CREATE TABLE IF NOT EXISTS exam_date_sheet_entries (
+  id              INT PRIMARY KEY AUTO_INCREMENT,
+  date_sheet_id   INT           NOT NULL,
+  class_id        INT           DEFAULT NULL         COMMENT 'NULL = all classes in this wing',
+  subject         VARCHAR(150)  NOT NULL,
+  exam_date       DATE          NOT NULL,
+  start_time      TIME          NOT NULL,
+  end_time        TIME          NOT NULL,
+  venue           VARCHAR(100)  DEFAULT NULL,
+  notes           VARCHAR(255)  DEFAULT NULL,
+  sort_order      INT           NOT NULL DEFAULT 0,
+  FOREIGN KEY (date_sheet_id) REFERENCES exam_date_sheets(id) ON DELETE CASCADE,
+  FOREIGN KEY (class_id)      REFERENCES classes(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================
