@@ -63,9 +63,11 @@ $links = getStudentLinks();
     <small class="text-muted"><?= h($student['name']) ?> &nbsp;&middot;&nbsp; Class: <?= h($student['class_name']) ?> &nbsp;&middot;&nbsp; Roll: <?= h($student['roll_no']) ?></small>
   </div>
   <div class="d-flex gap-2 flex-wrap">
+    <?php if (($student['wing'] ?? 'main') === 'montessori'): ?>
     <a href="/portal/student/progress-report.php" class="btn btn-outline-primary btn-sm" target="_blank">
       <i class="fas fa-chart-line me-1"></i> Progress Report
     </a>
+    <?php endif; ?>
     <a href="/portal/report-card.php" class="btn btn-primary btn-sm" target="_blank">
       <i class="fas fa-file-alt me-1"></i> Official Report Card
     </a>

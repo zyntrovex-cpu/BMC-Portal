@@ -61,6 +61,15 @@ try {
 $student = $st->fetch();
 if (!$student) { header('Location: /portal/index.php?msg=unauthorized'); exit; }
 
+// ── Class-based routing rules ─────────────────────────────
+$classGrade = (int)($student['class_grade'] ?? 99);
+$classWing  = strtolower($student['class_wing'] ?? 'main');
+// Montessori through Class-1 (grade < 2): no formal exams — Progress Reports only
+$montessoriLowGrade = ($classWing === 'montessori' && $classGrade < 2);
+if ($montessoriLowGrade && $role === 'student') {
+    header('Location: /portal/student/progress-report.php'); exit;
+}
+
 // ── Fetch assessments + marks grouped by subject ──────────
 $st = $db->prepare(
     'SELECT a.id AS assessment_id, a.name AS assessment_name, a.type,
@@ -89,29 +98,30 @@ function getGradeLetter(float $pct, bool $hasMarks): string {
     if (!$hasMarks) return 'N/A';
     if ($pct >= 90) return 'A+';
     if ($pct >= 80) return 'A';
-    if ($pct >= 70) return 'B';
-    if ($pct >= 60) return 'C';
-    if ($pct >= 50) return 'D';
+    if ($pct >= 70) return 'B+';
+    if ($pct >= 60) return 'B';
+    if ($pct >= 50) return 'C';
+    if ($pct >= 40) return 'D';
     return 'F';
 }
 function gradeColor(string $g): string {
     return match($g) {
-        'A+' => '#14532d', 'A' => '#166534', 'B' => '#1e40af',
-        'C'  => '#92400e', 'D' => '#7c2d12', 'F' => '#991b1b',
+        'A+' => '#14532d', 'A'  => '#166534', 'B+' => '#1e40af', 'B' => '#1e3a8a',
+        'C'  => '#92400e', 'D'  => '#7c2d12', 'F'  => '#991b1b',
         default => '#374151',
     };
 }
 function gradeBg(string $g): string {
     return match($g) {
-        'A+' => '#dcfce7', 'A' => '#d1fae5', 'B' => '#dbeafe',
-        'C'  => '#fef3c7', 'D' => '#ffedd5', 'F' => '#fee2e2',
+        'A+' => '#dcfce7', 'A'  => '#d1fae5', 'B+' => '#dbeafe', 'B' => '#bfdbfe',
+        'C'  => '#fef3c7', 'D'  => '#ffedd5', 'F'  => '#fee2e2',
         default => '#f3f4f6',
     };
 }
 function gradeText(string $g): string {
     return match($g) {
-        'A+' => 'Outstanding', 'A' => 'Excellent',  'B' => 'Very Good',
-        'C'  => 'Good',        'D' => 'Satisfactory', 'F' => 'Fail',
+        'A+' => 'Outstanding', 'A'  => 'Excellent',    'B+' => 'Very Good',
+        'B'  => 'Good',        'C'  => 'Satisfactory', 'D'  => 'Pass',  'F' => 'Fail',
         default => '',
     };
 }
@@ -213,6 +223,14 @@ foreach ($subjects as $sid => &$sub) {
     $sub['chips'] = implode('', $chips);
 }
 unset($sub);
+
+$isWordExport = (($_GET['export'] ?? '') === 'word');
+if ($isWordExport) {
+    $wfname = 'ReportCard_' . preg_replace('/[^A-Za-z0-9_]/', '_', $student['name']) . '.doc';
+    header('Content-Type: application/msword');
+    header('Content-Disposition: attachment; filename="' . $wfname . '"');
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -557,12 +575,19 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
 <body>
 
 <!-- Toolbar -->
+<?php if (!$isWordExport): ?>
 <div class="toolbar">
   <a href="<?= $base . $backUrl ?>"><i class="fas fa-arrow-left"></i> Back</a>
   <span class="ttl">Report Card — <?= h($student['name']) ?></span>
   <span class="tb-badge">RESTRICTED</span>
+  <?php
+    $wordParams = $role !== 'student' ? 'student_id='.$studentId.'&export=word' : 'export=word';
+    $wordHref   = url('/portal/report-card.php?' . $wordParams);
+  ?>
+  <a href="<?= $wordHref ?>"><i class="fas fa-file-word"></i> Word</a>
   <button onclick="window.print()"><i class="fas fa-print"></i> Print / Save PDF</button>
 </div>
+<?php endif; ?>
 
 <div class="rc-page">
 <div class="rc-paper">
@@ -678,7 +703,19 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
   </div>
 
   <!-- ── KPI summary row ────────────────────────────────── -->
-  <?php if ($grandMax > 0): ?>
+  <?php if ($montessoriLowGrade): ?>
+  <div style="padding:14px 24px;background:#fef3c7;border-bottom:2px solid #fde68a;font-size:.82rem;color:#78350f;position:relative;z-index:1;display:flex;align-items:flex-start;gap:10px">
+    <i class="fas fa-info-circle" style="margin-top:2px;flex-shrink:0"></i>
+    <span>
+      <strong><?= h($student['name']) ?></strong> is enrolled in <strong><?= h($student['class_name'] ?? 'Montessori') ?></strong>
+      (Montessori / Class&nbsp;1), which uses the <strong>Formative Assessment &amp; Progress Report</strong> system only — no formal examinations are conducted.
+      <br>Their academic progress is tracked through Progress Reports.
+      <?php if (in_array($role, ['admin','vp_main','student_affairs','wing_head'])): ?>
+      &nbsp;<a href="<?= url('/portal/progress-report/form.php') ?>" style="color:#78350f;font-weight:700;text-decoration:underline" target="_blank">View Progress Reports &rarr;</a>
+      <?php endif; ?>
+    </span>
+  </div>
+  <?php elseif ($grandMax > 0): ?>
   <div class="rc-kpi">
     <div class="rc-kpi-cell">
       <div class="rc-kpi-ico"><i class="fas fa-percent" style="color:var(--navy)"></i></div>
@@ -718,6 +755,7 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
   <div class="gold-rule"></div>
 
   <!-- ── Subject-wise performance ──────────────────────── -->
+  <?php if (!$montessoriLowGrade): ?>
   <div class="rc-sec">
     <i class="fas fa-table-list"></i>Subject-Wise Academic Performance
   </div>
@@ -868,16 +906,20 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
   </table>
   <?php endif; ?>
 
+  <?php endif; /* end !$montessoriLowGrade — subject table + attendance shown only for exam-based classes */ ?>
+
   <!-- ── Grade scale ────────────────────────────────────── -->
+  <?php if (!$montessoriLowGrade): ?>
   <div class="rc-gscale">
     <strong>Grade Scale:</strong>
-    <?php foreach (['A+'=>['≥ 90%','Outstanding'],'A'=>['≥ 80%','Excellent'],'B'=>['≥ 70%','Very Good'],'C'=>['≥ 60%','Good'],'D'=>['≥ 50%','Satisfactory'],'F'=>['< 50%','Fail']] as $gr => [$rng,$desc]): ?>
+    <?php foreach (['A+'=>['≥ 90%','Outstanding'],'A'=>['≥ 80%','Excellent'],'B+'=>['≥ 70%','Very Good'],'B'=>['≥ 60%','Good'],'C'=>['≥ 50%','Satisfactory'],'D'=>['≥ 40%','Pass'],'F'=>['< 40%','Fail']] as $gr => [$rng,$desc]): ?>
     <span class="rc-gs-item">
       <span class="rc-gr" style="background:<?= gradeBg($gr) ?>;color:<?= gradeColor($gr) ?>;padding:1px 7px;font-size:.63rem"><?= $gr ?></span>
       <span class="rc-gs-rng"><?= $rng ?> &mdash; <?= $desc ?></span>
     </span>
     <?php endforeach; ?>
   </div>
+  <?php endif; ?>
 
   <!-- ── Remarks ────────────────────────────────────────── -->
   <div class="rc-rem">

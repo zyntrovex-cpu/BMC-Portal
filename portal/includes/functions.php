@@ -329,6 +329,16 @@ function getStudentLinks(): array {
             $chkM->execute([$sess['id']]);
             $isMontessoriStudent = (bool)$chkM->fetchColumn();
         }
+        // Any-grade Montessori check (for Progress Report link — Class-2/3 Montessori still use Progress Reports)
+        $isAnyMontessoriStudent = $isMontessoriStudent;
+        if (!$isIlcStudent && !$isMontessoriStudent && !empty($sess['id'])) {
+            $chkMA = $db->prepare(
+                'SELECT 1 FROM students s JOIN classes c ON c.id = s.class_id
+                 WHERE s.user_id = ? AND c.is_montessori = 1 LIMIT 1'
+            );
+            $chkMA->execute([$sess['id']]);
+            $isAnyMontessoriStudent = (bool)$chkMA->fetchColumn();
+        }
     } catch (Exception $e) {}
 
     return array_values(array_filter([
@@ -345,7 +355,7 @@ function getStudentLinks(): array {
         ['href'=>'/portal/student/complaints.php',         'icon'=>'<i class="fas fa-comment-alt"></i>',     'label'=>'Complaints',         'key'=>'complaints'],
         ['href'=>'/portal/student/calendar.php',           'icon'=>'<i class="fas fa-calendar-week"></i>',   'label'=>'Calendar',           'key'=>'calendar'],
         ['href'=>'/portal/student/fees.php',               'icon'=>'<i class="fas fa-money-bill-wave"></i>',  'label'=>'Fee Status',         'key'=>'fees'],
-        !$isIlcStudent
+        $isAnyMontessoriStudent
             ? ['href'=>'/portal/student/progress-report.php', 'icon'=>'<i class="fas fa-file-alt"></i>', 'label'=>'Progress Report', 'key'=>'progress-report']
             : null,
         $isIlcStudent
