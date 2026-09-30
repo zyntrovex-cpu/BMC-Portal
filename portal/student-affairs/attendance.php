@@ -105,12 +105,21 @@ $links = getStudentAffairsLinks();
 
 <!-- Daily view -->
 <div class="sec-card">
-  <div class="sec-card-header d-flex justify-content-between align-items-center">
+  <div class="sec-card-header d-flex justify-content-between align-items-center flex-wrap gap-1">
     <span><i class="fas fa-calendar-check me-2"></i>Attendance — <?= date('d M Y', strtotime($dateFilter)) ?></span>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 align-items-center flex-wrap">
       <span class="badge bg-success"><?= $summary['P'] ?> Present</span>
       <span class="badge bg-danger"><?= $summary['A'] ?> Absent</span>
       <span class="badge bg-warning text-dark"><?= $summary['L'] ?> Leave</span>
+      <div class="d-flex gap-1 no-print ms-2">
+        <button onclick="window.print()" class="btn btn-xs btn-outline-secondary" title="Print / Save as PDF">
+          <i class="fas fa-print me-1"></i>Print / PDF
+        </button>
+        <a href="<?= url('/portal/student-affairs/attendance-word.php?class_id='.$classId.'&date='.urlencode($dateFilter).'&view=daily') ?>"
+           class="btn btn-xs btn-outline-primary" title="Download Word">
+          <i class="fas fa-file-word me-1"></i>Word
+        </a>
+      </div>
     </div>
   </div>
   <?php if (empty($attendance)): ?>
@@ -147,7 +156,18 @@ $links = getStudentAffairsLinks();
 
 <!-- Summary view -->
 <div class="sec-card">
-  <div class="sec-card-header"><i class="fas fa-chart-pie me-2"></i>Attendance Summary</div>
+  <div class="sec-card-header d-flex justify-content-between align-items-center">
+    <span><i class="fas fa-chart-pie me-2"></i>Attendance Summary</span>
+    <div class="d-flex gap-1 no-print">
+      <button onclick="window.print()" class="btn btn-xs btn-outline-secondary" title="Print / Save as PDF">
+        <i class="fas fa-print me-1"></i>Print / PDF
+      </button>
+      <a href="<?= url('/portal/student-affairs/attendance-word.php?class_id='.$classId.'&view=summary') ?>"
+         class="btn btn-xs btn-outline-primary" title="Download Word">
+        <i class="fas fa-file-word me-1"></i>Word
+      </a>
+    </div>
+  </div>
   <?php if (empty($attendance)): ?>
   <div style="padding:40px;text-align:center;color:var(--t2);font-size:.85rem">
     No attendance data for this class.

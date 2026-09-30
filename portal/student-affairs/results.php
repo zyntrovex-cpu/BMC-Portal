@@ -204,7 +204,18 @@ $links = getStudentAffairsLinks();
 
 <?php if ($classId && $subjectId && !empty($assessments)): ?>
 <div class="sec-card">
-  <div class="sec-card-header"><i class="fas fa-chart-bar me-2"></i>Results</div>
+  <div class="sec-card-header d-flex justify-content-between align-items-center">
+    <span><i class="fas fa-chart-bar me-2"></i>Results</span>
+    <div class="d-flex gap-1 no-print">
+      <button onclick="window.print()" class="btn btn-xs btn-outline-secondary" title="Print / Save as PDF">
+        <i class="fas fa-print me-1"></i>Print / PDF
+      </button>
+      <a href="<?= url('/portal/student-affairs/results-word.php?class_id='.$classId.'&subject_id='.$subjectId) ?>"
+         class="btn btn-xs btn-outline-primary" title="Download Word document">
+        <i class="fas fa-file-word me-1"></i>Word
+      </a>
+    </div>
+  </div>
   <div class="table-responsive">
     <table class="table table-hover mb-0" style="font-size:.82rem">
       <thead class="table-light">

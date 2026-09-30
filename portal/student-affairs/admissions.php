@@ -415,7 +415,11 @@ $links = getStudentAffairsLinks();
         <?php if ($enrollColExists && !empty($r['enrolled_gr_no'])): ?>
         <span class="badge ms-1" style="background:#166534">GR: <?= h($r['enrolled_gr_no']) ?></span>
         <?php endif; ?>
-        <button type="button" class="btn btn-sm btn-secondary ms-auto" data-bs-dismiss="modal">Close</button>
+        <a href="<?= url('/portal/student-affairs/admission-print.php?id=') ?><?= $r['id'] ?>"
+           target="_blank" class="btn btn-sm btn-outline-primary ms-auto me-1">
+          <i class="fas fa-print me-1"></i>Print Form
+        </a>
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>

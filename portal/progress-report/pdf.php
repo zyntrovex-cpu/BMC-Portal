@@ -93,6 +93,13 @@ $subjects= $fd['subjects'] ?? [];
 $logoBase = defined('BASE_URL') ? BASE_URL : '';
 $dobFmt   = !empty($rec['dob'])                  ? date('d-m-y', strtotime($rec['dob']))              : '—';
 $issueFmt = !empty($fdBasic['date_of_issue'])     ? date('d-m-Y', strtotime($fdBasic['date_of_issue'])): '—';
+
+if (($_GET['export'] ?? '') === 'word') {
+    $fname = 'ProgressReport_' . preg_replace('/[^A-Za-z0-9_]/', '_', $rec['student_name']) . '.doc';
+    header('Content-Type: application/msword');
+    header('Content-Disposition: attachment; filename="' . $fname . '"');
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -134,12 +141,15 @@ table.pr-tbl th { font-weight:600; }
 .sig-box  { text-align:center; min-width:100px; }
 .sig-line { border-bottom:1px solid #374151; width:85px; margin:18px auto 3px; }
 .sig-lbl  { font-size:7.5pt; color:#475569; }
-.print-btn { position:fixed; top:14px; right:14px; background:#3730a3; color:#fff; border:none;
-             padding:7px 16px; border-radius:6px; cursor:pointer; font-size:12px; z-index:999; }
+.print-btn, .word-btn { position:fixed; top:14px; padding:7px 16px; border-radius:6px;
+             cursor:pointer; font-size:12px; z-index:999; border:none; font-family:inherit; text-decoration:none; display:inline-block; }
+.print-btn { right:14px; background:#3730a3; color:#fff; }
+.word-btn  { right:160px; background:#1e6b3a; color:#fff; }
 </style>
 </head>
 <body>
 <button class="print-btn no-print" onclick="window.print()">Print / Save PDF</button>
+<a class="word-btn no-print" href="<?= url('/portal/progress-report/pdf.php?id='.$id.'&export=word') ?>">Download Word</a>
 
 <div class="hdr-wrap">
   <div class="hdr-logos">
