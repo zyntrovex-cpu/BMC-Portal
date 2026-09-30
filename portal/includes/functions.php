@@ -483,6 +483,7 @@ function getStudentAffairsLinks(): array {
         ['href'=>'/portal/student-affairs/dashboard.php',       'icon'=>'<i class="fas fa-home"></i>',              'label'=>'Dashboard',          'key'=>'dashboard'],
         hasPermission('sa_students')   ? ['href'=>'/portal/student-affairs/students.php',        'icon'=>'<i class="fas fa-user-graduate"></i>',    'label'=>'Students',           'key'=>'students']   : null,
         hasPermission('sa_students')   ? ['href'=>'/portal/student-affairs/enroll.php',          'icon'=>'<i class="fas fa-chalkboard"></i>',       'label'=>'Class Enrollment',   'key'=>'enroll']     : null,
+        hasPermission('sa_students')   ? ['href'=>'/portal/student-affairs/categories.php',        'icon'=>'<i class="fas fa-tags"></i>',             'label'=>'Student Categories', 'key'=>'categories'] : null,
         ['href'=>'/portal/admin/classes.php',                    'icon'=>'<i class="fas fa-chalkboard-teacher"></i>',  'label'=>'Classes & Teachers', 'key'=>'classes'],
         hasPermission('sa_admissions') ? ['href'=>'/portal/student-affairs/admissions.php',      'icon'=>'<i class="fas fa-file-medical-alt"></i>', 'label'=>'Admission Requests', 'key'=>'admissions'] : null,
         hasPermission('sa_medical')    ? ['href'=>'/portal/student-affairs/medical-records.php', 'icon'=>'<i class="fas fa-notes-medical"></i>',    'label'=>'Medical Records',    'key'=>'medical']    : null,

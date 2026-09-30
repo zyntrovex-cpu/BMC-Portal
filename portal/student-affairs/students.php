@@ -240,19 +240,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // ── Filters & pagination ──────────────────────────────────────────
-$search    = trim($_GET['q']        ?? '');
-$classFilter = (int)($_GET['class_id'] ?? 0);
-$statusFilter = $_GET['status'] ?? '';
-$page      = max(1, (int)($_GET['page'] ?? 1));
-$perPage   = 25;
+$search         = trim($_GET['q']          ?? '');
+$classFilter    = (int)($_GET['class_id']  ?? 0);
+$statusFilter   = $_GET['status']          ?? '';
+$categoryFilter = trim($_GET['category']   ?? '');
+$page           = max(1, (int)($_GET['page'] ?? 1));
+$perPage        = 25;
 
 $where  = ["u.role='student'"];
 if ($hasDeletedAt) $where[] = 's.deleted_at IS NULL';
 $params = [];
 if ($search !== '') {
-    $where[]  = '(u.name LIKE ? OR s.roll_no LIKE ? OR u.email LIKE ?)';
-    $like     = "%$search%";
-    $params[] = $like; $params[] = $like; $params[] = $like;
+    $catSearch = $hasCategory ? ' OR s.category LIKE ?' : '';
+    $where[]   = "(u.name LIKE ? OR s.roll_no LIKE ? OR u.email LIKE ?$catSearch)";
+    $like      = "%$search%";
+    $params[]  = $like; $params[] = $like; $params[] = $like;
+    if ($hasCategory) $params[] = $like;
 }
 if ($classFilter > 0) {
     $where[]  = 's.class_id = ?';
@@ -261,6 +264,10 @@ if ($classFilter > 0) {
 if ($statusFilter !== '') {
     $where[]  = 'u.status = ?';
     $params[] = $statusFilter;
+}
+if ($categoryFilter !== '' && $hasCategory) {
+    $where[]  = 's.category = ?';
+    $params[] = $categoryFilter;
 }
 $whereSQL = 'WHERE ' . implode(' AND ', $where);
 
@@ -345,6 +352,14 @@ $houses  = [];
 if ($hasHouseId) {
     try { $houses = $db->query('SELECT * FROM houses ORDER BY name')->fetchAll(); } catch (Exception $e) {}
 }
+
+// Load available student categories (graceful: table may not exist yet)
+$studentCategories = [];
+try {
+    $studentCategories = $db->query(
+        "SELECT name FROM student_categories ORDER BY sort_order, name"
+    )->fetchAll(PDO::FETCH_COLUMN);
+} catch (Exception $e) {}
 
 pageHead('Students — Student Affairs', 'student_affairs');
 $links = getStudentAffairsLinks();
@@ -487,8 +502,16 @@ $links = getStudentAffairsLinks();
         <option value="active"   <?= $statusFilter==='active'  ?'selected':'' ?>>Active</option>
         <option value="inactive" <?= $statusFilter==='inactive'?'selected':'' ?>>Inactive</option>
       </select>
+      <?php if (!empty($studentCategories)): ?>
+      <select name="category" class="form-select form-select-sm" style="width:130px" onchange="this.form.submit()">
+        <option value="">All Categories</option>
+        <?php foreach ($studentCategories as $cat): ?>
+        <option value="<?= h($cat) ?>" <?= $categoryFilter===$cat?'selected':'' ?>><?= h($cat) ?></option>
+        <?php endforeach; ?>
+      </select>
+      <?php endif; ?>
       <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search"></i></button>
-      <?php if ($search || $classFilter || $statusFilter): ?>
+      <?php if ($search || $classFilter || $statusFilter || $categoryFilter): ?>
       <a href="<?= url('/portal/student-affairs/students.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a>
       <?php endif; ?>
     </form>
@@ -507,6 +530,7 @@ $links = getStudentAffairsLinks();
           <th>Roll / ID</th>
           <th>Name</th>
           <th>Class</th>
+          <?php if ($hasCategory): ?><th>Category</th><?php endif; ?>
           <th>Gender</th>
           <th>Phone</th>
           <th>Parent Phone</th>
@@ -523,6 +547,15 @@ $links = getStudentAffairsLinks();
             <?php if ($s['email']): ?><div style="font-size:.74rem;color:var(--t3)"><?= h($s['email']) ?></div><?php endif; ?>
           </td>
           <td><?= $s['class_name'] ? '<span class="badge bg-secondary">'.h($s['class_name']).'</span>' : '<span class="text-muted">—</span>' ?></td>
+          <?php if ($hasCategory): ?>
+          <td>
+            <?php if (!empty($s['category'])): ?>
+            <span class="badge" style="background:var(--accent);font-size:.75rem"><?= h($s['category']) ?></span>
+            <?php else: ?>
+            <span class="text-muted" style="font-size:.78rem">—</span>
+            <?php endif; ?>
+          </td>
+          <?php endif; ?>
           <td><?= $s['gender'] ? ucfirst($s['gender']) : '—' ?></td>
           <td><?= h($s['phone'] ?: '—') ?></td>
           <td><?= h($s['parent_phone'] ?: '—') ?></td>
@@ -635,9 +668,21 @@ $links = getStudentAffairsLinks();
                     </div>
                     <?php endif; ?>
                     <?php if ($hasCategory): ?>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                       <label class="form-label fw-semibold" style="font-size:.82rem">Category</label>
-                      <input type="text" name="category" class="form-control form-control-sm" value="<?= h($s['category'] ?? '') ?>" placeholder="AOB 1">
+                      <select name="category" class="form-select form-select-sm">
+                        <option value="">— None —</option>
+                        <?php foreach ($studentCategories as $cat): ?>
+                        <option value="<?= h($cat) ?>" <?= ($s['category'] ?? '') === $cat ? 'selected' : '' ?>><?= h($cat) ?></option>
+                        <?php endforeach; ?>
+                        <?php
+                        // If current value is set but not in list, show it as-is
+                        $curCat = $s['category'] ?? '';
+                        if ($curCat !== '' && !in_array($curCat, $studentCategories, true)):
+                        ?>
+                        <option value="<?= h($curCat) ?>" selected><?= h($curCat) ?> (custom)</option>
+                        <?php endif; ?>
+                      </select>
                     </div>
                     <?php endif; ?>
                     <?php if ($hasHouseId && !empty($houses)): ?>
@@ -866,7 +911,7 @@ $links = getStudentAffairsLinks();
   <?php if ($pages > 1): ?>
   <div class="d-flex justify-content-center p-2 gap-1 flex-wrap">
     <?php for ($i = 1; $i <= $pages; $i++): ?>
-    <a href="?q=<?= urlencode($search) ?>&class_id=<?= $classFilter ?>&status=<?= urlencode($statusFilter) ?>&page=<?= $i ?>"
+    <a href="?q=<?= urlencode($search) ?>&class_id=<?= $classFilter ?>&status=<?= urlencode($statusFilter) ?>&category=<?= urlencode($categoryFilter) ?>&page=<?= $i ?>"
        class="btn btn-xs <?= $i===$page?'btn-primary':'btn-outline-secondary' ?>" style="font-size:.78rem;padding:2px 8px"><?= $i ?></a>
     <?php endfor; ?>
   </div>

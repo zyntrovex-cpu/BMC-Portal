@@ -328,11 +328,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
     // Decide strategy: header-based (at least name OR gr_no/user_id found) or positional
     $headerBased = isset($colIndexMap['name']) || isset($colIndexMap['gr_no']) || isset($colIndexMap['user_id']);
 
-    $imported      = 0;
-    $skipped       = [];
-    $rowNum        = 1;
-    $housesCreated = [];  // houseName => newId — houses auto-created during import
-    $houseWarnings = [];  // rows where house could not be resolved at all
+    $imported          = 0;
+    $skipped           = [];
+    $rowNum            = 1;
+    $housesCreated     = [];  // houseName => newId — houses auto-created during import
+    $houseWarnings     = [];  // rows where house could not be resolved at all
+    $categoryWarnings  = [];  // rows where category code was not found in student_categories
+
+    // Pre-load valid category names for O(1) lookup
+    $validCategories = [];
+    try {
+        $validCategories = array_flip(
+            $db->query("SELECT name FROM student_categories ORDER BY sort_order, name")
+               ->fetchAll(PDO::FETCH_COLUMN)
+        );
+    } catch (Exception $e) { /* table may not exist — skip validation */ }
+    $hasCategoryTable = !empty($validCategories);
 
     $db->beginTransaction();
     try {
@@ -415,6 +426,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
                 }
             }
 
+            // Validate category against student_categories table (if table exists)
+            $rawCategory = trim($map['category'] ?? '');
+            if ($rawCategory !== '' && $hasCategoryTable && !isset($validCategories[$rawCategory])) {
+                $categoryWarnings[] = "Row $rowNum ($grNo): Category \"$rawCategory\" not found in student_categories — set to blank. Add it via Student Affairs → Student Categories first.";
+                $rawCategory = '';
+            }
+
             // Parse & sanitise values
             $email           = $map['email']             !== '' ? $map['email']             : null;
             $rollNo          = $map['roll_no']           !== '' ? $map['roll_no']           : $grNo;
@@ -432,7 +450,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
             // New biodata fields
             $grNo            = $map['gr_no']             !== '' ? $map['gr_no']             : null;
             $kuickpayId      = $map['kuickpay_id']       !== '' ? $map['kuickpay_id']       : null;
-            $category        = $map['category']          !== '' ? $map['category']          : null;
+            $category        = $rawCategory !== '' ? $rawCategory : null;
             $academicGroup   = $map['academic_group']    !== '' ? $map['academic_group']    : null;
             $childOrder      = $map['child_order']       !== '' ? (int)$map['child_order']  : null;
             $domicile        = $map['domicile']          !== '' ? $map['domicile']          : null;
@@ -514,13 +532,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
     }
 
     $importResults = [
-        'imported'       => $imported,
-        'skipped'        => $skipped,
-        'total_rows'     => $rowNum - 1,
-        'header_based'   => $headerBased,
-        'detected_cols'  => array_keys($colIndexMap),
-        'houses_created' => $housesCreated,
-        'house_warnings' => $houseWarnings,
+        'imported'           => $imported,
+        'skipped'            => $skipped,
+        'total_rows'         => $rowNum - 1,
+        'header_based'       => $headerBased,
+        'detected_cols'      => array_keys($colIndexMap),
+        'houses_created'     => $housesCreated,
+        'house_warnings'     => $houseWarnings,
+        'category_warnings'  => $categoryWarnings,
     ];
 }
 
@@ -611,6 +630,21 @@ $links = getAdminLinks();
           <ul class="mb-0 mt-1">
             <?php foreach ($importResults['house_warnings'] as $hw): ?>
             <li><?= h($hw) ?></li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($importResults['category_warnings'])): ?>
+        <div class="alert alert-warning mb-3" style="font-size:.82rem;padding:10px 14px">
+          <i class="fas fa-tag me-1"></i>
+          <strong><?= count($importResults['category_warnings']) ?> row(s) had unrecognised category codes</strong>
+          — those students were imported with no category. Add the missing codes in
+          <a href="<?= url('/portal/student-affairs/categories.php') ?>">Student Affairs → Student Categories</a>,
+          then assign them manually:
+          <ul class="mb-0 mt-1">
+            <?php foreach ($importResults['category_warnings'] as $cw): ?>
+            <li><?= h($cw) ?></li>
             <?php endforeach; ?>
           </ul>
         </div>
