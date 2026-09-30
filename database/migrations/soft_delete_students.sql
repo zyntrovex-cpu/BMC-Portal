@@ -4,13 +4,13 @@
 -- Run once against bmc_portal database.
 -- =====================================================================
 
--- 1. Add deleted_at column to students table
+-- 1. Add deleted_at column to students table (IF NOT EXISTS = safe to re-run)
 ALTER TABLE `students`
-    ADD COLUMN `deleted_at` TIMESTAMP NULL DEFAULT NULL;
+    ADD COLUMN IF NOT EXISTS `deleted_at` TIMESTAMP NULL DEFAULT NULL;
 
 -- 2. (Optional) Index to speed up the IS NULL filter used on all listings
 ALTER TABLE `students`
-    ADD INDEX `idx_students_deleted_at` (`deleted_at`);
+    ADD INDEX IF NOT EXISTS `idx_students_deleted_at` (`deleted_at`);
 
 -- =====================================================================
 -- NOTES
