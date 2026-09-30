@@ -360,3 +360,10 @@ function feePendingBanner(array $user): void {
 
     } catch (Exception $e) {}
 }
+
+function pageFooter(): void {
+    $base = defined('BASE_URL') ? BASE_URL : '';
+    echo '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>';
+}

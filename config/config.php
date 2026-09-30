@@ -7,21 +7,40 @@ define('SESSION_YEAR','2025-26');
 // e.g. XAMPP at http://localhost/BMC-Portal/ → BASE_URL = '/BMC-Portal'
 //      root install at http://localhost/      → BASE_URL = ''
 //
-// Uses SCRIPT_NAME (always a URL path) instead of filesystem paths so it
-// works correctly on Windows XAMPP where DOCUMENT_ROOT may be unreliable.
+// Primary strategy: filesystem comparison of DOCUMENT_ROOT vs. this file's
+// directory. This is immune to the double-URL cascade bug where SCRIPT_NAME
+// contains a repeated path segment (e.g. /BMC-Portal/BMC-Portal/portal/...)
+// that caused BASE_URL to be detected incorrectly.
+// Fallback: SCRIPT_NAME parsing (for environments where DOCUMENT_ROOT is absent).
 if (!defined('BASE_URL')) {
-    $__sn = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
     $__base = '';
-    // Known path segments that are exactly one level below the project root.
-    foreach (['/portal/', '/notices.php', '/index.php', '/database/', '/config/'] as $__seg) {
-        $__pos = strpos($__sn, $__seg);
-        if ($__pos !== false) {
-            $__base = rtrim(substr($__sn, 0, $__pos), '/');
-            break;
+
+    // ── Primary: filesystem-based ───────────────────────────────────
+    // dirname(__DIR__) = project root (one level up from config/)
+    $__docRoot  = rtrim(str_replace('\\', '/', (string)($_SERVER['DOCUMENT_ROOT'] ?? '')), '/');
+    $__projRoot = rtrim(str_replace('\\', '/', dirname(__DIR__)), '/');
+
+    if ($__docRoot !== '' && strlen($__docRoot) > 3) {
+        // Case-insensitive compare handles Windows mixed-case paths
+        if (str_starts_with(strtolower($__projRoot), strtolower($__docRoot))) {
+            $__base = substr($__projRoot, strlen($__docRoot)); // e.g. '/BMC-Portal'
         }
     }
+
+    // ── Fallback: SCRIPT_NAME-based ──────────────────────────────────
+    if ($__base === '') {
+        $__sn = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+        foreach (['/portal/', '/notices.php', '/index.php', '/database/', '/config/'] as $__seg) {
+            $__pos = strpos($__sn, $__seg);
+            if ($__pos !== false) {
+                $__base = rtrim(substr($__sn, 0, $__pos), '/');
+                break;
+            }
+        }
+    }
+
     define('BASE_URL', $__base);
-    unset($__sn, $__base, $__seg, $__pos);
+    unset($__docRoot, $__projRoot, $__base, $__sn, $__seg, $__pos);
 }
 
 // Grade boundaries (percentage → grade)
