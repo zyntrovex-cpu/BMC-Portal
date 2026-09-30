@@ -59,14 +59,6 @@ $search   = trim($_GET['q']        ?? '');
 $filterSev = $_GET['severity']     ?? '';
 $filterCls = (int)($_GET['class_id'] ?? 0);
 
-// ── Fetch all students for the Add Warning dropdown ───────────────
-$allStudents = $db->query(
-    'SELECT s.id, u.name, s.roll_no, c.name AS class_name
-     FROM students s
-     JOIN users u ON s.user_id = u.id
-     LEFT JOIN classes c ON s.class_id = c.id
-     ORDER BY c.name, u.name'
-)->fetchAll();
 
 // ── Fetch warnings with filters ───────────────────────────────────
 $where  = ['1=1'];
@@ -154,14 +146,19 @@ CREATE TABLE IF NOT EXISTS student_warnings (
           <input type="hidden" name="action" value="add">
           <div class="mb-3">
             <label class="form-label fw-semibold" style="font-size:.85rem">Student <span class="text-danger">*</span></label>
-            <select name="student_id" class="form-select form-select-sm" required>
-              <option value="">— Select student —</option>
-              <?php foreach ($allStudents as $s): ?>
-              <option value="<?= $s['id'] ?>">
-                <?= h($s['name']) ?> (<?= h($s['roll_no']) ?>) — <?= h($s['class_name']) ?>
-              </option>
-              <?php endforeach; ?>
-            </select>
+            <input type="hidden" name="student_id" id="warnStudentId">
+            <div class="position-relative">
+              <input type="text" id="warnStudentSearch" class="form-control form-control-sm"
+                     placeholder="Type name, roll no or student ID…" autocomplete="off">
+              <div id="warnStudentResults" style="
+                display:none;position:absolute;top:100%;left:0;right:0;z-index:1050;
+                background:#fff;border:1px solid #d1d5db;border-top:none;border-radius:0 0 6px 6px;
+                max-height:240px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.12)">
+              </div>
+            </div>
+            <div id="warnStudentCard" style="display:none;margin-top:8px;padding:10px 12px;
+                 background:#f0fdf4;border:1px solid #86efac;border-radius:6px;font-size:.84rem">
+            </div>
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold" style="font-size:.85rem">Severity <span class="text-danger">*</span></label>
@@ -302,4 +299,124 @@ CREATE TABLE IF NOT EXISTS student_warnings (
 </div><!-- /main-area -->
 </div><!-- /portal-wrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+  const searchInput  = document.getElementById('warnStudentSearch');
+  const hiddenInput  = document.getElementById('warnStudentId');
+  const resultsBox   = document.getElementById('warnStudentResults');
+  const studentCard  = document.getElementById('warnStudentCard');
+
+  if (!searchInput) return;
+
+  let debounceTimer = null;
+
+  function houseColor(color) {
+    return color || '#6b7280';
+  }
+
+  function renderCard(s) {
+    const cls  = s.class_name  || '—';
+    const hse  = s.house_name  || '';
+    const hclr = houseColor(s.house_color);
+    let html = '<div class="d-flex align-items-center gap-2 flex-wrap">'
+      + '<i class="fas fa-user-circle" style="font-size:1.3rem;color:#16a34a"></i>'
+      + '<div>'
+      + '<div class="fw-semibold" style="font-size:.88rem">' + escHtml(s.name) + '</div>'
+      + '<div style="font-size:.78rem;color:#4b5563">'
+      + '<code style="font-size:.76rem">' + escHtml(s.roll_no) + '</code>'
+      + ' &mdash; ' + escHtml(cls);
+    if (hse) {
+      html += ' &nbsp;<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + escHtml(hclr) + ';vertical-align:middle"></span> ' + escHtml(hse);
+    }
+    html += '</div></div>'
+      + '<button type="button" onclick="clearWarnStudent()" class="btn btn-xs btn-outline-secondary ms-auto" style="padding:2px 8px;font-size:.75rem">Change</button>'
+      + '</div>';
+    return html;
+  }
+
+  function renderRow(s) {
+    const cls = s.class_name || '—';
+    const hclr = houseColor(s.house_color);
+    return '<div class="student-result-row" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid #f3f4f6;font-size:.84rem"'
+      + ' onmousedown="selectWarnStudent(' + s.id + ',' + JSON.stringify(s) + ')"'
+      + ' onmouseover="this.style.background=\'#f0f9ff\'" onmouseout="this.style.background=\'\'">'
+      + '<div class="fw-semibold">' + escHtml(s.name)
+      + (s.house_name ? ' <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + escHtml(hclr) + ';vertical-align:middle;margin-left:4px"></span>' : '')
+      + '</div>'
+      + '<div style="font-size:.77rem;color:#6b7280"><code style="font-size:.75rem">' + escHtml(s.roll_no) + '</code> &mdash; ' + escHtml(cls) + '</div>'
+      + '</div>';
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  window.selectWarnStudent = function(id, s) {
+    hiddenInput.value    = id;
+    searchInput.value    = '';
+    searchInput.style.display = 'none';
+    resultsBox.style.display  = 'none';
+    studentCard.innerHTML     = renderCard(s);
+    studentCard.style.display = 'block';
+  };
+
+  window.clearWarnStudent = function() {
+    hiddenInput.value         = '';
+    searchInput.value         = '';
+    searchInput.style.display = '';
+    studentCard.style.display = 'none';
+    studentCard.innerHTML     = '';
+    searchInput.focus();
+  };
+
+  searchInput.addEventListener('input', function () {
+    clearTimeout(debounceTimer);
+    const q = this.value.trim();
+    if (q.length < 2) { resultsBox.style.display = 'none'; resultsBox.innerHTML = ''; return; }
+    debounceTimer = setTimeout(function () {
+      fetch('<?= url('/portal/api/student-search.php') ?>?q=' + encodeURIComponent(q))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!Array.isArray(data) || data.length === 0) {
+            resultsBox.innerHTML = '<div style="padding:10px 12px;color:#6b7280;font-size:.83rem">No students found.</div>';
+          } else {
+            resultsBox.innerHTML = data.map(renderRow).join('');
+          }
+          resultsBox.style.display = 'block';
+        })
+        .catch(function () {
+          resultsBox.innerHTML = '<div style="padding:10px 12px;color:#dc2626;font-size:.83rem">Search error — please try again.</div>';
+          resultsBox.style.display = 'block';
+        });
+    }, 250);
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
+      resultsBox.style.display = 'none';
+    }
+  });
+
+  // Prevent form submission without a selected student
+  searchInput.closest('form').addEventListener('submit', function (e) {
+    if (!hiddenInput.value) {
+      e.preventDefault();
+      searchInput.classList.add('is-invalid');
+      searchInput.style.display = '';
+      searchInput.focus();
+      const msg = document.getElementById('warnStudentErr');
+      if (!msg) {
+        const d = document.createElement('div');
+        d.id = 'warnStudentErr';
+        d.className = 'invalid-feedback';
+        d.textContent = 'Please search and select a student first.';
+        searchInput.parentNode.insertBefore(d, searchInput.nextSibling);
+      }
+    } else {
+      searchInput.classList.remove('is-invalid');
+    }
+  });
+  searchInput.addEventListener('input', function () { this.classList.remove('is-invalid'); });
+})();
+</script>
 </body></html>
