@@ -118,16 +118,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
     }
 }
 
+// ── Auto-sync: import any students.category values not yet in the table ──
+if ($tableExists && $hasCategoryCol) {
+    try {
+        $db->exec("INSERT IGNORE INTO student_categories (name, sort_order)
+                   SELECT DISTINCT s.category,
+                          COALESCE((SELECT MAX(sort_order) FROM student_categories), 0) + 10
+                   FROM students s
+                   WHERE s.category IS NOT NULL AND s.category <> ''");
+    } catch (Exception $e) {}
+}
+
 // ── Load categories with student counts ───────────────────────────
 $categories = [];
 if ($tableExists) {
     try {
         $catQ = $hasCategoryCol
             ? "SELECT sc.id, sc.name, sc.sort_order,
-                      COUNT(s.id) AS student_count
+                      (SELECT COUNT(*) FROM students s WHERE s.category = sc.name) AS student_count
                FROM student_categories sc
-               LEFT JOIN students s ON s.category = sc.name
-               GROUP BY sc.id, sc.name, sc.sort_order
                ORDER BY sc.sort_order, sc.name"
             : "SELECT id, name, sort_order, 0 AS student_count
                FROM student_categories
