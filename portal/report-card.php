@@ -22,11 +22,11 @@ elseif ($role === 'wing_head')   requirePermission('wh_students');
 
 if ($role === 'student') {
     $me = getStudentByUserId($user['id']);
-    if (!$me) { header('Location: /portal/student/dashboard.php'); exit; }
+    if (!$me) { redirect('/portal/student/dashboard.php'); }
     $studentId = (int)$me['id'];
 } else {
     $studentId = (int)($_GET['student_id'] ?? 0);
-    if (!$studentId) { header('Location: /portal/index.php?msg=unauthorized'); exit; }
+    if (!$studentId) { redirect('/portal/index.php?msg=unauthorized'); }
 }
 
 // ── Fetch student record ──────────────────────────────────
@@ -59,7 +59,7 @@ try {
     $st->execute([$studentId]);
 }
 $student = $st->fetch();
-if (!$student) { header('Location: /portal/index.php?msg=unauthorized'); exit; }
+if (!$student) { redirect('/portal/index.php?msg=unauthorized'); }
 
 // ── Class-based routing rules ─────────────────────────────
 $classGrade = (int)($student['class_grade'] ?? 99);
@@ -67,7 +67,7 @@ $classWing  = strtolower($student['class_wing'] ?? 'main');
 // Montessori through Class-1 (grade < 2): no formal exams — Progress Reports only
 $montessoriLowGrade = ($classWing === 'montessori' && $classGrade < 2);
 if ($montessoriLowGrade && $role === 'student') {
-    header('Location: /portal/student/progress-report.php'); exit;
+    redirect('/portal/student/progress-report.php');
 }
 
 // ── Fetch assessments + marks grouped by subject ──────────

@@ -41,7 +41,7 @@ if ($isMontessori && $classGrade < 2) {
       Your class (<?= h($student['class_name'] ?? '') ?>) uses Progress Reports and Formative Assessment<br>
       rather than formal examination date sheets.
     </p>
-    <a href="/portal/student/progress-report.php" class="btn btn-sm btn-primary">
+    <a href="<?= url('/portal/student/progress-report.php') ?>" class="btn btn-sm btn-primary">
       <i class="fas fa-chart-line me-1"></i>View Progress Report
     </a>
   </div>

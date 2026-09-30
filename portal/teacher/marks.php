@@ -283,7 +283,7 @@ $links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTe
               <td class="pct-cell"><?= $pct !== '' ? $pct.'%' : '—' ?></td>
               <td class="grade-cell"><?= $grade ? '<span class="grade '.$grade['class'].'">'.$grade['label'].'</span>' : '—' ?></td>
               <td><input type="text" name="marks[<?= $st['id'] ?>][remarks]" class="form-control form-control-sm" value="<?= h($remarks) ?>" placeholder="Optional"></td>
-              <td><a href="/portal/student/progress-report.php?student_id=<?= $st['id'] ?>" class="btn btn-xs btn-outline-info" target="_blank" style="font-size:.72rem;padding:2px 7px;white-space:nowrap" title="View Progress Report"><i class="fas fa-file-chart-bar"></i></a></td>
+              <td><a href="<?= url('/portal/student/progress-report.php') ?>?student_id=<?= $st['id'] ?>" class="btn btn-xs btn-outline-info" target="_blank" style="font-size:.72rem;padding:2px 7px;white-space:nowrap" title="View Progress Report"><i class="fas fa-file-chart-bar"></i></a></td>
             </tr>
             <?php endforeach; ?>
           </tbody>
