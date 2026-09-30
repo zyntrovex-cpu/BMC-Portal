@@ -328,9 +328,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
     // Decide strategy: header-based (at least name OR gr_no/user_id found) or positional
     $headerBased = isset($colIndexMap['name']) || isset($colIndexMap['gr_no']) || isset($colIndexMap['user_id']);
 
-    $imported   = 0;
-    $skipped    = [];
-    $rowNum     = 1;
+    $imported      = 0;
+    $skipped       = [];
+    $rowNum        = 1;
+    $housesCreated = [];  // houseName => newId — houses auto-created during import
+    $houseWarnings = [];  // rows where house could not be resolved at all
 
     $db->beginTransaction();
     try {
@@ -380,20 +382,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
                 if ($cls) {
                     $classId = $cls['id'];
                 } else {
-                    $skipped[] = "Row $rowNum ($userId): Class '$className' not found — skipped.";
+                    $skipped[] = "Row $rowNum ($grNo): Class '$className' not found — skipped.";
                     continue;
                 }
             }
 
-            // Resolve house (optional)
+            // Resolve house (optional — auto-create if not found, flag for review)
             $houseId   = null;
             $houseName = trim($map['house_name'] ?? '');
             if ($houseName !== '') {
-                $hSt = $db->prepare('SELECT id FROM houses WHERE name = ?');
+                $hSt = $db->prepare('SELECT id FROM houses WHERE LOWER(name) = LOWER(?)');
                 $hSt->execute([$houseName]);
                 $house = $hSt->fetch();
-                if ($house) $houseId = $house['id'];
-                // Not fatal if house name not found
+                if ($house) {
+                    $houseId = $house['id'];
+                } else {
+                    // Auto-create the house with a default colour so no data is lost
+                    try {
+                        $db->prepare("INSERT INTO houses (name, color) VALUES (?, '#6b7280')")
+                           ->execute([$houseName]);
+                        $houseId = (int)$db->lastInsertId();
+                        if (!isset($housesCreated[$houseName])) {
+                            $housesCreated[$houseName] = $houseId;
+                        }
+                    } catch (Exception $eH) {
+                        // Insert failed (race condition duplicate) — try fetching again
+                        $hSt->execute([$houseName]);
+                        $house2 = $hSt->fetch();
+                        if ($house2) $houseId = $house2['id'];
+                        else $houseWarnings[] = "Row $rowNum: house '$houseName' could not be created — assignment skipped.";
+                    }
+                }
             }
 
             // Parse & sanitise values
@@ -495,11 +514,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
     }
 
     $importResults = [
-        'imported'     => $imported,
-        'skipped'      => $skipped,
-        'total_rows'   => $rowNum - 1,
-        'header_based' => $headerBased,
-        'detected_cols'=> array_keys($colIndexMap),
+        'imported'       => $imported,
+        'skipped'        => $skipped,
+        'total_rows'     => $rowNum - 1,
+        'header_based'   => $headerBased,
+        'detected_cols'  => array_keys($colIndexMap),
+        'houses_created' => $housesCreated,
+        'house_warnings' => $houseWarnings,
     ];
 }
 
@@ -564,6 +585,34 @@ $links = getAdminLinks();
           <strong>No recognized column headers found</strong> — used positional mapping
           (assumes columns follow the template order exactly).
           Download the template and ensure headers match.
+        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($importResults['houses_created'])): ?>
+        <div class="alert alert-warning mb-3" style="font-size:.82rem;padding:10px 14px">
+          <i class="fas fa-shield-alt me-1"></i>
+          <strong><?= count($importResults['houses_created']) ?> new house<?= count($importResults['houses_created']) != 1 ? 's' : '' ?> were automatically created</strong>
+          from names found in the import file (shown with a default grey colour — update them in
+          <a href="<?= url('/portal/admin/houses.php?tab=houses') ?>">Houses → Manage Houses</a>):
+          <ul class="mb-0 mt-1">
+            <?php foreach ($importResults['houses_created'] as $hn => $hid): ?>
+            <li><strong><?= h($hn) ?></strong> (ID: <?= $hid ?>)</li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($importResults['house_warnings'])): ?>
+        <div class="alert alert-danger mb-3" style="font-size:.82rem;padding:10px 14px">
+          <i class="fas fa-exclamation-triangle me-1"></i>
+          <strong>House assignment failed for some rows</strong> — the student was still imported but
+          has no house assigned. Assign houses manually from
+          <a href="<?= url('/portal/admin/houses.php?tab=assign') ?>">Houses → Assign to Students</a>:
+          <ul class="mb-0 mt-1">
+            <?php foreach ($importResults['house_warnings'] as $hw): ?>
+            <li><?= h($hw) ?></li>
+            <?php endforeach; ?>
+          </ul>
         </div>
         <?php endif; ?>
 
