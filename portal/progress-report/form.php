@@ -199,19 +199,69 @@ pageHead('Progress Report', $role);
       <div style="padding:12px 16px">
         <?php if (empty($students)): ?>
         <div class="text-muted" style="font-size:.84rem">
-          <?= $role==='teacher' ? 'No students found. Ensure you are assigned to subjects in at least one class.' : 'No students found.' ?>
+          <?= $role==='montessori_teacher' ? 'No students found. Ensure you are assigned to subjects in at least one Montessori class.' : 'No students found.' ?>
         </div>
         <?php else: ?>
-        <form method="GET" class="d-flex gap-2">
-          <select name="student_id" class="form-select form-select-sm" onchange="this.form.submit()">
-            <option value="">— Select student —</option>
-            <?php foreach ($students as $s): ?>
-            <option value="<?= $s['id'] ?>" <?= $studentId===(int)$s['id']?'selected':'' ?>>
-              <?= h($s['student_name']) ?> (<?= h($s['roll_no']) ?>) — <?= h($s['class_name']) ?>
-            </option>
-            <?php endforeach; ?>
-          </select>
-        </form>
+
+        <!-- Live search -->
+        <div class="mb-2 position-relative">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text" style="background:#f8fafc;border-color:#e2e8f0">
+              <i class="fas fa-search" style="color:#6366f1;font-size:.8rem"></i>
+            </span>
+            <input type="text" id="prStudentSearch" class="form-control"
+                   placeholder="Search by name, GR number, roll no…"
+                   autocomplete="off" spellcheck="false"
+                   style="border-color:#e2e8f0;font-size:.83rem"
+                   value="<?= $curStudent ? h($curStudent['student_name']) : '' ?>">
+            <button type="button" id="prSearchClear"
+                    class="btn btn-outline-secondary"
+                    style="display:<?= $curStudent ? 'inline-flex' : 'none' ?>;align-items:center;padding:0 9px"
+                    title="Clear search">
+              <i class="fas fa-times" style="font-size:.75rem"></i>
+            </button>
+          </div>
+          <!-- Results dropdown -->
+          <div id="prSearchResults"
+               style="display:none;position:absolute;top:100%;left:0;right:0;z-index:1055;
+                      background:#fff;border:1px solid #e2e8f0;border-top:none;
+                      border-radius:0 0 7px 7px;max-height:260px;overflow-y:auto;
+                      box-shadow:0 6px 18px rgba(0,0,0,.10)">
+          </div>
+        </div>
+
+        <!-- Dropdown list (also filtered by search) -->
+        <div>
+          <label class="mb-1 d-block" style="font-size:.76rem;font-weight:600;color:var(--t2)">
+            Or select from full list:
+          </label>
+          <form method="GET">
+            <select name="student_id" id="prStudentSelect"
+                    class="form-select form-select-sm"
+                    onchange="this.form.submit()"
+                    style="font-size:.82rem">
+              <option value="">— Select student —</option>
+              <?php foreach ($students as $s): ?>
+              <option value="<?= $s['id'] ?>" <?= $studentId===(int)$s['id']?'selected':'' ?>
+                      data-roll="<?= h($s['roll_no']) ?>" data-class="<?= h($s['class_name']) ?>">
+                <?= h($s['student_name']) ?> (<?= h($s['roll_no']) ?>) — <?= h($s['class_name']) ?>
+              </option>
+              <?php endforeach; ?>
+            </select>
+          </form>
+        </div>
+
+        <?php if ($curStudent): ?>
+        <div class="mt-2 px-2 py-1 rounded d-flex align-items-center gap-2"
+             style="background:#eff6ff;border:1px solid #bfdbfe;font-size:.78rem">
+          <i class="fas fa-user-check" style="color:#1d4ed8;font-size:.85rem"></i>
+          <span>
+            <strong style="color:#1e3a5f"><?= h($curStudent['student_name']) ?></strong>
+            <span class="text-muted ms-1">(<?= h($curStudent['roll_no']) ?>) &mdash; <?= h($curStudent['class_name']) ?></span>
+          </span>
+        </div>
+        <?php endif; ?>
+
         <?php endif; ?>
       </div>
     </div>
@@ -646,4 +696,147 @@ document.getElementById('prForm').addEventListener('submit', function(e) {
 renderSubjects();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── Searchable student selector ───────────────────────────────────────────
+(function () {
+  var PR_STUDENTS = <?= json_encode(array_values(array_map(function($s) {
+    return [
+      'id'    => (int)$s['id'],
+      'name'  => $s['student_name'],
+      'roll'  => (string)($s['roll_no'] ?? ''),
+      'cls'   => (string)($s['class_name'] ?? ''),
+    ];
+  }, $students)), JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+
+  var searchEl  = document.getElementById('prStudentSearch');
+  var resultsEl = document.getElementById('prSearchResults');
+  var clearEl   = document.getElementById('prSearchClear');
+  var selectEl  = document.getElementById('prStudentSelect');
+
+  if (!searchEl || !selectEl) return;
+
+  function norm(s) { return (s || '').toLowerCase().trim(); }
+
+  function matches(s, q) {
+    return norm(s.name).indexOf(q) !== -1
+        || norm(s.roll).indexOf(q) !== -1
+        || norm(s.cls).indexOf(q) !== -1;
+  }
+
+  function safeHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function highlight(text, q) {
+    if (!q) return safeHtml(text);
+    var safe  = safeHtml(text);
+    var safeQ = safeHtml(q);
+    return safe.replace(new RegExp('(' + safeQ.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi'),
+      '<mark style="background:#dbeafe;color:#1e40af;border-radius:2px;padding:0 1px">$1</mark>');
+  }
+
+  function renderResults(q) {
+    if (!q) { resultsEl.style.display = 'none'; return; }
+    var hits = PR_STUDENTS.filter(function(s) { return matches(s, q); });
+    if (!hits.length) {
+      resultsEl.innerHTML = '<div style="padding:9px 13px;font-size:.81rem;color:#64748b">'
+        + '<i class="fas fa-info-circle me-1"></i>No matching students found</div>';
+      resultsEl.style.display = 'block';
+      return;
+    }
+    resultsEl.innerHTML = hits.slice(0, 40).map(function(s, idx) {
+      return '<div class="pr-sr-item" data-id="' + s.id + '" data-idx="' + idx + '"'
+        + ' style="padding:7px 12px;cursor:pointer;border-bottom:1px solid #f1f5f9;'
+        + 'display:flex;align-items:center;gap:9px;transition:background .1s">'
+        + '<i class="fas fa-user-graduate" style="color:#6366f1;font-size:.78rem;flex-shrink:0"></i>'
+        + '<div><div style="font-size:.82rem;font-weight:600;color:#0f172a">' + highlight(s.name, q) + '</div>'
+        + '<div style="font-size:.73rem;color:#64748b">'
+        + highlight(s.roll || '—', q) + ' &nbsp;&middot;&nbsp; ' + highlight(s.cls, q)
+        + '</div></div></div>';
+    }).join('');
+    resultsEl.style.display = 'block';
+  }
+
+  function filterSelect(q) {
+    var opts = selectEl.options;
+    for (var i = 1; i < opts.length; i++) {
+      var opt = opts[i];
+      if (!q) { opt.hidden = false; continue; }
+      var s = PR_STUDENTS.find ? PR_STUDENTS.find(function(x){ return x.id == opt.value; })
+            : (function(){ for(var j=0;j<PR_STUDENTS.length;j++) if(PR_STUDENTS[j].id==opt.value) return PR_STUDENTS[j]; })();
+      opt.hidden = !(s && matches(s, q));
+    }
+  }
+
+  var activeIdx = -1;
+
+  function setActive(idx) {
+    var items = resultsEl.querySelectorAll('.pr-sr-item');
+    items.forEach(function(el) { el.style.background = ''; });
+    activeIdx = idx;
+    if (idx >= 0 && idx < items.length) {
+      items[idx].style.background = '#eff6ff';
+      items[idx].scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  searchEl.addEventListener('input', function () {
+    var q = norm(this.value);
+    clearEl.style.display = q ? 'inline-flex' : 'none';
+    activeIdx = -1;
+    renderResults(q);
+    filterSelect(q);
+  });
+
+  searchEl.addEventListener('focus', function () {
+    var q = norm(this.value);
+    if (q) renderResults(q);
+  });
+
+  searchEl.addEventListener('keydown', function (e) {
+    var items = resultsEl.querySelectorAll('.pr-sr-item');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActive(Math.min(activeIdx + 1, items.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActive(Math.max(activeIdx - 1, 0));
+    } else if (e.key === 'Enter' && activeIdx >= 0 && items[activeIdx]) {
+      e.preventDefault();
+      window.location.href = '?student_id=' + items[activeIdx].dataset.id;
+    } else if (e.key === 'Escape') {
+      resultsEl.style.display = 'none';
+    }
+  });
+
+  clearEl.addEventListener('click', function () {
+    searchEl.value = '';
+    clearEl.style.display = 'none';
+    resultsEl.style.display = 'none';
+    filterSelect('');
+    searchEl.focus();
+  });
+
+  resultsEl.addEventListener('mouseover', function (e) {
+    var item = e.target.closest('.pr-sr-item');
+    if (!item) return;
+    setActive(parseInt(item.dataset.idx));
+  });
+  resultsEl.addEventListener('mouseout', function () {
+    resultsEl.querySelectorAll('.pr-sr-item').forEach(function(el) { el.style.background = ''; });
+    activeIdx = -1;
+  });
+
+  resultsEl.addEventListener('click', function (e) {
+    var item = e.target.closest('.pr-sr-item');
+    if (item) window.location.href = '?student_id=' + item.dataset.id;
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!searchEl.contains(e.target) && !resultsEl.contains(e.target) && !clearEl.contains(e.target)) {
+      resultsEl.style.display = 'none';
+    }
+  });
+})();
+</script>
 </body></html>
