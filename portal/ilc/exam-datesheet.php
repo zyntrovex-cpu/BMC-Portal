@@ -16,36 +16,42 @@ $managerWing = 'ilc';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
+    $termOptions = ['Mid-Term', 'Final-Term', 'Unit Test 1', 'Unit Test 2', 'Annual', 'Mock Exam', 'General'];
+
     if ($action === 'create_ds') {
         $title = trim($_POST['title'] ?? '');
-        $year  = trim($_POST['academic_year'] ?? $yearNow);
+        $term  = trim($_POST['term']  ?? 'General');
+        $year  = trim($_POST['academic_year'] ?? "$yearNow-" . ($yearNow + 1));
         $notes = trim($_POST['notes'] ?? '');
+        if (!in_array($term, $termOptions, true)) $term = 'General';
         if ($title) {
-            $db->prepare('INSERT INTO exam_date_sheets (title,wing,academic_year,notes,created_by) VALUES (?,?,?,?,?)')
-               ->execute([$title, $managerWing, $year, $notes, $user['id']]);
+            $db->prepare('INSERT INTO exam_date_sheets (title,term,wing,academic_year,notes,created_by) VALUES (?,?,?,?,?,?)')
+               ->execute([$title, $term, $managerWing, $year, $notes, $user['id']]);
             $newId = (int)$db->lastInsertId();
             logActivity($user['id'], 'exam_ds_create', "Created date sheet: \"$title\" (ilc, $year)");
             setFlash('success', "Date sheet \"$title\" created. Add exam entries below.");
-            redirect(url('/portal/ilc/exam-datesheet.php') . '?ds=' . $newId);
+            redirect('/portal/ilc/exam-datesheet.php?ds=' . $newId);
         }
         setFlash('danger', 'Title is required.');
-        redirect(url('/portal/ilc/exam-datesheet.php') . '?create=1');
+        redirect('/portal/ilc/exam-datesheet.php?create=1');
     }
 
     if ($action === 'update_ds') {
         $dsId  = (int)($_POST['ds_id'] ?? 0);
         $title = trim($_POST['title'] ?? '');
+        $term  = trim($_POST['term']  ?? 'General');
         $year  = trim($_POST['academic_year'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
+        if (!in_array($term, $termOptions, true)) $term = 'General';
         $chk   = $db->prepare('SELECT id FROM exam_date_sheets WHERE id=? AND wing=?');
         $chk->execute([$dsId, $managerWing]);
         if ($dsId && $title && $chk->fetch()) {
-            $db->prepare('UPDATE exam_date_sheets SET title=?,academic_year=?,notes=? WHERE id=?')
-               ->execute([$title, $year, $notes, $dsId]);
+            $db->prepare('UPDATE exam_date_sheets SET title=?,term=?,academic_year=?,notes=? WHERE id=?')
+               ->execute([$title, $term, $year, $notes, $dsId]);
             logActivity($user['id'], 'exam_ds_update', "Updated date sheet #$dsId: \"$title\"");
             setFlash('success', 'Date sheet updated.');
         }
-        redirect(url('/portal/ilc/exam-datesheet.php') . '?ds=' . (int)($_POST['ds_id'] ?? 0));
+        redirect('/portal/ilc/exam-datesheet.php?ds=' . $dsId);
     }
 
     if ($action === 'toggle_status') {
@@ -60,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             setFlash('success', $newStatus === 'published'
                 ? 'Date sheet published — now visible to all staff and students.'
                 : 'Date sheet reverted to draft.');
-            redirect(url('/portal/ilc/exam-datesheet.php') . '?ds=' . $dsId);
+            redirect('/portal/ilc/exam-datesheet.php?ds=' . $dsId);
         }
     }
 
@@ -73,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare('DELETE FROM exam_date_sheets WHERE id=?')->execute([$dsId]);
             logActivity($user['id'], 'exam_ds_delete', "Deleted: \"" . $cur['title'] . '"');
             setFlash('success', 'Date sheet deleted.');
-            redirect(url('/portal/ilc/exam-datesheet.php'));
+            redirect('/portal/ilc/exam-datesheet.php');
         }
     }
 
@@ -82,35 +88,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $entryId   = (int)($_POST['entry_id']  ?? 0);
         $classId   = (int)($_POST['class_id']  ?? 0) ?: null;
         $subject   = trim($_POST['subject']    ?? '');
-        $examDate  = $_POST['exam_date']        ?? '';
-        $startTime = $_POST['start_time']       ?? '';
-        $endTime   = $_POST['end_time']         ?? '';
-        $venue     = trim($_POST['venue']       ?? '');
-        $eNotes    = trim($_POST['notes']       ?? '');
-        $sortOrder = (int)($_POST['sort_order'] ?? 0);
+        $examDate  = trim($_POST['exam_date']  ?? '');
+        $startTime = trim($_POST['start_time'] ?? '');
+        $endTime   = trim($_POST['end_time']   ?? '');
+        $venue     = trim($_POST['venue']      ?? '');
+        $eNotes    = trim($_POST['entry_notes']?? '');
+        $sortOrder = (int)($_POST['sort_order']?? 0);
         $chk       = $db->prepare('SELECT id FROM exam_date_sheets WHERE id=? AND wing=?');
         $chk->execute([$dsId, $managerWing]);
 
-        if ($dsId && $subject && $examDate && $startTime && $endTime && $chk->fetch()) {
-            if ($action === 'add_entry') {
-                $db->prepare(
-                    'INSERT INTO exam_date_sheet_entries
-                     (date_sheet_id,class_id,subject,exam_date,start_time,end_time,venue,notes,sort_order)
-                     VALUES (?,?,?,?,?,?,?,?,?)'
-                )->execute([$dsId, $classId, $subject, $examDate, $startTime, $endTime, $venue, $eNotes, $sortOrder]);
-                setFlash('success', 'Exam entry added.');
-            } else {
-                $db->prepare(
-                    'UPDATE exam_date_sheet_entries
-                     SET class_id=?,subject=?,exam_date=?,start_time=?,end_time=?,venue=?,notes=?,sort_order=?
-                     WHERE id=?'
-                )->execute([$classId, $subject, $examDate, $startTime, $endTime, $venue, $eNotes, $sortOrder, $entryId]);
-                setFlash('success', 'Exam entry updated.');
-            }
-            redirect(url('/portal/ilc/exam-datesheet.php') . '?ds=' . $dsId);
+        $errs = [];
+        if (!$chk->fetch()) $errs[] = 'Access denied.';
+        if (!$subject)   $errs[] = 'Subject is required.';
+        if (!$examDate)  $errs[] = 'Exam date is required.';
+        if (!$startTime) $errs[] = 'Start time is required.';
+        if (!$endTime)   $errs[] = 'End time is required.';
+        if ($startTime && $endTime && $startTime >= $endTime) $errs[] = 'End time must be after start time.';
+
+        if ($errs) {
+            setFlash('danger', implode('<br>', $errs));
+            redirect('/portal/ilc/exam-datesheet.php?ds=' . $dsId . '&add=1' . ($entryId ? '&edit=' . $entryId : ''));
         }
-        setFlash('danger', 'Subject, date, and times are required.');
-        redirect(url('/portal/ilc/exam-datesheet.php') . '?ds=' . $dsId . '&add=1');
+
+        if ($action === 'add_entry') {
+            $db->prepare(
+                'INSERT INTO exam_date_sheet_entries (date_sheet_id,class_id,subject,exam_date,start_time,end_time,venue,notes,sort_order) VALUES (?,?,?,?,?,?,?,?,?)'
+            )->execute([$dsId, $classId, $subject, $examDate, $startTime, $endTime, $venue, $eNotes, $sortOrder]);
+            setFlash('success', 'Exam entry added.');
+        } else {
+            $db->prepare(
+                'UPDATE exam_date_sheet_entries SET class_id=?,subject=?,exam_date=?,start_time=?,end_time=?,venue=?,notes=?,sort_order=? WHERE id=?'
+            )->execute([$classId, $subject, $examDate, $startTime, $endTime, $venue, $eNotes, $sortOrder, $entryId]);
+            setFlash('success', 'Exam entry updated.');
+        }
+        redirect('/portal/ilc/exam-datesheet.php?ds=' . $dsId);
     }
 
     if ($action === 'delete_entry') {
@@ -119,11 +130,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($entryId) {
             $db->prepare('DELETE FROM exam_date_sheet_entries WHERE id=?')->execute([$entryId]);
             setFlash('success', 'Entry deleted.');
-            redirect(url('/portal/ilc/exam-datesheet.php') . '?ds=' . $dsId);
+            redirect('/portal/ilc/exam-datesheet.php?ds=' . $dsId);
         }
     }
 
-    redirect(url('/portal/ilc/exam-datesheet.php'));
+    redirect('/portal/ilc/exam-datesheet.php');
 }
 
 // ── Determine view ────────────────────────────────────────────────────
@@ -142,7 +153,7 @@ if ($dsId) {
     );
     $r->execute([$dsId, $managerWing]);
     $ds = $r->fetch();
-    if (!$ds) { setFlash('danger','Date sheet not found.'); redirect(url('/portal/ilc/exam-datesheet.php')); }
+    if (!$ds) { setFlash('danger','Date sheet not found.'); redirect('/portal/ilc/exam-datesheet.php'); }
 
     $eSt = $db->prepare(
         'SELECT e.*, c.name AS class_name
@@ -160,18 +171,55 @@ if ($dsId) {
     }
 }
 
+$termOptions = ['Mid-Term', 'Final-Term', 'Unit Test 1', 'Unit Test 2', 'Annual', 'Mock Exam', 'General'];
+
 $listSt = $db->prepare(
-    "SELECT ds.*, u.name AS creator_name,
+    "SELECT ds.*, COALESCE(ds.term,'General') AS term, u.name AS creator_name,
             (SELECT COUNT(*) FROM exam_date_sheet_entries e WHERE e.date_sheet_id=ds.id) AS entry_count
      FROM exam_date_sheets ds JOIN users u ON ds.created_by=u.id
      WHERE ds.wing=?
-     ORDER BY ds.created_at DESC"
+     ORDER BY ds.academic_year DESC, ds.created_at DESC"
 );
 $listSt->execute([$managerWing]);
 $dateSheets = $listSt->fetchAll();
 
 // Only ILC classes for entry selector
 $ilcClasses = array_filter($classes, fn($c) => (bool)$c['is_ilc']);
+
+// Print handler
+if (($isPrint = (bool)($_GET['print'] ?? 0)) && $dsId && $ds) {
+    ?><!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title><?= h($ds['title']) ?></title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#111;background:#fff;padding:20px}
+.ph{text-align:center;border-bottom:2px solid #0891b2;padding-bottom:12px;margin-bottom:16px}
+.ph h1{font-size:17px;color:#0891b2;font-weight:700}.ph p{font-size:12px;color:#555;margin-top:3px}
+.meta{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:12px;font-size:12px}.meta b{color:#0891b2}
+table{width:100%;border-collapse:collapse}th{background:#0891b2;color:#fff;padding:7px 9px;font-size:12px;text-align:left}
+td{border:1px solid #ddd;padding:6px 9px}tr:nth-child(even) td{background:#f0f9ff}
+.subj{font-weight:700;color:#0891b2}.ft{text-align:center;font-size:11px;color:#888;margin-top:12px;border-top:1px solid #ddd;padding-top:8px}
+@media print{.np{display:none}}</style></head><body>
+<div class="np" style="margin-bottom:12px">
+  <button onclick="window.print()" style="background:#0891b2;color:#fff;border:none;padding:7px 16px;border-radius:4px;cursor:pointer">Print / PDF</button>
+  <a href="?ds=<?=$dsId?>" style="margin-left:10px;color:#0891b2">← Back</a>
+</div>
+<div class="ph"><h1><?=h(SCHOOL_NAME)?> — ILC</h1><p><?=h($ds['title'])?></p></div>
+<div class="meta">
+  <span><b>Term:</b> <?=h($ds['term']??'General')?></span>
+  <span><b>Year:</b> <?=h($ds['academic_year'])?></span>
+  <span><b>Status:</b> <?=ucfirst($ds['status'])?></span>
+  <?php if($ds['notes']):?><span><b>Note:</b> <?=h($ds['notes'])?></span><?php endif;?>
+</div>
+<table><thead><tr><th>#</th><th>Date</th><th>Day</th><th>Class</th><th>Subject</th><th>Start</th><th>End</th><th>Venue</th></tr></thead>
+<tbody>
+<?php $n=1;foreach($entries as $e):?>
+<tr><td><?=$n++?></td><td><?=date('d M Y',strtotime($e['exam_date']))?></td><td><?=date('l',strtotime($e['exam_date']))?></td>
+<td><?=$e['class_name']?h($e['class_name']):'All'?></td><td class="subj"><?=h($e['subject'])?></td>
+<td><?=date('h:i A',strtotime($e['start_time']))?></td><td><?=date('h:i A',strtotime($e['end_time']))?></td>
+<td><?=h($e['venue']?:'—')?></td></tr>
+<?php endforeach;if(empty($entries)):?><tr><td colspan="8" style="text-align:center;padding:14px;color:#888">No entries.</td></tr><?php endif;?>
+</tbody></table>
+<div class="ft">Printed <?=date('d M Y')?> — <?=h(SCHOOL_NAME)?> ILC</div>
+</body></html><?php exit; }
 
 pageHead('Exam Date Sheets', 'ilc_vp');
 $links = getIlcLinks();
@@ -186,13 +234,16 @@ $links = getIlcLinks();
 <?php if ($dsId && $ds): ?>
 
 <div class="d-flex align-items-center mb-3 gap-2 flex-wrap">
-  <a href="<?= url('/portal/ilc/exam-datesheet.php') ?>" class="btn btn-sm btn-outline-secondary">
+  <a href="/portal/ilc/exam-datesheet.php" class="btn btn-sm btn-outline-secondary">
     <i class="fas fa-arrow-left me-1"></i>All Date Sheets
   </a>
   <span class="text-muted" style="font-size:.84rem">&rsaquo; <?= h($ds['title']) ?></span>
   <?= $ds['status']==='published'
     ? '<span class="badge bg-success ms-1">Published</span>'
     : '<span class="badge bg-warning text-dark ms-1">Draft</span>' ?>
+  <a href="?ds=<?= $dsId ?>&print=1" target="_blank" class="btn btn-sm btn-outline-secondary ms-auto">
+    <i class="fas fa-print me-1"></i>Print / PDF
+  </a>
 </div>
 
 <div class="row g-3">
@@ -206,6 +257,14 @@ $links = getIlcLinks();
           <div class="mb-2">
             <label class="form-label fw-semibold" style="font-size:.82rem">Title / Exam Name *</label>
             <input type="text" name="title" class="form-control form-control-sm" value="<?= h($ds['title']) ?>" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:.82rem">Examination / Term</label>
+            <select name="term" class="form-select form-select-sm">
+              <?php foreach ($termOptions as $t): ?>
+              <option value="<?= h($t) ?>" <?= ($ds['term'] ?? 'General') === $t ? 'selected' : '' ?>><?= h($t) ?></option>
+              <?php endforeach; ?>
+            </select>
           </div>
           <div class="mb-2">
             <label class="form-label fw-semibold" style="font-size:.82rem">Campus / Wing</label>
@@ -249,7 +308,7 @@ $links = getIlcLinks();
     <div class="sec-card">
       <div class="sec-card-header d-flex justify-content-between align-items-center">
         <span><i class="fas fa-list me-2"></i>Exam Schedule <span class="text-muted fw-normal">(<?= count($entries) ?> entries)</span></span>
-        <a href="<?= url('/portal/ilc/exam-datesheet.php').'?ds='.$dsId.'&add=1' ?>"
+        <a href="/portal/ilc/exam-datesheet.php?ds=<?=$dsId?>&add=1"
            class="btn btn-sm btn-success"><i class="fas fa-plus me-1"></i>Add Entry</a>
       </div>
       <div class="table-responsive">
@@ -268,7 +327,7 @@ $links = getIlcLinks();
               <td><?= date('h:i A', strtotime($e['end_time'])) ?></td>
               <td style="font-size:.78rem"><?= h($e['venue'] ?: '—') ?></td>
               <td style="white-space:nowrap">
-                <a href="<?= url('/portal/ilc/exam-datesheet.php').'?ds='.$dsId.'&edit='.$e['id'].'&add=1' ?>"
+                <a href="/portal/ilc/exam-datesheet.php?ds=<?=$dsId?>&edit=<?=$e['id']?>&add=1"
                    class="btn btn-xs btn-outline-primary me-1" style="font-size:.7rem;padding:1px 6px">Edit</a>
                 <form method="POST" style="display:inline" onsubmit="return confirm('Delete this entry?')">
                   <input type="hidden" name="action" value="delete_entry">
@@ -345,7 +404,7 @@ $links = getIlcLinks();
               <button type="submit" class="btn btn-sm btn-success">
                 <i class="fas fa-check me-1"></i><?= $editEntry?'Update Entry':'Add Entry' ?>
               </button>
-              <a href="<?= url('/portal/ilc/exam-datesheet.php').'?ds='.$dsId ?>" class="btn btn-sm btn-outline-secondary">Cancel</a>
+              <a href="/portal/ilc/exam-datesheet.php?ds=<?=$dsId?>" class="btn btn-sm btn-outline-secondary">Cancel</a>
             </div>
           </div>
         </form>
@@ -370,12 +429,18 @@ $links = getIlcLinks();
       <form method="POST">
         <input type="hidden" name="action" value="create_ds">
         <div class="row g-2 align-items-end">
-          <div class="col-md-5">
+          <div class="col-md-4">
             <label class="form-label fw-semibold" style="font-size:.82rem">Title / Exam Name *</label>
             <input type="text" name="title" class="form-control form-control-sm" required
                    placeholder="e.g. ILC Semester Assessment 2025-2026">
           </div>
-          <div class="col-md-3">
+          <div class="col-md-2">
+            <label class="form-label fw-semibold" style="font-size:.82rem">Term</label>
+            <select name="term" class="form-select form-select-sm">
+              <?php foreach ($termOptions as $t): ?><option value="<?= h($t) ?>"><?= h($t) ?></option><?php endforeach; ?>
+            </select>
+          </div>
+          <div class="col-md-2">
             <label class="form-label fw-semibold" style="font-size:.82rem">Academic Year</label>
             <input type="text" name="academic_year" class="form-control form-control-sm"
                    value="<?= $yearNow ?>-<?= $yearNow+1 ?>" placeholder="2025-2026">
@@ -415,9 +480,13 @@ $links = getIlcLinks();
           <td style="font-size:.8rem"><?= h($row['creator_name']) ?></td>
           <td style="font-size:.78rem;color:#6b7280"><?= fDate($row['created_at']) ?></td>
           <td style="white-space:nowrap">
-            <a href="<?= url('/portal/ilc/exam-datesheet.php').'?ds='.$row['id'] ?>"
+            <a href="/portal/ilc/exam-datesheet.php?ds=<?=$row['id']?>"
                class="btn btn-xs btn-primary me-1" style="font-size:.72rem;padding:2px 7px">
               <i class="fas fa-edit"></i> Manage
+            </a>
+            <a href="/portal/ilc/exam-datesheet.php?ds=<?=$row['id']?>&print=1" target="_blank"
+               class="btn btn-xs btn-outline-secondary me-1" style="font-size:.72rem;padding:2px 7px">
+              <i class="fas fa-print"></i>
             </a>
             <form method="POST" style="display:inline"
                   onsubmit="return confirm('Delete this date sheet and all its entries?')">
@@ -439,5 +508,4 @@ $links = getIlcLinks();
 <?php endif; ?>
 
 </div></div></div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body></html>
+<?php pageFooter(); ?>

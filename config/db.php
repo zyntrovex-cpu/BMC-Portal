@@ -55,6 +55,7 @@ function getDB(): PDO {
             $pdo->exec("CREATE TABLE IF NOT EXISTS exam_date_sheets (
                 id            INT PRIMARY KEY AUTO_INCREMENT,
                 title         VARCHAR(200)  NOT NULL,
+                term          VARCHAR(100)  NOT NULL DEFAULT 'General',
                 wing          ENUM('main','montessori','ilc','all') NOT NULL DEFAULT 'all',
                 academic_year VARCHAR(20)   NOT NULL,
                 status        ENUM('draft','published') NOT NULL DEFAULT 'draft',
@@ -64,6 +65,13 @@ function getDB(): PDO {
                 updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
             ) ENGINE=InnoDB");
+            // Add term column if missing (tables created before this migration)
+            $dsCols = array_flip(
+                $pdo->query("SHOW COLUMNS FROM exam_date_sheets")->fetchAll(PDO::FETCH_COLUMN)
+            );
+            if (!isset($dsCols['term']))
+                $pdo->exec("ALTER TABLE exam_date_sheets ADD COLUMN term VARCHAR(100) NOT NULL DEFAULT 'General' AFTER wing");
+
             $pdo->exec("CREATE TABLE IF NOT EXISTS exam_date_sheet_entries (
                 id              INT PRIMARY KEY AUTO_INCREMENT,
                 date_sheet_id   INT NOT NULL,

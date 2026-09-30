@@ -44,8 +44,11 @@ pageHead('Exam Date Sheets', 'student_affairs');
 <div class="page-content">
 <?= flashHtml() ?>
 
-<div class="mb-3">
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
   <h5 class="mb-0 fw-bold" style="color:var(--accent)"><i class="fas fa-calendar-day me-2"></i>Exam Date Sheets</h5>
+  <button onclick="window.print()" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-print me-1"></i>Print
+  </button>
 </div>
 
 <?php if (empty($sheets)): ?>

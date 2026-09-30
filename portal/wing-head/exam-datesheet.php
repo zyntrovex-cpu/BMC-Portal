@@ -44,8 +44,11 @@ pageHead('Exam Date Sheets', 'wing_head');
 <div class="page-content">
 <?= flashHtml() ?>
 
-<div class="mb-3">
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
   <h5 class="mb-0 fw-bold" style="color:var(--accent)"><i class="fas fa-calendar-day me-2"></i>Exam Date Sheets</h5>
+  <button onclick="window.print()" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-print me-1"></i>Print
+  </button>
 </div>
 
 <?php if (empty($sheets)): ?>
@@ -68,6 +71,9 @@ pageHead('Exam Date Sheets', 'wing_head');
         $wc = match($sheet['wing']) { 'ilc'=>'#0891b2', 'montessori'=>'#7c3aed', 'all'=>'#374151', default=>'#2563eb' };
       ?>
       <span style="font-size:.75rem;background:<?= $wc ?>;color:#fff;padding:2px 10px;border-radius:20px;font-weight:700"><?= h($wl) ?></span>
+      <?php if (!empty($sheet['term'])): ?>
+      <span class="badge bg-primary" style="font-size:.72rem"><?= h($sheet['term']) ?></span>
+      <?php endif; ?>
       <span class="badge bg-success">Published</span>
       <small class="text-muted">AY: <?= h($sheet['academic_year']) ?></small>
     </div>
