@@ -266,8 +266,12 @@ if ($statusFilter !== '') {
     $params[] = $statusFilter;
 }
 if ($categoryFilter !== '' && $hasCategory) {
-    $where[]  = 's.category = ?';
-    $params[] = $categoryFilter;
+    if ($categoryFilter === '__unassigned__') {
+        $where[] = "(s.category IS NULL OR s.category = '')";
+    } else {
+        $where[]  = 's.category = ?';
+        $params[] = $categoryFilter;
+    }
 }
 $whereSQL = 'WHERE ' . implode(' AND ', $where);
 
@@ -505,6 +509,7 @@ $links = getStudentAffairsLinks();
       <?php if (!empty($studentCategories)): ?>
       <select name="category" class="form-select form-select-sm" style="width:130px" onchange="this.form.submit()">
         <option value="">All Categories</option>
+        <option value="__unassigned__" <?= $categoryFilter==='__unassigned__'?'selected':'' ?>>— Unassigned —</option>
         <?php foreach ($studentCategories as $cat): ?>
         <option value="<?= h($cat) ?>" <?= $categoryFilter===$cat?'selected':'' ?>><?= h($cat) ?></option>
         <?php endforeach; ?>
