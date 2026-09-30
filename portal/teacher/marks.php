@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher', 'ilc_teacher');
+$user    = requireAuth('teacher', 'ilc_teacher', 'montessori_teacher');
 requirePermission('marks');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
@@ -103,8 +103,12 @@ if ($tab === 'marks' && $assessmentId) {
     }
 }
 
-// Classes assigned to this teacher
-$classesSt = $db->prepare('SELECT DISTINCT c.id, c.name FROM class_subjects cs JOIN classes c ON cs.class_id = c.id WHERE cs.teacher_id = ? ORDER BY c.grade, c.section');
+// Classes assigned to this teacher (Montessori teachers only see Class-2 and Class-3 here)
+if ($user['role'] === 'montessori_teacher') {
+    $classesSt = $db->prepare('SELECT DISTINCT c.id, c.name FROM class_subjects cs JOIN classes c ON cs.class_id = c.id WHERE cs.teacher_id = ? AND c.is_montessori = 1 AND COALESCE(c.grade, 0) >= 2 ORDER BY c.grade, c.section');
+} else {
+    $classesSt = $db->prepare('SELECT DISTINCT c.id, c.name FROM class_subjects cs JOIN classes c ON cs.class_id = c.id WHERE cs.teacher_id = ? ORDER BY c.grade, c.section');
+}
 $classesSt->execute([$teacher['id']]);
 $assignedClasses = $classesSt->fetchAll();
 
@@ -118,7 +122,7 @@ if (empty($assignedSubjects) && !empty($teacher['subject_id'])) {
 }
 
 pageHead('Marks', $user['role']);
-$links = getTeacherLinks();
+$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
 ?>
 <div class="portal-wrap">
 <?php sidebar($user['role'], 'marks', $links, $user); ?>

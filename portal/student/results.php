@@ -11,9 +11,13 @@ if (!$student) {
     redirect('/portal/logout.php');
 }
 
-// Montessori students use Progress Report instead of Results
+// Montessori Beginner/Advance/Prep/Class-1 (grade < 2) use Progress Report only
 if (($student['wing'] ?? 'main') === 'montessori') {
-    redirect('/portal/student/progress-report.php');
+    $gSt = getDB()->prepare('SELECT COALESCE(grade, 0) FROM classes WHERE id = ?');
+    $gSt->execute([$student['class_id']]);
+    if ((int)($gSt->fetchColumn() ?? 0) < 2) {
+        redirect('/portal/student/progress-report.php');
+    }
 }
 
 $db = getDB();

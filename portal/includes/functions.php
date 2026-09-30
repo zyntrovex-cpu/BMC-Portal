@@ -228,6 +228,7 @@ function getRolePermissions(string $role): array {
             'complaints'  => ['label' => 'View Complaints',     'icon' => 'fa-comment-alt'],
         ],
         'montessori_teacher' => [
+            'marks'       => ['label' => 'Assessments & Marks', 'icon' => 'fa-pen-alt'],
             'attendance'  => ['label' => 'Mark Attendance',     'icon' => 'fa-calendar-check'],
             'timetable'   => ['label' => 'View Timetable',      'icon' => 'fa-table'],
             'notices'     => ['label' => 'Post Notices',        'icon' => 'fa-bell'],
@@ -323,7 +324,7 @@ function getStudentLinks(): array {
         if (!$isIlcStudent && !empty($sess['id'])) {
             $chkM = $db->prepare(
                 'SELECT 1 FROM students s JOIN classes c ON c.id = s.class_id
-                 WHERE s.user_id = ? AND c.is_montessori = 1 LIMIT 1'
+                 WHERE s.user_id = ? AND c.is_montessori = 1 AND COALESCE(c.grade, 0) < 2 LIMIT 1'
             );
             $chkM->execute([$sess['id']]);
             $isMontessoriStudent = (bool)$chkM->fetchColumn();
@@ -429,6 +430,7 @@ function getMonteTeacherLinks(): array {
         ['href'=>'/portal/teacher/dashboard.php',      'icon'=>'<i class="fas fa-home"></i>',                'label'=>'Dashboard',        'key'=>'dashboard'],
         ['href'=>'/portal/teacher/profile.php',        'icon'=>'<i class="fas fa-user-circle"></i>',         'label'=>'My Profile',       'key'=>'profile'],
         ['href'=>'/portal/progress-report/form.php',   'icon'=>'<i class="fas fa-file-alt"></i>',            'label'=>'Progress Report',  'key'=>'progress-report'],
+        hasPermission('marks')      ? ['href'=>'/portal/teacher/marks.php',        'icon'=>'<i class="fas fa-pen-alt"></i>',                 'label'=>'Assessments & Marks', 'key'=>'marks'] : null,
         hasPermission('attendance') ? ['href'=>'/portal/teacher/attendance.php',   'icon'=>'<i class="fas fa-calendar-check"></i>',          'label'=>'Attendance',       'key'=>'attendance'] : null,
         hasPermission('timetable')  ? ['href'=>'/portal/teacher/timetable.php',    'icon'=>'<i class="fas fa-table"></i>',                   'label'=>'My Timetable',     'key'=>'timetable']  : null,
         ['href'=>'/portal/teacher/exam-datesheet.php',     'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',  'key'=>'exam-datesheet'],
