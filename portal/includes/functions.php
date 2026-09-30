@@ -28,8 +28,11 @@ function wingBadge(string $wing): string {
 }
 
 function redirect(string $url): never {
-    // Prepend BASE_URL for site-relative paths so subdirectory installs work
-    if (str_starts_with($url, '/') && defined('BASE_URL') && BASE_URL !== '') {
+    // Prepend BASE_URL for site-relative paths so subdirectory installs work.
+    // Skip if the URL already starts with BASE_URL to prevent double-prepend
+    // when callers pass redirect(url('/path')) instead of redirect('/path').
+    if (str_starts_with($url, '/') && defined('BASE_URL') && BASE_URL !== ''
+        && !str_starts_with($url, BASE_URL . '/') && $url !== BASE_URL) {
         $url = BASE_URL . $url;
     }
     header('Location: ' . $url);
