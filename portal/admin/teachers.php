@@ -83,18 +83,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('/portal/admin/teachers.php');
 }
 
+// Search term (read early so the query can use it)
+$search = trim($_GET['q'] ?? '');
+
 // Get all teachers with details
 $teachers = [];
 try {
-    $teachersSt = $db->query(
-        'SELECT t.*, u.name, u.email, u.user_id AS uid, u.status, u.last_login,
+    $teacherWhere  = '';
+    $teacherParams = [];
+    if ($search !== '') {
+        $likeSearch    = '%' . $search . '%';
+        $teacherWhere  = 'WHERE (u.name LIKE ? OR u.user_id LIKE ? OR u.email LIKE ?
+                                 OR sb.name LIKE ? OR t.qualification LIKE ? OR t.phone LIKE ?)';
+        array_push($teacherParams, $likeSearch, $likeSearch, $likeSearch,
+                                   $likeSearch, $likeSearch, $likeSearch);
+    }
+    $teachersSt = $db->prepare(
+        "SELECT t.*, u.name, u.email, u.user_id AS uid, u.status, u.last_login,
                 u.id AS users_id, sb.name AS subject_name, sb.code AS subject_code,
                 (SELECT COUNT(DISTINCT cs.class_id) FROM class_subjects cs WHERE cs.teacher_id = t.id) AS class_count
          FROM teachers t
          JOIN users u ON t.user_id = u.id
          LEFT JOIN subjects sb ON t.subject_id = sb.id
-         ORDER BY u.name'
+         $teacherWhere
+         ORDER BY u.name"
     );
+    $teachersSt->execute($teacherParams);
     $teachers = $teachersSt->fetchAll();
 } catch (Exception $e) {}
 $subjects = getAllSubjects();
@@ -173,15 +187,45 @@ foreach (['main','montessori','ilc'] as $w)
 
 <!-- Teachers table -->
 <div class="sec-card">
-  <div class="sec-card-header d-flex justify-content-between align-items-center">
-    <span><i class="fas fa-chalkboard-teacher me-2"></i>Teacher Accounts</span>
+  <div class="sec-card-header" style="padding-bottom:8px">
+    <!-- Title + Search row -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+      <span><i class="fas fa-chalkboard-teacher me-2"></i>Teacher Accounts (<?= count($filteredTeachers) ?>)</span>
+      <form method="GET" action="" class="d-flex gap-1 align-items-center">
+        <?php if ($wingFilter !== 'all'): ?><input type="hidden" name="wing" value="<?= h($wingFilter) ?>"><?php endif; ?>
+        <input type="text" name="q" value="<?= h($search) ?>"
+               class="form-control form-control-sm" style="width:220px;font-size:.82rem"
+               placeholder="Name, ID, email, subject, phone…" autocomplete="off">
+        <button type="submit" class="btn btn-sm btn-primary" style="font-size:.8rem;padding:3px 10px;white-space:nowrap">
+          <i class="fas fa-search me-1"></i>Search
+        </button>
+        <?php if ($search !== ''): ?>
+        <a href="?wing=<?= h($wingFilter) ?>"
+           class="btn btn-sm btn-outline-secondary" style="font-size:.8rem;padding:3px 9px" title="Clear search">
+          <i class="fas fa-times"></i>
+        </a>
+        <?php endif; ?>
+      </form>
+    </div>
+    <?php if ($search !== ''): ?>
+    <div style="font-size:.78rem;color:#6b7280;padding:0 0 6px">
+      <i class="fas fa-search me-1" style="color:#3b82f6"></i>
+      Results for <strong style="color:#1e3a5f">"<?= h($search) ?>"</strong>
+      <?php if ($wingFilter !== 'all'): ?> · wing <strong><?= h($wingFilter) ?></strong><?php endif; ?>
+      — <strong><?= count($filteredTeachers) ?></strong> found
+      <a href="?wing=<?= h($wingFilter) ?>" class="ms-2 text-decoration-none" style="font-size:.74rem;color:#6b7280">
+        <i class="fas fa-times-circle me-1"></i>Clear search
+      </a>
+    </div>
+    <?php endif; ?>
   </div>
   <!-- Wing filter tabs -->
   <div class="px-3 pt-2 pb-0">
     <ul class="nav nav-tabs nav-tabs-sm" style="font-size:.82rem">
       <?php foreach (['all'=>'All','main'=>'Main Wing','montessori'=>'Montessori','ilc'=>'ILC'] as $w=>$label): ?>
       <li class="nav-item">
-        <a class="nav-link <?= $wingFilter===$w?'active':'' ?>" href="?wing=<?= $w ?>">
+        <a class="nav-link <?= $wingFilter===$w?'active':'' ?>"
+           href="?wing=<?= $w ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>">
           <?= $label ?>
           <span class="badge ms-1" style="background:<?= $wingFilter===$w?'#3730a3':'#94a3b8' ?>;font-size:.68rem">
             <?= $counts[$w] ?>

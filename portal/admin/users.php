@@ -268,6 +268,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $roleFilter = $_GET['role'] ?? '';
 $wingFilter = $_GET['wing'] ?? '';
+$search     = trim($_GET['q'] ?? '');
 $page       = max(1, (int)($_GET['page'] ?? 1));
 $perPage    = 20;
 $offset     = ($page - 1) * $perPage;
@@ -315,6 +316,11 @@ if ($roleFilter) {
 if ($wingFilter) {
     $whereParts[] = "($wingExpr) = ?";
     $params[]     = $wingFilter;
+}
+if ($search !== '') {
+    $likeSearch   = '%' . $search . '%';
+    $whereParts[] = '(u.name LIKE ? OR u.user_id LIKE ? OR u.email LIKE ? OR c.name LIKE ?)';
+    array_push($params, $likeSearch, $likeSearch, $likeSearch, $likeSearch);
 }
 $whereSQL = $whereParts ? ('WHERE ' . implode(' AND ', $whereParts)) : '';
 
@@ -493,16 +499,51 @@ $links = getAdminLinks();
 
 <!-- Users table -->
 <div class="sec-card">
-  <div class="sec-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <span><i class="fas fa-users me-2"></i>All Users (<?= $total ?>)</span>
+  <div class="sec-card-header" style="padding-bottom:8px">
+    <!-- Title + Search row -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+      <span><i class="fas fa-users me-2"></i>All Users (<?= $total ?>)</span>
+      <form method="GET" action="" class="d-flex gap-1 align-items-center">
+        <?php if ($roleFilter): ?><input type="hidden" name="role" value="<?= h($roleFilter) ?>"><?php endif; ?>
+        <?php if ($wingFilter): ?><input type="hidden" name="wing" value="<?= h($wingFilter) ?>"><?php endif; ?>
+        <input type="text" name="q" value="<?= h($search) ?>"
+               class="form-control form-control-sm" style="width:220px;font-size:.82rem"
+               placeholder="Name, ID, email, class…" autocomplete="off">
+        <button type="submit" class="btn btn-sm btn-primary" style="font-size:.8rem;padding:3px 10px;white-space:nowrap">
+          <i class="fas fa-search me-1"></i>Search
+        </button>
+        <?php if ($search !== ''): ?>
+        <a href="?role=<?= h($roleFilter) ?>&wing=<?= h($wingFilter) ?>"
+           class="btn btn-sm btn-outline-secondary" style="font-size:.8rem;padding:3px 9px" title="Clear search">
+          <i class="fas fa-times"></i>
+        </a>
+        <?php endif; ?>
+      </form>
+    </div>
+    <?php if ($search !== ''): ?>
+    <div style="font-size:.78rem;color:#6b7280;padding:0 0 6px">
+      <i class="fas fa-search me-1" style="color:#3b82f6"></i>
+      Showing results for <strong style="color:#1e3a5f">"<?= h($search) ?>"</strong>
+      <?php if ($roleFilter): ?> · role <strong><?= h($roleFilter) ?></strong><?php endif; ?>
+      <?php if ($wingFilter): ?> · wing <strong><?= h($wingFilter) ?></strong><?php endif; ?>
+      — <strong><?= $total ?></strong> found
+      <a href="?role=<?= h($roleFilter) ?>&wing=<?= h($wingFilter) ?>" class="ms-2 text-decoration-none"
+         style="font-size:.74rem;color:#6b7280">
+        <i class="fas fa-times-circle me-1"></i>Clear search
+      </a>
+    </div>
+    <?php endif; ?>
+    <!-- Role + Wing filter chips -->
     <div class="d-flex flex-wrap gap-1">
       <span class="text-muted" style="font-size:.72rem;padding:2px 4px;align-self:center">Role:</span>
       <?php foreach ([''=>'All','student'=>'Student','teacher'=>'Teacher','montessori_teacher'=>'Mont Teacher','ilc_teacher'=>'ILC Teacher','admin'=>'Admin','finance'=>'Finance','ilc_vp'=>'ILC VP','student_affairs'=>'Stu. Affairs','vp_main'=>'VP Main','wing_head'=>'Wing Head'] as $r => $lbl): ?>
-        <a href="?role=<?= $r ?>&wing=<?= urlencode($wingFilter) ?>" class="btn btn-xs <?= $roleFilter===$r?'btn-primary':'btn-outline-secondary' ?>" style="font-size:.72rem;padding:2px 7px"><?= $lbl ?></a>
+        <a href="?role=<?= $r ?>&wing=<?= urlencode($wingFilter) ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>"
+           class="btn btn-xs <?= $roleFilter===$r?'btn-primary':'btn-outline-secondary' ?>" style="font-size:.72rem;padding:2px 7px"><?= $lbl ?></a>
       <?php endforeach; ?>
       <span class="text-muted ms-2" style="font-size:.72rem;padding:2px 4px;align-self:center">Wing:</span>
       <?php foreach ([''=>'All','main'=>'Main','montessori'=>'Montessori','ilc'=>'ILC'] as $w => $wlbl): ?>
-        <a href="?role=<?= urlencode($roleFilter) ?>&wing=<?= $w ?>" class="btn btn-xs <?= $wingFilter===$w?'btn-info':'btn-outline-secondary' ?>" style="font-size:.72rem;padding:2px 7px"><?= $wlbl ?></a>
+        <a href="?role=<?= urlencode($roleFilter) ?>&wing=<?= $w ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>"
+           class="btn btn-xs <?= $wingFilter===$w?'btn-info':'btn-outline-secondary' ?>" style="font-size:.72rem;padding:2px 7px"><?= $wlbl ?></a>
       <?php endforeach; ?>
     </div>
   </div>
@@ -716,9 +757,10 @@ $links = getAdminLinks();
     </table>
   </div>
   <?php if ($pages > 1): ?>
-  <div class="d-flex justify-content-center p-2 gap-1">
+  <div class="d-flex justify-content-center p-2 gap-1 flex-wrap">
     <?php for ($i=1;$i<=$pages;$i++): ?>
-      <a href="?role=<?= urlencode($roleFilter) ?>&wing=<?= urlencode($wingFilter) ?>&page=<?= $i ?>" class="btn btn-xs <?= $i===$page?'btn-primary':'btn-outline-secondary' ?>" style="font-size:.78rem;padding:2px 8px"><?= $i ?></a>
+      <a href="?role=<?= urlencode($roleFilter) ?>&wing=<?= urlencode($wingFilter) ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>&page=<?= $i ?>"
+         class="btn btn-xs <?= $i===$page?'btn-primary':'btn-outline-secondary' ?>" style="font-size:.78rem;padding:2px 8px"><?= $i ?></a>
     <?php endfor; ?>
   </div>
   <?php endif; ?>
