@@ -36,10 +36,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!in_array($wing, $allowedWings, true)) $wing = 'all';
         if (!in_array($term, $termOptions, true))  $term = 'General';
         if ($title) {
-            $db->prepare(
-                'INSERT INTO exam_date_sheets (title,term,wing,academic_year,notes,created_by)
-                 VALUES (?,?,?,?,?,?)'
-            )->execute([$title, $term, $wing, $year, $notes, $user['id']]);
+            try {
+                $db->prepare(
+                    'INSERT INTO exam_date_sheets (title,term,wing,academic_year,notes,created_by)
+                     VALUES (?,?,?,?,?,?)'
+                )->execute([$title, $term, $wing, $year, $notes, $user['id']]);
+            } catch (\PDOException $e) {
+                // term column missing on old schema — insert without it
+                $db->prepare(
+                    'INSERT INTO exam_date_sheets (title,wing,academic_year,notes,created_by)
+                     VALUES (?,?,?,?,?)'
+                )->execute([$title, $wing, $year, $notes, $user['id']]);
+            }
             $newId = (int)$db->lastInsertId();
             logActivity($user['id'], 'exam_ds_create', "Created date sheet: \"$title\" ($wing, $year)");
             setFlash('success', "Date sheet \"$title\" created. Add exam entries below.");
@@ -59,9 +67,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!in_array($wing, $allowedWings, true)) $wing = 'all';
         if (!in_array($term, $termOptions, true))  $term = 'General';
         if ($dsId && $title) {
-            $db->prepare(
-                'UPDATE exam_date_sheets SET title=?,term=?,wing=?,academic_year=?,notes=? WHERE id=?'
-            )->execute([$title, $term, $wing, $year, $notes, $dsId]);
+            try {
+                $db->prepare(
+                    'UPDATE exam_date_sheets SET title=?,term=?,wing=?,academic_year=?,notes=? WHERE id=?'
+                )->execute([$title, $term, $wing, $year, $notes, $dsId]);
+            } catch (\PDOException $e) {
+                $db->prepare(
+                    'UPDATE exam_date_sheets SET title=?,wing=?,academic_year=?,notes=? WHERE id=?'
+                )->execute([$title, $wing, $year, $notes, $dsId]);
+            }
             logActivity($user['id'], 'exam_ds_update', "Updated date sheet #$dsId: \"$title\"");
             setFlash('success', 'Date sheet updated.');
         }
@@ -225,7 +239,7 @@ if ($filterStatus) { $listConds[] = 'ds.status=?';  $listParams[] = $filterStatu
 $listWhere = $listConds ? ('WHERE ' . implode(' AND ', $listConds)) : '';
 
 $listSt = $db->prepare(
-    "SELECT ds.*, COALESCE(ds.term,'General') AS term, u.name AS creator_name,
+    "SELECT ds.*, u.name AS creator_name,
             (SELECT COUNT(*) FROM exam_date_sheet_entries e WHERE e.date_sheet_id=ds.id) AS entry_count
      FROM exam_date_sheets ds JOIN users u ON ds.created_by=u.id
      $listWhere
@@ -348,6 +362,13 @@ $links = getAdminLinks();
     <i class="fas fa-print me-1"></i>Print / PDF
   </a>
 </div>
+
+<?php if ($ds['status'] === 'draft'): ?>
+<div class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-3" style="font-size:.85rem">
+  <i class="fas fa-eye-slash"></i>
+  <span>This date sheet is in <strong>Draft</strong> status — it is <strong>not visible</strong> to students or staff yet. Use <em>Publish Date Sheet</em> on the left to make it live.</span>
+</div>
+<?php endif; ?>
 
 <div class="row g-3">
   <!-- Left: header info -->

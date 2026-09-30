@@ -25,8 +25,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $notes = trim($_POST['notes'] ?? '');
         if (!in_array($term, $termOptions, true)) $term = 'General';
         if ($title) {
-            $db->prepare('INSERT INTO exam_date_sheets (title,term,wing,academic_year,notes,created_by) VALUES (?,?,?,?,?,?)')
-               ->execute([$title, $term, $managerWing, $year, $notes, $user['id']]);
+            try {
+                $db->prepare('INSERT INTO exam_date_sheets (title,term,wing,academic_year,notes,created_by) VALUES (?,?,?,?,?,?)')
+                   ->execute([$title, $term, $managerWing, $year, $notes, $user['id']]);
+            } catch (\PDOException $e) {
+                $db->prepare('INSERT INTO exam_date_sheets (title,wing,academic_year,notes,created_by) VALUES (?,?,?,?,?)')
+                   ->execute([$title, $managerWing, $year, $notes, $user['id']]);
+            }
             $newId = (int)$db->lastInsertId();
             logActivity($user['id'], 'exam_ds_create', "Created date sheet: \"$title\" (ilc, $year)");
             setFlash('success', "Date sheet \"$title\" created. Add exam entries below.");
@@ -46,8 +51,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $chk   = $db->prepare('SELECT id FROM exam_date_sheets WHERE id=? AND wing=?');
         $chk->execute([$dsId, $managerWing]);
         if ($dsId && $title && $chk->fetch()) {
-            $db->prepare('UPDATE exam_date_sheets SET title=?,term=?,academic_year=?,notes=? WHERE id=?')
-               ->execute([$title, $term, $year, $notes, $dsId]);
+            try {
+                $db->prepare('UPDATE exam_date_sheets SET title=?,term=?,academic_year=?,notes=? WHERE id=?')
+                   ->execute([$title, $term, $year, $notes, $dsId]);
+            } catch (\PDOException $e) {
+                $db->prepare('UPDATE exam_date_sheets SET title=?,academic_year=?,notes=? WHERE id=?')
+                   ->execute([$title, $year, $notes, $dsId]);
+            }
             logActivity($user['id'], 'exam_ds_update', "Updated date sheet #$dsId: \"$title\"");
             setFlash('success', 'Date sheet updated.');
         }
@@ -174,7 +184,7 @@ if ($dsId) {
 $termOptions = ['Mid-Term', 'Final-Term', 'Unit Test 1', 'Unit Test 2', 'Annual', 'Mock Exam', 'General'];
 
 $listSt = $db->prepare(
-    "SELECT ds.*, COALESCE(ds.term,'General') AS term, u.name AS creator_name,
+    "SELECT ds.*, u.name AS creator_name,
             (SELECT COUNT(*) FROM exam_date_sheet_entries e WHERE e.date_sheet_id=ds.id) AS entry_count
      FROM exam_date_sheets ds JOIN users u ON ds.created_by=u.id
      WHERE ds.wing=?
@@ -245,6 +255,13 @@ $links = getIlcLinks();
     <i class="fas fa-print me-1"></i>Print / PDF
   </a>
 </div>
+
+<?php if ($ds['status'] === 'draft'): ?>
+<div class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-3" style="font-size:.85rem">
+  <i class="fas fa-eye-slash"></i>
+  <span>This date sheet is in <strong>Draft</strong> status — not visible to students or staff. Use <em>Publish Date Sheet</em> to make it live.</span>
+</div>
+<?php endif; ?>
 
 <div class="row g-3">
   <div class="col-lg-4">

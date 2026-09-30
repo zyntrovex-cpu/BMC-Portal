@@ -24,11 +24,13 @@ function getDB(): PDO {
             die(json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]));
         }
     }
-    // Auto-migrate missing schema columns (runs once per process after first connection)
+    // Auto-migrate missing schema columns (runs once per process after first connection).
+    // Each migration group is isolated so one failure never blocks the others.
     if (!$migrated) {
         $migrated = true;
+
+        // Group 1: classes wing columns
         try {
-            // classes: is_ilc, is_montessori
             $classCols = array_flip(
                 $pdo->query("SHOW COLUMNS FROM classes")->fetchAll(PDO::FETCH_COLUMN)
             );
@@ -36,22 +38,28 @@ function getDB(): PDO {
                 $pdo->exec("ALTER TABLE classes ADD COLUMN is_ilc TINYINT(1) NOT NULL DEFAULT 0");
             if (!isset($classCols['is_montessori']))
                 $pdo->exec("ALTER TABLE classes ADD COLUMN is_montessori TINYINT(1) NOT NULL DEFAULT 0");
+        } catch (Exception $e) {}
 
-            // teachers: is_ilc
+        // Group 2: teachers is_ilc column
+        try {
             $tchCols = array_flip(
                 $pdo->query("SHOW COLUMNS FROM teachers")->fetchAll(PDO::FETCH_COLUMN)
             );
             if (!isset($tchCols['is_ilc']))
                 $pdo->exec("ALTER TABLE teachers ADD COLUMN is_ilc TINYINT(1) NOT NULL DEFAULT 0");
+        } catch (Exception $e) {}
 
-            // students: soft-delete column
+        // Group 3: students soft-delete column
+        try {
             $stuCols = array_flip(
                 $pdo->query("SHOW COLUMNS FROM students")->fetchAll(PDO::FETCH_COLUMN)
             );
             if (!isset($stuCols['deleted_at']))
                 $pdo->exec("ALTER TABLE students ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL");
+        } catch (Exception $e) {}
 
-            // exam_date_sheets + exam_date_sheet_entries (exam datesheet feature)
+        // Group 4: exam date sheet tables — isolated so earlier failures never skip this
+        try {
             $pdo->exec("CREATE TABLE IF NOT EXISTS exam_date_sheets (
                 id            INT PRIMARY KEY AUTO_INCREMENT,
                 title         VARCHAR(200)  NOT NULL,
@@ -65,7 +73,8 @@ function getDB(): PDO {
                 updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
             ) ENGINE=InnoDB");
-            // Add term column if missing (tables created before this migration)
+
+            // Add term column if the table already existed without it
             $dsCols = array_flip(
                 $pdo->query("SHOW COLUMNS FROM exam_date_sheets")->fetchAll(PDO::FETCH_COLUMN)
             );
@@ -86,15 +95,14 @@ function getDB(): PDO {
                 FOREIGN KEY (date_sheet_id) REFERENCES exam_date_sheets(id) ON DELETE CASCADE,
                 FOREIGN KEY (class_id)      REFERENCES classes(id) ON DELETE SET NULL
             ) ENGINE=InnoDB");
+        } catch (Exception $e) {}
 
-            // users: extend role ENUM to include montessori_teacher
+        // Group 5: extend users role ENUM
+        try {
             $pdo->exec("ALTER TABLE users MODIFY COLUMN role
                 ENUM('student','teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','montessori_teacher','ilc_teacher')
                 NOT NULL");
-
-        } catch (Exception $e) {
-            // Non-fatal — column already exists or table not yet created
-        }
+        } catch (Exception $e) {}
     }
     return $pdo;
 }
