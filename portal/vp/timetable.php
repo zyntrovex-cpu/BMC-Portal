@@ -5,7 +5,6 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('vp_main');
-requirePermission('vp_timetable');
 $db   = getDB();
 
 $classId  = (int)($_GET['class_id'] ?? 0);
@@ -29,19 +28,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             setFlash('danger', 'Invalid day or period number.');
             redirect('/portal/vp/timetable.php?class_id=' . $cid);
         }
+        $subjectId = $_POST['subject_id'] ?: null;
+        $teacherId = $_POST['teacher_id'] ?: null;
+        $room      = trim($_POST['room'] ?? '') ?: null;
         try {
             $db->prepare(
-                'INSERT INTO timetable (class_id, subject_id, teacher_id, day, period)
-                 VALUES (?,?,?,?,?)'
-            )->execute([
-                $cid,
-                $_POST['subject_id'] ?: null,
-                $_POST['teacher_id'] ?: null,
-                $dayVal,
-                $periodVal,
-            ]);
-            logActivity($user['id'], 'timetable_edit', "VP added period for class #$cid");
-            setFlash('success', 'Period added.');
+                'INSERT INTO timetable (class_id, subject_id, teacher_id, day, period, room)
+                 VALUES (?,?,?,?,?,?)
+                 ON DUPLICATE KEY UPDATE subject_id=VALUES(subject_id), teacher_id=VALUES(teacher_id), room=VALUES(room)'
+            )->execute([$cid, $subjectId, $teacherId, $dayVal, $periodVal, $room]);
+            logActivity($user['id'], 'timetable_edit', "VP added/updated period $periodVal ($dayVal) for class #$cid");
+            setFlash('success', 'Period saved.');
         } catch (Exception $e) {
             setFlash('danger', 'Error: ' . $e->getMessage());
         }
@@ -123,15 +120,22 @@ $links = getVpLinks();
             <?php foreach ($subjects as $s): ?><option value="<?= $s['id'] ?>"><?= h($s['name']) ?></option><?php endforeach; ?>
           </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label class="form-label fw-semibold" style="font-size:.8rem">Teacher</label>
           <select name="teacher_id" class="form-select form-select-sm">
             <option value="">—</option>
             <?php foreach ($teachers as $t): ?><option value="<?= $t['id'] ?>"><?= h($t['name']) ?></option><?php endforeach; ?>
           </select>
         </div>
+        <div class="col-md-2">
+          <label class="form-label fw-semibold" style="font-size:.8rem">Room</label>
+          <input type="text" name="room" class="form-control form-control-sm" placeholder="Optional">
+        </div>
         <div class="col-12">
-          <button type="submit" class="btn btn-sm btn-primary">Add Period</button>
+          <button type="submit" class="btn btn-sm btn-primary">
+            <i class="fas fa-save me-1"></i>Save Period
+          </button>
+          <small class="text-muted ms-2" style="font-size:.77rem">If the slot exists it will be updated.</small>
         </div>
       </form>
     </div>
@@ -149,13 +153,14 @@ $links = getVpLinks();
   <div style="padding:10px 16px 4px;font-weight:700;font-size:.8rem;color:var(--t2);text-transform:uppercase;border-top:1px solid var(--border)"><?= $day ?></div>
   <div class="table-responsive">
     <table class="table table-sm mb-0" style="font-size:.82rem">
-      <thead class="table-light"><tr><th>Period</th><th>Subject</th><th>Teacher</th><th></th></tr></thead>
+      <thead class="table-light"><tr><th>Period</th><th>Subject</th><th>Teacher</th><th>Room</th><th></th></tr></thead>
       <tbody>
         <?php foreach ($grouped[$dayKey] as $p): ?>
         <tr>
           <td><?= (int)$p['period'] ?></td>
           <td><?= h($p['subject_name'] ?: '—') ?></td>
           <td><?= h($p['teacher_name'] ?: '—') ?></td>
+          <td><?= h($p['room'] ?: '—') ?></td>
           <td>
             <form method="POST" class="d-inline" onsubmit="return confirm('Remove period?')">
               <input type="hidden" name="action" value="delete_period">

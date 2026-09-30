@@ -505,7 +505,8 @@ function getVpLinks(): array {
         hasPermission('vp_attendance')   ? ['href'=>'/portal/vp/attendance.php',             'icon'=>'<i class="fas fa-calendar-check"></i>',     'label'=>'Attendance',           'key'=>'attendance']   : null,
         hasPermission('vp_att_requests') ? ['href'=>'/portal/vp/attendance-requests.php',    'icon'=>'<i class="fas fa-edit"></i>',               'label'=>'Attendance Requests',  'key'=>'att_requests'] : null,
         hasPermission('vp_results')      ? ['href'=>'/portal/vp/results.php',                'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'Results',              'key'=>'results']      : null,
-        hasPermission('vp_timetable')    ? ['href'=>'/portal/vp/timetable.php',              'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',            'key'=>'timetable']    : null,
+        ['href'=>'/portal/vp/timetable.php',              'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',            'key'=>'timetable'],
+        ['href'=>'/portal/vp/notices.php',               'icon'=>'<i class="fas fa-bell"></i>',               'label'=>'Notices',              'key'=>'notices'],
         hasPermission('vp_calendar')     ? ['href'=>'/portal/admin/academic-calendar.php',   'icon'=>'<i class="fas fa-calendar-week"></i>',      'label'=>'Academic Calendar',    'key'=>'calendar']     : null,
         hasPermission('vp_viewas')       ? ['href'=>'/portal/vp/view-as.php',                'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',         'key'=>'viewas']       : null,
         ['href'=>'/portal/vp/exam-datesheet.php',        'icon'=>'<i class="fas fa-calendar-day"></i>',       'label'=>'Exam Date Sheets',     'key'=>'exam-datesheet'],
@@ -519,8 +520,9 @@ function getWingHeadLinks(): array {
         ['href'=>'/portal/wing-head/dashboard.php', 'icon'=>'<i class="fas fa-home"></i>',          'label'=>'Dashboard', 'key'=>'dashboard'],
         hasPermission('wh_students') ? ['href'=>'/portal/wing-head/students.php', 'icon'=>'<i class="fas fa-user-graduate"></i>', 'label'=>'Students', 'key'=>'students'] : null,
         hasPermission('wh_classes')  ? ['href'=>'/portal/wing-head/classes.php',  'icon'=>'<i class="fas fa-chalkboard"></i>',    'label'=>'Classes',  'key'=>'classes']  : null,
-        ['href'=>'/portal/wing-head/exam-datesheet.php', 'icon'=>'<i class="fas fa-calendar-day"></i>', 'label'=>'Exam Date Sheets', 'key'=>'exam-datesheet'],
-        ['href'=>'/portal/progress-report/form.php', 'icon'=>'<i class="fas fa-file-alt"></i>', 'label'=>'Progress Report', 'key'=>'progress-report'],
+        ['href'=>'/portal/wing-head/notices.php',         'icon'=>'<i class="fas fa-bell"></i>',            'label'=>'Notices',          'key'=>'notices'],
+        ['href'=>'/portal/wing-head/exam-datesheet.php', 'icon'=>'<i class="fas fa-calendar-day"></i>',   'label'=>'Exam Date Sheets', 'key'=>'exam-datesheet'],
+        ['href'=>'/portal/progress-report/form.php',     'icon'=>'<i class="fas fa-file-alt"></i>',       'label'=>'Progress Report',  'key'=>'progress-report'],
     ]));
 }
 
