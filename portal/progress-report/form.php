@@ -65,22 +65,42 @@ function prCountFilled(array $rfd): array {
     return [$filled, 17];
 }
 
-// Student list
+// Student list — ONLY Progress Report eligible students:
+// Eligible: Montessori (all grades) + Class 1, 2, 3 (grade <= 3, non-montessori, non-ILC)
+// Ineligible: Class 4 and above (grade > 3, non-montessori)
 $students = [];
 try {
     if ($role === 'montessori_teacher') {
+        // Montessori teacher: only students in their assigned Montessori classes
         $st = $db->prepare(
             'SELECT DISTINCT st.id, u.name AS student_name, st.roll_no, c.name AS class_name
              FROM class_subjects cs JOIN classes c ON cs.class_id=c.id
              JOIN students st ON st.class_id=cs.class_id JOIN users u ON st.user_id=u.id
-             WHERE cs.teacher_id=? AND c.is_montessori=1 ORDER BY c.name, st.roll_no'
+             WHERE cs.teacher_id=? AND c.is_montessori=1
+             ORDER BY c.name, st.roll_no'
         );
         $st->execute([$teacher['id']]);
-    } else {
+    } elseif ($role === 'wing_head') {
+        // Montessori Wing Head: all Montessori students only
         $st = $db->prepare(
             'SELECT st.id, u.name AS student_name, st.roll_no, c.name AS class_name
-             FROM students st JOIN users u ON st.user_id=u.id JOIN classes c ON c.id=st.class_id
-             WHERE c.is_ilc=0 ORDER BY c.name, st.roll_no'
+             FROM students st
+             JOIN users u ON st.user_id=u.id
+             JOIN classes c ON c.id=st.class_id
+             WHERE c.is_montessori=1
+             ORDER BY c.name, st.roll_no'
+        );
+        $st->execute([]);
+    } else {
+        // VP Main (oversees Main + Montessori): Montessori students + Class 1-3 (grade <= 3)
+        $st = $db->prepare(
+            'SELECT st.id, u.name AS student_name, st.roll_no, c.name AS class_name
+             FROM students st
+             JOIN users u ON st.user_id=u.id
+             JOIN classes c ON c.id=st.class_id
+             WHERE c.is_ilc=0
+               AND (c.is_montessori=1 OR (c.grade IS NOT NULL AND c.grade <= 3))
+             ORDER BY c.name, st.roll_no'
         );
         $st->execute([]);
     }
