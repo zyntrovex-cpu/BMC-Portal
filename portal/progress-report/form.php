@@ -4,14 +4,19 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user = requireAuth('montessori_teacher', 'vp_main', 'wing_head');
+$user = requireAuth('montessori_teacher', 'teacher', 'vp_main', 'wing_head');
 $db   = getDB();
 $role = $user['role'];
 
 $teacher = null;
-if ($role === 'montessori_teacher') {
+if ($role === 'montessori_teacher' || $role === 'teacher') {
     $teacher = getTeacherByUserId($user['id']);
     if (!$teacher) { setFlash('danger', 'Teacher record not found.'); redirect('/portal/index.php'); }
+    // Plain teacher: must have at least one eligible class assignment
+    if ($role === 'teacher' && !teacherHasEligibleClasses((int)$teacher['id'])) {
+        setFlash('danger', 'Progress Reports are only available for teachers assigned to Montessori or Class 1–3.');
+        redirect('/portal/teacher/dashboard.php');
+    }
 }
 
 $tableExists = false;
@@ -77,6 +82,21 @@ try {
              FROM class_subjects cs JOIN classes c ON cs.class_id=c.id
              JOIN students st ON st.class_id=cs.class_id JOIN users u ON st.user_id=u.id
              WHERE cs.teacher_id=? AND c.is_montessori=1
+             ORDER BY c.name, st.roll_no'
+        );
+        $st->execute([$teacher['id']]);
+    } elseif ($role === 'teacher') {
+        // Main-wing teacher: only students in their eligible assigned classes
+        // Eligible: Montessori OR non-ILC Class 1-3 (grade <= 3)
+        $st = $db->prepare(
+            'SELECT DISTINCT st.id, u.name AS student_name, st.roll_no, c.name AS class_name
+             FROM class_subjects cs
+             JOIN classes c ON cs.class_id = c.id
+             JOIN students st ON st.class_id = cs.class_id
+             JOIN users u ON st.user_id = u.id
+             WHERE cs.teacher_id = ?
+               AND (c.is_montessori = 1
+                    OR (COALESCE(c.is_ilc,0) = 0 AND c.grade IS NOT NULL AND c.grade <= 3))
              ORDER BY c.name, st.roll_no'
         );
         $st->execute([$teacher['id']]);
@@ -181,6 +201,7 @@ $fdRem   = $fd['remarks'] ?? '';
 
 $links = match($role) {
     'montessori_teacher' => getMonteTeacherLinks(),
+    'teacher'            => getTeacherLinks(),
     'vp_main'            => getVpLinks(),
     'wing_head'          => getWingHeadLinks(),
     default              => getMonteTeacherLinks(),
