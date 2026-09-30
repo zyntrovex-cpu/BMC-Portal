@@ -44,6 +44,13 @@ function getDB(): PDO {
             if (!isset($tchCols['is_ilc']))
                 $pdo->exec("ALTER TABLE teachers ADD COLUMN is_ilc TINYINT(1) NOT NULL DEFAULT 0");
 
+            // students: soft-delete column
+            $stuCols = array_flip(
+                $pdo->query("SHOW COLUMNS FROM students")->fetchAll(PDO::FETCH_COLUMN)
+            );
+            if (!isset($stuCols['deleted_at']))
+                $pdo->exec("ALTER TABLE students ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL");
+
             // exam_date_sheets + exam_date_sheet_entries (exam datesheet feature)
             $pdo->exec("CREATE TABLE IF NOT EXISTS exam_date_sheets (
                 id            INT PRIMARY KEY AUTO_INCREMENT,

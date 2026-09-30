@@ -6,7 +6,7 @@
 
 -- 1. Add deleted_at column to students table
 ALTER TABLE `students`
-    ADD COLUMN `deleted_at` TIMESTAMP NULL DEFAULT NULL AFTER `created_at`;
+    ADD COLUMN `deleted_at` TIMESTAMP NULL DEFAULT NULL;
 
 -- 2. (Optional) Index to speed up the IS NULL filter used on all listings
 ALTER TABLE `students`
