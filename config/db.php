@@ -44,10 +44,39 @@ function getDB(): PDO {
             if (!isset($tchCols['is_ilc']))
                 $pdo->exec("ALTER TABLE teachers ADD COLUMN is_ilc TINYINT(1) NOT NULL DEFAULT 0");
 
-            // users: extend role ENUM if legacy install
+            // exam_date_sheets + exam_date_sheet_entries (exam datesheet feature)
+            $pdo->exec("CREATE TABLE IF NOT EXISTS exam_date_sheets (
+                id            INT PRIMARY KEY AUTO_INCREMENT,
+                title         VARCHAR(200)  NOT NULL,
+                wing          ENUM('main','montessori','ilc','all') NOT NULL DEFAULT 'all',
+                academic_year VARCHAR(20)   NOT NULL,
+                status        ENUM('draft','published') NOT NULL DEFAULT 'draft',
+                notes         TEXT DEFAULT NULL,
+                created_by    INT NOT NULL,
+                created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS exam_date_sheet_entries (
+                id              INT PRIMARY KEY AUTO_INCREMENT,
+                date_sheet_id   INT NOT NULL,
+                class_id        INT DEFAULT NULL,
+                subject         VARCHAR(150) NOT NULL,
+                exam_date       DATE NOT NULL,
+                start_time      TIME NOT NULL,
+                end_time        TIME NOT NULL,
+                venue           VARCHAR(100) DEFAULT NULL,
+                notes           VARCHAR(255) DEFAULT NULL,
+                sort_order      INT NOT NULL DEFAULT 0,
+                FOREIGN KEY (date_sheet_id) REFERENCES exam_date_sheets(id) ON DELETE CASCADE,
+                FOREIGN KEY (class_id)      REFERENCES classes(id) ON DELETE SET NULL
+            ) ENGINE=InnoDB");
+
+            // users: extend role ENUM to include montessori_teacher
             $pdo->exec("ALTER TABLE users MODIFY COLUMN role
-                ENUM('student','teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head')
+                ENUM('student','teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','montessori_teacher','ilc_teacher')
                 NOT NULL");
+
         } catch (Exception $e) {
             // Non-fatal — column already exists or table not yet created
         }
