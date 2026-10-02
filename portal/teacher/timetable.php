@@ -10,6 +10,23 @@ $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
 if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
 
+// Determine teacher's wing for timetable documents
+$teacherWing = 'main';
+try {
+    if ($user['role'] === 'ilc_teacher' || (isset($teacher['is_ilc']) && $teacher['is_ilc'])) {
+        $teacherWing = 'ilc';
+    } elseif ($user['role'] === 'montessori_teacher') {
+        $teacherWing = 'montessori';
+    }
+} catch (Exception $e) {}
+
+$ttDocs = [];
+try {
+    $tdst = $db->prepare("SELECT td.* FROM timetable_documents td WHERE td.wing=? OR td.wing='all' ORDER BY td.created_at DESC");
+    $tdst->execute([$teacherWing]);
+    $ttDocs = $tdst->fetchAll();
+} catch (Exception $e) {}
+
 // Get teacher's timetable
 $st = $db->prepare(
     'SELECT tt.day, tt.period, tt.room,
@@ -75,6 +92,32 @@ $links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTe
     </table>
   </div>
 </div>
+
+</div>
+
+<?php if (!empty($ttDocs)): ?>
+<div class="sec-card mt-3">
+  <div class="sec-card-header"><i class="fas fa-file-alt me-2"></i>Timetable Documents</div>
+  <div style="padding:12px 16px">
+    <?php foreach ($ttDocs as $doc):
+      $iconMap = ['pdf' => 'fa-file-pdf text-danger', 'xlsx' => 'fa-file-excel text-success', 'xls' => 'fa-file-excel text-success', 'doc' => 'fa-file-word text-primary', 'docx' => 'fa-file-word text-primary'];
+      $icon    = $iconMap[$doc['file_type']] ?? 'fa-file text-secondary';
+    ?>
+    <div class="d-flex align-items-center gap-3 mb-2 p-2" style="background:#f9fafb;border-radius:6px;border:1px solid #e5e7eb">
+      <i class="fas <?= $icon ?> fa-lg"></i>
+      <div class="flex-grow-1">
+        <div class="fw-semibold" style="font-size:.86rem"><?= h($doc['title']) ?></div>
+        <div style="font-size:.76rem;color:#6b7280"><?= h($doc['academic_year']) ?><?= $doc['notes'] ? ' — ' . h($doc['notes']) : '' ?></div>
+      </div>
+      <a href="/portal/api/serve-document.php?type=timetable&id=<?= $doc['id'] ?>"
+         class="btn btn-xs btn-primary" style="font-size:.76rem;padding:3px 10px;white-space:nowrap">
+        <i class="fas fa-download me-1"></i>Download
+      </a>
+    </div>
+    <?php endforeach; ?>
+  </div>
+</div>
+<?php endif; ?>
 
 </div>
 </div>

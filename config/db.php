@@ -138,6 +138,37 @@ function getDB(): PDO {
             ];
             foreach ($seedFamilies as $sql) { $pdo->exec($sql); }
         } catch (Exception $e) {}
+
+        // Group 7: document upload tables for timetable and exam date sheets
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS timetable_documents (
+                id                INT          PRIMARY KEY AUTO_INCREMENT,
+                title             VARCHAR(200) NOT NULL,
+                wing              ENUM('main','montessori','ilc','all') NOT NULL DEFAULT 'all',
+                academic_year     VARCHAR(20)  NOT NULL,
+                notes             TEXT         DEFAULT NULL,
+                original_filename VARCHAR(255) NOT NULL,
+                stored_filename   VARCHAR(255) NOT NULL,
+                file_type         VARCHAR(50)  NOT NULL,
+                file_size         INT          NOT NULL DEFAULT 0,
+                uploaded_by       INT          NOT NULL,
+                created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB");
+
+            // Add file columns to exam_date_sheets if missing
+            $dsCols2 = array_flip(
+                $pdo->query("SHOW COLUMNS FROM exam_date_sheets")->fetchAll(PDO::FETCH_COLUMN)
+            );
+            if (!isset($dsCols2['original_filename']))
+                $pdo->exec("ALTER TABLE exam_date_sheets ADD COLUMN original_filename VARCHAR(255) NULL DEFAULT NULL");
+            if (!isset($dsCols2['stored_filename']))
+                $pdo->exec("ALTER TABLE exam_date_sheets ADD COLUMN stored_filename VARCHAR(255) NULL DEFAULT NULL");
+            if (!isset($dsCols2['file_type']))
+                $pdo->exec("ALTER TABLE exam_date_sheets ADD COLUMN file_type VARCHAR(50) NULL DEFAULT NULL");
+            if (!isset($dsCols2['file_size']))
+                $pdo->exec("ALTER TABLE exam_date_sheets ADD COLUMN file_size INT NULL DEFAULT NULL");
+        } catch (Exception $e) {}
     }
     return $pdo;
 }

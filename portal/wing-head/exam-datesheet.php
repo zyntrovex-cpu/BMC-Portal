@@ -76,6 +76,12 @@ pageHead('Exam Date Sheets', 'wing_head');
       <?php endif; ?>
       <span class="badge bg-success">Published</span>
       <small class="text-muted">AY: <?= h($sheet['academic_year']) ?></small>
+      <?php if (!empty($sheet['stored_filename'])): ?>
+      <a href="/portal/api/serve-document.php?type=datesheet&id=<?= $sheet['id'] ?>"
+         class="btn btn-xs btn-outline-primary" style="font-size:.72rem;padding:2px 8px">
+        <i class="fas fa-download me-1"></i>Download <?= strtoupper($sheet['file_type'] ?? '') ?>
+      </a>
+      <?php endif; ?>
     </div>
   </div>
   <div class="sec-card-body p-0">

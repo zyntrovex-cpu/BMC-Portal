@@ -15,6 +15,18 @@ $timetable = getClassTimetable((int)$student['class_id']);
 $days      = ['monday','tuesday','wednesday','thursday','friday'];
 $periods   = range(1, 8);
 
+// Uploaded timetable documents for student's wing
+$ttDocs = [];
+try {
+    $classRow = $db->prepare('SELECT COALESCE(is_ilc,0) AS is_ilc, COALESCE(is_montessori,0) AS is_montessori FROM classes WHERE id=?');
+    $classRow->execute([(int)$student['class_id']]);
+    $cr   = $classRow->fetch();
+    $wing = $cr ? ($cr['is_ilc'] ? 'ilc' : ($cr['is_montessori'] ? 'montessori' : 'main')) : 'main';
+    $tdst = $db->prepare("SELECT td.* FROM timetable_documents td WHERE td.wing=? OR td.wing='all' ORDER BY td.created_at DESC");
+    $tdst->execute([$wing]);
+    $ttDocs = $tdst->fetchAll();
+} catch (Exception $e) {}
+
 pageHead('Timetable', 'student');
 $links = getStudentLinks();
 ?>
@@ -66,6 +78,30 @@ $links = getStudentLinks();
     </table>
   </div>
 </div>
+
+<?php if (!empty($ttDocs)): ?>
+<div class="sec-card mt-3">
+  <div class="sec-card-header"><i class="fas fa-file-alt me-2"></i>Timetable Documents</div>
+  <div style="padding:12px 16px">
+    <?php foreach ($ttDocs as $doc):
+      $iconMap = ['pdf' => 'fa-file-pdf text-danger', 'xlsx' => 'fa-file-excel text-success', 'xls' => 'fa-file-excel text-success', 'doc' => 'fa-file-word text-primary', 'docx' => 'fa-file-word text-primary'];
+      $icon    = $iconMap[$doc['file_type']] ?? 'fa-file text-secondary';
+    ?>
+    <div class="d-flex align-items-center gap-3 mb-2 p-2" style="background:#f9fafb;border-radius:6px;border:1px solid #e5e7eb">
+      <i class="fas <?= $icon ?> fa-lg"></i>
+      <div class="flex-grow-1">
+        <div class="fw-semibold" style="font-size:.86rem"><?= h($doc['title']) ?></div>
+        <div style="font-size:.76rem;color:#6b7280"><?= h($doc['academic_year']) ?><?= $doc['notes'] ? ' — ' . h($doc['notes']) : '' ?></div>
+      </div>
+      <a href="/portal/api/serve-document.php?type=timetable&id=<?= $doc['id'] ?>"
+         class="btn btn-xs btn-primary" style="font-size:.76rem;padding:3px 10px;white-space:nowrap">
+        <i class="fas fa-download me-1"></i>Download
+      </a>
+    </div>
+    <?php endforeach; ?>
+  </div>
+</div>
+<?php endif; ?>
 
 </div><!-- page-content -->
 </div><!-- main-area -->
