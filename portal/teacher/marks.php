@@ -5,6 +5,9 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
 $user    = requireAuth('teacher', 'ilc_teacher', 'montessori_teacher');
+if ($user['role'] === 'montessori_teacher') {
+    redirect('/portal/montessori/assessments.php');
+}
 requirePermission('marks');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);

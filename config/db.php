@@ -240,6 +240,36 @@ function getDB(): PDO {
             ) ENGINE=InnoDB");
         } catch (Exception $e) {}
 
+        // Group 12: Montessori daily assessment tables
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS montessori_daily_assessments (
+                id              INT          PRIMARY KEY AUTO_INCREMENT,
+                class_id        INT          NOT NULL,
+                subject_id      INT          NOT NULL,
+                topic           VARCHAR(200) DEFAULT NULL,
+                assessment_date DATE         NOT NULL,
+                criteria        TEXT         NOT NULL,
+                teacher_id      INT          NOT NULL,
+                created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_mda (class_id, subject_id, assessment_date),
+                FOREIGN KEY (class_id)   REFERENCES classes(id)  ON DELETE CASCADE,
+                FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
+                FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS montessori_daily_assessment_entries (
+                id            INT          PRIMARY KEY AUTO_INCREMENT,
+                assessment_id INT          NOT NULL,
+                student_id    INT          NOT NULL,
+                ratings       TEXT         NOT NULL DEFAULT '{}',
+                overall       VARCHAR(10)  DEFAULT NULL,
+                remarks       VARCHAR(500) DEFAULT NULL,
+                UNIQUE KEY uq_mdae (assessment_id, student_id),
+                FOREIGN KEY (assessment_id) REFERENCES montessori_daily_assessments(id) ON DELETE CASCADE,
+                FOREIGN KEY (student_id)    REFERENCES students(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB");
+        } catch (Exception $e) {}
+
         // Group 11: admission request file attachments
         try {
             $pdo->exec("CREATE TABLE IF NOT EXISTS admission_request_attachments (
