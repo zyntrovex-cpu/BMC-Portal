@@ -35,7 +35,7 @@ try {
         "SELECT sd.*, c.name AS class_name, u.name AS uploader_name
          FROM syllabus_documents sd
          LEFT JOIN classes c ON c.id = sd.class_id
-         JOIN users u ON u.id = sd.uploaded_by
+         LEFT JOIN users u ON u.id = sd.uploaded_by
          WHERE $where
          ORDER BY sd.created_at DESC"
     );

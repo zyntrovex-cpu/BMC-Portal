@@ -227,11 +227,18 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
           <td style="padding:9px 12px;font-size:.77rem;color:#475569"><?= h($row['teacher_name']) ?></td>
           <?php endif; ?>
           <td style="padding:9px 12px;text-align:center">
-            <a href="/portal/montessori/assessments.php?class_id=<?= $selClassId ?>&date=<?= urlencode($row['assessment_date']) ?>&show_subject=<?= $row['id'] ?>"
-               class="btn btn-sm btn-outline-primary" style="font-size:.72rem"
-               title="Open assessment for this date">
-              <i class="fas fa-eye me-1"></i>View / Edit
-            </a>
+            <div class="d-flex gap-1 justify-content-center flex-wrap">
+              <a href="/portal/montessori/assessments.php?class_id=<?= $selClassId ?>&date=<?= urlencode($row['assessment_date']) ?>&show_subject=<?= $row['id'] ?>"
+                 class="btn btn-sm btn-outline-primary" style="font-size:.72rem;padding:3px 8px"
+                 title="Open assessment for this date">
+                <i class="fas fa-eye me-1"></i>View / Edit
+              </a>
+              <a href="/portal/montessori/assessment-print.php?id=<?= $row['id'] ?>" target="_blank"
+                 class="btn btn-sm btn-outline-success" style="font-size:.72rem;padding:3px 8px"
+                 title="Printable report">
+                <i class="fas fa-print me-1"></i>Print
+              </a>
+            </div>
           </td>
         </tr>
         <?php endforeach; ?>

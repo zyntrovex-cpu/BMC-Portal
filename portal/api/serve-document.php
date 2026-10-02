@@ -76,7 +76,7 @@ if ($type === 'timetable') {
         if ($row) {
             // Students may only download syllabus for their own class
             if ($user['role'] === 'student') {
-                $stStu = $db->prepare('SELECT class_id FROM students WHERE user_id=?');
+                $stStu = $db->prepare('SELECT class_id FROM students WHERE user_id=? AND deleted_at IS NULL');
                 $stStu->execute([$user['id']]);
                 $stuRow = $stStu->fetch();
                 if (!$stuRow || ($row['class_id'] !== null && (int)$stuRow['class_id'] !== (int)$row['class_id'])) {
