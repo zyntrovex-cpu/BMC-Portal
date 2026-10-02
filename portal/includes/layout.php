@@ -225,6 +225,60 @@ function viewAsBanner(): void {
     </div>';
 }
 
+function _notificationBell(array $user): string {
+    $notifRoles = ['teacher','montessori_teacher','ilc_teacher','vp_main','wing_head','ilc_vp'];
+    $role = $user['role'] ?? '';
+    if (!in_array($role, $notifRoles, true)) return '';
+
+    $uid          = (int)($user['id'] ?? 0);
+    $unread       = getUnreadNotificationCount($uid);
+    $notifs       = getRecentNotifications($uid, 6);
+    $base         = defined('BASE_URL') ? BASE_URL : '';
+
+    $badgeHtml = $unread > 0
+        ? '<span id="notifBadge" style="position:absolute;top:-2px;right:-2px;background:#ef4444;color:#fff;border-radius:50%;min-width:16px;height:16px;font-size:.6rem;display:flex;align-items:center;justify-content:center;font-weight:700;padding:0 3px;line-height:1">'
+          . min($unread, 99) . '</span>'
+        : '';
+
+    $itemsHtml = '';
+    if (empty($notifs)) {
+        $itemsHtml = '<div style="padding:18px;text-align:center;color:#9ca3af;font-size:.83rem"><i class="fas fa-bell-slash me-1"></i>No notifications yet.</div>';
+    } else {
+        foreach ($notifs as $n) {
+            $bg  = $n['is_read'] ? '#fff' : '#eff6ff';
+            $dot = $n['is_read'] ? '' : '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2563eb;margin-right:5px;flex-shrink:0;margin-top:4px"></span>';
+            $itemsHtml .= '<div style="padding:9px 14px;border-bottom:1px solid #f3f4f6;background:' . $bg . ';display:flex;align-items:flex-start;gap:2px">'
+                . $dot
+                . '<div><div style="font-size:.8rem;color:#374151;line-height:1.4">' . htmlspecialchars($n['message']) . '</div>'
+                . '<div style="font-size:.7rem;color:#9ca3af;margin-top:2px">' . fDateTime($n['created_at']) . '</div></div></div>';
+        }
+    }
+
+    return '
+<div class="dropdown" style="position:relative;display:inline-flex;align-items:center">
+  <button class="btn btn-sm" style="position:relative;background:transparent;border:none;padding:4px 8px;color:inherit;opacity:.75"
+          data-bs-toggle="dropdown" aria-expanded="false" id="notifBtn"
+          onclick="markAllNotifRead(\'' . $base . '\')">
+    <i class="fas fa-bell" style="font-size:1.05rem"></i>
+    ' . $badgeHtml . '
+  </button>
+  <div class="dropdown-menu dropdown-menu-end shadow" style="width:320px;padding:0;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb">
+    <div style="padding:10px 14px;background:var(--accent);color:#fff;font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:6px">
+      <i class="fas fa-bell"></i> Notifications
+      ' . ($unread > 0 ? '<span style="margin-left:auto;background:rgba(255,255,255,.25);border-radius:12px;padding:1px 8px;font-size:.72rem">' . $unread . ' unread</span>' : '') . '
+    </div>
+    ' . $itemsHtml . '
+  </div>
+</div>
+<script>
+function markAllNotifRead(base) {
+  fetch(base + \'/portal/api/notifications.php\', {method:\'POST\',headers:{\'Content-Type\':\'application/x-www-form-urlencoded\'},body:\'action=read_all\'})
+    .then(function(){ var b=document.getElementById(\'notifBadge\'); if(b)b.style.display=\'none\'; })
+    .catch(function(){});
+}
+</script>';
+}
+
 function topbar(string $pageTitle, array $user, string $badge = ''): void {
     $portalLabels = [
         'student'         => 'Student Portal',
@@ -260,6 +314,7 @@ function topbar(string $pageTitle, array $user, string $badge = ''): void {
   <div class="topbar-right">
     <span class="topbar-date"><i class="far fa-calendar me-1"></i>' . $today . '</span>
     ' . $badgeHtml . '
+    ' . _notificationBell($user) . '
     <div class="topbar-avatar" title="' . htmlspecialchars($user['name'] ?? '') . '">' . _avatarHtml($user['id'] ?? 0, $initials, 34) . '</div>
   </div>
 </header>

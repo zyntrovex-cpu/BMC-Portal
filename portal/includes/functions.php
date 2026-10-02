@@ -256,15 +256,16 @@ function getRolePermissions(string $role): array {
             'fee_reports'    => ['label' => 'Fee Reports',     'icon' => 'fa-chart-pie'],
         ],
         'ilc_vp' => [
-            'ilc_students'     => ['label' => 'ILC Students',         'icon' => 'fa-user-graduate'],
-            'ilc_teachers'     => ['label' => 'ILC Teachers',         'icon' => 'fa-chalkboard-teacher'],
-            'ilc_disabilities' => ['label' => 'Disability Records',   'icon' => 'fa-heartbeat'],
-            'ilc_admissions'   => ['label' => 'Admission Requests',   'icon' => 'fa-file-medical-alt'],
-            'ilc_records'      => ['label' => 'Session Records',      'icon' => 'fa-folder-open'],
-            'ilc_attendance'   => ['label' => 'ILC Attendance',       'icon' => 'fa-calendar-check'],
-            'ilc_results'      => ['label' => 'ILC Results',          'icon' => 'fa-chart-bar'],
-            'ilc_timetable'    => ['label' => 'ILC Timetable',        'icon' => 'fa-table'],
-            'ilc_viewas'       => ['label' => 'View As User',         'icon' => 'fa-eye'],
+            'ilc_students'        => ['label' => 'ILC Students',                'icon' => 'fa-user-graduate'],
+            'ilc_teachers'        => ['label' => 'ILC Teachers',                'icon' => 'fa-chalkboard-teacher'],
+            'ilc_disabilities'    => ['label' => 'Disability Records',          'icon' => 'fa-heartbeat'],
+            'ilc_admissions'      => ['label' => 'Admission Requests',          'icon' => 'fa-file-medical-alt'],
+            'ilc_records'         => ['label' => 'Session Records',             'icon' => 'fa-folder-open'],
+            'ilc_attendance'      => ['label' => 'ILC Attendance',              'icon' => 'fa-calendar-check'],
+            'ilc_results'         => ['label' => 'ILC Results',                 'icon' => 'fa-chart-bar'],
+            'ilc_timetable'       => ['label' => 'ILC Timetable',               'icon' => 'fa-table'],
+            'ilc_viewas'          => ['label' => 'View As User',                'icon' => 'fa-eye'],
+            'ilc_marks_approval'  => ['label' => 'Marks Permission Approvals',  'icon' => 'fa-clipboard-check'],
         ],
         'student_affairs' => [
             'sa_students'   => ['label' => 'Student Management',  'icon' => 'fa-user-graduate'],
@@ -273,18 +274,20 @@ function getRolePermissions(string $role): array {
             'sa_calendar'   => ['label' => 'Academic Calendar',   'icon' => 'fa-calendar-week'],
         ],
         'vp_main' => [
-            'vp_teachers'      => ['label' => 'Teachers',              'icon' => 'fa-chalkboard-teacher'],
-            'vp_students'      => ['label' => 'Students',              'icon' => 'fa-user-graduate'],
-            'vp_attendance'    => ['label' => 'Attendance',            'icon' => 'fa-calendar-check'],
-            'vp_att_requests'  => ['label' => 'Attendance Requests',   'icon' => 'fa-edit'],
-            'vp_results'       => ['label' => 'Results',               'icon' => 'fa-chart-bar'],
-            'vp_timetable'     => ['label' => 'Timetable',             'icon' => 'fa-table'],
-            'vp_calendar'      => ['label' => 'Academic Calendar',     'icon' => 'fa-calendar-week'],
-            'vp_viewas'        => ['label' => 'View As User',          'icon' => 'fa-eye'],
+            'vp_teachers'         => ['label' => 'Teachers',                 'icon' => 'fa-chalkboard-teacher'],
+            'vp_students'         => ['label' => 'Students',                 'icon' => 'fa-user-graduate'],
+            'vp_attendance'       => ['label' => 'Attendance',               'icon' => 'fa-calendar-check'],
+            'vp_att_requests'     => ['label' => 'Attendance Requests',      'icon' => 'fa-edit'],
+            'vp_results'          => ['label' => 'Results',                  'icon' => 'fa-chart-bar'],
+            'vp_timetable'        => ['label' => 'Timetable',                'icon' => 'fa-table'],
+            'vp_calendar'         => ['label' => 'Academic Calendar',        'icon' => 'fa-calendar-week'],
+            'vp_viewas'           => ['label' => 'View As User',             'icon' => 'fa-eye'],
+            'vp_marks_approval'   => ['label' => 'Marks Permission Approvals', 'icon' => 'fa-clipboard-check'],
         ],
         'wing_head' => [
-            'wh_students' => ['label' => 'Students', 'icon' => 'fa-user-graduate'],
-            'wh_classes'  => ['label' => 'Classes',  'icon' => 'fa-chalkboard'],
+            'wh_students'         => ['label' => 'Students',                    'icon' => 'fa-user-graduate'],
+            'wh_classes'          => ['label' => 'Classes',                     'icon' => 'fa-chalkboard'],
+            'wh_marks_approval'   => ['label' => 'Marks Permission Approvals',  'icon' => 'fa-clipboard-check'],
         ],
     ];
     return $map[$role] ?? [];
@@ -521,7 +524,22 @@ function getIlcLinks(): array {
         ['href'=>'/portal/ilc/assessments.php',       'icon'=>'<i class="fas fa-clipboard-list"></i>',     'label'=>'Assessments',        'key'=>'assessments'],
         ['href'=>'/portal/ilc/fee-status.php',        'icon'=>'<i class="fas fa-money-bill-wave"></i>',    'label'=>'Fee Status',         'key'=>'fee-status'],
         hasPermission('ilc_viewas')       ? ['href'=>'/portal/ilc/view-as.php',            'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',       'key'=>'viewas']            : null,
+        ['href'=>'/portal/ilc/marks-approval.php',       'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>_ilcMarksApprovalLabel(), 'key'=>'marks-approval'],
     ]));
+}
+
+function _ilcMarksApprovalLabel(): string {
+    try {
+        $st = getDB()->prepare(
+            "SELECT COUNT(*) FROM marks_permission_requests mpr
+             JOIN teachers t ON mpr.teacher_id=t.id
+             WHERE COALESCE(t.wing,'main')='ilc' AND mpr.status='pending'"
+        );
+        $st->execute();
+        $n = (int)$st->fetchColumn();
+        if ($n > 0) return 'Marks Approvals <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem">' . $n . '</span>';
+    } catch (Exception $e) {}
+    return 'Marks Approvals';
 }
 
 // ── Student Affairs sidebar links (permission-filtered) ───────────
@@ -546,6 +564,21 @@ function getStudentAffairsLinks(): array {
 
 // ── VP sidebar links (permission-filtered) ────────────────────────
 function getVpLinks(): array {
+    // Pending marks approval badge count
+    $pendingMarksCount = 0;
+    try {
+        $st = getDB()->prepare(
+            "SELECT COUNT(*) FROM marks_permission_requests mpr
+             JOIN teachers t ON mpr.teacher_id=t.id
+             WHERE COALESCE(t.wing,'main')='main' AND mpr.status='pending'"
+        );
+        $st->execute();
+        $pendingMarksCount = (int)$st->fetchColumn();
+    } catch (Exception $e) {}
+    $marksApprovalLabel = 'Marks Approvals' . ($pendingMarksCount
+        ? ' <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem">' . $pendingMarksCount . '</span>'
+        : '');
+
     return array_values(array_filter([
         ['href'=>'/portal/vp/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',            'key'=>'dashboard'],
         hasPermission('vp_teachers')     ? ['href'=>'/portal/vp/teachers.php',               'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teachers',             'key'=>'teachers']     : null,
@@ -553,6 +586,7 @@ function getVpLinks(): array {
         hasPermission('vp_attendance')   ? ['href'=>'/portal/vp/attendance.php',             'icon'=>'<i class="fas fa-calendar-check"></i>',     'label'=>'Attendance',           'key'=>'attendance']   : null,
         hasPermission('vp_att_requests') ? ['href'=>'/portal/vp/attendance-requests.php',    'icon'=>'<i class="fas fa-edit"></i>',               'label'=>'Attendance Requests',  'key'=>'att_requests'] : null,
         hasPermission('vp_results')      ? ['href'=>'/portal/vp/results.php',                'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'Results',              'key'=>'results']      : null,
+        ['href'=>'/portal/vp/marks-approval.php',         'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>$marksApprovalLabel,    'key'=>'marks-approval'],
         ['href'=>'/portal/vp/timetable.php',              'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',            'key'=>'timetable'],
         ['href'=>'/portal/vp/notices.php',               'icon'=>'<i class="fas fa-bell"></i>',               'label'=>'Notices',              'key'=>'notices'],
         hasPermission('vp_calendar')     ? ['href'=>'/portal/admin/academic-calendar.php',   'icon'=>'<i class="fas fa-calendar-week"></i>',      'label'=>'Academic Calendar',    'key'=>'calendar']     : null,
@@ -564,13 +598,28 @@ function getVpLinks(): array {
 
 // ── Wing Head sidebar links (permission-filtered) ─────────────────
 function getWingHeadLinks(): array {
+    $pendingMarksCount = 0;
+    try {
+        $st = getDB()->prepare(
+            "SELECT COUNT(*) FROM marks_permission_requests mpr
+             JOIN teachers t ON mpr.teacher_id=t.id
+             WHERE COALESCE(t.wing,'main')='montessori' AND mpr.status='pending'"
+        );
+        $st->execute();
+        $pendingMarksCount = (int)$st->fetchColumn();
+    } catch (Exception $e) {}
+    $marksApprovalLabel = 'Marks Approvals' . ($pendingMarksCount
+        ? ' <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem">' . $pendingMarksCount . '</span>'
+        : '');
+
     return array_values(array_filter([
-        ['href'=>'/portal/wing-head/dashboard.php', 'icon'=>'<i class="fas fa-home"></i>',          'label'=>'Dashboard', 'key'=>'dashboard'],
+        ['href'=>'/portal/wing-head/dashboard.php',      'icon'=>'<i class="fas fa-home"></i>',              'label'=>'Dashboard',        'key'=>'dashboard'],
         hasPermission('wh_students') ? ['href'=>'/portal/wing-head/students.php', 'icon'=>'<i class="fas fa-user-graduate"></i>', 'label'=>'Students', 'key'=>'students'] : null,
         hasPermission('wh_classes')  ? ['href'=>'/portal/wing-head/classes.php',  'icon'=>'<i class="fas fa-chalkboard"></i>',    'label'=>'Classes',  'key'=>'classes']  : null,
-        ['href'=>'/portal/wing-head/notices.php',         'icon'=>'<i class="fas fa-bell"></i>',            'label'=>'Notices',          'key'=>'notices'],
-        ['href'=>'/portal/wing-head/exam-datesheet.php', 'icon'=>'<i class="fas fa-calendar-day"></i>',   'label'=>'Exam Date Sheets', 'key'=>'exam-datesheet'],
-        ['href'=>'/portal/progress-report/form.php',     'icon'=>'<i class="fas fa-file-alt"></i>',       'label'=>'Progress Report',  'key'=>'progress-report'],
+        ['href'=>'/portal/wing-head/marks-approval.php', 'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>$marksApprovalLabel, 'key'=>'marks-approval'],
+        ['href'=>'/portal/wing-head/notices.php',        'icon'=>'<i class="fas fa-bell"></i>',              'label'=>'Notices',          'key'=>'notices'],
+        ['href'=>'/portal/wing-head/exam-datesheet.php', 'icon'=>'<i class="fas fa-calendar-day"></i>',      'label'=>'Exam Date Sheets', 'key'=>'exam-datesheet'],
+        ['href'=>'/portal/progress-report/form.php',     'icon'=>'<i class="fas fa-file-alt"></i>',          'label'=>'Progress Report',  'key'=>'progress-report'],
     ]));
 }
 
@@ -591,6 +640,71 @@ function getProfilePhotoUrl(int $userId): ?string {
         }
     } catch (Exception $e) {}
     return null;
+}
+
+// ── Marks Permission Workflow helpers ────────────────────────────
+
+/**
+ * Returns the marks_permission_requests row for the given teacher/assessment,
+ * or null if no request exists.
+ */
+function getMarksPermission(int $teacherId, int $assessmentId): ?array {
+    try {
+        $st = getDB()->prepare('SELECT * FROM marks_permission_requests WHERE teacher_id=? AND assessment_id=?');
+        $st->execute([$teacherId, $assessmentId]);
+        return $st->fetch() ?: null;
+    } catch (Exception $e) { return null; }
+}
+
+/**
+ * Creates a notification row for the given user.
+ * @param int    $toUserId   Recipient's users.id
+ * @param string $type       Machine-readable type (e.g. 'marks_permission_request')
+ * @param string $message    Human-readable text
+ * @param int    $refId      Related record id (0 = none)
+ * @param string $refType    Related record type (e.g. 'assessment')
+ */
+function createNotification(int $toUserId, string $type, string $message, int $refId = 0, string $refType = ''): void {
+    try {
+        getDB()->prepare(
+            'INSERT INTO notifications (user_id, type, message, ref_id, ref_type) VALUES (?,?,?,?,?)'
+        )->execute([$toUserId, $type, $message, $refId ?: null, $refType ?: null]);
+    } catch (Exception $e) {}
+}
+
+/** Returns the count of unread notifications for the given user. */
+function getUnreadNotificationCount(int $userId): int {
+    try {
+        $st = getDB()->prepare('SELECT COUNT(*) FROM notifications WHERE user_id=? AND is_read=0');
+        $st->execute([$userId]);
+        return (int)$st->fetchColumn();
+    } catch (Exception $e) { return 0; }
+}
+
+/** Returns up to $limit most-recent notification rows for a user. */
+function getRecentNotifications(int $userId, int $limit = 6): array {
+    try {
+        $st = getDB()->prepare('SELECT * FROM notifications WHERE user_id=? ORDER BY created_at DESC LIMIT ?');
+        $st->execute([$userId, $limit]);
+        return $st->fetchAll();
+    } catch (Exception $e) { return []; }
+}
+
+/**
+ * Returns the users.id of every active approver for the given wing.
+ * main → vp_main, montessori → wing_head, ilc → ilc_vp
+ */
+function getApproversForWing(string $wing): array {
+    $role = match($wing) {
+        'montessori' => 'wing_head',
+        'ilc'        => 'ilc_vp',
+        default      => 'vp_main',
+    };
+    try {
+        $st = getDB()->prepare("SELECT id FROM users WHERE role=? AND status='active'");
+        $st->execute([$role]);
+        return array_column($st->fetchAll(), 'id');
+    } catch (Exception $e) { return []; }
 }
 
 /**

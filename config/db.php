@@ -177,6 +177,49 @@ function getDB(): PDO {
                 $pdo->exec("ALTER TABLE assessments MODIFY COLUMN type VARCHAR(100) NOT NULL DEFAULT 'Quiz'");
             }
         } catch (Exception $e) {}
+
+        // Group 9: marks entry permission & approval workflow
+        try {
+            // Ensure teachers.wing column exists (added by wing-migration.sql; add defensively here)
+            $tchCols9 = array_flip($pdo->query("SHOW COLUMNS FROM teachers")->fetchAll(PDO::FETCH_COLUMN));
+            if (!isset($tchCols9['wing'])) {
+                $pdo->exec("ALTER TABLE teachers ADD COLUMN wing ENUM('main','montessori','ilc') NOT NULL DEFAULT 'main'");
+                $pdo->exec("UPDATE teachers SET wing='ilc' WHERE COALESCE(is_ilc,0)=1");
+            }
+
+            // Marks permission requests table
+            $pdo->exec("CREATE TABLE IF NOT EXISTS marks_permission_requests (
+                id               INT          PRIMARY KEY AUTO_INCREMENT,
+                teacher_id       INT          NOT NULL,
+                assessment_id    INT          NOT NULL,
+                request_reason   TEXT         NULL,
+                status           ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+                reviewed_by      INT          NULL,
+                reviewed_at      TIMESTAMP    NULL,
+                rejection_reason TEXT         NULL,
+                academic_year    VARCHAR(20)  NOT NULL DEFAULT '',
+                created_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (teacher_id)    REFERENCES teachers(id)   ON DELETE CASCADE,
+                FOREIGN KEY (assessment_id) REFERENCES assessments(id) ON DELETE CASCADE,
+                FOREIGN KEY (reviewed_by)   REFERENCES users(id)      ON DELETE SET NULL,
+                UNIQUE KEY uq_mpr (teacher_id, assessment_id)
+            ) ENGINE=InnoDB");
+
+            // Portal notifications table
+            $pdo->exec("CREATE TABLE IF NOT EXISTS notifications (
+                id         INT          PRIMARY KEY AUTO_INCREMENT,
+                user_id    INT          NOT NULL,
+                type       VARCHAR(60)  NOT NULL,
+                message    TEXT         NOT NULL,
+                ref_id     INT          NULL,
+                ref_type   VARCHAR(50)  NULL,
+                is_read    TINYINT(1)   NOT NULL DEFAULT 0,
+                created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                INDEX idx_notif_user (user_id, is_read)
+            ) ENGINE=InnoDB");
+        } catch (Exception $e) {}
     }
     return $pdo;
 }

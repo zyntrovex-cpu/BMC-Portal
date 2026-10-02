@@ -19,11 +19,32 @@ if (!$assessmentId || empty($marksData)) {
 
 $db = getDB();
 
+// Get teacher record
+$teacherSt = $db->prepare('SELECT id FROM teachers WHERE user_id = ?');
+$teacherSt->execute([$user['id']]);
+$teacherRow = $teacherSt->fetch();
+
 // Verify assessment belongs to this teacher (if teacher role)
-if ($user['role'] === 'teacher') {
+if (in_array($user['role'], ['teacher','montessori_teacher','ilc_teacher'], true)) {
     $st = $db->prepare('SELECT id FROM assessments a JOIN teachers t ON a.teacher_id = t.id WHERE a.id = ? AND t.user_id = ?');
     $st->execute([$assessmentId, $user['id']]);
     if (!$st->fetch()) jsonResponse(['error' => 'Unauthorized'], 403);
+
+    // Backend marks-entry permission check
+    if ($teacherRow) {
+        try {
+            $permSt = $db->prepare(
+                "SELECT id FROM marks_permission_requests
+                 WHERE teacher_id=? AND assessment_id=? AND status='approved'"
+            );
+            $permSt->execute([$teacherRow['id'], $assessmentId]);
+            if (!$permSt->fetch()) {
+                jsonResponse(['error' => 'Marks entry permission not approved for this assessment. Please request permission first.'], 403);
+            }
+        } catch (Exception $e) {
+            // Table not created yet — allow (graceful degradation during deployment)
+        }
+    }
 }
 
 $saved = 0;
