@@ -7,14 +7,14 @@ require_once __DIR__ . '/../../config/config.php';
 $user = requireAuth(
     'admin', 'vp_main', 'ilc_vp', 'wing_head', 'finance',
     'student_affairs', 'teacher', 'montessori_teacher', 'ilc_teacher',
-    'student'
+    'student', 'examination_head'
 );
 
-$type     = $_GET['type'] ?? '';   // 'timetable' or 'datesheet'
+$type     = $_GET['type'] ?? '';   // 'timetable', 'datesheet', or 'syllabus'
 $id       = (int)($_GET['id'] ?? 0);
 $db       = getDB();
 
-if (!$id || !in_array($type, ['timetable', 'datesheet'], true)) {
+if (!$id || !in_array($type, ['timetable', 'datesheet', 'syllabus'], true)) {
     http_response_code(400);
     exit('Invalid request.');
 }
@@ -45,6 +45,29 @@ if ($type === 'timetable') {
         }
         $storedFilename   = $row['stored_filename'];
         $originalFilename = $row['original_filename'];
+    }
+} elseif ($type === 'syllabus') {
+    try {
+        $st = $db->prepare('SELECT sd.stored_filename, sd.original_filename, sd.class_id FROM syllabus_documents sd WHERE sd.id=?');
+        $st->execute([$id]);
+        $row = $st->fetch();
+        if ($row) {
+            // Students may only download syllabus for their own class
+            if ($user['role'] === 'student') {
+                $stStu = $db->prepare('SELECT class_id FROM students WHERE user_id=?');
+                $stStu->execute([$user['id']]);
+                $stuRow = $stStu->fetch();
+                if (!$stuRow || ($row['class_id'] !== null && (int)$stuRow['class_id'] !== (int)$row['class_id'])) {
+                    http_response_code(403);
+                    exit('Document not available for your class.');
+                }
+            }
+            $storedFilename   = $row['stored_filename'];
+            $originalFilename = $row['original_filename'];
+        }
+    } catch (Exception $e) {
+        http_response_code(404);
+        exit('Syllabus documents table not available.');
     }
 }
 

@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email  = trim($_POST['email']   ?? '');
         $role   = $_POST['role'] ?? '';
 
-        if ($name && $userId && in_array($role, ['student','teacher','montessori_teacher','ilc_teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head'])) {
+        if ($name && $userId && in_array($role, ['student','teacher','montessori_teacher','ilc_teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','examination_head'])) {
             $check = $db->prepare('SELECT id FROM users WHERE user_id = ?');
             $check->execute([$userId]);
             if ($check->fetch()) {
@@ -58,6 +58,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } catch (Exception $e) {
                         $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification, phone, join_date) VALUES (?,?,?,?,?,?)')
                            ->execute([$newId, $userId, $_POST['subject_id'] ?: null, trim($_POST['qualification'] ?? ''), $phone ?: null, $joinDate]);
+                    }
+                } elseif ($role === 'examination_head') {
+                    $phone    = trim($_POST['phone'] ?? '');
+                    $joinDate = $_POST['join_date'] ?? date('Y-m-d');
+                    try {
+                        $db->prepare('INSERT INTO teachers (user_id, emp_id, qualification, phone, join_date, wing) VALUES (?,?,?,?,?,?)')
+                           ->execute([$newId, $userId, trim($_POST['qualification'] ?? ''), $phone ?: null, $joinDate, 'main']);
+                    } catch (Exception $e) {
+                        $db->prepare('INSERT INTO teachers (user_id, emp_id, qualification, phone, join_date) VALUES (?,?,?,?,?)')
+                           ->execute([$newId, $userId, trim($_POST['qualification'] ?? ''), $phone ?: null, $joinDate]);
                     }
                 }
 
@@ -261,7 +271,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $allowedRoles = ['student','teacher','montessori_teacher','ilc_teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head'];
+    $allowedRoles = ['student','teacher','montessori_teacher','ilc_teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','examination_head'];
     $backRole = in_array($_POST['role_filter'] ?? '', $allowedRoles) ? $_POST['role_filter'] : '';
     redirect('/portal/admin/users.php' . ($backRole ? '?role=' . $backRole : ''));
 }
@@ -459,6 +469,7 @@ $links = getAdminLinks();
               <option value="student_affairs">Student Affairs</option>
               <option value="vp_main">VP — Main &amp; Montessori</option>
               <option value="wing_head">Wing Head (Montessori)</option>
+              <option value="examination_head">Examination Head (Main Campus)</option>
             </select>
           </div>
           <div class="col-md-3"><label class="form-label fw-semibold" style="font-size:.82rem">Email <small class="text-muted">(for set-password link)</small></label><input type="email" name="email" class="form-control form-control-sm"></div>
@@ -770,9 +781,9 @@ $links = getAdminLinks();
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 function toggleRoleFields(role) {
-    const isTeacher = role === 'teacher' || role === 'montessori_teacher' || role === 'ilc_teacher';
+    const isTeacher = role === 'teacher' || role === 'montessori_teacher' || role === 'ilc_teacher' || role === 'examination_head';
     document.getElementById('studentFields').classList.toggle('d-none', role !== 'student');
-    document.getElementById('teacherFields').classList.toggle('d-none', !isTeacher);
+    document.getElementById('teacherFields').classList.toggle('d-none', !(role === 'teacher' || role === 'montessori_teacher' || role === 'ilc_teacher'));
     document.getElementById('qualFields').classList.toggle('d-none', !isTeacher);
     document.getElementById('teacherPhoneField').classList.toggle('d-none', !isTeacher);
     document.getElementById('teacherJoinDateField').classList.toggle('d-none', !isTeacher);

@@ -289,6 +289,13 @@ function getRolePermissions(string $role): array {
             'wh_classes'          => ['label' => 'Classes',                     'icon' => 'fa-chalkboard'],
             'wh_marks_approval'   => ['label' => 'Marks Permission Approvals',  'icon' => 'fa-clipboard-check'],
         ],
+        'examination_head' => [
+            'eh_marks'      => ['label' => 'Assessments & Marks',  'icon' => 'fa-pen-alt'],
+            'eh_timetable'  => ['label' => 'Timetable',            'icon' => 'fa-table'],
+            'eh_datesheet'  => ['label' => 'Exam Date Sheets',     'icon' => 'fa-calendar-day'],
+            'eh_syllabus'   => ['label' => 'Syllabus Management',  'icon' => 'fa-book'],
+            'eh_notices'    => ['label' => 'Post Notices',         'icon' => 'fa-bell'],
+        ],
     ];
     return $map[$role] ?? [];
 }
@@ -356,6 +363,9 @@ function getStudentLinks(): array {
         ['href'=>'/portal/student/attendance.php',         'icon'=>'<i class="fas fa-calendar-check"></i>',  'label'=>'Attendance',         'key'=>'attendance'],
         ['href'=>'/portal/student/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',           'label'=>'Timetable',          'key'=>'timetable'],
         ['href'=>'/portal/student/exam-datesheet.php',     'icon'=>'<i class="fas fa-calendar-day"></i>',    'label'=>'Exam Date Sheet',    'key'=>'exam-datesheet'],
+        (!$isIlcStudent && !$isMontessoriStudent)
+            ? ['href'=>'/portal/student/syllabus.php',     'icon'=>'<i class="fas fa-book"></i>',            'label'=>'Syllabus',           'key'=>'syllabus']
+            : null,
         ['href'=>'/portal/student/notices.php',            'icon'=>'<i class="fas fa-bell"></i>',            'label'=>'Notices',            'key'=>'notices'],
         ['href'=>'/portal/student/diary.php',              'icon'=>'<i class="fas fa-book-open"></i>',       'label'=>'Class Diary',        'key'=>'diary'],
         ['href'=>'/portal/student/complaints.php',         'icon'=>'<i class="fas fa-comment-alt"></i>',     'label'=>'Complaints',         'key'=>'complaints'],
@@ -465,6 +475,7 @@ function getTeacherLinks(): array {
         hasPermission('attendance') ? ['href'=>'/portal/teacher/attendance.php',   'icon'=>'<i class="fas fa-calendar-check"></i>',          'label'=>'Attendance',           'key'=>'attendance'] : null,
         hasPermission('timetable')  ? ['href'=>'/portal/teacher/timetable.php',    'icon'=>'<i class="fas fa-table"></i>',                   'label'=>'My Timetable',         'key'=>'timetable']  : null,
         ['href'=>'/portal/teacher/exam-datesheet.php',     'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',      'key'=>'exam-datesheet'],
+        ['href'=>'/portal/teacher/syllabus.php',           'icon'=>'<i class="fas fa-book"></i>',                        'label'=>'Syllabus',             'key'=>'syllabus'],
         hasPermission('diary')      ? ['href'=>'/portal/teacher/diary.php',        'icon'=>'<i class="fas fa-book-open"></i>',               'label'=>'Daily Diary',          'key'=>'diary']      : null,
         hasPermission('notices')    ? ['href'=>'/portal/teacher/notices.php',      'icon'=>'<i class="fas fa-bell"></i>',                    'label'=>'Notices',              'key'=>'notices']    : null,
         hasPermission('warnings')   ? ['href'=>'/portal/admin/warnings.php',       'icon'=>'<i class="fas fa-exclamation-triangle"></i>',    'label'=>'Student Warnings',     'key'=>'warnings']   : null,
@@ -620,6 +631,19 @@ function getWingHeadLinks(): array {
         ['href'=>'/portal/wing-head/notices.php',        'icon'=>'<i class="fas fa-bell"></i>',              'label'=>'Notices',          'key'=>'notices'],
         ['href'=>'/portal/wing-head/exam-datesheet.php', 'icon'=>'<i class="fas fa-calendar-day"></i>',      'label'=>'Exam Date Sheets', 'key'=>'exam-datesheet'],
         ['href'=>'/portal/progress-report/form.php',     'icon'=>'<i class="fas fa-file-alt"></i>',          'label'=>'Progress Report',  'key'=>'progress-report'],
+    ]));
+}
+
+// ── Examination Head sidebar links ───────────────────────────────
+function getExamHeadLinks(): array {
+    return array_values(array_filter([
+        ['href'=>'/portal/exam-head/dashboard.php',      'icon'=>'<i class="fas fa-home"></i>',             'label'=>'Dashboard',            'key'=>'dashboard'],
+        hasPermission('eh_marks')     ? ['href'=>'/portal/exam-head/marks.php',       'icon'=>'<i class="fas fa-pen-alt"></i>',       'label'=>'Assessments & Marks',  'key'=>'marks']        : null,
+        hasPermission('eh_timetable') ? ['href'=>'/portal/exam-head/timetable.php',   'icon'=>'<i class="fas fa-table"></i>',         'label'=>'Timetable',            'key'=>'timetable']    : null,
+        hasPermission('eh_datesheet') ? ['href'=>'/portal/exam-head/exam-datesheet.php','icon'=>'<i class="fas fa-calendar-day"></i>','label'=>'Date Sheets',          'key'=>'exam-datesheet']: null,
+        hasPermission('eh_syllabus')  ? ['href'=>'/portal/exam-head/syllabus.php',    'icon'=>'<i class="fas fa-book"></i>',          'label'=>'Syllabus',             'key'=>'syllabus']     : null,
+        hasPermission('eh_notices')   ? ['href'=>'/portal/exam-head/notices.php',     'icon'=>'<i class="fas fa-bell"></i>',          'label'=>'Notices',              'key'=>'notices']      : null,
+        ['href'=>'/portal/exam-head/profile.php',        'icon'=>'<i class="fas fa-user-circle"></i>',      'label'=>'My Profile',           'key'=>'profile'],
     ]));
 }
 

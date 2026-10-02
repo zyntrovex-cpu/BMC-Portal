@@ -102,7 +102,7 @@ function getDB(): PDO {
         // Group 5: extend users role ENUM
         try {
             $pdo->exec("ALTER TABLE users MODIFY COLUMN role
-                ENUM('student','teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','montessori_teacher','ilc_teacher')
+                ENUM('student','teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','montessori_teacher','ilc_teacher','examination_head')
                 NOT NULL");
         } catch (Exception $e) {}
 
@@ -176,6 +176,25 @@ function getDB(): PDO {
             if ($asmCols && stripos($asmCols['Type'], 'enum') !== false) {
                 $pdo->exec("ALTER TABLE assessments MODIFY COLUMN type VARCHAR(100) NOT NULL DEFAULT 'Quiz'");
             }
+        } catch (Exception $e) {}
+
+        // Group 10: syllabus documents table (uploaded by examination_head)
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS syllabus_documents (
+                id                INT          PRIMARY KEY AUTO_INCREMENT,
+                title             VARCHAR(200) NOT NULL,
+                class_id          INT          NULL,
+                academic_year     VARCHAR(20)  NOT NULL,
+                notes             TEXT         DEFAULT NULL,
+                original_filename VARCHAR(255) NOT NULL,
+                stored_filename   VARCHAR(255) NOT NULL,
+                file_type         VARCHAR(50)  NOT NULL,
+                file_size         INT          NOT NULL DEFAULT 0,
+                uploaded_by       INT          NOT NULL,
+                created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (class_id)    REFERENCES classes(id) ON DELETE SET NULL
+            ) ENGINE=InnoDB");
         } catch (Exception $e) {}
 
         // Group 9: marks entry permission & approval workflow

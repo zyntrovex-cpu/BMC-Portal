@@ -259,4 +259,4 @@ function openReject(id, name) {
   new bootstrap.Modal(document.getElementById('rejectModal')).show();
 }
 </script>
-<?php pageFoot(); ?>
+<?php pageFooter(); ?>
