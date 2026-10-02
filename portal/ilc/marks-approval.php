@@ -100,7 +100,7 @@ if ($tableExists) {
                 s.name   AS subject_name,
                 a.title  AS assessment_title,
                 a.type   AS assessment_type,
-                a.total_marks
+                a.max_marks AS total_marks
          FROM marks_permission_requests mpr
          JOIN teachers  t  ON t.id  = mpr.teacher_id
          JOIN users     tu ON tu.id = t.user_id
