@@ -239,6 +239,23 @@ function getDB(): PDO {
                 INDEX idx_notif_user (user_id, is_read)
             ) ENGINE=InnoDB");
         } catch (Exception $e) {}
+
+        // Group 11: admission request file attachments
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS admission_request_attachments (
+                id                INT          PRIMARY KEY AUTO_INCREMENT,
+                request_id        INT          NOT NULL,
+                original_filename VARCHAR(255) NOT NULL,
+                stored_filename   VARCHAR(255) NOT NULL,
+                file_type         VARCHAR(50)  NOT NULL,
+                file_size         INT          NOT NULL DEFAULT 0,
+                uploaded_by       INT          NOT NULL,
+                created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (request_id)  REFERENCES admission_requests(id) ON DELETE CASCADE,
+                FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE,
+                INDEX idx_ara_request (request_id)
+            ) ENGINE=InnoDB");
+        } catch (Exception $e) {}
     }
     return $pdo;
 }

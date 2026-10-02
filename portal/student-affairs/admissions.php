@@ -14,6 +14,9 @@ try { $db->query('SELECT assessment_data FROM admission_requests LIMIT 0'); $mig
 $enrollColExists = false;
 try { $db->query('SELECT enrolled_student_id FROM admission_requests LIMIT 0'); $enrollColExists = true; } catch (Exception $e) {}
 
+$attachmentsTableExists = false;
+try { $db->query('SELECT 1 FROM admission_request_attachments LIMIT 0'); $attachmentsTableExists = true; } catch (Exception $e) {}
+
 // Q labels for read-only view
 $q1Items = [
     'dyslexia'   => 'Dyslexia',
@@ -168,6 +171,17 @@ if ($statusFilter) { $sql .= ' AND ar.status = ?'; $params[] = $statusFilter; }
 $sql .= ' ORDER BY FIELD(ar.status,"pending","reviewed","approved","rejected"), ar.created_at DESC';
 $st = $db->prepare($sql); $st->execute($params);
 $requests = $st->fetchAll();
+
+$attachmentsMap = [];
+if ($attachmentsTableExists && $requests) {
+    try {
+        $ids = array_column($requests, 'id');
+        $ph  = implode(',', array_fill(0, count($ids), '?'));
+        $st2 = $db->prepare("SELECT * FROM admission_request_attachments WHERE request_id IN ($ph) ORDER BY created_at ASC");
+        $st2->execute($ids);
+        foreach ($st2->fetchAll() as $att) { $attachmentsMap[$att['request_id']][] = $att; }
+    } catch (Exception $e) {}
+}
 
 // ── Render helpers ────────────────────────────────────────────────────────────
 function saYesNo(bool $yes): string {
@@ -331,12 +345,32 @@ $links = getStudentAffairsLinks();
           <?php if ($r['review_notes']): ?> — <em><?= h($r['review_notes']) ?></em><?php endif; ?>
         </div>
         <?php endif; ?>
+        <?php if (!empty($attachmentsMap[$r['id']])): ?>
+        <div class="mt-2 d-flex align-items-center gap-2 flex-wrap" style="font-size:.79rem">
+          <span style="color:#0891b2;font-weight:600"><i class="fas fa-paperclip me-1"></i>Attachments:</span>
+          <?php foreach ($attachmentsMap[$r['id']] as $att):
+            $imap = ['pdf'=>'fa-file-pdf text-danger','xlsx'=>'fa-file-excel text-success','xls'=>'fa-file-excel text-success','doc'=>'fa-file-word text-primary','docx'=>'fa-file-word text-primary','jpg'=>'fa-file-image text-warning','jpeg'=>'fa-file-image text-warning','png'=>'fa-file-image text-warning'];
+            $ico  = $imap[$att['file_type']] ?? 'fa-file text-secondary';
+          ?>
+          <a href="/portal/api/serve-document.php?type=admission_attachment&id=<?= $att['id'] ?>"
+             class="btn btn-xs btn-outline-secondary" style="font-size:.73rem;padding:2px 8px">
+            <i class="fas <?= $ico ?> me-1"></i><?= h($att['original_filename']) ?>
+          </a>
+          <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
       </div>
       <div class="d-flex gap-1 flex-wrap align-items-start">
         <?php if ($hasForm): ?>
         <button class="btn btn-sm btn-outline-info" style="font-size:.77rem"
                 onclick="viewForm(<?= $r['id'] ?>)">
           <i class="fas fa-eye me-1"></i>View Form
+        </button>
+        <?php endif; ?>
+        <?php if (!empty($attachmentsMap[$r['id']])): ?>
+        <button class="btn btn-sm btn-outline-secondary" style="font-size:.77rem;color:#0891b2;border-color:#0891b2"
+                onclick="viewDocs(<?= $r['id'] ?>)">
+          <i class="fas fa-paperclip me-1"></i>Docs (<?= count($attachmentsMap[$r['id']]) ?>)
         </button>
         <?php endif; ?>
         <?php if ($r['status'] === 'pending' || $r['status'] === 'reviewed'): ?>
@@ -406,6 +440,27 @@ $links = getStudentAffairsLinks();
       </div>
       <div class="modal-body" style="font-size:.82rem">
         <?= renderSAAssessmentView($ad, $r, $q1Items, $q2Items, $q3Items, $q4Labels) ?>
+        <?php if (!empty($attachmentsMap[$r['id']])): ?>
+        <div class="mt-3 pt-2" style="border-top:1px solid #e2e8f0">
+          <div class="fw-bold mb-2" style="font-size:.75rem;color:#0f2456;text-transform:uppercase;letter-spacing:.4px">
+            <i class="fas fa-paperclip me-1"></i>Attached Documents
+          </div>
+          <?php foreach ($attachmentsMap[$r['id']] as $att):
+            $imap = ['pdf'=>'fa-file-pdf text-danger','xlsx'=>'fa-file-excel text-success','xls'=>'fa-file-excel text-success','doc'=>'fa-file-word text-primary','docx'=>'fa-file-word text-primary','jpg'=>'fa-file-image text-warning','jpeg'=>'fa-file-image text-warning','png'=>'fa-file-image text-warning'];
+            $ico  = $imap[$att['file_type']] ?? 'fa-file text-secondary';
+            $sz   = $att['file_size'] > 1048576 ? round($att['file_size']/1048576,1).' MB' : round($att['file_size']/1024).' KB';
+          ?>
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <i class="fas <?= $ico ?> flex-shrink-0"></i>
+            <span style="font-size:.79rem;flex-grow:1"><?= h($att['original_filename']) ?> <span class="text-muted">(<?= $sz ?>)</span></span>
+            <a href="/portal/api/serve-document.php?type=admission_attachment&id=<?= $att['id'] ?>"
+               class="btn btn-xs btn-outline-primary flex-shrink-0" style="font-size:.72rem;padding:2px 8px">
+              <i class="fas fa-download me-1"></i>Download
+            </a>
+          </div>
+          <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
       </div>
       <div class="modal-footer" style="font-size:.8rem">
         <span class="badge bg-<?= $sc ?>"><?= ucfirst($r['status']) ?></span>
@@ -427,6 +482,45 @@ $links = getStudentAffairsLinks();
 <?php endforeach; ?>
 
 </div></div></div>
+<?php if ($attachmentsTableExists): foreach ($attachmentsMap as $reqId => $atts):
+  $reqRow = null; foreach ($requests as $rr) { if ($rr['id'] == $reqId) { $reqRow = $rr; break; } }
+?>
+<div class="modal fade" id="doc-modal-<?= $reqId ?>" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(90deg,#0891b2,#0e7490);color:#fff;padding:10px 16px">
+        <h5 class="modal-title" style="font-size:.86rem">
+          <i class="fas fa-paperclip me-2"></i>Attachments — <?= $reqRow ? h($reqRow['student_name']) : '#'.$reqId ?>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="font-size:.83rem">
+        <?php foreach ($atts as $att):
+          $imap = ['pdf'=>'fa-file-pdf text-danger','xlsx'=>'fa-file-excel text-success','xls'=>'fa-file-excel text-success','doc'=>'fa-file-word text-primary','docx'=>'fa-file-word text-primary','jpg'=>'fa-file-image text-warning','jpeg'=>'fa-file-image text-warning','png'=>'fa-file-image text-warning'];
+          $ico  = $imap[$att['file_type']] ?? 'fa-file text-secondary';
+          $sz   = $att['file_size'] > 1048576 ? round($att['file_size']/1048576,1).' MB' : round($att['file_size']/1024).' KB';
+        ?>
+        <div class="d-flex align-items-center gap-2 mb-2 pb-2" style="border-bottom:1px solid #f1f5f9">
+          <i class="fas <?= $ico ?> fa-lg flex-shrink-0"></i>
+          <div class="flex-grow-1 min-w-0">
+            <div style="font-size:.82rem;font-weight:600"><?= h($att['original_filename']) ?></div>
+            <div style="font-size:.74rem;color:#6b7280"><?= strtoupper($att['file_type']) ?> · <?= $sz ?></div>
+          </div>
+          <a href="/portal/api/serve-document.php?type=admission_attachment&id=<?= $att['id'] ?>"
+             class="btn btn-sm btn-outline-primary flex-shrink-0" style="font-size:.75rem;padding:3px 10px">
+            <i class="fas fa-download me-1"></i>Download
+          </a>
+        </div>
+        <?php endforeach; ?>
+      </div>
+      <div class="modal-footer" style="padding:8px 16px">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endforeach; endif; ?>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 function toggleReview(id) {
@@ -435,6 +529,9 @@ function toggleReview(id) {
 }
 function viewForm(id) {
   new bootstrap.Modal(document.getElementById('form-modal-' + id)).show();
+}
+function viewDocs(id) {
+  new bootstrap.Modal(document.getElementById('doc-modal-' + id)).show();
 }
 <?php if ($focusId): ?>
 document.addEventListener('DOMContentLoaded', function(){ toggleReview(<?= $focusId ?>); });

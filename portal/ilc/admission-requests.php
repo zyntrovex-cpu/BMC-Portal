@@ -93,6 +93,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
         )->execute([$studentName, $parentName ?: null, $parentPhone ?: null, $dob ?: null,
                     $reqClass ?: null, $stuCat, 'ilc', $disNotes ?: null, $user['id']]);
     }
+    $newRequestId = (int)$db->lastInsertId();
+
+    // Process file attachments
+    if ($newRequestId && !empty($_FILES['attachments']['name'][0])) {
+        $allowedExts = ['pdf','xlsx','xls','doc','docx','jpg','jpeg','png'];
+        $uploadDir   = __DIR__ . '/../../uploads/documents/';
+        foreach ($_FILES['attachments']['name'] as $i => $origName) {
+            if ($_FILES['attachments']['error'][$i] !== UPLOAD_ERR_OK) continue;
+            $origName = basename($origName);
+            $ext      = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+            if (!in_array($ext, $allowedExts, true)) continue;
+            if ($_FILES['attachments']['size'][$i] > 10 * 1024 * 1024) continue;
+            $stored = 'ar_' . uniqid('', true) . '.' . $ext;
+            if (move_uploaded_file($_FILES['attachments']['tmp_name'][$i], $uploadDir . $stored)) {
+                try {
+                    $db->prepare(
+                        'INSERT INTO admission_request_attachments
+                         (request_id, original_filename, stored_filename, file_type, file_size, uploaded_by)
+                         VALUES (?,?,?,?,?,?)'
+                    )->execute([$newRequestId, $origName, $stored, $ext,
+                                (int)$_FILES['attachments']['size'][$i], $user['id']]);
+                } catch (Exception $e) {}
+            }
+        }
+    }
+
     logActivity($user['id'], 'admission_request_create', "ILC assessment submitted for $studentName");
     setFlash('success', "Assessment form for \"$studentName\" submitted to Student Affairs.");
     redirect('/portal/ilc/admission-requests.php');
@@ -112,6 +138,20 @@ $requests = $st->fetchAll();
 
 $enrollColExists = false;
 try { $db->query('SELECT enrolled_gr_no FROM admission_requests LIMIT 0'); $enrollColExists = true; } catch (Exception $e) {}
+
+$attachmentsTableExists = false;
+try { $db->query('SELECT 1 FROM admission_request_attachments LIMIT 0'); $attachmentsTableExists = true; } catch (Exception $e) {}
+
+$attachmentsMap = [];
+if ($attachmentsTableExists && $requests) {
+    try {
+        $ids = array_column($requests, 'id');
+        $ph  = implode(',', array_fill(0, count($ids), '?'));
+        $st2 = $db->prepare("SELECT * FROM admission_request_attachments WHERE request_id IN ($ph) ORDER BY created_at ASC");
+        $st2->execute($ids);
+        foreach ($st2->fetchAll() as $att) { $attachmentsMap[$att['request_id']][] = $att; }
+    } catch (Exception $e) {}
+}
 
 // ── Render helpers ────────────────────────────────────────────────────────────
 function ilcYesNo(bool $yes): string {
@@ -243,7 +283,7 @@ $links = getIlcLinks();
         <div style="font-size:.78rem;color:#475569;letter-spacing:.4px">Assessment Form — <em>Confidential</em></div>
       </div>
 
-      <form method="POST">
+      <form method="POST" enctype="multipart/form-data">
         <input type="hidden" name="action" value="create">
 
         <!-- Student Information -->
@@ -453,6 +493,21 @@ $links = getIlcLinks();
           </div>
         </div>
 
+        <!-- Supporting Documents -->
+        <div class="mb-4">
+          <div class="fw-bold mb-1" style="font-size:.8rem;color:#0f2456;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #e2e8f0;padding-bottom:4px">
+            Supporting Documents <span class="text-muted fw-normal" style="text-transform:none">(Optional)</span>
+          </div>
+          <p style="font-size:.77rem;color:#64748b;margin-bottom:8px">
+            Attach relevant supporting documents such as medical reports, assessment letters, or certificates.
+            Accepted formats: PDF, Word, Excel, JPG, PNG. Max 10 MB per file.
+          </p>
+          <input type="file" name="attachments[]" multiple
+                 class="form-control form-control-sm"
+                 accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.jpeg,.png"
+                 style="font-size:.8rem">
+        </div>
+
         <!-- VP ILC note -->
         <div class="p-3 mb-4" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px">
           <div style="font-size:.76rem;font-weight:700;color:#166534;letter-spacing:.3px">VP ILC APPROVAL</div>
@@ -497,6 +552,7 @@ $links = getIlcLinks();
           <th>DOB</th><th>Req. Class</th><th>Status</th>
           <th>Reviewed By</th>
           <?php if ($enrollColExists): ?><th>GR No.</th><?php endif; ?>
+          <?php if ($attachmentsTableExists): ?><th>Docs</th><?php endif; ?>
           <th>Submitted</th><th></th>
         </tr>
       </thead>
@@ -522,6 +578,19 @@ $links = getIlcLinks();
           <td>
             <?php if (!empty($r['enrolled_gr_no'])): ?>
             <span class="badge" style="background:#166534;font-size:.72rem"><?= h($r['enrolled_gr_no']) ?></span>
+            <?php else: ?>
+            <span class="text-muted">—</span>
+            <?php endif; ?>
+          </td>
+          <?php endif; ?>
+          <?php if ($attachmentsTableExists): ?>
+          <td>
+            <?php $rowAtts = $attachmentsMap[$r['id']] ?? []; ?>
+            <?php if ($rowAtts): ?>
+            <button class="btn btn-xs" style="font-size:.72rem;color:#0891b2;border:1px solid #0891b2;padding:2px 8px"
+                    onclick="viewDocs(<?= $r['id'] ?>)">
+              <i class="fas fa-paperclip me-1"></i><?= count($rowAtts) ?>
+            </button>
             <?php else: ?>
             <span class="text-muted">—</span>
             <?php endif; ?>
@@ -561,6 +630,27 @@ $links = getIlcLinks();
       </div>
       <div class="modal-body" style="font-size:.82rem">
         <?= renderAssessmentView($ad, $r, $q1Items, $q2Items, $q3Items, $q4Items) ?>
+        <?php if (!empty($attachmentsMap[$r['id']])): ?>
+        <div class="mt-3 pt-2" style="border-top:1px solid #e2e8f0">
+          <div class="fw-bold mb-2" style="font-size:.76rem;color:#0f2456;text-transform:uppercase;letter-spacing:.4px">
+            <i class="fas fa-paperclip me-1"></i>Attached Documents
+          </div>
+          <?php foreach ($attachmentsMap[$r['id']] as $att):
+            $imap = ['pdf'=>'fa-file-pdf text-danger','xlsx'=>'fa-file-excel text-success','xls'=>'fa-file-excel text-success','doc'=>'fa-file-word text-primary','docx'=>'fa-file-word text-primary','jpg'=>'fa-file-image text-warning','jpeg'=>'fa-file-image text-warning','png'=>'fa-file-image text-warning'];
+            $ico  = $imap[$att['file_type']] ?? 'fa-file text-secondary';
+            $sz   = $att['file_size'] > 1048576 ? round($att['file_size']/1048576,1).' MB' : round($att['file_size']/1024).' KB';
+          ?>
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <i class="fas <?= $ico ?> flex-shrink-0"></i>
+            <span style="font-size:.79rem;flex-grow:1"><?= h($att['original_filename']) ?> <span class="text-muted">(<?= $sz ?>)</span></span>
+            <a href="/portal/api/serve-document.php?type=admission_attachment&id=<?= $att['id'] ?>"
+               class="btn btn-xs btn-outline-primary flex-shrink-0" style="font-size:.72rem;padding:2px 8px">
+              <i class="fas fa-download me-1"></i>Download
+            </a>
+          </div>
+          <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
       </div>
       <div class="modal-footer" style="font-size:.8rem">
         <span class="badge bg-<?= $sc ?>"><?= ucfirst($r['status']) ?></span>
@@ -578,10 +668,52 @@ $links = getIlcLinks();
 <?php endforeach; ?>
 
 </div></div></div>
+<?php if ($attachmentsTableExists): foreach ($attachmentsMap as $reqId => $atts):
+  $reqRow = null; foreach ($requests as $rr) { if ($rr['id'] == $reqId) { $reqRow = $rr; break; } }
+?>
+<div class="modal fade" id="doc-modal-<?= $reqId ?>" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(90deg,#0891b2,#0e7490);color:#fff;padding:10px 16px">
+        <h5 class="modal-title" style="font-size:.86rem">
+          <i class="fas fa-paperclip me-2"></i>Attachments — <?= $reqRow ? h($reqRow['student_name']) : '#'.$reqId ?>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="font-size:.83rem">
+        <?php foreach ($atts as $att):
+          $imap = ['pdf'=>'fa-file-pdf text-danger','xlsx'=>'fa-file-excel text-success','xls'=>'fa-file-excel text-success','doc'=>'fa-file-word text-primary','docx'=>'fa-file-word text-primary','jpg'=>'fa-file-image text-warning','jpeg'=>'fa-file-image text-warning','png'=>'fa-file-image text-warning'];
+          $ico  = $imap[$att['file_type']] ?? 'fa-file text-secondary';
+          $sz   = $att['file_size'] > 1048576 ? round($att['file_size']/1048576,1).' MB' : round($att['file_size']/1024).' KB';
+        ?>
+        <div class="d-flex align-items-center gap-2 mb-2 pb-2" style="border-bottom:1px solid #f1f5f9">
+          <i class="fas <?= $ico ?> fa-lg flex-shrink-0"></i>
+          <div class="flex-grow-1 min-w-0">
+            <div style="font-size:.82rem;font-weight:600"><?= h($att['original_filename']) ?></div>
+            <div style="font-size:.74rem;color:#6b7280"><?= strtoupper($att['file_type']) ?> · <?= $sz ?></div>
+          </div>
+          <a href="/portal/api/serve-document.php?type=admission_attachment&id=<?= $att['id'] ?>"
+             class="btn btn-sm btn-outline-primary flex-shrink-0" style="font-size:.75rem;padding:3px 10px">
+            <i class="fas fa-download me-1"></i>Download
+          </a>
+        </div>
+        <?php endforeach; ?>
+      </div>
+      <div class="modal-footer" style="padding:8px 16px">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endforeach; endif; ?>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 function viewForm(id) {
   new bootstrap.Modal(document.getElementById('form-modal-' + id)).show();
+}
+function viewDocs(id) {
+  new bootstrap.Modal(document.getElementById('doc-modal-' + id)).show();
 }
 </script>
 </body></html>

@@ -14,7 +14,7 @@ $type     = $_GET['type'] ?? '';   // 'timetable', 'datesheet', or 'syllabus'
 $id       = (int)($_GET['id'] ?? 0);
 $db       = getDB();
 
-if (!$id || !in_array($type, ['timetable', 'datesheet', 'syllabus'], true)) {
+if (!$id || !in_array($type, ['timetable', 'datesheet', 'syllabus', 'admission_attachment'], true)) {
     http_response_code(400);
     exit('Invalid request.');
 }
@@ -45,6 +45,28 @@ if ($type === 'timetable') {
         }
         $storedFilename   = $row['stored_filename'];
         $originalFilename = $row['original_filename'];
+    }
+} elseif ($type === 'admission_attachment') {
+    try {
+        $st = $db->prepare(
+            "SELECT ara.stored_filename, ara.original_filename, ara.request_id
+             FROM admission_request_attachments ara WHERE ara.id=?"
+        );
+        $st->execute([$id]);
+        $row = $st->fetch();
+        if ($row) {
+            if ($user['role'] === 'ilc_vp') {
+                $chk = $db->prepare('SELECT id FROM admission_requests WHERE id=? AND requested_by=?');
+                $chk->execute([$row['request_id'], $user['id']]);
+                if (!$chk->fetch()) { http_response_code(403); exit('Access denied.'); }
+            } elseif (!in_array($user['role'], ['student_affairs', 'admin'], true)) {
+                http_response_code(403); exit('Access denied.');
+            }
+            $storedFilename   = $row['stored_filename'];
+            $originalFilename = $row['original_filename'];
+        }
+    } catch (Exception $e) {
+        http_response_code(404); exit('Attachment table not available.');
     }
 } elseif ($type === 'syllabus') {
     try {
