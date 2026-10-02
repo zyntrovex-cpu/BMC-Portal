@@ -169,6 +169,14 @@ function getDB(): PDO {
             if (!isset($dsCols2['file_size']))
                 $pdo->exec("ALTER TABLE exam_date_sheets ADD COLUMN file_size INT NULL DEFAULT NULL");
         } catch (Exception $e) {}
+
+        // Group 8: change assessments.type from ENUM to VARCHAR(100) for free-text input
+        try {
+            $asmCols = $pdo->query("SHOW COLUMNS FROM assessments LIKE 'type'")->fetch();
+            if ($asmCols && stripos($asmCols['Type'], 'enum') !== false) {
+                $pdo->exec("ALTER TABLE assessments MODIFY COLUMN type VARCHAR(100) NOT NULL DEFAULT 'Quiz'");
+            }
+        } catch (Exception $e) {}
     }
     return $pdo;
 }

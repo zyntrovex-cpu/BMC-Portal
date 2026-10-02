@@ -38,13 +38,12 @@ if ($action === 'delete') {
 $classId   = (int)($data['class_id']   ?? 0);
 $subjectId = (int)($data['subject_id'] ?? 0);
 $title     = trim($data['title']    ?? '');
-$type      = $data['type']          ?? 'Quiz';
+$type      = trim($data['type'] ?? '');
+if ($type === '') $type = 'Quiz';
+if (strlen($type) > 100) $type = substr($type, 0, 100);
 $maxMarks  = (float)($data['max_marks'] ?? 0);
 $weight    = (float)($data['weight']    ?? 0);
 $date      = $data['date'] ?? date('Y-m-d');
-
-$validTypes = ['Quiz','Assignment','Mid Term','Final Term','Practical'];
-if (!in_array($type, $validTypes)) $type = 'Quiz';
 
 if (!$classId || !$subjectId || !$title || !$maxMarks) {
     jsonResponse(['error' => 'class_id, subject_id, title and max_marks required'], 400);

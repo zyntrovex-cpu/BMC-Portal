@@ -22,12 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $classId   = (int)$_POST['class_id'];
         $subjectId = $teacher['id'] ? (int)($_POST['subject_id'] ?? $teacher['subject_id'] ?? 0) : 0;
         $title     = trim($_POST['title'] ?? '');
-        $type      = $_POST['type'] ?? 'Quiz';
+        $type      = trim($_POST['type'] ?? '');
+        if ($type === '') $type = 'Quiz';
         $maxMarks  = (float)$_POST['max_marks'];
         $weight    = (float)$_POST['weight'];
         $date      = $_POST['date'] ?? date('Y-m-d');
-        $validTypes = ['Quiz','Assignment','Mid Term','Final Term','Practical'];
-        if (!in_array($type, $validTypes)) $type = 'Quiz';
         if ($classId && $subjectId && $title && $maxMarks) {
             $db->prepare('INSERT INTO assessments (class_id, subject_id, teacher_id, title, name, type, max_marks, weight, date)
                           VALUES (?,?,?,?,?,?,?,?,?)')
@@ -168,12 +167,8 @@ $links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTe
           <input type="text" name="title" class="form-control form-control-sm" placeholder="e.g. Quiz 1" required>
         </div>
         <div class="col-md-2">
-          <label class="form-label fw-semibold" style="font-size:.82rem">Type</label>
-          <select name="type" class="form-select form-select-sm">
-            <?php foreach (['Quiz','Assignment','Mid Term','Final Term','Practical'] as $t): ?>
-              <option><?= $t ?></option>
-            <?php endforeach; ?>
-          </select>
+          <label class="form-label fw-semibold" style="font-size:.82rem">Assessment Type</label>
+          <input type="text" name="type" class="form-control form-control-sm" placeholder="e.g. Quiz, Unit Test…" maxlength="100" required>
         </div>
         <div class="col-md-2">
           <label class="form-label fw-semibold" style="font-size:.82rem">Max Marks</label>
