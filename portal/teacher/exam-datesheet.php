@@ -25,8 +25,8 @@ try {
 $isIlcTeacher   = ($user['role'] === 'ilc_teacher');
 $isMonteTeacher = ($user['role'] === 'montessori_teacher');
 if ($isIlcTeacher) {
-    $links  = getIlcLinks();
-    $portal = 'ilc_vp';
+    $links  = getIlcTeacherLinks();
+    $portal = 'ilc_teacher';
 } elseif ($isMonteTeacher) {
     $links  = getMonteTeacherLinks();
     $portal = 'montessori_teacher';

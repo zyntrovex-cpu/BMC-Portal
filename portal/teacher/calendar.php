@@ -20,7 +20,7 @@ if ($tableExists) {
 }
 
 pageHead('Academic Calendar', $user['role']);
-$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
+$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : ($user['role'] === 'ilc_teacher' ? getIlcTeacherLinks() : getTeacherLinks());
 ?>
 <div class="portal-wrap">
 <?php sidebar($user['role'], 'calendar', $links, $user); ?>

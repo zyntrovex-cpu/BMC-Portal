@@ -503,6 +503,22 @@ function getMonteTeacherLinks(): array {
     ]));
 }
 
+// ── ILC Teacher sidebar links ─────────────────────────────────────
+function getIlcTeacherLinks(): array {
+    return array_values(array_filter([
+        ['href'=>'/portal/teacher/dashboard.php',      'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',        'key'=>'dashboard'],
+        ['href'=>'/portal/teacher/profile.php',        'icon'=>'<i class="fas fa-user-circle"></i>',        'label'=>'My Profile',       'key'=>'profile'],
+        hasPermission('marks')      ? ['href'=>'/portal/teacher/marks.php',        'icon'=>'<i class="fas fa-pen-alt"></i>',                'label'=>'Assessments & Marks', 'key'=>'marks']      : null,
+        hasPermission('attendance') ? ['href'=>'/portal/teacher/attendance.php',   'icon'=>'<i class="fas fa-calendar-check"></i>',         'label'=>'Attendance',          'key'=>'attendance'] : null,
+        hasPermission('timetable')  ? ['href'=>'/portal/teacher/timetable.php',    'icon'=>'<i class="fas fa-table"></i>',                  'label'=>'My Timetable',        'key'=>'timetable']  : null,
+        ['href'=>'/portal/teacher/exam-datesheet.php', 'icon'=>'<i class="fas fa-calendar-day"></i>',       'label'=>'Exam Date Sheet',     'key'=>'exam-datesheet'],
+        hasPermission('diary')      ? ['href'=>'/portal/teacher/diary.php',        'icon'=>'<i class="fas fa-book-open"></i>',              'label'=>'Daily Diary',         'key'=>'diary']      : null,
+        hasPermission('notices')    ? ['href'=>'/portal/teacher/notices.php',      'icon'=>'<i class="fas fa-bell"></i>',                   'label'=>'Notices',             'key'=>'notices']    : null,
+        hasPermission('warnings')   ? ['href'=>'/portal/admin/warnings.php',       'icon'=>'<i class="fas fa-exclamation-triangle"></i>',   'label'=>'Student Warnings',    'key'=>'warnings']   : null,
+        hasPermission('complaints') ? ['href'=>'/portal/teacher/complaints.php',   'icon'=>'<i class="fas fa-comment-alt"></i>',            'label'=>'Complaints',          'key'=>'complaints'] : null,
+    ]));
+}
+
 // ── Finance sidebar links (permission-filtered) ───────────────────
 function getFinanceLinks(): array {
     return array_values(array_filter([

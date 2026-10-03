@@ -47,7 +47,7 @@ $days    = ['monday','tuesday','wednesday','thursday','friday'];
 $periods = range(1, 8);
 
 pageHead('Timetable', $user['role']);
-$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
+$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : ($user['role'] === 'ilc_teacher' ? getIlcTeacherLinks() : getTeacherLinks());
 ?>
 <div class="portal-wrap">
 <?php sidebar($user['role'], 'timetable', $links, $user); ?>

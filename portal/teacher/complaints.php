@@ -119,7 +119,7 @@ if (isset($_GET['print']) && $tableExists) {
 }
 
 pageHead('Student Complaints', $user['role']);
-$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
+$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : ($user['role'] === 'ilc_teacher' ? getIlcTeacherLinks() : getTeacherLinks());
 ?>
 <div class="portal-wrap">
 <?php sidebar($user['role'], 'complaints', $links, $user); ?>

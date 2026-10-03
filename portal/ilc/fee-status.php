@@ -69,7 +69,7 @@ $studentsSt = $db->prepare(
     "SELECT s.id AS student_id, u.name, s.roll_no, c.name AS class_name,
             ifp.id AS fee_id, ifp.status AS fee_status, ifp.amount, ifp.paid_on
      FROM students s
-     JOIN users u ON u.id = s.user_id
+     LEFT JOIN users u ON u.id = s.user_id
      JOIN classes c ON c.id = s.class_id
      LEFT JOIN ilc_fee_payments ifp ON ifp.student_id = s.id AND ifp.month = ?
      WHERE c.is_ilc = 1
@@ -91,7 +91,7 @@ if ($viewStudent && $tableExists) {
     $hSt = $db->prepare(
         'SELECT ifp.*, u.name AS recorder_name
          FROM ilc_fee_payments ifp
-         JOIN users u ON u.id = ifp.recorded_by
+         LEFT JOIN users u ON u.id = ifp.recorded_by
          WHERE ifp.student_id = ?
          ORDER BY ifp.month DESC'
     );

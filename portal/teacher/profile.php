@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 pageHead('My Profile', $user['role']);
-$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
+$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : ($user['role'] === 'ilc_teacher' ? getIlcTeacherLinks() : getTeacherLinks());
 ?>
 <div class="portal-wrap">
 <?php sidebar($user['role'], 'profile', $links, $user); ?>

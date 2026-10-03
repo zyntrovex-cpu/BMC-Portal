@@ -115,7 +115,7 @@ try {
 $notices = array_slice(getNoticesForPortal('teacher'), 0, 3);
 
 // ── Sidebar setup ────────────────────────────────────────────────
-$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
+$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : ($user['role'] === 'ilc_teacher' ? getIlcTeacherLinks() : getTeacherLinks());
 
 pageHead('Dashboard', $user['role']);
 ?>

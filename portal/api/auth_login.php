@@ -43,7 +43,19 @@ $_SESSION['user'] = [
     'email'   => $user['email'] ?? '',
 ];
 
-$map = ['student'=>'/student/dashboard.php','teacher'=>'/teacher/dashboard.php','admin'=>'/admin/dashboard.php','finance'=>'/finance/dashboard.php'];
+$map = [
+    'student'            => '/portal/student/dashboard.php',
+    'teacher'            => '/portal/teacher/dashboard.php',
+    'montessori_teacher' => '/portal/teacher/dashboard.php',
+    'ilc_teacher'        => '/portal/teacher/dashboard.php',
+    'admin'              => '/portal/admin/dashboard.php',
+    'finance'            => '/portal/finance/dashboard.php',
+    'ilc_vp'             => '/portal/ilc/dashboard.php',
+    'student_affairs'    => '/portal/student-affairs/dashboard.php',
+    'vp_main'            => '/portal/vp/dashboard.php',
+    'wing_head'          => '/portal/wing-head/dashboard.php',
+    'examination_head'   => '/portal/exam-head/dashboard.php',
+];
 
 echo json_encode([
     'success'  => true,

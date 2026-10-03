@@ -20,7 +20,7 @@ if ($studentRow) {
         $st = $db->prepare(
             'SELECT f.*, u.name AS recorder_name
              FROM fba_plans f
-             JOIN users u ON u.id = f.recorded_by
+             LEFT JOIN users u ON u.id = f.recorded_by
              WHERE f.student_id = ?
              ORDER BY f.created_at DESC'
         );

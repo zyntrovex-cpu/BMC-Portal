@@ -40,7 +40,7 @@ try {
     $recentActivity = $db->query(
         'SELECT al.*, u.name AS actor_name, u.role AS actor_role
          FROM activity_log al
-         JOIN users u ON u.id = al.user_id
+         LEFT JOIN users u ON u.id = al.user_id
          ORDER BY al.created_at DESC LIMIT 8'
     )->fetchAll();
 } catch (Exception $e) {}

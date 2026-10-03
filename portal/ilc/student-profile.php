@@ -17,7 +17,7 @@ try {
         'SELECT s.*, u.name, u.user_id, u.email, u.status,
                 c.name AS class_name, h.name AS house_name, h.color AS house_color
          FROM students s
-         JOIN users u ON u.id = s.user_id
+         LEFT JOIN users u ON u.id = s.user_id
          JOIN classes c ON c.id = s.class_id
          LEFT JOIN houses h ON h.id = s.house_id
          WHERE s.id = ? AND c.is_ilc = 1'
@@ -29,7 +29,7 @@ try {
         'SELECT s.*, u.name, u.user_id, u.email, u.status,
                 c.name AS class_name, NULL AS house_name, NULL AS house_color
          FROM students s
-         JOIN users u ON u.id = s.user_id
+         LEFT JOIN users u ON u.id = s.user_id
          JOIN classes c ON c.id = s.class_id
          WHERE s.id = ? AND c.is_ilc = 1'
     );
@@ -165,7 +165,7 @@ $disRecords = $db->prepare(
      FROM student_disabilities sd
      JOIN disability_subtypes dst ON dst.id = sd.subtype_id
      JOIN disability_categories dc ON dc.id = dst.category_id
-     JOIN users u ON u.id = sd.recorded_by
+     LEFT JOIN users u ON u.id = sd.recorded_by
      WHERE sd.student_id = ?
      ORDER BY dc.name, dst.name'
 );

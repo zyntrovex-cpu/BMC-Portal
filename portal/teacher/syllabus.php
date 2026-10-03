@@ -32,7 +32,7 @@ try {
         "SELECT sd.*, c.name AS class_name, u.name AS uploader_name
          FROM syllabus_documents sd
          LEFT JOIN classes c ON c.id = sd.class_id
-         JOIN users u ON u.id = sd.uploaded_by
+         LEFT JOIN users u ON u.id = sd.uploaded_by
          ORDER BY sd.created_at DESC"
     );
     $st->execute();
@@ -44,7 +44,7 @@ if ($user['role'] === 'examination_head') {
     $portalRole = 'examination_head';
     $activeKey  = 'syllabus';
 } else {
-    $links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
+    $links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : ($user['role'] === 'ilc_teacher' ? getIlcTeacherLinks() : getTeacherLinks());
     $portalRole = $user['role'];
     $activeKey  = 'syllabus';
 }

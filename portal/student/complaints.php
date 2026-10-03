@@ -43,7 +43,7 @@ if ($tableExists) {
     $st = $db->prepare(
         'SELECT sc.*, u.name AS teacher_name
          FROM student_complaints sc
-         JOIN users u ON u.id = sc.teacher_id
+         LEFT JOIN users u ON u.id = sc.teacher_id
          WHERE sc.student_id = ?
          ORDER BY sc.created_at DESC'
     );

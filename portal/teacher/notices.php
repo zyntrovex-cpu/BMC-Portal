@@ -66,7 +66,7 @@ if ($q)   $notices = array_filter($notices, fn($n) => stripos($n['title'],$q)!==
 $categories = ['General','Academic','Exam','Holiday','Finance','Emergency'];
 
 pageHead('Notices', $user['role']);
-$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : getTeacherLinks();
+$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : ($user['role'] === 'ilc_teacher' ? getIlcTeacherLinks() : getTeacherLinks());
 ?>
 <div class="portal-wrap">
 <?php sidebar($user['role'], 'notices', $links, $user); ?>

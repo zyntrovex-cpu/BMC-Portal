@@ -25,7 +25,7 @@ if ($studentRow) {
         $st = $db->prepare(
             'SELECT r.*, u.name AS recorder_name
              FROM behaviour_therapy_reports r
-             JOIN users u ON u.id = r.recorded_by
+             LEFT JOIN users u ON u.id = r.recorded_by
              WHERE r.student_id = ?
              ORDER BY r.month DESC'
         );

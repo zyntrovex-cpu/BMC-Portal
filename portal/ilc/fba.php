@@ -216,7 +216,7 @@ try {
     $students = $db->query(
         'SELECT s.id, u.name, s.roll_no, c.name AS class_name
          FROM students s
-         JOIN users u ON u.id = s.user_id
+         LEFT JOIN users u ON u.id = s.user_id
          JOIN classes c ON c.id = s.class_id
          WHERE c.is_ilc = 1
          ORDER BY c.name, s.roll_no'
@@ -229,7 +229,7 @@ if ($studentId && $tableExists) {
     $st = $db->prepare(
         'SELECT p.*, u.name AS recorder_name
          FROM fba_plans p
-         JOIN users u ON u.id = p.recorded_by
+         LEFT JOIN users u ON u.id = p.recorded_by
          WHERE p.student_id = ?
          ORDER BY p.created_at DESC'
     );

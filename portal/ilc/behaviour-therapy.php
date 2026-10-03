@@ -150,7 +150,7 @@ try {
     $students = $db->query(
         'SELECT s.id, u.name, s.roll_no, c.name AS class_name
          FROM students s
-         JOIN users u ON u.id = s.user_id
+         LEFT JOIN users u ON u.id = s.user_id
          JOIN classes c ON c.id = s.class_id
          WHERE c.is_ilc = 1
          ORDER BY c.name, s.roll_no'
@@ -166,7 +166,7 @@ if ($studentId && $tableExists) {
     $st = $db->prepare(
         "SELECT $cols
          FROM behaviour_therapy_reports r
-         JOIN users u ON u.id = r.recorded_by
+         LEFT JOIN users u ON u.id = r.recorded_by
          WHERE r.student_id = ?
          ORDER BY r.month DESC"
     );
