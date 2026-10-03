@@ -302,31 +302,58 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
 
     <!-- Student picker -->
     <div class="sec-card mb-3">
-      <div class="sec-card-header">
-        <i class="fas fa-users me-2"></i>Select Student
-        <?php if ($classInfo): ?><span class="text-muted fw-normal ms-2" style="font-size:.8rem"><?= h($classInfo['name']) ?></span><?php endif; ?>
+      <div class="sec-card-header d-flex align-items-center justify-content-between">
+        <span><i class="fas fa-users me-2"></i>Select Student<?php if ($classInfo): ?> <span class="text-muted fw-normal ms-1" style="font-size:.8rem">&mdash; <?= h($classInfo['name']) ?></span><?php endif; ?></span>
+        <span class="badge bg-secondary" style="font-size:.71rem"><?= count($classStudents) ?> students</span>
       </div>
       <?php if (empty($classStudents)): ?>
       <div class="p-3 text-muted" style="font-size:.82rem"><i class="fas fa-info-circle me-1"></i>No students in this class.</div>
       <?php else: ?>
-      <div class="stu-pick-grid">
-        <?php foreach ($classStudents as $stu):
-          $cnt   = $todayCountMap[(int)$stu['id']] ?? 0;
-          $isSel = (int)$stu['id'] === $selStudentId;
-          $initials = '';
-          foreach (explode(' ', $stu['name']) as $w) $initials .= mb_strtoupper(mb_substr($w,0,1));
-          $initials = mb_substr($initials,0,2);
-        ?>
-        <a href="?class_id=<?= $selClassId ?>&student_id=<?= $stu['id'] ?>"
-           class="stu-pick-card <?= $isSel?'selected':'' ?>">
-          <div class="stu-pick-avatar <?= $isSel?'sel':'' ?>"><?= h($initials) ?></div>
-          <div class="stu-pick-name"><?= h($stu['name']) ?></div>
-          <?php if ($stu['roll_no']): ?><div style="font-size:.65rem;color:#9ca3af">Roll: <?= h($stu['roll_no']) ?></div><?php endif; ?>
-          <div class="stu-pick-badge <?= $cnt?'has-rec':'no-rec' ?>">
-            <?= $cnt ? $cnt.' today' : 'No records today' ?>
+      <div style="padding:14px 18px">
+        <div class="row g-3">
+          <div class="col-sm-5">
+            <label class="form-label fw-semibold mb-1" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.4px;color:#94a3b8">
+              <i class="fas fa-search me-1"></i>Search by Name / GR
+            </label>
+            <input type="text" id="marStuSearch" class="form-control form-control-sm"
+                   placeholder="Type name or GR number…" autocomplete="off">
           </div>
-        </a>
-        <?php endforeach; ?>
+          <div class="col-sm-7">
+            <label class="form-label fw-semibold mb-1" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.4px;color:#94a3b8">
+              <i class="fas fa-user me-1"></i>Select from Class
+            </label>
+            <div class="input-group input-group-sm">
+              <select id="marStuDropdown" class="form-select">
+                <option value="">— Choose a student —</option>
+                <?php foreach ($classStudents as $stu):
+                  $rno = $stu['roll_no'] ?? '';
+                  $cnt = $todayCountMap[(int)$stu['id']] ?? 0;
+                ?>
+                <option value="<?= $stu['id'] ?>"
+                        data-name="<?= h(mb_strtolower($stu['name'])) ?>"
+                        data-roll="<?= h(mb_strtolower($rno)) ?>"
+                        <?= (int)$stu['id']===$selStudentId ? 'selected' : '' ?>>
+                  <?= h($stu['name']) ?><?= $rno ? ' — '.h($rno) : '' ?><?= $cnt ? " ($cnt today)" : '' ?>
+                </option>
+                <?php endforeach; ?>
+              </select>
+              <button type="button" class="btn btn-primary" onclick="marNavigateToStudent()" title="Select this student">
+                <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <?php if ($selStudentId && $studentInfo): ?>
+        <div class="mt-3 d-flex align-items-center gap-2 flex-wrap"
+             style="font-size:.81rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;padding:8px 12px">
+          <i class="fas fa-check-circle text-success"></i>
+          <span>Selected: <strong><?= h($studentInfo['name']) ?></strong><?= $studentInfo['roll_no'] ? ' &mdash; Roll '.h($studentInfo['roll_no']) : '' ?></span>
+          <a href="?class_id=<?= $selClassId ?>"
+             class="ms-auto text-danger" style="font-size:.75rem;text-decoration:none;white-space:nowrap">
+            <i class="fas fa-times-circle me-1"></i>Clear
+          </a>
+        </div>
+        <?php endif; ?>
       </div>
       <?php endif; ?>
     </div>
@@ -508,7 +535,6 @@ function toggleCustomFocus(sel) {
     if (sel.value === 'Other') {
         custom.style.display = 'block';
         custom.required = true;
-        // Override name so custom value is submitted
         sel.name = '_subject_focus_sel';
         custom.name = 'subject_focus';
     } else {
@@ -518,10 +544,62 @@ function toggleCustomFocus(sel) {
         custom.name = 'subject_focus_custom';
     }
 }
-// Init on load
 document.addEventListener('DOMContentLoaded', function(){
     var sel = document.getElementById('sf');
     if (sel) toggleCustomFocus(sel);
 });
+
+// ── Navigate to selected student (Anecdotal Records) ──────────────
+function marNavigateToStudent() {
+    var dd = document.getElementById('marStuDropdown');
+    if (!dd || !dd.value) { if (dd) dd.focus(); return; }
+    window.location.href = '?class_id=<?= $selClassId ?>'
+        + '&student_id=' + encodeURIComponent(dd.value);
+}
+
+// ── Student search: live-filters the dropdown ─────────────────────
+(function() {
+    var dd = document.getElementById('marStuDropdown');
+    var sr = document.getElementById('marStuSearch');
+    if (!dd || !sr) return;
+
+    function filterDd(q) {
+        q = (q || '').trim().toLowerCase();
+        var first = null;
+        for (var i = 1; i < dd.options.length; i++) {
+            var o = dd.options[i];
+            var match = !q
+                || (o.dataset.name || '').indexOf(q) !== -1
+                || (o.dataset.roll || '').indexOf(q) !== -1;
+            o.hidden = !match;
+            if (match && !first) first = o;
+        }
+        if (dd.value && dd.options[dd.selectedIndex] && dd.options[dd.selectedIndex].hidden) {
+            dd.value = '';
+        }
+    }
+
+    sr.addEventListener('input', function() { filterDd(this.value); });
+
+    sr.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        var q = this.value.trim().toLowerCase();
+        var visible = [];
+        for (var i = 1; i < dd.options.length; i++) {
+            if (!dd.options[i].hidden) visible.push(dd.options[i]);
+        }
+        if (visible.length === 1) {
+            dd.value = visible[0].value;
+            marNavigateToStudent();
+        } else if (dd.value) {
+            marNavigateToStudent();
+        }
+    });
+
+    dd.addEventListener('change', function() {
+        if (this.value) { sr.value = ''; filterDd(''); }
+    });
+})();
 </script>
 </body></html>

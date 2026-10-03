@@ -357,7 +357,7 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
         <select class="form-select form-select-sm" disabled style="min-width:160px"><option>No classes assigned</option></select>
         <?php else: ?>
         <select name="class_id" class="form-select form-select-sm" style="min-width:160px"
-                onchange="document.getElementById('ctxForm').submit()">
+                onchange="clearStudentAndSubmitCtx()">
           <?php foreach ($assignedClasses as $cl): ?>
           <option value="<?= $cl['id'] ?>" <?= (int)$cl['id']===$selClassId?'selected':'' ?>><?= h($cl['name']) ?></option>
           <?php endforeach; ?>
@@ -408,7 +408,7 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
     <!-- STEP 1: Select Student ─────────────────────────────────── -->
     <div class="sec-card mb-3">
       <div class="sec-card-header d-flex align-items-center justify-content-between">
-        <span><i class="fas fa-user-graduate me-2"></i>Step 1 — Select a Student</span>
+        <span><i class="fas fa-user-graduate me-2"></i>Step 1 &mdash; Select a Student</span>
         <span class="badge bg-secondary" style="font-size:.71rem"><?= count($students) ?> students</span>
       </div>
       <?php if (empty($students)): ?>
@@ -417,23 +417,53 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
         No active students found in this class.
       </div>
       <?php else: ?>
-      <div class="student-picker-grid">
-        <?php foreach ($students as $stu):
-          $isSel  = (int)$stu['id']===$selStudentId;
-          $cnt    = $studentCountToday[(int)$stu['id']] ?? 0;
-          $bgCls  = $cnt===0 ? 'none' : ($cnt>=$totalSubjects ? 'all-done' : 'partial');
-          $bgLbl  = $cnt===0 ? 'Not assessed' : "$cnt/$totalSubjects subjects";
-          $rno    = $stu['roll_no'] ?: ($stu['roll_no_login'] ?? '');
-          $init   = mb_strtoupper(mb_substr($stu['name'],0,1));
-        ?>
-        <a href="?class_id=<?= $selClassId ?>&student_id=<?= $stu['id'] ?>&date=<?= urlencode($selDate) ?>"
-           class="stu-pick-card <?= $isSel?'selected':'' ?>">
-          <div class="stu-avatar"><?= h($init) ?></div>
-          <div class="stu-pick-name"><?= h($stu['name']) ?></div>
-          <?php if ($rno): ?><div class="stu-pick-roll"><?= h($rno) ?></div><?php endif; ?>
-          <span class="stu-pick-badge <?= $bgCls ?>"><?= $bgLbl ?></span>
-        </a>
-        <?php endforeach; ?>
+      <div style="padding:14px 18px">
+        <div class="row g-3">
+          <div class="col-sm-5">
+            <label class="form-label fw-semibold mb-1" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.4px;color:var(--t3)">
+              <i class="fas fa-search me-1"></i>Search by Name / GR
+            </label>
+            <input type="text" id="stuSearch" class="form-control form-control-sm"
+                   placeholder="Type name or GR number…" autocomplete="off">
+          </div>
+          <div class="col-sm-7">
+            <label class="form-label fw-semibold mb-1" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.4px;color:var(--t3)">
+              <i class="fas fa-user-graduate me-1"></i>Select from Class
+            </label>
+            <div class="input-group input-group-sm">
+              <select id="stuDropdown" class="form-select">
+                <option value="">— Choose a student —</option>
+                <?php foreach ($students as $stu):
+                  $rno = $stu['roll_no'] ?: ($stu['roll_no_login'] ?? '');
+                  $cnt = $studentCountToday[(int)$stu['id']] ?? 0;
+                ?>
+                <option value="<?= $stu['id'] ?>"
+                        data-name="<?= h(mb_strtolower($stu['name'])) ?>"
+                        data-roll="<?= h(mb_strtolower($rno)) ?>"
+                        <?= (int)$stu['id']===$selStudentId ? 'selected' : '' ?>>
+                  <?= h($stu['name']) ?><?= $rno ? ' — '.h($rno) : '' ?><?= $cnt ? " ($cnt/$totalSubjects)" : '' ?>
+                </option>
+                <?php endforeach; ?>
+              </select>
+              <button type="button" class="btn btn-primary" onclick="navigateToStudent()" title="Select this student">
+                <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <?php if ($selStudent): ?>
+        <div class="mt-3 d-flex align-items-center gap-2 flex-wrap"
+             style="font-size:.81rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;padding:8px 12px">
+          <i class="fas fa-check-circle text-success"></i>
+          <span>Selected: <strong><?= h($selStudent['name']) ?></strong><?php
+            $rno=$selStudent['roll_no']?:($selStudent['roll_no_login']??'');
+            if($rno): ?> &mdash; <?= h($rno) ?><?php endif; ?></span>
+          <a href="?class_id=<?= $selClassId ?>&date=<?= urlencode($selDate) ?>"
+             class="ms-auto text-danger" style="font-size:.75rem;text-decoration:none;white-space:nowrap">
+            <i class="fas fa-times-circle me-1"></i>Clear
+          </a>
+        </div>
+        <?php endif; ?>
       </div>
       <?php endif; ?>
     </div>
@@ -800,5 +830,73 @@ function syncHidden(inp) {
   if (grp) grp.dataset.crit = label;
   if (hidden) hidden.name = 'ratings[' + label + ']';
 }
+
+// ── Clear student+subject when class changes, then submit ─────────
+function clearStudentAndSubmitCtx() {
+  var f = document.getElementById('ctxForm');
+  ['student_id','subject_id'].forEach(function(n) {
+    var h = f.querySelector('input[name=' + n + ']');
+    if (h) h.remove();
+  });
+  f.submit();
+}
+
+// ── Navigate to selected student (preserving date) ────────────────
+function navigateToStudent() {
+  var dd = document.getElementById('stuDropdown');
+  if (!dd || !dd.value) { if (dd) dd.focus(); return; }
+  var dateEl = document.querySelector('#ctxForm input[name=date]');
+  var date   = dateEl ? dateEl.value : '<?= h($selDate) ?>';
+  window.location.href = '?class_id=<?= $selClassId ?>'
+    + '&student_id=' + encodeURIComponent(dd.value)
+    + '&date='       + encodeURIComponent(date);
+}
+
+// ── Student search: live-filters the dropdown ─────────────────────
+(function() {
+  var dd = document.getElementById('stuDropdown');
+  var sr = document.getElementById('stuSearch');
+  if (!dd || !sr) return;
+
+  function filterDd(q) {
+    q = (q || '').trim().toLowerCase();
+    var first = null;
+    for (var i = 1; i < dd.options.length; i++) {
+      var o = dd.options[i];
+      var match = !q
+        || (o.dataset.name || '').indexOf(q) !== -1
+        || (o.dataset.roll || '').indexOf(q) !== -1;
+      o.hidden = !match;
+      if (match && !first) first = o;
+    }
+    // If selected option is now hidden, reset to placeholder
+    if (dd.value && dd.options[dd.selectedIndex] && dd.options[dd.selectedIndex].hidden) {
+      dd.value = '';
+    }
+  }
+
+  sr.addEventListener('input', function() { filterDd(this.value); });
+
+  sr.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    var q = this.value.trim().toLowerCase();
+    var visible = [];
+    for (var i = 1; i < dd.options.length; i++) {
+      if (!dd.options[i].hidden) visible.push(dd.options[i]);
+    }
+    if (visible.length === 1) {
+      dd.value = visible[0].value;
+      navigateToStudent();
+    } else if (dd.value) {
+      navigateToStudent();
+    }
+  });
+
+  // Sync: when dropdown changes, clear the search text
+  dd.addEventListener('change', function() {
+    if (this.value) { sr.value = ''; filterDd(''); }
+  });
+})();
 </script>
 <?php pageFooter(); ?>
