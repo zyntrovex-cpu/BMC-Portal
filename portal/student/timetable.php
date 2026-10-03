@@ -93,7 +93,13 @@ $links = getStudentLinks();
         <div class="fw-semibold" style="font-size:.86rem"><?= h($doc['title']) ?></div>
         <div style="font-size:.76rem;color:#6b7280"><?= h($doc['academic_year']) ?><?= $doc['notes'] ? ' — ' . h($doc['notes']) : '' ?></div>
       </div>
-      <a href="/portal/api/serve-document.php?type=timetable&id=<?= $doc['id'] ?>"
+      <?php if (($doc['file_type'] ?? '') === 'pdf'): ?>
+      <a href="<?= url('/portal/api/serve-document.php') ?>?type=timetable&id=<?= $doc['id'] ?>&inline=1" target="_blank"
+         class="btn btn-xs btn-outline-info me-1" style="font-size:.76rem;padding:3px 10px;white-space:nowrap">
+        <i class="fas fa-eye me-1"></i>View
+      </a>
+      <?php endif; ?>
+      <a href="<?= url('/portal/api/serve-document.php') ?>?type=timetable&id=<?= $doc['id'] ?>"
          class="btn btn-xs btn-primary" style="font-size:.76rem;padding:3px 10px;white-space:nowrap">
         <i class="fas fa-download me-1"></i>Download
       </a>

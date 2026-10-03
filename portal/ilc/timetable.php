@@ -181,7 +181,13 @@ $links = getIlcLinks();
           <td style="font-size:.8rem"><?=h($doc['uploader_name'])?></td>
           <td style="font-size:.78rem;color:#6b7280"><?=fDate($doc['created_at'])?></td>
           <td style="white-space:nowrap">
-            <a href="/portal/api/serve-document.php?type=timetable&id=<?=$doc['id']?>"
+            <?php if(($doc['file_type']??'')==='pdf'):?>
+            <a href="<?=url('/portal/api/serve-document.php')?>?type=timetable&id=<?=$doc['id']?>&inline=1" target="_blank"
+               class="btn btn-xs btn-outline-info me-1" style="font-size:.72rem;padding:2px 7px" title="View">
+              <i class="fas fa-eye"></i> View
+            </a>
+            <?php endif;?>
+            <a href="<?=url('/portal/api/serve-document.php')?>?type=timetable&id=<?=$doc['id']?>"
                class="btn btn-xs me-1" style="font-size:.72rem;padding:2px 7px;background:#0891b2;color:#fff">
               <i class="fas fa-download"></i> Download
             </a>
