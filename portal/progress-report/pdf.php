@@ -135,8 +135,11 @@ table.pr-tbl td, table.pr-tbl th { border:1px solid #cbd5e1; padding:3px 7px; ve
 table.pr-tbl th { font-weight:600; }
 .ind-cell { text-align:center; width:52px; }
 .key-row  { display:flex; gap:14px; margin-bottom:8px; font-size:7.5pt; color:#374151; flex-wrap:wrap; }
-.remarks-box { border:1px solid #cbd5e1; border-top:none; padding:7px 10px; font-size:8.5pt;
-               min-height:38px; background:#fafafa; }
+.remarks-box { border:1px solid #c7d2fe; border-top:none; padding:7px 10px; font-size:8.5pt;
+               min-height:38px; background:#fafffe; }
+.remarks-title { font-size:8pt; font-weight:600; letter-spacing:.4px; text-transform:uppercase;
+                 padding:4px 10px; border-radius:3px 3px 0 0;
+                 background:#eef2ff; color:#3730a3; border:1px solid #c7d2fe; border-bottom:2px solid #a5b4fc; }
 .sig-row  { display:flex; justify-content:space-between; margin-top:16px;
             padding-top:10px; border-top:1px solid #cbd5e1; }
 .sig-box  { text-align:center; min-width:100px; }
@@ -214,11 +217,11 @@ table.pr-tbl th { font-weight:600; }
 </table>
 <?php endforeach; ?>
 
-<div class="sec-title" style="background:#374151">TEACHER'S REMARKS</div>
+<div class="remarks-title">Teacher's Remarks</div>
 <div class="remarks-box"><?= $fdRem !== '' ? nl2br(h($fdRem)) : '<span style="color:#94a3b8">—</span>' ?></div>
 
 <?php if ($fdNarrative !== ''): ?>
-<div class="sec-title" style="background:#374151;margin-top:7px">NARRATIVE ASSESSMENT</div>
+<div class="remarks-title" style="margin-top:7px">Narrative Assessment</div>
 <div class="remarks-box"><?= nl2br(h($fdNarrative)) ?></div>
 <?php endif; ?>
 

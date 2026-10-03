@@ -190,11 +190,12 @@ $links = getStudentLinks();
     <!-- Remarks -->
     <?php if ($rRem !== ''): ?>
     <div class="px-3 pt-2 <?= $rNarrative !== '' ? '' : 'pb-3' ?>">
-      <div style="font-size:.74rem;font-weight:700;color:#fff;background:#374151;
-                  padding:3px 10px;border-radius:4px 4px 0 0;text-transform:uppercase;letter-spacing:.4px">
-        Teacher's Remarks
+      <div style="font-size:.74rem;font-weight:600;color:#3730a3;background:#eef2ff;
+                  padding:5px 12px;border-radius:5px 5px 0 0;text-transform:uppercase;
+                  letter-spacing:.45px;border:1px solid #c7d2fe;border-bottom:2px solid #a5b4fc">
+        <i class="fas fa-comment-dots me-2" style="opacity:.7"></i>Teacher's Remarks
       </div>
-      <div style="border:1px solid #e2e8f0;border-top:none;padding:8px 12px;font-size:.82rem;background:#fafafa">
+      <div style="border:1px solid #c7d2fe;border-top:none;padding:8px 12px;font-size:.82rem;background:#fafffe;border-radius:0 0 5px 5px">
         <?= nl2br(h($rRem)) ?>
       </div>
     </div>
@@ -203,11 +204,12 @@ $links = getStudentLinks();
     <!-- Narrative Assessment -->
     <?php if ($rNarrative !== ''): ?>
     <div class="px-3 pt-2 pb-3">
-      <div style="font-size:.74rem;font-weight:700;color:#fff;background:#374151;
-                  padding:3px 10px;border-radius:4px 4px 0 0;text-transform:uppercase;letter-spacing:.4px">
-        Narrative Assessment
+      <div style="font-size:.74rem;font-weight:600;color:#3730a3;background:#eef2ff;
+                  padding:5px 12px;border-radius:5px 5px 0 0;text-transform:uppercase;
+                  letter-spacing:.45px;border:1px solid #c7d2fe;border-bottom:2px solid #a5b4fc">
+        <i class="fas fa-align-left me-2" style="opacity:.7"></i>Narrative Assessment
       </div>
-      <div style="border:1px solid #e2e8f0;border-top:none;padding:8px 12px;font-size:.82rem;background:#fafafa">
+      <div style="border:1px solid #c7d2fe;border-top:none;padding:8px 12px;font-size:.82rem;background:#fafffe;border-radius:0 0 5px 5px">
         <?= nl2br(h($rNarrative)) ?>
       </div>
     </div>

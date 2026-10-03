@@ -402,7 +402,9 @@ pageHead('Progress Report', $role);
 
             <!-- Remarks -->
             <div class="fba-sec mb-3">
-              <div class="fba-sh" style="background:#374151">Teacher's Remarks</div>
+              <div class="fba-sh" style="background:#eef2ff;color:#3730a3;border-bottom:2px solid #a5b4fc">
+                <i class="fas fa-comment-dots me-2" style="opacity:.75"></i>Teacher's Remarks
+              </div>
               <div class="fba-sb">
                 <textarea name="remarks" class="form-control form-control-sm" rows="3"
                           placeholder="Overall remarks, strengths, areas for improvement…"><?= h($fdRem) ?></textarea>
@@ -411,7 +413,9 @@ pageHead('Progress Report', $role);
 
             <!-- Narrative Assessment -->
             <div class="fba-sec mb-3">
-              <div class="fba-sh" style="background:#374151">Narrative Assessment</div>
+              <div class="fba-sh" style="background:#eef2ff;color:#3730a3;border-bottom:2px solid #a5b4fc">
+                <i class="fas fa-align-left me-2" style="opacity:.75"></i>Narrative Assessment
+              </div>
               <div class="fba-sb">
                 <textarea name="narrative" class="form-control form-control-sm" rows="3"
                           placeholder="Additional narrative assessment (optional)…"><?= h($fdNarrative) ?></textarea>
