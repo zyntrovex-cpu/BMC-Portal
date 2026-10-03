@@ -144,10 +144,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
             'attendance'    => trim($_POST['basic_attendance']    ?? ''),
             'date_of_issue' => trim($_POST['basic_date_of_issue'] ?? ''),
         ];
-        $subjects = json_decode($_POST['form_json'] ?? '[]', true);
+        $subjects  = json_decode($_POST['form_json'] ?? '[]', true);
         if (!is_array($subjects)) $subjects = [];
-        $remarks = trim($_POST['remarks'] ?? '');
-        $fd   = ['basic'=>$basic,'subjects'=>$subjects,'remarks'=>$remarks];
+        $remarks   = trim($_POST['remarks']   ?? '');
+        $narrative = trim($_POST['narrative'] ?? '');
+        $fd   = ['basic'=>$basic,'subjects'=>$subjects,'remarks'=>$remarks,'narrative'=>$narrative];
         $json = json_encode($fd, JSON_UNESCAPED_UNICODE);
         $term = $basic['term']; $session = $basic['session'];
 
@@ -196,8 +197,9 @@ if ($editResult && !empty($editResult['form_data'])) {
     $fd = prMigrateFormData($fd);
     $initialSubjectsJson = json_encode($fd['subjects'] ?? [], JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT);
 }
-$fdBasic = $fd['basic'] ?? ['term'=>'Final Term','session'=>'','attendance'=>'','date_of_issue'=>''];
-$fdRem   = $fd['remarks'] ?? '';
+$fdBasic     = $fd['basic']     ?? ['term'=>'Final Term','session'=>'','attendance'=>'','date_of_issue'=>''];
+$fdRem       = $fd['remarks']   ?? '';
+$fdNarrative = $fd['narrative'] ?? '';
 
 $links = match($role) {
     'montessori_teacher' => getMonteTeacherLinks(),
@@ -407,6 +409,15 @@ pageHead('Progress Report', $role);
               </div>
             </div>
 
+            <!-- Narrative Assessment -->
+            <div class="fba-sec mb-3">
+              <div class="fba-sh" style="background:#374151">Narrative Assessment</div>
+              <div class="fba-sb">
+                <textarea name="narrative" class="form-control form-control-sm" rows="3"
+                          placeholder="Additional narrative assessment (optional)…"><?= h($fdNarrative) ?></textarea>
+              </div>
+            </div>
+
             <div class="d-flex gap-2 pt-1">
               <button type="submit" class="btn btn-sm" style="background:#3730a3;color:#fff">
                 <i class="fas fa-save me-1"></i><?= $editResult?'Update Report':'Save Report' ?>
@@ -479,6 +490,11 @@ pageHead('Progress Report', $role);
           <?php if (!empty($rfd['remarks'])): ?>
           <div style="font-size:.74rem;margin-top:4px;color:var(--t2)">
             <i class="fas fa-comment-alt me-1"></i><?= h(mb_strimwidth($rfd['remarks'],0,120,'…')) ?>
+          </div>
+          <?php endif; ?>
+          <?php if (!empty($rfd['narrative'])): ?>
+          <div style="font-size:.74rem;margin-top:4px;color:var(--t2)">
+            <i class="fas fa-align-left me-1"></i><?= h(mb_strimwidth($rfd['narrative'],0,120,'…')) ?>
           </div>
           <?php endif; ?>
         </div>

@@ -106,11 +106,12 @@ $links = getStudentLinks();
 
 <?php else: ?>
 <?php foreach ($results as $rec):
-  $rfd      = prMigrateFormData(json_decode($rec['form_data'], true) ?? []);
-  $rBasic   = $rfd['basic']    ?? [];
-  $subjects = $rfd['subjects'] ?? [];
-  $rRem     = $rfd['remarks']  ?? '';
-  $pdfUrl   = url('/portal/progress-report/pdf.php?id='.$rec['id']);
+  $rfd        = prMigrateFormData(json_decode($rec['form_data'], true) ?? []);
+  $rBasic     = $rfd['basic']     ?? [];
+  $subjects   = $rfd['subjects']  ?? [];
+  $rRem       = $rfd['remarks']   ?? '';
+  $rNarrative = $rfd['narrative'] ?? '';
+  $pdfUrl     = url('/portal/progress-report/pdf.php?id='.$rec['id']);
 ?>
 <div class="sec-card mb-4">
   <div class="sec-card-header d-flex justify-content-between align-items-center"
@@ -188,7 +189,7 @@ $links = getStudentLinks();
 
     <!-- Remarks -->
     <?php if ($rRem !== ''): ?>
-    <div class="px-3 pt-2 pb-3">
+    <div class="px-3 pt-2 <?= $rNarrative !== '' ? '' : 'pb-3' ?>">
       <div style="font-size:.74rem;font-weight:700;color:#fff;background:#374151;
                   padding:3px 10px;border-radius:4px 4px 0 0;text-transform:uppercase;letter-spacing:.4px">
         Teacher's Remarks
@@ -197,7 +198,20 @@ $links = getStudentLinks();
         <?= nl2br(h($rRem)) ?>
       </div>
     </div>
-    <?php else: ?>
+    <?php endif; ?>
+
+    <!-- Narrative Assessment -->
+    <?php if ($rNarrative !== ''): ?>
+    <div class="px-3 pt-2 pb-3">
+      <div style="font-size:.74rem;font-weight:700;color:#fff;background:#374151;
+                  padding:3px 10px;border-radius:4px 4px 0 0;text-transform:uppercase;letter-spacing:.4px">
+        Narrative Assessment
+      </div>
+      <div style="border:1px solid #e2e8f0;border-top:none;padding:8px 12px;font-size:.82rem;background:#fafafa">
+        <?= nl2br(h($rNarrative)) ?>
+      </div>
+    </div>
+    <?php elseif ($rRem === ''): ?>
     <div class="pb-2"></div>
     <?php endif; ?>
   </div>

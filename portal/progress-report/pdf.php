@@ -85,10 +85,11 @@ function pdfIndicator(string $v): string {
     return "<strong style='color:$c'>$v</strong>";
 }
 
-$fd      = prMigrateFormData(json_decode($rec['form_data'], true) ?? []);
-$fdBasic = $fd['basic']    ?? [];
-$fdRem   = $fd['remarks']  ?? '';
-$subjects= $fd['subjects'] ?? [];
+$fd          = prMigrateFormData(json_decode($rec['form_data'], true) ?? []);
+$fdBasic     = $fd['basic']     ?? [];
+$fdRem       = $fd['remarks']   ?? '';
+$fdNarrative = $fd['narrative'] ?? '';
+$subjects    = $fd['subjects']  ?? [];
 
 $logoBase = defined('BASE_URL') ? BASE_URL : '';
 $dobFmt   = !empty($rec['dob'])                  ? date('d-m-y', strtotime($rec['dob']))              : '—';
@@ -215,6 +216,11 @@ table.pr-tbl th { font-weight:600; }
 
 <div class="sec-title" style="background:#374151">TEACHER'S REMARKS</div>
 <div class="remarks-box"><?= $fdRem !== '' ? nl2br(h($fdRem)) : '<span style="color:#94a3b8">—</span>' ?></div>
+
+<?php if ($fdNarrative !== ''): ?>
+<div class="sec-title" style="background:#374151;margin-top:7px">NARRATIVE ASSESSMENT</div>
+<div class="remarks-box"><?= nl2br(h($fdNarrative)) ?></div>
+<?php endif; ?>
 
 <div class="sig-row">
   <div class="sig-box"><div class="sig-line"></div><div class="sig-lbl">Class Teacher's Signature</div></div>
