@@ -26,13 +26,13 @@ if (!$targetId || !in_array($action, ['approve', 'reject'], true)) {
     redirect('/portal/admin/photo-approvals.php');
 }
 
-// Fetch the pending photo record
-$st = $db->prepare("SELECT id, profile_photo, photo_status FROM users WHERE id = ? AND photo_status = 'pending'");
+// Fetch the photo record (pending or approved)
+$st = $db->prepare("SELECT id, profile_photo, photo_status FROM users WHERE id = ? AND photo_status IN ('pending','approved') AND profile_photo IS NOT NULL");
 $st->execute([$targetId]);
 $target = $st->fetch();
 
 if (!$target) {
-    setFlash('warning', 'Photo not found or already processed.');
+    setFlash('warning', 'No active photo found for this user.');
     redirect('/portal/admin/photo-approvals.php');
 }
 

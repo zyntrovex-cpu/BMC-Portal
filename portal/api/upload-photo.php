@@ -104,25 +104,25 @@ if (!$saved) {
     redirect($returnUrl);
 }
 
-// ── Delete previous pending/rejected photo file if it exists ──────
+// ── Delete previous photo file if one exists (any status) ────────
 try {
-    $prevSt = $db->prepare("SELECT profile_photo, photo_status FROM users WHERE id = ?");
+    $prevSt = $db->prepare("SELECT profile_photo FROM users WHERE id = ?");
     $prevSt->execute([$userId]);
     $prev = $prevSt->fetch();
-    if ($prev && $prev['profile_photo'] && in_array($prev['photo_status'], ['pending', 'rejected'], true)) {
+    if ($prev && $prev['profile_photo'] && $prev['profile_photo'] !== $filename) {
         $oldFile = $uploadDir . $prev['profile_photo'];
         if (is_file($oldFile)) @unlink($oldFile);
     }
 } catch (Exception $e) {}
 
-// ── Update DB ─────────────────────────────────────────────────────
+// ── Update DB — mark approved so it shows immediately everywhere ──
 $db->prepare(
-    "UPDATE users SET profile_photo = ?, photo_status = 'pending',
+    "UPDATE users SET profile_photo = ?, photo_status = 'approved',
      photo_rejection_reason = NULL, photo_reviewed_by = NULL, photo_reviewed_at = NULL
      WHERE id = ?"
 )->execute([$filename, $userId]);
 
-logActivity($userId, 'photo_upload', 'Uploaded profile photo — awaiting review');
+logActivity($userId, 'photo_upload', 'Uploaded profile photo');
 
-setFlash('success', 'Your photo has been submitted and is now under review. An admin will approve it shortly.');
+setFlash('success', 'Your profile photo has been updated successfully.');
 redirect($returnUrl);

@@ -672,8 +672,9 @@ function getExamHeadLinks(): array {
 // ── Profile photo helpers ─────────────────────────────────────────
 
 /**
- * Returns the web URL for a user's approved profile photo, or null if none.
- * Queries DB fresh each call so approval changes are reflected immediately.
+ * Returns the web URL for a user's profile photo, or null if none.
+ * Shows photos that are pending review OR approved; only rejected/none returns null.
+ * Queries DB fresh each call so status changes are reflected immediately.
  */
 function getProfilePhotoUrl(int $userId): ?string {
     if (!$userId) return null;
@@ -681,7 +682,7 @@ function getProfilePhotoUrl(int $userId): ?string {
         $st = getDB()->prepare('SELECT profile_photo, photo_status FROM users WHERE id = ?');
         $st->execute([$userId]);
         $row = $st->fetch();
-        if ($row && $row['photo_status'] === 'approved' && $row['profile_photo']) {
+        if ($row && $row['profile_photo'] && in_array($row['photo_status'], ['pending', 'approved'], true)) {
             return url('/portal/uploads/profile-photos/' . rawurlencode($row['profile_photo']));
         }
     } catch (Exception $e) {}

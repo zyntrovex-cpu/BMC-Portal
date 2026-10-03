@@ -47,11 +47,11 @@ try {
     </div>
 
     <?php elseif ($_pwStatus === 'pending' && $_pwImgUrl): ?>
-    <!-- Pending review -->
+    <!-- Pending review — photo IS visible everywhere, just awaiting final admin sign-off -->
     <div class="d-flex align-items-start gap-4 mb-3">
       <div style="position:relative;flex-shrink:0">
         <img src="<?= h($_pwImgUrl) ?>" alt="Profile Photo"
-             style="width:100px;height:100px;object-fit:cover;border-radius:50%;border:3px solid #f59e0b;opacity:.7">
+             style="width:100px;height:100px;object-fit:cover;border-radius:50%;border:3px solid #f59e0b">
         <div style="position:absolute;bottom:0;right:0;background:#f59e0b;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center">
           <i class="fas fa-clock" style="font-size:.65rem;color:#fff"></i>
         </div>
@@ -59,8 +59,8 @@ try {
       <div>
         <span class="badge bg-warning text-dark mb-1"><i class="fas fa-clock me-1"></i>Under Review</span>
         <p style="font-size:.83rem;color:var(--t2);margin:0">
-          Your photo has been submitted and is awaiting admin approval.
-          It won't appear on your profile until approved.
+          Your photo is now visible on your profile and is awaiting final admin sign-off.
+          You can replace it at any time.
         </p>
       </div>
     </div>
@@ -85,8 +85,7 @@ try {
       <div style="font-weight:700;color:#1d4ed8;margin-bottom:6px"><i class="fas fa-info-circle me-1"></i>Photo Requirements</div>
       <p style="margin:0;color:#1e40af;line-height:1.6">
         Photo requirements: front-facing, plain <strong>white or blue</strong> background only.
-        No other backgrounds, filters, or side angles.
-        Your photo will be reviewed before it appears on your profile.
+        No other backgrounds, filters, or side angles. JPG or PNG, minimum 300×300 px, max 2 MB.
       </p>
     </div>
 
@@ -108,7 +107,7 @@ try {
       </div>
 
       <button type="submit" class="btn btn-primary btn-sm">
-        <i class="fas fa-upload me-1"></i>Submit for Review
+        <i class="fas fa-upload me-1"></i>Upload Photo
       </button>
     </form>
 
