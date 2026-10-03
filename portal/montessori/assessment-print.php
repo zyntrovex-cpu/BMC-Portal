@@ -40,6 +40,16 @@ if (!empty($assessment['criteria'])) {
     if (is_array($decoded)) $criteria = $decoded;
 }
 
+// Load primary student name (per-student assessments have student_id on the header)
+$primaryStudentName = null;
+if (!empty($assessment['student_id'])) {
+    $stuNameSt = $db->prepare(
+        'SELECT u.name, st.roll_no FROM students st JOIN users u ON st.user_id=u.id WHERE st.id=?'
+    );
+    $stuNameSt->execute([$assessment['student_id']]);
+    $primaryStudentName = $stuNameSt->fetch();
+}
+
 // Load student entries
 $entries = [];
 $eSt = $db->prepare(
@@ -79,7 +89,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#1a1a1a;backgro
 .report-subtitle{font-size:9.5pt;opacity:.85;letter-spacing:.2px}
 .report-badge{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:3px 12px;font-size:8.5pt;margin-top:6px}
 /* Meta strip */
-.meta-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:2px solid #1e3a5f}
+.meta-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0;border-bottom:2px solid #1e3a5f}
 .meta-cell{padding:10px 14px;border-right:1px solid #e5e7eb}
 .meta-cell:last-child{border-right:none}
 .meta-label{font-size:7.5pt;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:2px}
@@ -149,11 +159,20 @@ tbody td.center{text-align:center}
     <span class="report-badge"><i class="fas fa-calendar-day" style="font-size:8pt;margin-right:4px"></i><?= $assessDate ?></span>
   </div>
 
-  <div class="meta-strip">
+  <div class="meta-strip" style="<?= $primaryStudentName ? 'grid-template-columns:repeat(4,1fr)' : 'grid-template-columns:repeat(4,1fr)' ?>">
     <div class="meta-cell">
       <div class="meta-label">Class</div>
       <div class="meta-value"><?= htmlspecialchars($assessment['class_name']) ?></div>
     </div>
+    <?php if ($primaryStudentName): ?>
+    <div class="meta-cell">
+      <div class="meta-label">Student</div>
+      <div class="meta-value"><?= htmlspecialchars($primaryStudentName['name']) ?></div>
+      <?php if ($primaryStudentName['roll_no']): ?>
+      <div style="font-size:8pt;color:#6b7280;margin-top:2px">Roll: <?= htmlspecialchars($primaryStudentName['roll_no']) ?></div>
+      <?php endif; ?>
+    </div>
+    <?php endif; ?>
     <div class="meta-cell">
       <div class="meta-label">Subject</div>
       <div class="meta-value"><?= htmlspecialchars($assessment['subject_name']) ?></div>
@@ -162,10 +181,12 @@ tbody td.center{text-align:center}
       <div class="meta-label">Teacher</div>
       <div class="meta-value"><?= htmlspecialchars($assessment['teacher_name']) ?></div>
     </div>
+    <?php if (!$primaryStudentName): ?>
     <div class="meta-cell">
       <div class="meta-label">Students Assessed</div>
       <div class="meta-value"><?= count($entries) ?></div>
     </div>
+    <?php endif; ?>
   </div>
 
   <?php if (!empty($assessment['topic'])): ?>

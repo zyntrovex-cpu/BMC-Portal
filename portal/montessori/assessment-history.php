@@ -38,6 +38,7 @@ $assignedClasses = $cSt->fetchAll();
 
 $selClassId = (int)($_GET['class_id'] ?? (empty($assignedClasses) ? 0 : $assignedClasses[0]['id']));
 $selSubject = (int)($_GET['subject_id'] ?? 0);
+$selStudent = (int)($_GET['student_id'] ?? 0);
 $page       = max(1, (int)($_GET['page'] ?? 1));
 $perPage    = 20;
 
@@ -70,6 +71,19 @@ if ($selClassId) {
     $subjects = $sSt->fetchAll();
 }
 
+// Student filter list for the selected class
+$students = [];
+if ($selClassId) {
+    $stuSt = $db->prepare(
+        'SELECT st.id, u.name FROM students st
+         JOIN users u ON st.user_id=u.id
+         WHERE st.class_id=? AND st.deleted_at IS NULL
+         ORDER BY u.name'
+    );
+    $stuSt->execute([$selClassId]);
+    $students = $stuSt->fetchAll();
+}
+
 // History rows
 $history  = [];
 $total    = 0;
@@ -77,30 +91,32 @@ $offset   = ($page - 1) * $perPage;
 
 if ($selClassId) {
     try {
-        $subjCond = $selSubject ? 'AND mda.subject_id=?' : '';
-        $params   = $selSubject ? [$selClassId, $selSubject] : [$selClassId];
+        $whereParts = ['mda.class_id=?'];
+        $params     = [$selClassId];
+        if ($selSubject) { $whereParts[] = 'mda.subject_id=?'; $params[] = $selSubject; }
+        if ($selStudent) { $whereParts[] = 'mda.student_id=?'; $params[] = $selStudent; }
+        $where = implode(' AND ', $whereParts);
 
-        $countSt = $db->prepare(
-            "SELECT COUNT(*) FROM montessori_daily_assessments mda
-             WHERE mda.class_id=? $subjCond"
-        );
+        $countSt = $db->prepare("SELECT COUNT(*) FROM montessori_daily_assessments mda WHERE $where");
         $countSt->execute($params);
         $total = (int)$countSt->fetchColumn();
 
         $params[] = $perPage;
         $params[] = $offset;
         $dataSt = $db->prepare(
-            "SELECT mda.id, mda.subject_id, mda.assessment_date, mda.topic, mda.criteria,
+            "SELECT mda.id, mda.subject_id, mda.student_id, mda.assessment_date, mda.topic, mda.criteria,
                     s.name AS subject_name,
-                    (SELECT COUNT(*) FROM montessori_daily_assessment_entries e WHERE e.assessment_id=mda.id) AS entry_count,
+                    COALESCE(u2.name,'—') AS student_name,
                     t.id AS teacher_id,
                     u.name AS teacher_name
              FROM montessori_daily_assessments mda
              JOIN subjects s ON mda.subject_id=s.id
              JOIN teachers t ON mda.teacher_id=t.id
              JOIN users u ON t.user_id=u.id
-             WHERE mda.class_id=? $subjCond
-             ORDER BY mda.assessment_date DESC, s.name
+             LEFT JOIN students st ON mda.student_id=st.id
+             LEFT JOIN users u2 ON st.user_id=u2.id
+             WHERE $where
+             ORDER BY mda.assessment_date DESC, u2.name, s.name
              LIMIT ? OFFSET ?"
         );
         $dataSt->execute($params);
@@ -144,6 +160,15 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
     </select>
   </div>
   <div>
+    <label class="form-label fw-semibold mb-1" style="font-size:.77rem">Student</label>
+    <select name="student_id" class="form-select form-select-sm" style="min-width:150px">
+      <option value="0">All Students</option>
+      <?php foreach ($students as $stu): ?>
+      <option value="<?= $stu['id'] ?>" <?= (int)$stu['id']===$selStudent?'selected':'' ?>><?= h($stu['name']) ?></option>
+      <?php endforeach; ?>
+    </select>
+  </div>
+  <div>
     <label class="form-label fw-semibold mb-1" style="font-size:.77rem">Subject</label>
     <select name="subject_id" class="form-select form-select-sm" style="min-width:140px">
       <option value="0">All Subjects</option>
@@ -155,7 +180,7 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
   <button type="submit" class="btn btn-sm btn-primary" style="font-size:.78rem">
     <i class="fas fa-filter me-1"></i>Filter
   </button>
-  <?php if ($selSubject || $page > 1): ?>
+  <?php if ($selSubject || $selStudent || $page > 1): ?>
   <a href="?class_id=<?= $selClassId ?>" class="btn btn-sm btn-outline-secondary" style="font-size:.78rem">Clear</a>
   <?php endif; ?>
 </form>
@@ -164,7 +189,7 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
 <div class="alert alert-info" style="font-size:.83rem"><i class="fas fa-info-circle me-2"></i>No Montessori classes found.</div>
 <?php elseif (empty($history)): ?>
 <div class="alert alert-secondary" style="font-size:.83rem">
-  <i class="fas fa-clipboard me-2"></i>No assessment records found for this class<?= $selSubject ? ' and subject' : '' ?>.
+  <i class="fas fa-clipboard me-2"></i>No assessment records found<?= ($selStudent||$selSubject) ? ' for the selected filters' : ' for this class' ?>.
 </div>
 <?php else: ?>
 
@@ -179,9 +204,9 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
       <thead>
         <tr style="background:#f8fafc">
           <th style="padding:9px 12px;font-size:.74rem;font-weight:600">Date</th>
+          <th style="padding:9px 12px;font-size:.74rem;font-weight:600">Student</th>
           <th style="padding:9px 12px;font-size:.74rem;font-weight:600">Subject</th>
           <th style="padding:9px 12px;font-size:.74rem;font-weight:600">Topic</th>
-          <th style="padding:9px 12px;font-size:.74rem;font-weight:600;text-align:center">Students Assessed</th>
           <th style="padding:9px 12px;font-size:.74rem;font-weight:600">Criteria</th>
           <?php if (!$teacher): ?><th style="padding:9px 12px;font-size:.74rem;font-weight:600">Teacher</th><?php endif; ?>
           <th style="padding:9px 12px;font-size:.74rem;font-weight:600;text-align:center">Action</th>
@@ -197,6 +222,9 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
             <?= date('d M Y', strtotime($row['assessment_date'])) ?>
             <div style="font-size:.7rem;color:#94a3b8;font-weight:400"><?= date('l', strtotime($row['assessment_date'])) ?></div>
           </td>
+          <td style="padding:9px 12px;font-weight:600;color:#374151">
+            <?= h($row['student_name']) ?>
+          </td>
           <td style="padding:9px 12px">
             <div class="d-flex align-items-center gap-2">
               <div style="width:28px;height:28px;border-radius:8px;background:<?= $meta['bg'] ?>;color:<?= $meta['ic'] ?>;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0">
@@ -206,17 +234,14 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
             </div>
           </td>
           <td style="padding:9px 12px;color:#475569"><?= $row['topic'] ? h($row['topic']) : '<span style="color:#94a3b8">—</span>' ?></td>
-          <td style="padding:9px 12px;text-align:center">
-            <span class="badge" style="background:#e0f2fe;color:#0369a1;font-size:.74rem"><?= (int)$row['entry_count'] ?> students</span>
-          </td>
           <td style="padding:9px 12px">
             <?php if ($criteria): ?>
             <div class="d-flex flex-wrap gap-1">
-              <?php foreach (array_slice($criteria, 0, 4) as $c): ?>
+              <?php foreach (array_slice($criteria, 0, 3) as $c): ?>
               <span style="font-size:.69rem;background:#f1f5f9;color:#475569;padding:2px 7px;border-radius:10px;white-space:nowrap"><?= h($c) ?></span>
               <?php endforeach; ?>
-              <?php if (count($criteria) > 4): ?>
-              <span style="font-size:.69rem;color:#94a3b8">+<?= count($criteria)-4 ?> more</span>
+              <?php if (count($criteria) > 3): ?>
+              <span style="font-size:.69rem;color:#94a3b8">+<?= count($criteria)-3 ?> more</span>
               <?php endif; ?>
             </div>
             <?php else: ?>
@@ -228,11 +253,15 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
           <?php endif; ?>
           <td style="padding:9px 12px;text-align:center">
             <div class="d-flex gap-1 justify-content-center flex-wrap">
-              <a href="/portal/montessori/assessments.php?class_id=<?= $selClassId ?>&date=<?= urlencode($row['assessment_date']) ?>&show_subject=<?= $row['subject_id'] ?>"
+              <?php if ($row['student_id']): ?>
+              <a href="/portal/montessori/assessments.php?class_id=<?= $selClassId ?>&student_id=<?= $row['student_id'] ?>&subject_id=<?= $row['subject_id'] ?>&date=<?= urlencode($row['assessment_date']) ?>"
                  class="btn btn-sm btn-outline-primary" style="font-size:.72rem;padding:3px 8px"
-                 title="Open assessment for this date">
+                 title="Open assessment for this student">
                 <i class="fas fa-eye me-1"></i>View / Edit
               </a>
+              <?php else: ?>
+              <span style="font-size:.72rem;color:#94a3b8">Legacy</span>
+              <?php endif; ?>
               <a href="/portal/montessori/assessment-print.php?id=<?= $row['id'] ?>" target="_blank"
                  class="btn btn-sm btn-outline-success" style="font-size:.72rem;padding:3px 8px"
                  title="Printable report">
@@ -252,7 +281,9 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
     <nav>
       <ul class="pagination pagination-sm mb-0 flex-wrap gap-1">
         <?php
-        $baseUrl = '?class_id='.$selClassId.($selSubject?'&subject_id='.$selSubject:'');
+        $baseUrl = '?class_id='.$selClassId
+            .($selStudent?'&student_id='.$selStudent:'')
+            .($selSubject?'&subject_id='.$selSubject:'');
         ?>
         <li class="page-item <?= $page<=1?'disabled':'' ?>">
           <a class="page-link" href="<?= $baseUrl.'&page='.($page-1) ?>">

@@ -286,6 +286,20 @@ function getDB(): PDO {
                 INDEX idx_ara_request (request_id)
             ) ENGINE=InnoDB");
         } catch (Exception $e) {}
+
+        // Group 13: per-student montessori assessment support
+        try {
+            $pdo->exec("ALTER TABLE montessori_daily_assessments ADD COLUMN student_id INT NULL AFTER class_id");
+        } catch (Exception $e) {}
+        try {
+            $pdo->exec("ALTER TABLE montessori_daily_assessments ADD CONSTRAINT fk_mda_student FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE");
+        } catch (Exception $e) {}
+        try {
+            $pdo->exec("ALTER TABLE montessori_daily_assessments DROP INDEX uq_mda");
+        } catch (Exception $e) {}
+        try {
+            $pdo->exec("ALTER TABLE montessori_daily_assessments ADD UNIQUE KEY uq_mda_student (student_id, subject_id, assessment_date)");
+        } catch (Exception $e) {}
     }
     return $pdo;
 }
