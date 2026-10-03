@@ -35,25 +35,6 @@ try {
     $ttDocs = $tdst->fetchAll();
 } catch (Exception $e) {}
 
-// Get teacher's timetable
-$st = $db->prepare(
-    'SELECT tt.day, tt.period, tt.room,
-            sb.name AS subject_name, sb.code AS subject_code,
-            c.name AS class_name
-     FROM timetable tt
-     LEFT JOIN subjects sb ON tt.subject_id = sb.id
-     LEFT JOIN classes c  ON tt.class_id    = c.id
-     WHERE tt.teacher_id = ?
-     ORDER BY FIELD(tt.day,"monday","tuesday","wednesday","thursday","friday"), tt.period'
-);
-$st->execute([$teacher['id']]);
-$rows = $st->fetchAll();
-$grid = [];
-foreach ($rows as $r) { $grid[$r['day']][$r['period']] = $r; }
-
-$days    = ['monday','tuesday','wednesday','thursday','friday'];
-$periods = range(1, 8);
-
 pageHead('Timetable', $user['role']);
 $links = match($user['role']) {
     'montessori_teacher' => getMonteTeacherLinks(),
@@ -69,82 +50,66 @@ $links = match($user['role']) {
 <div class="page-content">
 <?= flashHtml() ?>
 
+<?php if (empty($ttDocs)): ?>
 <div class="sec-card">
-  <div class="sec-card-header"><i class="fas fa-table me-2"></i>Weekly Schedule — <?= h($teacher['name']) ?></div>
-  <div class="table-responsive">
-    <table class="table table-bordered mb-0" style="font-size:.84rem; min-width:700px;">
-      <thead class="table-dark">
-        <tr>
-          <th style="width:80px">Period</th>
-          <?php foreach ($days as $d): ?>
-            <th class="text-center"><?= ucfirst($d) ?></th>
-          <?php endforeach; ?>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($periods as $p): ?>
-        <tr>
-          <td class="fw-bold text-center" style="background:#f8fafc">P<?= $p ?></td>
-          <?php foreach ($days as $d): ?>
-            <?php $cell = $grid[$d][$p] ?? null; ?>
-            <td class="text-center" style="vertical-align:middle;padding:8px 6px">
-              <?php if ($cell): ?>
-                <div class="fw-semibold" style="color:var(--accent);font-size:.83rem"><?= h($cell['class_name']) ?></div>
-                <div style="font-size:.78rem;color:#6b7280"><?= h($cell['subject_name']) ?></div>
-                <?php if ($cell['room']): ?>
-                  <div style="font-size:.72rem;color:#9ca3af"><i class="fas fa-door-open me-1"></i><?= h($cell['room']) ?></div>
-                <?php endif; ?>
-              <?php else: ?>
-                <span style="color:#d1d5db;font-size:.8rem">—</span>
-              <?php endif; ?>
-            </td>
-          <?php endforeach; ?>
-        </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
+  <div class="text-center py-5 text-muted">
+    <i class="fas fa-calendar-times fa-2x mb-3 d-block" style="opacity:.3"></i>
+    <p class="fw-semibold mb-1">No timetable uploaded yet.</p>
+    <p style="font-size:.85rem" class="mb-0">Check back later or contact administration.</p>
   </div>
 </div>
-
-</div>
-
-<?php if (!empty($ttDocs)): ?>
-<div class="sec-card mt-3">
-  <div class="sec-card-header"><i class="fas fa-file-alt me-2"></i>Timetable Documents</div>
-  <div style="padding:12px 16px">
-    <?php foreach ($ttDocs as $doc):
-      $iconMap = ['pdf' => 'fa-file-pdf text-danger', 'xlsx' => 'fa-file-excel text-success', 'xls' => 'fa-file-excel text-success', 'doc' => 'fa-file-word text-primary', 'docx' => 'fa-file-word text-primary'];
-      $icon    = $iconMap[$doc['file_type'] ?? ''] ?? 'fa-file text-secondary';
-      $isPdf   = ($doc['file_type'] ?? '') === 'pdf';
-      $baseUrl = url('/portal/api/serve-document.php') . '?type=timetable&id=' . (int)$doc['id'];
-    ?>
-    <div class="d-flex align-items-center gap-3 mb-2 p-2" style="background:#f9fafb;border-radius:6px;border:1px solid #e5e7eb">
-      <i class="fas <?= $icon ?> fa-lg"></i>
+<?php else: ?>
+<?php foreach ($ttDocs as $doc):
+  $iconMap  = ['pdf'=>'fa-file-pdf','xlsx'=>'fa-file-excel','xls'=>'fa-file-excel','doc'=>'fa-file-word','docx'=>'fa-file-word'];
+  $iconClr  = ['pdf'=>'#dc2626','xlsx'=>'#16a34a','xls'=>'#16a34a','doc'=>'#2563eb','docx'=>'#2563eb'];
+  $bgClr    = ['pdf'=>'#fee2e2','xlsx'=>'#dcfce7','xls'=>'#dcfce7','doc'=>'#dbeafe','docx'=>'#dbeafe'];
+  $ft       = $doc['file_type'] ?? '';
+  $icon     = $iconMap[$ft] ?? 'fa-file';
+  $iclr     = $iconClr[$ft] ?? '#6b7280';
+  $ibg      = $bgClr[$ft]   ?? '#f3f4f6';
+  $isPdf    = $ft === 'pdf';
+  $sizeFmt  = $doc['file_size'] ? (($doc['file_size'] > 1048576) ? round($doc['file_size']/1048576,1).' MB' : round($doc['file_size']/1024).' KB') : '';
+  $baseUrl  = url('/portal/api/serve-document.php') . '?type=timetable&id=' . (int)$doc['id'];
+?>
+<div class="sec-card mb-3">
+  <div style="padding:20px 24px">
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+      <div style="width:60px;height:60px;border-radius:14px;background:<?= $ibg ?>;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="fas <?= $icon ?>" style="font-size:1.6rem;color:<?= $iclr ?>"></i>
+      </div>
       <div class="flex-grow-1">
-        <div class="fw-semibold" style="font-size:.86rem"><?= h($doc['title']) ?></div>
-        <div style="font-size:.76rem;color:#6b7280">
-          <?= h($doc['academic_year']) ?>
-          <?= $doc['notes'] ? ' — ' . h($doc['notes']) : '' ?>
-          <?= $doc['uploader_name'] ? ' · Uploaded by ' . h($doc['uploader_name']) : '' ?>
+        <div class="fw-bold" style="font-size:1.05rem;color:var(--accent)"><?= h($doc['title']) ?></div>
+        <div class="d-flex flex-wrap gap-3 mt-1" style="font-size:.8rem;color:var(--t2)">
+          <span><i class="fas fa-calendar-alt me-1"></i><?= h($doc['academic_year']) ?></span>
+          <?php if ($doc['uploader_name']): ?>
+          <span><i class="fas fa-user me-1"></i>Uploaded by <?= h($doc['uploader_name']) ?></span>
+          <?php endif; ?>
+          <?php if ($sizeFmt): ?>
+          <span><i class="fas fa-hdd me-1"></i><?= strtoupper($ft) ?> &middot; <?= $sizeFmt ?></span>
+          <?php endif; ?>
+          <?php if ($doc['notes']): ?>
+          <span><i class="fas fa-info-circle me-1"></i><?= h($doc['notes']) ?></span>
+          <?php endif; ?>
         </div>
       </div>
-      <a href="<?= $baseUrl . ($isPdf ? '&inline=1' : '') ?>" target="_blank"
-         class="btn btn-xs btn-outline-info me-1" style="font-size:.76rem;padding:3px 10px;white-space:nowrap">
-        <i class="fas fa-eye me-1"></i>View
-      </a>
-      <a href="<?= $baseUrl ?>"
-         class="btn btn-xs btn-primary me-1" style="font-size:.76rem;padding:3px 10px;white-space:nowrap">
-        <i class="fas fa-download me-1"></i>Download
-      </a>
-      <a href="<?= $baseUrl . ($isPdf ? '&inline=1' : '') ?>"
-         target="_blank" <?= $isPdf ? '' : 'onclick="window.location.href=\'' . $baseUrl . '\';return false"' ?>
-         class="btn btn-xs btn-outline-secondary" style="font-size:.76rem;padding:3px 10px;white-space:nowrap">
-        <i class="fas fa-print me-1"></i>Print
-      </a>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="<?= $baseUrl . ($isPdf ? '&inline=1' : '') ?>" target="_blank"
+           class="btn btn-sm btn-outline-info">
+          <i class="fas fa-eye me-1"></i>View
+        </a>
+        <a href="<?= $baseUrl ?>" class="btn btn-sm btn-success">
+          <i class="fas fa-download me-1"></i>Download
+        </a>
+        <a href="<?= $baseUrl . ($isPdf ? '&inline=1' : '') ?>" target="_blank"
+           <?= !$isPdf ? 'onclick="event.preventDefault();window.location.href=\'' . $baseUrl . '\'"' : '' ?>
+           class="btn btn-sm btn-outline-secondary">
+          <i class="fas fa-print me-1"></i>Print
+        </a>
+      </div>
     </div>
-    <?php endforeach; ?>
   </div>
 </div>
+<?php endforeach; ?>
 <?php endif; ?>
 
 </div>
