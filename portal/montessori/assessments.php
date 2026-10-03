@@ -77,22 +77,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/portal/montessori/assessments.php?class_id='.$classId.'&student_id='.$studentId.'&date='.urlencode($date));
         }
 
-        // Upsert assessment header (per student)
+        // Insert new assessment record
         $db->prepare(
             'INSERT INTO montessori_daily_assessments
              (class_id,student_id,subject_id,topic,assessment_date,criteria,teacher_id)
-             VALUES (?,?,?,?,?,?,?)
-             ON DUPLICATE KEY UPDATE topic=VALUES(topic),criteria=VALUES(criteria),teacher_id=VALUES(teacher_id),updated_at=NOW()'
+             VALUES (?,?,?,?,?,?,?)'
         )->execute([$classId,$studentId,$subjectId,$topic?:null,$date,json_encode($criteria),$teacher?$teacher['id']:1]);
-
         $assessmentId = (int)$db->lastInsertId();
-        if (!$assessmentId) {
-            $f = $db->prepare('SELECT id FROM montessori_daily_assessments WHERE student_id=? AND subject_id=? AND assessment_date=?');
-            $f->execute([$studentId,$subjectId,$date]);
-            $assessmentId = (int)$f->fetchColumn();
-        }
 
-        // Upsert single student entry
+        // Insert entry for this assessment
         $rawRatings = (array)($_POST['ratings'] ?? []);
         $overall    = trim($_POST['overall']    ?? '');
         $remark     = substr(trim($_POST['remarks'] ?? ''), 0, 500);
@@ -104,8 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $db->prepare(
             'INSERT INTO montessori_daily_assessment_entries
              (assessment_id,student_id,ratings,overall,remarks)
-             VALUES (?,?,?,?,?)
-             ON DUPLICATE KEY UPDATE ratings=VALUES(ratings),overall=VALUES(overall),remarks=VALUES(remarks)'
+             VALUES (?,?,?,?,?)'
         )->execute([
             $assessmentId,$studentId,json_encode($clean),
             in_array($overall,['AD','ED','EMD'],true)?$overall:null,
@@ -115,14 +107,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         logActivity($user['id'],'montessori_assessment_save',
             "Formative assessment: class #$classId, student #$studentId, subject #$subjectId, $date");
         setFlash('success','Assessment saved successfully.');
-        redirect('/portal/montessori/assessments.php?class_id='.$classId.'&student_id='.$studentId.'&subject_id='.$subjectId.'&date='.urlencode($date));
+        redirect('/portal/montessori/assessments.php?class_id='.$classId.'&student_id='.$studentId.'&subject_id='.$subjectId);
+    }
+
+    if ($action === 'update_assessment') {
+        $assessmentId = (int)($_POST['assessment_id'] ?? 0);
+        $classId      = (int)($_POST['class_id']      ?? 0);
+        $studentId    = (int)($_POST['student_id']    ?? 0);
+        $subjectId    = (int)($_POST['subject_id']    ?? 0);
+        $topic        = substr(trim($_POST['topic'] ?? ''), 0, 200);
+        $date         = $_POST['assessment_date']  ?? date('Y-m-d');
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) $date = date('Y-m-d');
+        $criteria     = array_values(array_filter(array_map('trim', (array)($_POST['criteria'] ?? []))));
+        if (empty($criteria)) $criteria = ['Participation'];
+
+        if (!$assessmentId || !$classId || !$studentId || !$subjectId) {
+            setFlash('danger','Missing required fields.');
+            redirect('/portal/montessori/assessments.php?class_id='.$classId.'&student_id='.$studentId.'&subject_id='.$subjectId);
+        }
+
+        if ($teacher) {
+            $chk = $db->prepare('SELECT id FROM montessori_daily_assessments WHERE id=? AND teacher_id=?');
+            $chk->execute([$assessmentId,$teacher['id']]);
+            if (!$chk->fetch()) {
+                setFlash('danger','Not authorized to edit this assessment.');
+                redirect('/portal/montessori/assessments.php?class_id='.$classId.'&student_id='.$studentId.'&subject_id='.$subjectId);
+            }
+        }
+
+        $db->prepare(
+            'UPDATE montessori_daily_assessments
+             SET topic=?,assessment_date=?,criteria=?,teacher_id=?,updated_at=NOW()
+             WHERE id=? AND student_id=?'
+        )->execute([$topic?:null,$date,json_encode($criteria),$teacher?$teacher['id']:1,$assessmentId,$studentId]);
+
+        $rawRatings = (array)($_POST['ratings'] ?? []);
+        $overall    = trim($_POST['overall']    ?? '');
+        $remark     = substr(trim($_POST['remarks'] ?? ''), 0, 500);
+        $clean = [];
+        foreach ($criteria as $crit) {
+            $v = $rawRatings[$crit] ?? '';
+            $clean[$crit] = in_array($v,['AD','ED','EMD'],true) ? $v : '';
+        }
+        $db->prepare(
+            'INSERT INTO montessori_daily_assessment_entries (assessment_id,student_id,ratings,overall,remarks)
+             VALUES (?,?,?,?,?)
+             ON DUPLICATE KEY UPDATE ratings=VALUES(ratings),overall=VALUES(overall),remarks=VALUES(remarks)'
+        )->execute([
+            $assessmentId,$studentId,json_encode($clean),
+            in_array($overall,['AD','ED','EMD'],true)?$overall:null,
+            $remark?:null
+        ]);
+
+        logActivity($user['id'],'montessori_assessment_update',
+            "Updated assessment #$assessmentId for student #$studentId, subject #$subjectId");
+        setFlash('success','Assessment updated successfully.');
+        redirect('/portal/montessori/assessments.php?class_id='.$classId.'&student_id='.$studentId.'&subject_id='.$subjectId);
     }
 
     if ($action === 'delete_assessment') {
         $aId       = (int)($_POST['assessment_id'] ?? 0);
         $classId   = (int)($_POST['class_id']      ?? 0);
         $studentId = (int)($_POST['student_id']    ?? 0);
-        $date      = $_POST['date'] ?? date('Y-m-d');
+        $subjectId = (int)($_POST['subject_id']    ?? 0);
         if ($teacher) {
             $chk = $db->prepare('SELECT id FROM montessori_daily_assessments WHERE id=? AND teacher_id=?');
             $chk->execute([$aId,$teacher['id']]);
@@ -134,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 setFlash('danger','Not authorized to delete this assessment.');
             }
         }
-        redirect('/portal/montessori/assessments.php?class_id='.$classId.'&student_id='.$studentId.'&date='.urlencode($date));
+        redirect('/portal/montessori/assessments.php?class_id='.$classId.'&student_id='.$studentId.($subjectId?'&subject_id='.$subjectId:''));
     }
 }
 
@@ -149,6 +196,8 @@ if (array_key_exists('student_id', $_GET)) {
 $selSubjectId = (int)($_GET['subject_id'] ?? 0);
 $selDate      = $_GET['date'] ?? date('Y-m-d');
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selDate)) $selDate = date('Y-m-d');
+$selMode  = $_GET['mode']    ?? '';   // 'new' = blank new assessment form
+$editId   = (int)($_GET['edit_id'] ?? 0);
 
 // Teacher's montessori classes
 if ($teacher) {
@@ -210,59 +259,71 @@ $selSubject = null;
 foreach ($subjects as $s) { if ((int)$s['id']===$selSubjectId) { $selSubject=$s; break; } }
 if (!$selSubject) $selSubjectId = 0;
 
-// Load existing assessment for student+subject+date
-$assessment = null;
-$entry      = null;
-$criteria   = [];
+// Load all assessments for student+subject (all dates)
+$assessmentList = [];
+$assessment     = null;
+$entry          = null;
+$criteria       = [];
 
 if ($selStudentId && $selSubjectId) {
     try {
-        $aSt = $db->prepare(
-            'SELECT mda.*,s.name AS subject_name
+        $alSt = $db->prepare(
+            'SELECT mda.*, s.name AS subject_name
              FROM montessori_daily_assessments mda
              JOIN subjects s ON mda.subject_id=s.id
-             WHERE mda.student_id=? AND mda.subject_id=? AND mda.assessment_date=?'
+             WHERE mda.student_id=? AND mda.subject_id=?
+             ORDER BY mda.assessment_date DESC, mda.created_at DESC'
         );
-        $aSt->execute([$selStudentId,$selSubjectId,$selDate]);
-        $assessment = $aSt->fetch();
-        if ($assessment) {
-            $assessment['criteria_arr'] = json_decode($assessment['criteria'],true) ?? [];
-            $criteria = $assessment['criteria_arr'];
-            $eSt = $db->prepare(
-                'SELECT * FROM montessori_daily_assessment_entries WHERE assessment_id=? AND student_id=?'
-            );
-            $eSt->execute([$assessment['id'],$selStudentId]);
-            $row = $eSt->fetch();
-            if ($row) { $row['ratings_arr']=json_decode($row['ratings'],true)??[]; $entry=$row; }
+        $alSt->execute([$selStudentId,$selSubjectId]);
+        $rawList = $alSt->fetchAll();
+        foreach ($rawList as $a) {
+            $a['criteria_arr'] = json_decode($a['criteria'],true) ?? [];
+            $assessmentList[]  = $a;
+        }
+        // If editing a specific record, load it and its entry
+        if ($editId) {
+            foreach ($assessmentList as $a) {
+                if ((int)$a['id'] === $editId) { $assessment = $a; break; }
+            }
+            if ($assessment) {
+                $criteria = $assessment['criteria_arr'];
+                $selDate  = $assessment['assessment_date'];
+                $eSt = $db->prepare(
+                    'SELECT * FROM montessori_daily_assessment_entries WHERE assessment_id=? AND student_id=?'
+                );
+                $eSt->execute([$assessment['id'],$selStudentId]);
+                $row = $eSt->fetch();
+                if ($row) { $row['ratings_arr']=json_decode($row['ratings'],true)??[]; $entry=$row; }
+            }
         }
     } catch (Exception $e) {}
 }
 if (empty($criteria) && $selSubject) $criteria = monteDefaultCriteria($selSubject['name']);
 
-// Today's subject status for selected student (for sidebar + subject pills)
+// Subject status: has any assessment been done for this student+subject (any date)
 $subjectStatusMap = [];
 if ($selStudentId && $selClassId) {
     try {
         $ssSt = $db->prepare(
-            'SELECT subject_id FROM montessori_daily_assessments
-             WHERE class_id=? AND student_id=? AND assessment_date=?'
+            'SELECT DISTINCT subject_id FROM montessori_daily_assessments
+             WHERE class_id=? AND student_id=?'
         );
-        $ssSt->execute([$selClassId,$selStudentId,$selDate]);
+        $ssSt->execute([$selClassId,$selStudentId]);
         foreach ($ssSt->fetchAll() as $r) $subjectStatusMap[(int)$r['subject_id']] = true;
     } catch (Exception $e) {}
 }
 
-// Assessment count per student today (for student picker badges)
+// Assessed subjects count per student (distinct subjects, any date)
 $studentCountToday = [];
 if ($selClassId && !empty($students)) {
     try {
         $stIds = array_column($students,'id');
         $ph    = implode(',',array_fill(0,count($stIds),'?'));
         $cntSt = $db->prepare(
-            "SELECT student_id,COUNT(*) AS cnt FROM montessori_daily_assessments
-             WHERE class_id=? AND assessment_date=? AND student_id IN ($ph) GROUP BY student_id"
+            "SELECT student_id, COUNT(DISTINCT subject_id) AS cnt FROM montessori_daily_assessments
+             WHERE class_id=? AND student_id IN ($ph) GROUP BY student_id"
         );
-        $cntSt->execute(array_merge([$selClassId,$selDate],$stIds));
+        $cntSt->execute(array_merge([$selClassId],$stIds));
         foreach ($cntSt->fetchAll() as $r) $studentCountToday[(int)$r['student_id']]=(int)$r['cnt'];
     } catch (Exception $e) {}
 }
@@ -507,12 +568,15 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
     </div>
 
     <?php if ($selSubjectId && $selSubject):
-      $meta     = monteSubjectMeta($selSubject['name']);
-      $aId      = $assessment ? $assessment['id'] : 0;
-      $topicVal = $assessment ? ($assessment['topic'] ?? '') : '';
-      $ratings  = $entry ? ($entry['ratings_arr'] ?? []) : [];
-      $overall  = $entry ? ($entry['overall'] ?? '') : '';
-      $remark   = $entry ? ($entry['remarks'] ?? '') : '';
+      $meta       = monteSubjectMeta($selSubject['name']);
+      $showForm   = ($selMode === 'new' || $editId);
+      $aId        = $assessment ? $assessment['id'] : 0;
+      $topicVal   = $assessment ? ($assessment['topic'] ?? '') : '';
+      $ratings    = $entry ? ($entry['ratings_arr'] ?? []) : [];
+      $overall    = $entry ? ($entry['overall'] ?? '') : '';
+      $remark     = $entry ? ($entry['remarks'] ?? '') : '';
+      $formAction = $editId ? 'update_assessment' : 'save_assessment';
+      $formDate   = $editId ? h($selDate) : date('Y-m-d');
     ?>
 
     <!-- Assessment Header ─────────────────────────────────────── -->
@@ -525,46 +589,119 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
           <div>
             <div style="font-weight:700;font-size:.96rem;line-height:1.2"><?= h($selSubject['name']) ?> — Formative Assessment</div>
             <div style="font-size:.74rem;opacity:.88;margin-top:2px">
-              <?= date('l, d M Y',strtotime($selDate)) ?>
-              &nbsp;·&nbsp; <?= h($selStudent['name']) ?>
-              &nbsp;·&nbsp; <?= h($classInfo['name'] ?? '') ?>
+              <?= h($selStudent['name']) ?> &nbsp;·&nbsp; <?= h($classInfo['name'] ?? '') ?>
+              &nbsp;·&nbsp; <?= count($assessmentList) ?> record<?= count($assessmentList)!=1?'s':'' ?>
             </div>
           </div>
         </div>
-        <div class="d-flex align-items-center gap-2">
-          <?php if ($assessment): ?>
-          <span style="background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:12px;padding:3px 11px;font-size:.72rem;font-weight:600">
-            <i class="fas fa-check me-1"></i>Saved
-          </span>
-          <?php endif; ?>
-          <?php if ($assessment && $teacher): ?>
-          <form method="POST" class="d-inline m-0"
-                onsubmit="return confirm('Delete assessment for <?= h(addslashes($selStudent['name'])) ?> in <?= h(addslashes($selSubject['name'])) ?> on this date?')">
-            <input type="hidden" name="action" value="delete_assessment">
-            <input type="hidden" name="assessment_id" value="<?= $aId ?>">
-            <input type="hidden" name="class_id" value="<?= $selClassId ?>">
-            <input type="hidden" name="student_id" value="<?= $selStudentId ?>">
-            <input type="hidden" name="date" value="<?= h($selDate) ?>">
-            <button type="submit" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:5px;padding:4px 10px;font-size:.72rem;cursor:pointer">
-              <i class="fas fa-trash-alt me-1"></i>Delete
-            </button>
-          </form>
-          <?php endif; ?>
-        </div>
+        <?php if ($showForm): ?>
+        <a href="?class_id=<?= $selClassId ?>&student_id=<?= $selStudentId ?>&subject_id=<?= $selSubjectId ?>"
+           style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:7px;padding:5px 13px;font-size:.76rem;font-weight:600;text-decoration:none;white-space:nowrap">
+          <i class="fas fa-arrow-left me-1"></i>Back to Records
+        </a>
+        <?php endif; ?>
       </div>
     </div>
 
-    <!-- STEP 3: Assessment Form ────────────────────────────────── -->
+    <?php if (!$showForm): ?>
+    <!-- Assessment Records List ────────────────────────────────── -->
+    <div class="sec-card mb-3">
+      <div class="sec-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <span><i class="fas fa-list me-2"></i>Assessment Records (<?= count($assessmentList) ?>)</span>
+        <?php if ($teacher): ?>
+        <a href="?class_id=<?= $selClassId ?>&student_id=<?= $selStudentId ?>&subject_id=<?= $selSubjectId ?>&mode=new"
+           class="btn btn-sm btn-success" style="font-size:.8rem">
+          <i class="fas fa-plus me-1"></i>New Formative Assessment
+        </a>
+        <?php endif; ?>
+      </div>
+      <?php if (empty($assessmentList)): ?>
+      <div class="text-center py-5" style="color:var(--t2)">
+        <i class="fas fa-clipboard fa-2x mb-2 d-block" style="opacity:.25"></i>
+        <p class="mb-0 fw-semibold" style="font-size:.85rem">No assessments yet for this subject</p>
+        <?php if ($teacher): ?>
+        <p class="mb-0 text-muted" style="font-size:.78rem;margin-top:4px">
+          Click <strong>New Formative Assessment</strong> to create the first one.
+        </p>
+        <?php endif; ?>
+      </div>
+      <?php else: ?>
+      <?php
+        $overallColors = ['AD'=>['bg'=>'#dcfce7','c'=>'#166534'],'ED'=>['bg'=>'#fef9c3','c'=>'#854d0e'],'EMD'=>['bg'=>'#fee2e2','c'=>'#991b1b']];
+        foreach ($assessmentList as $aRec):
+          $aEntry = null;
+          try {
+              $aeSt = $db->prepare('SELECT * FROM montessori_daily_assessment_entries WHERE assessment_id=? AND student_id=?');
+              $aeSt->execute([$aRec['id'],$selStudentId]);
+              $aRow = $aeSt->fetch();
+              if ($aRow) { $aRow['ratings_arr']=json_decode($aRow['ratings'],true)??[]; $aEntry=$aRow; }
+          } catch(Exception $e) {}
+          $aOverall = $aEntry ? ($aEntry['overall'] ?? '') : '';
+          $aRatings = $aEntry ? ($aEntry['ratings_arr'] ?? []) : [];
+          $oc = $overallColors[$aOverall] ?? ['bg'=>'#f3f4f6','c'=>'#6b7280'];
+      ?>
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <div style="flex:1;min-width:0">
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+              <span class="fw-semibold" style="font-size:.88rem"><?= date('d M Y',strtotime($aRec['assessment_date'])) ?></span>
+              <?php if ($aOverall): ?>
+              <span style="background:<?=$oc['bg']?>;color:<?=$oc['c']?>;font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:10px"><?=$aOverall?></span>
+              <?php endif; ?>
+              <?php if ($aRec['topic']): ?>
+              <span style="font-size:.77rem;color:var(--t2)"><?=h($aRec['topic'])?></span>
+              <?php endif; ?>
+            </div>
+            <?php if (!empty($aRatings)): ?>
+            <div class="d-flex flex-wrap gap-1 mt-1">
+              <?php foreach ($aRatings as $crit => $val): if (!$val) continue;
+                $rc = $overallColors[$val] ?? ['bg'=>'#f3f4f6','c'=>'#6b7280'];
+              ?>
+              <span style="background:<?=$rc['bg']?>;color:<?=$rc['c']?>;font-size:.67rem;font-weight:600;padding:1px 7px;border-radius:8px"><?=h($crit)?>: <?=$val?></span>
+              <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+            <?php if ($aEntry && $aEntry['remarks']): ?>
+            <div style="font-size:.77rem;color:var(--t2);margin-top:4px"><i class="fas fa-comment-alt me-1" style="opacity:.5"></i><?=h($aEntry['remarks'])?></div>
+            <?php endif; ?>
+          </div>
+          <div class="d-flex gap-1 flex-shrink-0">
+            <?php if ($teacher): ?>
+            <a href="?class_id=<?=$selClassId?>&student_id=<?=$selStudentId?>&subject_id=<?=$selSubjectId?>&edit_id=<?=$aRec['id']?>"
+               class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:3px 9px" title="Edit">
+              <i class="fas fa-edit me-1"></i>Edit
+            </a>
+            <form method="POST" class="d-inline m-0"
+                  onsubmit="return confirm('Delete this assessment from <?= h(addslashes(date('d M Y',strtotime($aRec['assessment_date'])))) ?>?')">
+              <input type="hidden" name="action" value="delete_assessment">
+              <input type="hidden" name="assessment_id" value="<?=$aRec['id']?>">
+              <input type="hidden" name="class_id" value="<?=$selClassId?>">
+              <input type="hidden" name="student_id" value="<?=$selStudentId?>">
+              <input type="hidden" name="subject_id" value="<?=$selSubjectId?>">
+              <button type="submit" class="btn btn-xs btn-outline-danger" style="font-size:.74rem;padding:3px 9px" title="Delete">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </form>
+            <?php endif; ?>
+          </div>
+        </div>
+      </div>
+      <?php endforeach; ?>
+      <?php endif; ?>
+    </div>
+
+    <?php else: ?>
+    <!-- STEP 3: Assessment Form (New or Edit) ───────────────────── -->
     <form method="POST" id="assessment-form">
-      <input type="hidden" name="action" value="save_assessment">
+      <input type="hidden" name="action" value="<?= $formAction ?>">
+      <?php if ($editId): ?><input type="hidden" name="assessment_id" value="<?= $aId ?>"><?php endif; ?>
       <input type="hidden" name="class_id" value="<?= $selClassId ?>">
       <input type="hidden" name="student_id" value="<?= $selStudentId ?>">
       <input type="hidden" name="subject_id" value="<?= $selSubjectId ?>">
-      <input type="hidden" name="assessment_date" value="<?= h($selDate) ?>">
 
       <div class="sec-card mb-0">
-        <div class="sec-card-header d-flex align-items-center justify-content-between">
-          <span><i class="fas fa-tasks me-2"></i>Criteria &amp; Ratings</span>
+        <div class="sec-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <span><i class="fas fa-tasks me-2"></i><?= $editId ? 'Edit Assessment — '.date('d M Y',strtotime($selDate)) : 'New Formative Assessment' ?></span>
           <?php if ($teacher): ?>
           <button type="button" onclick="addCrit()"
                   class="btn btn-sm btn-outline-primary" style="font-size:.72rem;padding:3px 10px">
@@ -573,6 +710,14 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
           <?php endif; ?>
         </div>
         <div style="padding:16px 18px">
+
+          <!-- Date -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.8rem">Assessment Date</label>
+            <input type="date" name="assessment_date" class="form-control form-control-sm"
+                   value="<?= $formDate ?>" max="<?= date('Y-m-d') ?>"
+                   <?= $teacher?'':'readonly' ?>>
+          </div>
 
           <!-- Topic -->
           <div class="mb-3">
@@ -653,7 +798,7 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
           </div>
           <?php if ($teacher): ?>
           <button type="submit" class="btn btn-primary fa-save-btn">
-            <i class="fas fa-save me-1"></i><?= $assessment ? 'Update Assessment' : 'Save Assessment' ?>
+            <i class="fas fa-save me-1"></i><?= $editId ? 'Update Assessment' : 'Save New Assessment' ?>
           </button>
           <?php else: ?>
           <span class="text-muted" style="font-size:.76rem"><i class="fas fa-lock me-1"></i>View only</span>
@@ -661,6 +806,7 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
         </div>
       </div><!-- /.sec-card -->
     </form>
+    <?php endif; // $showForm ?>
 
     <?php else: ?>
     <!-- Subject not yet selected -->
@@ -711,9 +857,9 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
       </div>
     </div>
 
-    <!-- Today's Progress for this student -->
+    <!-- Subject Assessment Progress for this student -->
     <div class="sec-card mb-3">
-      <div class="sec-card-header"><i class="fas fa-chart-pie me-2"></i>Today's Progress</div>
+      <div class="sec-card-header"><i class="fas fa-chart-pie me-2"></i>Subject Progress</div>
       <div style="padding:10px 14px">
         <?php $completedToday=count($subjectStatusMap); foreach ($subjects as $subj):
           $smid=$subj['id']; $meta=monteSubjectMeta($subj['name']); $done=isset($subjectStatusMap[$smid]);
@@ -728,7 +874,7 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
         </a>
         <?php endforeach; ?>
         <div style="font-size:.73rem;color:var(--t3);padding-top:8px;border-top:1px solid #f1f5f9;margin-top:2px">
-          <i class="fas fa-info-circle me-1"></i><?=$completedToday?> of <?=count($subjects)?> subjects assessed today
+          <i class="fas fa-info-circle me-1"></i><?=$completedToday?> of <?=count($subjects)?> subjects assessed
         </div>
       </div>
     </div>

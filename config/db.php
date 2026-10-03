@@ -309,6 +309,11 @@ function getDB(): PDO {
             $pdo->exec("ALTER TABLE montessori_daily_assessments ADD UNIQUE KEY uq_mda_student (student_id, subject_id, assessment_date)");
         } catch (Exception $e) {}
 
+        // Group 15: Allow multiple formative assessments per student+subject (drop date-level uniqueness)
+        try {
+            $pdo->exec("ALTER TABLE montessori_daily_assessments DROP INDEX uq_mda_student");
+        } catch (Exception $e) {}
+
         // Group 14: Montessori anecdotal records table
         try {
             $pdo->exec("CREATE TABLE IF NOT EXISTS montessori_anecdotal_records (
