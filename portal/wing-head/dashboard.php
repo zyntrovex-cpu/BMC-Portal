@@ -7,47 +7,73 @@ require_once __DIR__ . '/../../config/config.php';
 $user = requireAuth('wing_head');
 $db   = getDB();
 
-$totalStudents = $totalClasses = 0;
-$classSummary  = $catSummary  = [];
+// Stats
+$teacherCount = $studentCount = $reportCount = $assessCount = 0;
 try {
-    $totalStudents = (int)$db->query(
+    $teacherCount = (int)$db->query(
+        'SELECT COUNT(*) FROM users WHERE role="montessori_teacher" AND status="active"'
+    )->fetchColumn();
+} catch (Exception $e) {}
+try {
+    $studentCount = (int)$db->query(
         'SELECT COUNT(*) FROM students s JOIN classes c ON c.id=s.class_id WHERE c.is_montessori=1'
     )->fetchColumn();
 } catch (Exception $e) {}
 try {
-    $totalClasses = (int)$db->query('SELECT COUNT(*) FROM classes WHERE is_montessori=1')->fetchColumn();
+    $reportCount = (int)$db->query(
+        'SELECT COUNT(*) FROM progress_reports r
+         JOIN students s ON s.id=r.student_id
+         JOIN classes c ON c.id=s.class_id
+         WHERE c.is_montessori=1'
+    )->fetchColumn();
 } catch (Exception $e) {}
 try {
-    $classSummary = $db->query(
-        'SELECT c.name, COUNT(s.id) AS cnt
-         FROM classes c
-         LEFT JOIN students s ON s.class_id = c.id
-         WHERE c.is_montessori = 1
-         GROUP BY c.id ORDER BY c.name'
-    )->fetchAll();
+    $assessCount = (int)$db->query(
+        'SELECT COUNT(*) FROM assessments a
+         JOIN classes c ON c.id=a.class_id WHERE c.is_montessori=1'
+    )->fetchColumn();
 } catch (Exception $e) {}
-// Category breakdown (civilian/cpo/sailor)
+
+// Montessori teachers list (recent)
+$monteTeachers = [];
 try {
-    $catSummary = $db->query(
-        'SELECT s.student_category, COUNT(*) AS cnt
-         FROM students s JOIN classes c ON c.id=s.class_id
-         WHERE c.is_montessori=1
-         GROUP BY s.student_category'
+    $monteTeachers = $db->query(
+        'SELECT u.id, u.name, u.user_id AS uid, u.status,
+                t.emp_id, t.designation, t.subject_name
+         FROM users u
+         LEFT JOIN teachers t ON t.user_id=u.id
+         WHERE u.role="montessori_teacher" AND u.status="active"
+         ORDER BY u.name LIMIT 6'
     )->fetchAll();
 } catch (Exception $e) {}
 
-pageHead('Wing Head Dashboard', 'wing_head');
+// Notices
+$notices = array_slice(getNoticesForPortal('teacher'), 0, 3);
+
+// Recent activity
+$recentActivity = [];
+try {
+    $stLog = $db->prepare(
+        'SELECT action, details, created_at FROM activity_log
+         WHERE user_id=? ORDER BY created_at DESC LIMIT 8'
+    );
+    $stLog->execute([$user['id']]);
+    $recentActivity = $stLog->fetchAll();
+} catch (Exception $e) {}
+
+pageHead('Dashboard', 'wing_head');
 $links = getWingHeadLinks();
 ?>
 <div class="portal-wrap">
 <?php sidebar('wing_head', 'dashboard', $links, $user); ?>
 <div class="main-area">
-<?php topbar('Montessori Wing Head', $user); ?>
+<?php topbar('Dashboard', $user); ?>
 <div class="page-content">
+
 <?= flashHtml() ?>
 
 <!-- Welcome Banner -->
-<div class="portal-banner mb-4" style="background:linear-gradient(135deg,#7c2d12,#c2410c);">
+<div class="portal-banner mb-4" style="background:linear-gradient(135deg,#059669,#047857);">
   <div class="d-flex align-items-center gap-3">
     <?php
       $_av = _avatarHtml($user['id'], _initials($user['name']), 60);
@@ -56,61 +82,161 @@ $links = getWingHeadLinks();
       else: ?><div style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:#fff;flex-shrink:0;border:2px solid rgba(255,255,255,.4)"><?= $_av ?></div><?php
       endif; ?>
     <div>
-      <h5 class="mb-1 fw-bold text-white">Welcome, <?= h($user['name']) ?>!</h5>
-      <small style="color:rgba(255,255,255,.82)">Wing Head &nbsp;&middot;&nbsp; <?= wingBadge('montessori') ?> &nbsp;&middot;&nbsp; <?= date('l, d M Y') ?></small>
+      <h4 class="mb-1 text-white fw-bold">Welcome, <?= h($user['name']) ?>!</h4>
+      <div class="text-white opacity-75" style="font-size:13px;">
+        Coordinator &mdash; Montessori Wing &nbsp;|&nbsp; Session <?= SESSION_YEAR ?>
+      </div>
     </div>
+  </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#dcfce7;color:#059669"><i class="fas fa-chalkboard-teacher"></i></div>
+      <div class="stat-val"><?= $teacherCount ?></div>
+      <div class="stat-lbl">Montessori Teachers</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#dbeafe;color:#1d4ed8"><i class="fas fa-child"></i></div>
+      <div class="stat-val"><?= $studentCount ?></div>
+      <div class="stat-lbl">Montessori Students</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#f3e8ff;color:#7c3aed"><i class="fas fa-file-alt"></i></div>
+      <div class="stat-val"><?= $reportCount ?></div>
+      <div class="stat-lbl">Progress Reports</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fef9c3;color:#d97706"><i class="fas fa-clipboard-check"></i></div>
+      <div class="stat-val"><?= $assessCount ?></div>
+      <div class="stat-lbl">Assessments</div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="sec-card mb-4">
+  <div class="sec-head">
+    <h5><i class="fas fa-bolt me-2" style="color:#059669"></i>Quick Actions</h5>
+  </div>
+  <div class="sec-body d-flex flex-wrap gap-2">
+    <a href="<?= url('/portal/progress-report/form.php') ?>" class="btn btn-success btn-sm">
+      <i class="fas fa-file-alt me-1"></i>Progress Report
+    </a>
+    <a href="<?= url('/portal/montessori/assessments.php') ?>" class="btn btn-primary btn-sm">
+      <i class="fas fa-clipboard-check me-1"></i>Formative Assessment
+    </a>
+    <a href="<?= url('/portal/montessori/anecdotal-records.php') ?>" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-sticky-note me-1"></i>Anecdotal Records
+    </a>
+    <a href="<?= url('/portal/wing-head/teachers.php') ?>" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-chalkboard-teacher me-1"></i>Montessori Teachers
+    </a>
   </div>
 </div>
 
 <div class="row g-3 mb-4">
-  <div class="col-6 col-lg-4">
-    <div class="stat-card">
-      <div class="stat-icon" style="background:#fef3c7;color:#c2410c"><i class="fas fa-child"></i></div>
-      <div class="stat-val" style="color:#c2410c"><?= $totalStudents ?></div>
-      <div class="stat-lbl">Montessori Students</div>
+  <!-- Montessori Teachers -->
+  <div class="col-lg-6">
+    <div class="sec-card h-100">
+      <div class="sec-head">
+        <h5><i class="fas fa-chalkboard-teacher me-2" style="color:#059669"></i>Montessori Teachers</h5>
+        <a href="<?= url('/portal/wing-head/teachers.php') ?>" class="btn btn-xs btn-outline-secondary">View All</a>
+      </div>
+      <div class="sec-body p-0">
+        <?php if (empty($monteTeachers)): ?>
+          <div class="p-3 text-muted" style="font-size:13px">No montessori teachers found.</div>
+        <?php else: ?>
+          <table class="data-table">
+            <thead><tr><th>Name</th><th>ID</th><th>Designation</th><th></th></tr></thead>
+            <tbody>
+              <?php foreach ($monteTeachers as $t): ?>
+              <tr>
+                <td class="fw-semibold"><?= h($t['name']) ?></td>
+                <td class="text-muted" style="font-size:12px"><?= h($t['uid']) ?></td>
+                <td style="font-size:12px;color:var(--t2)"><?= h($t['designation'] ?: '—') ?></td>
+                <td>
+                  <form method="POST" action="<?= url('/portal/wing-head/view-as.php') ?>" class="d-inline">
+                    <input type="hidden" name="target_id" value="<?= $t['id'] ?>">
+                    <button class="btn btn-xs btn-outline-primary" style="font-size:.72rem;padding:2px 7px">
+                      <i class="fas fa-eye me-1"></i>View Portal
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        <?php endif; ?>
+      </div>
     </div>
   </div>
-  <div class="col-6 col-lg-4">
-    <div class="stat-card">
-      <div class="stat-icon" style="background:#d1fae5;color:#059669"><i class="fas fa-chalkboard"></i></div>
-      <div class="stat-val" style="color:#059669"><?= $totalClasses ?></div>
-      <div class="stat-lbl">Classes</div>
+
+  <!-- Recent Activity -->
+  <div class="col-lg-6">
+    <div class="sec-card h-100">
+      <div class="sec-head">
+        <h5><i class="fas fa-history me-2" style="color:#059669"></i>Recent Activity</h5>
+      </div>
+      <div class="sec-body p-0">
+        <?php if (empty($recentActivity)): ?>
+          <div class="p-3 text-muted" style="font-size:13px">No recent activity.</div>
+        <?php else: ?>
+          <ul class="list-unstyled mb-0">
+            <?php foreach ($recentActivity as $log): ?>
+            <li class="d-flex align-items-start gap-2 px-3 py-2" style="border-bottom:1px solid #edf1f7">
+              <div class="mt-1" style="width:8px;height:8px;border-radius:50%;background:#059669;flex-shrink:0"></div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12.5px;font-weight:600"><?= h(ucfirst($log['action'])) ?></div>
+                <?php if ($log['details']): ?>
+                  <div class="text-muted" style="font-size:11.5px"><?= h($log['details']) ?></div>
+                <?php endif; ?>
+                <div style="font-size:11px;color:var(--t3)"><?= fDate($log['created_at']) ?></div>
+              </div>
+            </li>
+            <?php endforeach; ?>
+          </ul>
+        <?php endif; ?>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="row g-3">
-  <div class="col-lg-5">
-    <div class="sec-card">
-      <div class="sec-card-header"><i class="fas fa-chalkboard me-2"></i>Classes</div>
-      <div style="padding:12px 16px">
-        <?php foreach ($classSummary as $c): ?>
-        <div class="d-flex justify-content-between align-items-center mb-3" style="font-size:.86rem">
-          <span class="fw-semibold"><?= h($c['name']) ?></span>
-          <span class="badge" style="background:#c2410c"><?= $c['cnt'] ?> students</span>
-        </div>
-        <?php endforeach; ?>
-        <a href="<?= url('/portal/wing-head/classes.php') ?>" class="btn btn-sm btn-outline-secondary w-100 mt-1" style="font-size:.8rem">Manage Classes</a>
-      </div>
-    </div>
+<!-- Notices -->
+<div class="sec-card">
+  <div class="sec-head">
+    <h5><i class="fas fa-bell me-2" style="color:#059669"></i>Notices</h5>
+    <a href="<?= url('/portal/wing-head/notices.php') ?>" class="btn btn-xs btn-outline-secondary">All Notices</a>
   </div>
-  <div class="col-lg-7">
-    <div class="sec-card">
-      <div class="sec-card-header"><i class="fas fa-users me-2"></i>Student Categories</div>
-      <div style="padding:12px 16px">
-        <?php if (empty($catSummary)): ?>
-        <p class="text-muted mb-0" style="font-size:.85rem">No category data yet.</p>
-        <?php else: ?>
-        <?php foreach ($catSummary as $cat): ?>
-        <div class="d-flex justify-content-between mb-2" style="font-size:.84rem">
-          <span><?= $cat['student_category'] ? strtoupper($cat['student_category']) : 'Unassigned' ?></span>
-          <span class="badge bg-secondary"><?= $cat['cnt'] ?></span>
+  <div class="sec-body p-0">
+    <?php if (empty($notices)): ?>
+      <div class="p-3 text-muted" style="font-size:13px">No active notices.</div>
+    <?php else: ?>
+      <?php foreach ($notices as $n): ?>
+      <div class="px-3 py-2" style="border-bottom:1px solid #edf1f7">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <?php if ($n['pinned']): ?>
+            <i class="fas fa-thumbtack" style="color:#d97706;font-size:11px"></i>
+          <?php endif; ?>
+          <span class="fw-semibold" style="font-size:13px"><?= h($n['title']) ?></span>
+          <?php if ($n['priority'] === 'Important' || $n['priority'] === 'Urgent'): ?>
+            <span class="badge bg-danger ms-auto" style="font-size:10px"><?= h($n['priority']) ?></span>
+          <?php endif; ?>
         </div>
-        <?php endforeach; ?>
-        <?php endif; ?>
-        <a href="<?= url('/portal/wing-head/students.php') ?>" class="btn btn-sm btn-outline-secondary w-100 mt-2" style="font-size:.8rem">View All Students</a>
+        <div class="text-muted" style="font-size:11.5px">
+          <?= h($n['category'] ?? '') ?> &mdash; <?= fDate($n['created_at']) ?>
+        </div>
       </div>
-    </div>
+      <?php endforeach; ?>
+    <?php endif; ?>
   </div>
 </div>
 

@@ -468,7 +468,7 @@ $links = getAdminLinks();
               <option value="ilc_vp">ILC VP</option>
               <option value="student_affairs">Student Affairs</option>
               <option value="vp_main">VP — Main &amp; Montessori</option>
-              <option value="wing_head">Wing Head (Montessori)</option>
+              <option value="wing_head">Coordinator (Montessori)</option>
               <option value="examination_head">Examination Head (Main Campus)</option>
             </select>
           </div>
@@ -547,7 +547,7 @@ $links = getAdminLinks();
     <!-- Role + Wing filter chips -->
     <div class="d-flex flex-wrap gap-1">
       <span class="text-muted" style="font-size:.72rem;padding:2px 4px;align-self:center">Role:</span>
-      <?php foreach ([''=>'All','student'=>'Student','teacher'=>'Teacher','montessori_teacher'=>'Mont Teacher','ilc_teacher'=>'ILC Teacher','admin'=>'Admin','finance'=>'Finance','ilc_vp'=>'ILC VP','student_affairs'=>'Stu. Affairs','vp_main'=>'VP Main','wing_head'=>'Wing Head'] as $r => $lbl): ?>
+      <?php foreach ([''=>'All','student'=>'Student','teacher'=>'Teacher','montessori_teacher'=>'Mont Teacher','ilc_teacher'=>'ILC Teacher','admin'=>'Admin','finance'=>'Finance','ilc_vp'=>'ILC VP','student_affairs'=>'Stu. Affairs','vp_main'=>'VP Main','wing_head'=>'Coordinator'] as $r => $lbl): ?>
         <a href="?role=<?= $r ?>&wing=<?= urlencode($wingFilter) ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>"
            class="btn btn-xs <?= $roleFilter===$r?'btn-primary':'btn-outline-secondary' ?>" style="font-size:.72rem;padding:2px 7px"><?= $lbl ?></a>
       <?php endforeach; ?>
@@ -609,7 +609,7 @@ $links = getAdminLinks();
                 'student_affairs'    => 'Stu. Affairs',
                 'ilc_vp'             => 'ILC VP',
                 'vp_main'            => 'VP Main',
-                'wing_head'          => 'Wing Head',
+                'wing_head'          => 'Coordinator',
                 default              => ucfirst($u['role']),
             };
           ?>

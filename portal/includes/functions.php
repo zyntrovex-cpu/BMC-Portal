@@ -627,32 +627,22 @@ function getVpLinks(): array {
     ]));
 }
 
-// ── Wing Head sidebar links (permission-filtered) ─────────────────
+// ── Wing Head / Coordinator Montessori sidebar links ──────────────
 function getWingHeadLinks(): array {
-    $pendingMarksCount = 0;
-    try {
-        $st = getDB()->prepare(
-            "SELECT COUNT(*) FROM marks_permission_requests mpr
-             JOIN teachers t ON mpr.teacher_id=t.id
-             WHERE COALESCE(t.wing,'main')='montessori' AND mpr.status='pending'"
-        );
-        $st->execute();
-        $pendingMarksCount = (int)$st->fetchColumn();
-    } catch (Exception $e) {}
-    $marksApprovalLabel = 'Marks Approvals' . ($pendingMarksCount
-        ? ' <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem">' . $pendingMarksCount . '</span>'
-        : '');
-
     return array_values(array_filter([
-        ['href'=>'/portal/wing-head/dashboard.php',      'icon'=>'<i class="fas fa-home"></i>',              'label'=>'Dashboard',        'key'=>'dashboard'],
-        hasPermission('wh_students') ? ['href'=>'/portal/wing-head/students.php', 'icon'=>'<i class="fas fa-user-graduate"></i>', 'label'=>'Students', 'key'=>'students'] : null,
-        hasPermission('wh_classes')  ? ['href'=>'/portal/wing-head/classes.php',  'icon'=>'<i class="fas fa-chalkboard"></i>',    'label'=>'Classes',  'key'=>'classes']  : null,
-        ['href'=>'/portal/wing-head/marks-approval.php', 'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>$marksApprovalLabel, 'key'=>'marks-approval'],
-        ['href'=>'/portal/wing-head/notices.php',        'icon'=>'<i class="fas fa-bell"></i>',              'label'=>'Notices',          'key'=>'notices'],
-        ['href'=>'/portal/wing-head/exam-datesheet.php', 'icon'=>'<i class="fas fa-calendar-day"></i>',      'label'=>'Exam Date Sheets', 'key'=>'exam-datesheet'],
-        ['href'=>'/portal/progress-report/form.php',     'icon'=>'<i class="fas fa-file-alt"></i>',          'label'=>'Progress Report',  'key'=>'progress-report'],
-        ['href'=>'/portal/montessori/assessments.php',      'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>'Formative Assessment','key'=>'monte-assessments'],
-        ['href'=>'/portal/montessori/anecdotal-records.php','icon'=>'<i class="fas fa-sticky-note"></i>',       'label'=>'Anecdotal Records',   'key'=>'anecdotal-records'],
+        ['href'=>'/portal/wing-head/dashboard.php',           'icon'=>'<i class="fas fa-home"></i>',                        'label'=>'Dashboard',            'key'=>'dashboard'],
+        ['href'=>'/portal/wing-head/profile.php',             'icon'=>'<i class="fas fa-user-circle"></i>',                 'label'=>'My Profile',           'key'=>'profile'],
+        ['href'=>'/portal/progress-report/form.php',          'icon'=>'<i class="fas fa-file-alt"></i>',                    'label'=>'Progress Report',      'key'=>'progress-report'],
+        ['href'=>'/portal/montessori/assessments.php',        'icon'=>'<i class="fas fa-clipboard-check"></i>',             'label'=>'Formative Assessment', 'key'=>'monte-assessments'],
+        ['href'=>'/portal/montessori/anecdotal-records.php',  'icon'=>'<i class="fas fa-sticky-note"></i>',                 'label'=>'Anecdotal Records',    'key'=>'anecdotal-records'],
+        hasPermission('attendance') ? ['href'=>'/portal/teacher/attendance.php',  'icon'=>'<i class="fas fa-calendar-check"></i>',          'label'=>'Attendance',           'key'=>'attendance']  : null,
+        hasPermission('timetable')  ? ['href'=>'/portal/teacher/timetable.php',   'icon'=>'<i class="fas fa-table"></i>',                   'label'=>'My Timetable',         'key'=>'timetable']   : null,
+        ['href'=>'/portal/wing-head/exam-datesheet.php',      'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',      'key'=>'exam-datesheet'],
+        hasPermission('diary')      ? ['href'=>'/portal/teacher/diary.php',       'icon'=>'<i class="fas fa-book-open"></i>',                'label'=>'Daily Diary',          'key'=>'diary']       : null,
+        ['href'=>'/portal/wing-head/notices.php',             'icon'=>'<i class="fas fa-bell"></i>',                        'label'=>'Notices',              'key'=>'notices'],
+        hasPermission('warnings')   ? ['href'=>'/portal/admin/warnings.php',      'icon'=>'<i class="fas fa-exclamation-triangle"></i>',    'label'=>'Student Warnings',     'key'=>'warnings']    : null,
+        hasPermission('complaints') ? ['href'=>'/portal/teacher/complaints.php',  'icon'=>'<i class="fas fa-comment-alt"></i>',             'label'=>'Complaints',           'key'=>'complaints']  : null,
+        ['href'=>'/portal/wing-head/teachers.php',            'icon'=>'<i class="fas fa-chalkboard-teacher"></i>',          'label'=>'Montessori Teachers',  'key'=>'teachers'],
     ]));
 }
 
