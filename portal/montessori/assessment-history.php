@@ -139,7 +139,7 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
 
 <!-- Back + Filter bar -->
 <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-  <a href="/portal/montessori/assessments.php<?= $selClassId ? '?class_id='.$selClassId : '' ?>"
+  <a href="<?= url('/portal/montessori/assessments.php') . ($selClassId ? '?class_id='.$selClassId : '') ?>"
      class="btn btn-sm btn-outline-secondary" style="font-size:.8rem">
     <i class="fas fa-arrow-left me-1"></i>Back to Formative Assessment
   </a>
@@ -254,7 +254,7 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
           <td style="padding:9px 12px;text-align:center">
             <div class="d-flex gap-1 justify-content-center flex-wrap">
               <?php if ($row['student_id']): ?>
-              <a href="/portal/montessori/assessments.php?class_id=<?= $selClassId ?>&student_id=<?= $row['student_id'] ?>&subject_id=<?= $row['subject_id'] ?>&date=<?= urlencode($row['assessment_date']) ?>"
+              <a href="<?= url('/portal/montessori/assessments.php') ?>?class_id=<?= $selClassId ?>&student_id=<?= $row['student_id'] ?>&subject_id=<?= $row['subject_id'] ?>&date=<?= urlencode($row['assessment_date']) ?>"
                  class="btn btn-sm btn-outline-primary" style="font-size:.72rem;padding:3px 8px"
                  title="Open assessment for this student">
                 <i class="fas fa-eye me-1"></i>View / Edit
@@ -262,7 +262,7 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
               <?php else: ?>
               <span style="font-size:.72rem;color:#94a3b8">Legacy</span>
               <?php endif; ?>
-              <a href="/portal/montessori/assessment-print.php?id=<?= $row['id'] ?>" target="_blank"
+              <a href="<?= url('/portal/montessori/assessment-print.php') ?>?id=<?= $row['id'] ?>" target="_blank"
                  class="btn btn-sm btn-outline-success" style="font-size:.72rem;padding:3px 8px"
                  title="Printable report">
                 <i class="fas fa-print me-1"></i>Print

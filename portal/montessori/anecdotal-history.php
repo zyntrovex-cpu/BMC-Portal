@@ -117,7 +117,7 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
 
 <!-- Back + title -->
 <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-  <a href="/portal/montessori/anecdotal-records.php<?= $selClassId ? '?class_id='.$selClassId.($selStudent?'&student_id='.$selStudent:'') : '' ?>"
+  <a href="<?= url('/portal/montessori/anecdotal-records.php') . ($selClassId ? '?class_id='.$selClassId.($selStudent ? '&student_id='.$selStudent : '') : '') ?>"
      class="btn btn-sm btn-outline-secondary" style="font-size:.8rem">
     <i class="fas fa-arrow-left me-1"></i>Back to Anecdotal Records
   </a>
@@ -170,7 +170,7 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
 <?php elseif (empty($history)): ?>
 <div class="alert alert-secondary" style="font-size:.83rem">
   <i class="fas fa-clipboard me-2"></i>No anecdotal records found<?= ($selStudent||$selFocus) ? ' for the selected filters' : ' for this class' ?>.
-  <a href="/portal/montessori/anecdotal-records.php?class_id=<?= $selClassId ?>" class="alert-link ms-1">Create the first record.</a>
+  <a href="<?= url('/portal/montessori/anecdotal-records.php') ?>?class_id=<?= $selClassId ?>" class="alert-link ms-1">Create the first record.</a>
 </div>
 <?php else: ?>
 
@@ -218,11 +218,11 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
           <?php endif; ?>
           <td style="padding:9px 12px;text-align:center;vertical-align:top">
             <div class="d-flex gap-1 justify-content-center flex-wrap">
-              <a href="/portal/montessori/anecdotal-records.php?class_id=<?= $selClassId ?>&student_id=<?= $row['student_id'] ?>&edit=<?= $row['id'] ?>"
+              <a href="<?= url('/portal/montessori/anecdotal-records.php') ?>?class_id=<?= $selClassId ?>&student_id=<?= $row['student_id'] ?>&edit=<?= $row['id'] ?>"
                  class="btn btn-sm btn-outline-primary" style="font-size:.7rem;padding:3px 8px">
                 <i class="fas fa-edit me-1"></i>Edit
               </a>
-              <a href="/portal/montessori/anecdotal-print.php?id=<?= $row['id'] ?>" target="_blank"
+              <a href="<?= url('/portal/montessori/anecdotal-print.php') ?>?id=<?= $row['id'] ?>" target="_blank"
                  class="btn btn-sm btn-outline-success" style="font-size:.7rem;padding:3px 8px">
                 <i class="fas fa-print me-1"></i>Print
               </a>

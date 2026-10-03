@@ -147,7 +147,7 @@ tbody td.center{text-align:center}
 <div class="page-wrap">
 
   <div class="no-print">
-    <a href="/portal/montessori/assessment-history.php" class="back-link"><i class="fas fa-arrow-left"></i> Back to History</a>
+    <a href="<?= url('/portal/montessori/assessment-history.php') ?>" class="back-link"><i class="fas fa-arrow-left"></i> Back to History</a>
     <div style="flex:1"></div>
     <button class="btn-dl" onclick="window.print()"><i class="fas fa-file-pdf"></i> Download / Save PDF</button>
     <button class="btn-print" onclick="window.print()"><i class="fas fa-print"></i> Print</button>

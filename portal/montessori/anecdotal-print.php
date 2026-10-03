@@ -102,8 +102,8 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#1a1a1a;backgro
 <div class="page-wrap">
 
   <div class="no-print">
-    <a href="/portal/montessori/anecdotal-history.php" class="back-link"><i class="fas fa-arrow-left"></i> Back to History</a>
-    <a href="/portal/montessori/anecdotal-records.php?class_id=<?= $rec['class_id'] ?>&student_id=<?= $rec['student_id'] ?>&edit=<?= $rec['id'] ?>"
+    <a href="<?= url('/portal/montessori/anecdotal-history.php') ?>" class="back-link"><i class="fas fa-arrow-left"></i> Back to History</a>
+    <a href="<?= url('/portal/montessori/anecdotal-records.php') ?>?class_id=<?= $rec['class_id'] ?>&student_id=<?= $rec['student_id'] ?>&edit=<?= $rec['id'] ?>"
        class="back-link" style="margin-left:12px"><i class="fas fa-edit"></i> Edit Record</a>
     <div style="flex:1"></div>
     <button class="btn-act" style="background:#0891b2;color:#fff" onclick="window.print()"><i class="fas fa-file-pdf"></i> Save as PDF</button>

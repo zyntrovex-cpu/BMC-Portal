@@ -267,13 +267,13 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
   </nav>
   <div class="d-flex gap-2">
     <?php if ($selStudentId): ?>
-    <a href="/portal/montessori/anecdotal-history.php?class_id=<?= $selClassId ?>&student_id=<?= $selStudentId ?>"
+    <a href="<?= url('/portal/montessori/anecdotal-history.php') ?>?class_id=<?= $selClassId ?>&student_id=<?= $selStudentId ?>"
        class="btn btn-sm btn-outline-primary" style="font-size:.78rem">
       <i class="fas fa-history me-1"></i>Full History
     </a>
     <?php endif; ?>
     <?php if ($selClassId): ?>
-    <a href="/portal/montessori/anecdotal-history.php?class_id=<?= $selClassId ?>"
+    <a href="<?= url('/portal/montessori/anecdotal-history.php') ?>?class_id=<?= $selClassId ?>"
        class="btn btn-sm btn-outline-secondary" style="font-size:.78rem">
       <i class="fas fa-list me-1"></i>Class History
     </a>
@@ -472,7 +472,7 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
     <div class="sec-card">
       <div class="sec-card-header d-flex justify-content-between align-items-center">
         <span><i class="fas fa-history me-2"></i>Recent Records</span>
-        <a href="/portal/montessori/anecdotal-history.php?class_id=<?= $selClassId ?>&student_id=<?= $selStudentId ?>"
+        <a href="<?= url('/portal/montessori/anecdotal-history.php') ?>?class_id=<?= $selClassId ?>&student_id=<?= $selStudentId ?>"
            style="font-size:.72rem;color:#2563eb;text-decoration:none">View All</a>
       </div>
       <div style="padding:10px 14px">
@@ -491,7 +491,7 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
                class="btn btn-sm btn-outline-primary" style="font-size:.7rem;padding:2px 8px">
               <i class="fas fa-edit me-1"></i>Edit
             </a>
-            <a href="/portal/montessori/anecdotal-print.php?id=<?= $rec['id'] ?>" target="_blank"
+            <a href="<?= url('/portal/montessori/anecdotal-print.php') ?>?id=<?= $rec['id'] ?>" target="_blank"
                class="btn btn-sm btn-outline-success" style="font-size:.7rem;padding:2px 8px">
               <i class="fas fa-print me-1"></i>Print
             </a>

@@ -733,11 +733,11 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
     <div class="sec-card mb-3">
       <div class="sec-card-header"><i class="fas fa-bolt me-2"></i>Quick Actions</div>
       <div style="padding:12px;display:flex;flex-direction:column;gap:8px">
-        <a href="/portal/montessori/assessment-history.php<?= $selClassId?'?class_id='.$selClassId.($selStudentId?'&student_id='.$selStudentId:''):'' ?>"
+        <a href="<?= url('/portal/montessori/assessment-history.php') . ($selClassId ? '?class_id='.$selClassId.($selStudentId ? '&student_id='.$selStudentId : '') : '') ?>"
            class="btn btn-outline-secondary w-100" style="font-size:.82rem;text-align:left">
           <i class="fas fa-history me-2"></i>Assessment History
         </a>
-        <a href="/portal/progress-report/form.php"
+        <a href="<?= url('/portal/progress-report/form.php') ?>"
            class="btn btn-outline-secondary w-100" style="font-size:.82rem;text-align:left">
           <i class="fas fa-file-alt me-2"></i>Progress Report
         </a>
