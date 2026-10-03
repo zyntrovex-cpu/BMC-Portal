@@ -101,11 +101,10 @@ $postWing = $_POST['wing']      ?? 'main';
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
 /* ── Page foundation ── */
-html, body { height:100%; }
+html, body { height:100%; overflow-x: hidden; }
 body {
   min-height:100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  overflow-x: hidden;
 }
 
 /* ── Hero background ── */
@@ -147,12 +146,14 @@ body {
   position: relative;
   z-index: 1;
   height: 100vh;
+  overflow-x: hidden;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: clamp(16px, 3.5vh, 36px) 20px clamp(14px, 3vh, 32px);
+  padding: clamp(16px, 3.5vh, 36px) clamp(24px, 5vw, 56px) clamp(14px, 3vh, 32px);
+  box-sizing: border-box;
 }
 
 /* ── School branding header ── */
@@ -196,24 +197,26 @@ body.phase2-active .site-footer   { display: none; }
 
 /* ── Phase 1 — Portal selection cards ── */
 #phase1 {
-  width: 100%; max-width: 680px;
+  width: 100%;
+  max-width: 740px;
   animation: fadeUp .65s cubic-bezier(.22,.68,0,1.2) forwards;
 }
 
 .portal-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(14px, 2.5vw, 24px);
 }
 
 .portal-card {
   position: relative;
+  min-width: 0;
   background: rgba(255,255,255,.10);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255,255,255,.18);
   border-radius: 22px;
-  padding: clamp(22px, 3.5vh, 34px) 22px clamp(18px, 2.8vh, 28px);
+  padding: clamp(24px, 3.8vh, 38px) clamp(18px, 3vw, 30px) clamp(20px, 3vh, 30px);
   text-align: center;
   cursor: pointer;
   transition: transform .22s cubic-bezier(.4,0,.2,1),
@@ -278,13 +281,15 @@ body.phase2-active .site-footer   { display: none; }
   margin-bottom: clamp(12px, 2vh, 20px);
 }
 .card-cta {
-  display: inline-flex; align-items: center; gap: 7px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   position: relative; z-index: 1;
   font-size: .8rem; font-weight: 700; letter-spacing: .4px;
   padding: 8px 22px; border-radius: 50px;
   border: 1.5px solid rgba(255,255,255,.3);
   color: #fff;
   background: rgba(255,255,255,.1);
+  white-space: nowrap;
+  max-width: 100%;
   transition: background .18s, border-color .18s, transform .12s;
 }
 .portal-card:hover .card-cta {
@@ -514,28 +519,38 @@ body.phase2-active .site-footer   { display: none; }
 .cred-pass-g { font-size:.68rem; color:rgba(255,255,255,.3); font-family:monospace; }
 
 /* ── Responsive ── */
+@media (max-width: 700px) {
+  #phase1 { max-width: 100%; }
+  .portal-cards { gap: clamp(10px, 3vw, 16px); }
+}
 @media (max-width: 600px) {
   .school-logo-wrap { width:76px; height:76px; }
   .school-name { font-size:1.45rem; }
   .school-sub  { font-size:.8rem; }
-  .portal-cards { grid-template-columns:1fr 1fr; gap:11px; }
-  .portal-card  { padding:20px 12px 16px; border-radius:16px; }
-  .card-icon-wrap { width:54px; height:54px; border-radius:14px; }
-  .card-icon-wrap i { font-size:1.45rem; }
-  .card-title { font-size:.95rem; }
-  .card-cta   { font-size:.73rem; padding:7px 14px; }
+  .portal-card  { padding:18px 14px 16px; border-radius:16px; }
+  .card-icon-wrap { width:52px; height:52px; border-radius:13px; }
+  .card-icon-wrap i { font-size:1.4rem; }
+  .card-title { font-size:.9rem; }
+  .card-cta   { font-size:.72rem; padding:7px 13px; }
   #phase2 { max-width:100%; }
   .login-glass { border-radius:18px; }
   .login-glass-body { padding:14px 18px 16px; }
-  .wing-tile-g .wt-icon { font-size:1.45rem; }
+  .wing-tile-g .wt-icon { font-size:1.4rem; }
 }
-@media (max-width: 400px) {
-  .portal-cards { gap:9px; }
+@media (max-width: 430px) {
+  .page-wrap { padding-left: 14px; padding-right: 14px; }
+  .portal-cards { gap: 10px; }
+  .portal-card  { padding:16px 10px 14px; }
+  .card-cta { padding:6px 10px; font-size:.68rem; }
+}
+@media (max-width: 380px) {
   .card-desc { display:none; }
-  .school-header { margin-bottom:16px; }
+  .school-header { margin-bottom:14px; }
   .portal-welcome { display:none; }
   .school-logo-wrap { width:64px; height:64px; }
-  .school-name { font-size:1.25rem; }
+  .school-name { font-size:1.2rem; }
+  .card-icon-wrap { width:46px; height:46px; }
+  .card-icon-wrap i { font-size:1.25rem; }
 }
 
 /* Accessibility */
