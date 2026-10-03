@@ -4,9 +4,9 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-// Auth: allow admin, teacher, and wing_head (Coordinator Montessori)
-$user = requireAuth('admin', 'teacher', 'wing_head');
-if ($user['role'] === 'teacher' || $user['role'] === 'wing_head') requirePermission('warnings');
+// Auth: allow admin, teacher, wing_head, montessori_teacher, and ilc_teacher
+$user = requireAuth('admin', 'teacher', 'wing_head', 'montessori_teacher', 'ilc_teacher');
+if (in_array($user['role'], ['teacher', 'wing_head', 'montessori_teacher', 'ilc_teacher'], true)) requirePermission('warnings');
 
 $db = getDB();
 
@@ -78,6 +78,15 @@ if ($filterCls > 0) {
     $params[] = $filterCls;
 }
 
+// Non-admin/wing_head teachers only see warnings for students in their own classes
+if (!in_array($user['role'], ['admin', 'wing_head'], true)) {
+    $teacher = getTeacherByUserId($user['id']);
+    if ($teacher) {
+        $where[]  = 's.class_id IN (SELECT DISTINCT class_id FROM class_subjects WHERE teacher_id = ?)';
+        $params[] = (int)$teacher['id'];
+    }
+}
+
 $sql = 'SELECT w.*, u.name AS student_name, s.roll_no, c.name AS class_name,
                gb.name AS given_by_name
         FROM student_warnings w
@@ -102,9 +111,11 @@ $classes = getAllClasses();
 
 pageHead('Student Warnings', $user['role']);
 $links = match($user['role']) {
-    'admin'     => getAdminLinks(),
-    'wing_head' => getWingHeadLinks(),
-    default     => getTeacherLinks(),
+    'admin'              => getAdminLinks(),
+    'wing_head'          => getWingHeadLinks(),
+    'montessori_teacher' => getMonteTeacherLinks(),
+    'ilc_teacher'        => getIlcTeacherLinks(),
+    default              => getTeacherLinks(),
 };
 $portal = $user['role'];
 ?>
