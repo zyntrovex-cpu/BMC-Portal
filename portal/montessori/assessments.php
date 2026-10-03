@@ -670,7 +670,7 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
             <?php $rno=$selStudent['roll_no']?:($selStudent['roll_no_login']??''); if ($rno): ?>
             <div style="font-size:.74rem;color:#94a3b8">Roll: <?= h($rno) ?></div>
             <?php endif; ?>
-            <div style="font-size:.72rem;color:#64748b"><?= h($classInfo['name']??) ?></div>
+            <div style="font-size:.72rem;color:#64748b"><?= h($classInfo['name'] ?? '') ?></div>
           </div>
         </div>
       </div>
