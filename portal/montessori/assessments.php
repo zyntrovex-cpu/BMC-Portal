@@ -140,7 +140,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ── GET: load page data ───────────────────────────────────────────────────────
 $selClassId   = (int)($_GET['class_id']   ?? $_SESSION['monte_assess_cls'] ?? 0);
-$selStudentId = (int)($_GET['student_id'] ?? $_SESSION['monte_assess_stu'] ?? 0);
+if (array_key_exists('student_id', $_GET)) {
+    $selStudentId = (int)$_GET['student_id'];
+    if (!$selStudentId) unset($_SESSION['monte_assess_stu']);
+} else {
+    $selStudentId = (int)($_SESSION['monte_assess_stu'] ?? 0);
+}
 $selSubjectId = (int)($_GET['subject_id'] ?? 0);
 $selDate      = $_GET['date'] ?? date('Y-m-d');
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selDate)) $selDate = date('Y-m-d');
@@ -458,7 +463,7 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
           <span>Selected: <strong><?= h($selStudent['name']) ?></strong><?php
             $rno=$selStudent['roll_no']?:($selStudent['roll_no_login']??'');
             if($rno): ?> &mdash; <?= h($rno) ?><?php endif; ?></span>
-          <a href="?class_id=<?= $selClassId ?>&date=<?= urlencode($selDate) ?>"
+          <a href="?class_id=<?= $selClassId ?>&student_id=0&date=<?= urlencode($selDate) ?>"
              class="ms-auto text-danger" style="font-size:.75rem;text-decoration:none;white-space:nowrap">
             <i class="fas fa-times-circle me-1"></i>Clear
           </a>
