@@ -45,7 +45,12 @@ $links = getWingHeadLinks();
     <div class="d-flex gap-2 align-items-center flex-wrap">
       <small class="text-muted">AY: <?= h($ds['academic_year']) ?></small>
       <?php if ($ds['stored_filename']): ?>
-      <a href="/portal/api/serve-document.php?type=datesheet&id=<?= $ds['id'] ?>" class="btn btn-sm btn-success">
+      <?php if (($ds['file_type'] ?? '') === 'pdf'): ?>
+      <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?>&inline=1" target="_blank" class="btn btn-sm btn-outline-info">
+        <i class="fas fa-eye me-1"></i>View
+      </a>
+      <?php endif; ?>
+      <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?>" class="btn btn-sm btn-success">
         <i class="fas fa-download me-1"></i>Download <?= strtoupper($ds['file_type'] ?? '') ?>
       </a>
       <?php endif; ?>

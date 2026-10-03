@@ -114,8 +114,9 @@ $mimeMap = [
 ];
 $mime = $mimeMap[$ext] ?? 'application/octet-stream';
 
+$inline = !empty($_GET['inline']) && $mime === 'application/pdf';
 header('Content-Type: ' . $mime);
-header('Content-Disposition: attachment; filename="' . addslashes($originalFilename) . '"');
+header('Content-Disposition: ' . ($inline ? 'inline' : 'attachment') . '; filename="' . addslashes($originalFilename) . '"');
 header('Content-Length: ' . filesize($filePath));
 header('Cache-Control: private, max-age=0');
 readfile($filePath);
