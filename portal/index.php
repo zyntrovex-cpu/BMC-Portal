@@ -146,49 +146,53 @@ body {
 .page-wrap {
   position: relative;
   z-index: 1;
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px 32px;
+  padding: clamp(16px, 3.5vh, 36px) 20px clamp(14px, 3vh, 32px);
 }
 
 /* ── School branding header ── */
 .school-header {
   text-align: center;
-  margin-bottom: 36px;
+  margin-bottom: clamp(16px, 2.8vh, 28px);
   animation: fadeDown .7s cubic-bezier(.22,.68,0,1.2) forwards;
 }
 .school-logo-wrap {
-  width: 82px; height: 82px;
+  width: 96px; height: 96px;
   background: rgba(255,255,255,.96);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 14px;
-  padding: 8px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.4), 0 0 0 3px rgba(255,255,255,.18), 0 0 0 6px rgba(255,255,255,.08);
+  padding: 9px;
+  box-shadow: 0 10px 36px rgba(0,0,0,.45), 0 0 0 3px rgba(255,255,255,.2), 0 0 0 7px rgba(255,255,255,.07);
 }
 .school-logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
 .school-name {
-  font-size: 1.65rem; font-weight: 900; color: #fff;
-  letter-spacing: .4px; line-height: 1.15;
-  text-shadow: 0 2px 16px rgba(0,0,0,.5);
+  font-size: clamp(1.65rem, 3.2vw, 2.1rem); font-weight: 900; color: #fff;
+  letter-spacing: .5px; line-height: 1.15;
+  text-shadow: 0 2px 20px rgba(0,0,0,.6);
 }
 .school-sub {
-  font-size: .85rem; color: rgba(255,255,255,.65);
-  margin-top: 4px; letter-spacing: .3px;
+  font-size: clamp(.83rem, 1.4vw, .95rem); color: rgba(255,255,255,.68);
+  margin-top: 5px; letter-spacing: .35px;
 }
 .portal-welcome {
   display: inline-block;
-  margin-top: 12px;
-  font-size: .8rem; font-weight: 700;
+  margin-top: 10px;
+  font-size: .78rem; font-weight: 700;
   letter-spacing: 2px; text-transform: uppercase;
-  color: rgba(255,255,255,.5);
+  color: rgba(255,255,255,.48);
   border-top: 1px solid rgba(255,255,255,.15);
-  padding-top: 10px;
-  width: 100%; max-width: 280px;
+  padding-top: 9px;
+  width: 100%; max-width: 300px;
 }
+/* Hide school header when login form is active — login card has its own branded header */
+body.phase2-active .school-header { display: none; }
+body.phase2-active .site-footer   { display: none; }
 
 /* ── Phase 1 — Portal selection cards ── */
 #phase1 {
@@ -209,7 +213,7 @@ body {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255,255,255,.18);
   border-radius: 22px;
-  padding: 36px 24px 30px;
+  padding: clamp(22px, 3.5vh, 34px) 22px clamp(18px, 2.8vh, 28px);
   text-align: center;
   cursor: pointer;
   transition: transform .22s cubic-bezier(.4,0,.2,1),
@@ -248,10 +252,10 @@ body {
 .portal-card.card-staff:hover   { box-shadow: 0 20px 60px rgba(0,0,0,.35), 0 4px 0 0 #8b5cf6, 0 0 0 1px rgba(139,92,246,.2); }
 
 .card-icon-wrap {
-  width: 72px; height: 72px;
-  border-radius: 20px;
+  width: 68px; height: 68px;
+  border-radius: 18px;
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 18px;
+  margin: 0 auto clamp(12px, 1.8vh, 16px);
   position: relative; z-index: 1;
 }
 .card-student .card-icon-wrap { background: rgba(59,130,246,.25); box-shadow: 0 8px 24px rgba(59,130,246,.25); }
@@ -271,7 +275,7 @@ body {
 .card-desc {
   font-size: .78rem; color: rgba(255,255,255,.55);
   position: relative; z-index: 1; line-height: 1.5;
-  margin-bottom: 22px;
+  margin-bottom: clamp(12px, 2vh, 20px);
 }
 .card-cta {
   display: inline-flex; align-items: center; gap: 7px;
@@ -307,7 +311,7 @@ body {
 }
 
 .login-glass-header {
-  padding: 24px 28px 20px;
+  padding: clamp(14px, 2.5vh, 22px) 28px clamp(12px, 2vh, 18px);
   text-align: center;
   position: relative;
   border-bottom: 1px solid rgba(255,255,255,.1);
@@ -323,17 +327,17 @@ body {
 }
 
 .login-hdr-logo {
-  width: 56px; height: 56px;
+  width: 60px; height: 60px;
   background: rgba(255,255,255,.95);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 10px;
+  margin: 0 auto 9px;
   padding: 5px;
   box-shadow: 0 4px 16px rgba(0,0,0,.3), 0 0 0 2px rgba(255,255,255,.2);
 }
 .login-hdr-logo img { width:100%; height:100%; object-fit:contain; }
-.login-hdr-title { font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:2px; }
-.login-hdr-sub   { font-size:.73rem; color:rgba(255,255,255,.6); }
+.login-hdr-title { font-size:1.15rem; font-weight:900; color:#fff; margin-bottom:2px; letter-spacing:.3px; }
+.login-hdr-sub   { font-size:.74rem; color:rgba(255,255,255,.6); }
 .wing-badge-login {
   display: inline-block; margin-top:8px;
   font-size:.67rem; font-weight:700; letter-spacing:.8px; text-transform:uppercase;
@@ -342,16 +346,16 @@ body {
   padding:3px 13px;
 }
 
-.login-glass-body { padding: 24px 28px 26px; }
+.login-glass-body { padding: clamp(16px, 2.5vh, 22px) 26px clamp(14px, 2.2vh, 22px); }
 
 /* Back button */
 .btn-back-glass {
   display: flex; align-items: center; gap: 7px;
   background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
-  border-radius: 8px; padding: 7px 14px;
+  border-radius: 8px; padding: 6px 14px;
   color: rgba(255,255,255,.8); font-size:.8rem; cursor: pointer;
   transition: background .18s, color .18s;
-  margin-bottom: 18px;
+  margin-bottom: clamp(12px, 2vh, 16px);
 }
 .btn-back-glass:hover { background: rgba(255,255,255,.18); color: #fff; }
 
@@ -371,11 +375,11 @@ body {
 }
 .wing-label-glass::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.12); }
 
-.wing-tiles-glass { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
+.wing-tiles-glass { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:clamp(12px,2vh,18px); }
 .wing-tile-g {
   border: 2px solid transparent;
-  border-radius: 14px;
-  padding: 16px 8px 13px;
+  border-radius: 13px;
+  padding: clamp(10px,1.8vh,14px) 8px clamp(8px,1.4vh,11px);
   text-align: center; cursor: pointer;
   user-select: none; position: relative; overflow: hidden;
   transition: transform .18s, box-shadow .18s, border-color .18s;
@@ -404,19 +408,19 @@ body {
 /* Cred divider */
 .cred-divider-glass {
   font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.6px;
-  color:rgba(255,255,255,.45); margin-bottom:14px;
+  color:rgba(255,255,255,.45); margin-bottom:clamp(10px,1.6vh,14px);
   display:flex; align-items:center; gap:8px;
 }
 .cred-divider-glass::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.12); }
 
 /* Fields */
-.field-group-glass { margin-bottom: 14px; }
+.field-group-glass { margin-bottom: clamp(10px, 1.6vh, 14px); }
 .field-group-glass label {
   display:block; font-size:.78rem; font-weight:600;
-  color:rgba(255,255,255,.75); margin-bottom:6px;
+  color:rgba(255,255,255,.75); margin-bottom:5px;
 }
 .field-group-glass input {
-  width:100%; padding:11px 14px; font-size:.92rem;
+  width:100%; padding:clamp(9px,1.4vh,11px) 13px; font-size:.9rem;
   background: rgba(255,255,255,.1);
   border: 1.5px solid rgba(255,255,255,.2);
   border-radius: 10px; outline: none;
@@ -432,7 +436,7 @@ body {
 
 /* Login button */
 .btn-login-glass {
-  width:100%; padding:13px;
+  width:100%; padding:clamp(10px,1.7vh,13px);
   background: var(--btn-bg, linear-gradient(135deg,#3730a3,#6366f1));
   border:none; border-radius:12px; color:#fff;
   font-weight:800; font-size:.96rem;
@@ -448,7 +452,7 @@ body {
 /* Footer */
 .login-footer-glass {
   display:flex; justify-content:space-between; align-items:center;
-  margin-top:14px; padding-top:12px;
+  margin-top:clamp(10px,1.6vh,14px); padding-top:clamp(8px,1.4vh,12px);
   border-top:1px solid rgba(255,255,255,.1);
   font-size:.74rem; color:rgba(255,255,255,.4);
 }
@@ -457,7 +461,7 @@ body {
 
 /* Bottom site footer */
 .site-footer {
-  margin-top: 28px;
+  margin-top: clamp(12px, 2vh, 22px);
   text-align: center;
   font-size: .72rem;
   color: rgba(255,255,255,.28);
@@ -511,22 +515,27 @@ body {
 
 /* ── Responsive ── */
 @media (max-width: 600px) {
-  .school-name { font-size:1.3rem; }
-  .portal-cards { grid-template-columns:1fr 1fr; gap:13px; }
-  .portal-card  { padding:26px 14px 22px; border-radius:16px; }
-  .card-icon-wrap { width:58px; height:58px; }
-  .card-icon-wrap i { font-size:1.55rem; }
-  .card-title { font-size:1rem; }
-  .card-cta   { font-size:.74rem; padding:7px 16px; }
+  .school-logo-wrap { width:76px; height:76px; }
+  .school-name { font-size:1.45rem; }
+  .school-sub  { font-size:.8rem; }
+  .portal-cards { grid-template-columns:1fr 1fr; gap:11px; }
+  .portal-card  { padding:20px 12px 16px; border-radius:16px; }
+  .card-icon-wrap { width:54px; height:54px; border-radius:14px; }
+  .card-icon-wrap i { font-size:1.45rem; }
+  .card-title { font-size:.95rem; }
+  .card-cta   { font-size:.73rem; padding:7px 14px; }
   #phase2 { max-width:100%; }
   .login-glass { border-radius:18px; }
-  .login-glass-body { padding:20px 20px 22px; }
-  .wing-tile-g { padding:12px 6px 10px; }
+  .login-glass-body { padding:14px 18px 16px; }
+  .wing-tile-g .wt-icon { font-size:1.45rem; }
 }
 @media (max-width: 400px) {
-  .portal-cards { gap:10px; }
+  .portal-cards { gap:9px; }
   .card-desc { display:none; }
-  .school-header { margin-bottom:26px; }
+  .school-header { margin-bottom:16px; }
+  .portal-welcome { display:none; }
+  .school-logo-wrap { width:64px; height:64px; }
+  .school-name { font-size:1.25rem; }
 }
 
 /* Accessibility */
@@ -796,6 +805,7 @@ function selectType(type) {
   p2.classList.remove('anim-left');
   void p2.offsetWidth;
   p2.classList.add('anim-right');
+  document.body.classList.add('phase2-active');
   setTimeout(() => document.getElementById('userId').focus(), 340);
 }
 
@@ -807,6 +817,7 @@ function goBack() {
   p1.classList.remove('anim-right');
   void p1.offsetWidth;
   p1.classList.add('anim-left');
+  document.body.classList.remove('phase2-active');
 }
 
 function selectWing(wing) {
@@ -923,6 +934,7 @@ function toggleCreds() {
   if (isStudent) selectWing(wing);
   document.getElementById('phase1').style.display = 'none';
   document.getElementById('phase2').style.display = 'block';
+  document.body.classList.add('phase2-active');
 })();
 <?php endif; ?>
 </script>
