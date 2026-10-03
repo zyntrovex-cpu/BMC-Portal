@@ -151,9 +151,16 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: clamp(16px, 3.5vh, 36px) clamp(24px, 5vw, 56px) clamp(14px, 3vh, 32px);
+  /* No justify-content:center — flex spacers handle centering so that
+     when content overflows the viewport, it stays accessible from the top */
+  padding: 0 clamp(24px, 5vw, 56px);
   box-sizing: border-box;
+}
+/* Flex spacers: grow equally to center content; collapse when viewport is short */
+.page-wrap::before,
+.page-wrap::after {
+  content: '';
+  flex: 1 0 clamp(12px, 2.5vh, 32px);
 }
 
 /* ── School branding header ── */
@@ -493,30 +500,6 @@ body.phase2-active .site-footer   { display: none; }
 .anim-right { animation: slideInRight .3s cubic-bezier(.4,0,.2,1) forwards; }
 .anim-left  { animation: slideInLeft  .3s cubic-bezier(.4,0,.2,1) forwards; }
 
-/* ── Credential helper ── */
-.cred-toggle-glass {
-  width:100%; margin-top:10px; background: rgba(255,255,255,.06);
-  border:1px dashed rgba(255,255,255,.2); border-radius:8px;
-  padding:7px 12px; font-size:.75rem; color:rgba(255,255,255,.45);
-  cursor:pointer; text-align:center; transition:border-color .2s, color .2s;
-}
-.cred-toggle-glass:hover { border-color:rgba(255,255,255,.4); color:rgba(255,255,255,.75); }
-.cred-panel-glass {
-  display:none; margin-top:8px;
-  background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.1);
-  border-radius:10px; padding:10px 13px;
-}
-.cred-panel-title { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:rgba(255,255,255,.35); margin-bottom:7px; }
-.cred-row-glass {
-  display:flex; align-items:center; gap:8px;
-  padding:5px 8px; border-radius:6px; cursor:pointer;
-  transition:background .15s; margin-bottom:2px;
-}
-.cred-row-glass:hover { background:rgba(255,255,255,.1); }
-.cred-badge { font-size:.63rem; padding:2px 7px; border-radius:10px; font-weight:700; white-space:nowrap; color:#fff; }
-.cred-id-g   { font-weight:700; color:#fff; font-size:.8rem; min-width:54px; }
-.cred-name-g { color:rgba(255,255,255,.6); flex:1; font-size:.75rem; }
-.cred-pass-g { font-size:.68rem; color:rgba(255,255,255,.3); font-family:monospace; }
 
 /* ── Responsive ── */
 @media (max-width: 700px) {
@@ -721,14 +704,6 @@ body.phase2-active .site-footer   { display: none; }
           </button>
         </form>
 
-        <button class="cred-toggle-glass" id="credToggleGlass" type="button" onclick="toggleCreds()">
-          <i class="fas fa-key me-1" aria-hidden="true"></i>Show test accounts
-        </button>
-        <div class="cred-panel-glass" id="credPanelGlass">
-          <div class="cred-panel-title">Test Accounts — click to fill</div>
-          <div id="credList"></div>
-        </div>
-
         <div class="login-footer-glass">
           <a href="forgot-password.php">
             <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Forgot password?
@@ -789,7 +764,6 @@ const STAFF_THEME = {
 
 let selectedType = 'student';
 let selectedWing = 'main';
-let credOpen     = false;
 
 function applyTheme(t) {
   document.getElementById('loginGlassHeader').style.background = t.hdr;
@@ -844,94 +818,6 @@ function selectWing(wing) {
     el.classList.toggle('active', w === wing);
     el.setAttribute('aria-checked', w === wing ? 'true' : 'false');
   });
-}
-
-// ── Credential helper ──────────────────────────────────────────────
-const CREDS = {
-  main: {
-    student: [
-      ['1001','Bilal Ahmed',   'Student'],
-      ['1002','Sara Qasim',    'Student'],
-      ['1003','Waqar Ullah',   'Student'],
-    ],
-    staff: [
-      ['3001','Mr. Tariq Mehmood','Admin'],
-      ['2001','Dr. Sarah Khan',   'Teacher'],
-      ['2002','Mr. Hasan Ali',    'Teacher'],
-      ['3002','Ms. Ayesha Rizvi', 'Finance'],
-      ['3005','Mr. Asad Khan',    'VP Main'],
-      ['3006','Ms. Rubina Akhtar','Wing Head'],
-    ],
-  },
-  montessori: {
-    student: [
-      ['1031','Ali Raza',      'Student'],
-      ['1032','Maryam Khalid', 'Student'],
-      ['1033','Hamza Aziz',    'Student'],
-    ],
-    staff: [
-      ['2001','Dr. Sarah Khan','Teacher'],
-      ['2002','Mr. Hasan Ali', 'Teacher'],
-      ['3006','Ms. Rubina Akhtar','Wing Head'],
-    ],
-  },
-  ilc: {
-    student: [
-      ['1041','Hamza Tanveer', 'ILC Student'],
-      ['1042','Sara Baig',     'ILC Student'],
-      ['1043','Dua Waheed',    'ILC Student'],
-    ],
-    staff: [
-      ['3003','Dr. Amna Siddiqui','ILC VP'],
-      ['3004','Mr. Tariq Aziz',  'Student Affairs'],
-      ['2003','Ms. Asma Riaz',   'ILC Teacher'],
-    ],
-  },
-};
-const ROLE_COLORS = {
-  'Admin':'#7c3aed','Teacher':'#059669','Finance':'#d97706',
-  'VP Main':'#0369a1','Wing Head':'#c2410c',
-  'Student':'#1d4ed8','ILC Student':'#0891b2',
-  'ILC VP':'#0891b2','Student Affairs':'#be185d','ILC Teacher':'#059669',
-};
-
-function renderCreds() {
-  let list = [];
-  if (selectedType === 'staff') {
-    const seen = new Set();
-    ['main','montessori','ilc'].forEach(w => {
-      (CREDS[w].staff || []).forEach(r => { if (!seen.has(r[0])) { seen.add(r[0]); list.push(r); } });
-    });
-  } else {
-    list = (CREDS[selectedWing] || CREDS.main)[selectedType === 'staff' ? 'staff' : 'student'] || [];
-  }
-  const el = document.getElementById('credList');
-  if (!list.length) { el.innerHTML = '<div style="color:rgba(255,255,255,.4);text-align:center;padding:4px 0">No accounts for this selection.</div>'; return; }
-  el.innerHTML = list.map(([id, name, role]) =>
-    `<div class="cred-row-glass" onclick="fillCred('${id}')">
-      <span class="cred-id-g">${id}</span>
-      <span class="cred-name-g">${name}</span>
-      <span class="cred-badge" style="background:${ROLE_COLORS[role]||'#64748b'}">${role}</span>
-      <span class="cred-pass-g">student123</span>
-    </div>`
-  ).join('');
-}
-
-function fillCred(userId) {
-  document.getElementById('userId').value   = userId;
-  document.getElementById('password').value = 'student123';
-  document.getElementById('credPanelGlass').style.display = 'none';
-  document.getElementById('credToggleGlass').innerHTML = '<i class="fas fa-key me-1"></i>Show test accounts';
-  credOpen = false;
-}
-
-function toggleCreds() {
-  credOpen = !credOpen;
-  document.getElementById('credPanelGlass').style.display = credOpen ? 'block' : 'none';
-  document.getElementById('credToggleGlass').innerHTML = credOpen
-    ? '<i class="fas fa-times me-1"></i>Hide test accounts'
-    : '<i class="fas fa-key me-1"></i>Show test accounts';
-  if (credOpen) renderCreds();
 }
 
 // ── Restore phase on POST error ────────────────────────────────────
