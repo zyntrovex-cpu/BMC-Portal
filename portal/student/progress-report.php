@@ -4,9 +4,10 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('student');
-$student = getStudentByUserId($user['id']);
-$db      = getDB();
+$user       = requireAuth('student');
+$student    = getStudentByUserId($user['id']);
+$db         = getDB();
+$schoolName = getSetting('school_name', 'Bahria Model College, Bin Qasim');
 
 if (!$student) { setFlash('danger', 'Student profile not found.'); redirect('/portal/logout.php'); }
 
@@ -80,7 +81,7 @@ $links = getStudentLinks();
     <div style="font-size:.72rem;font-weight:700;color:#3730a3;letter-spacing:.8px;text-transform:uppercase">
       My Progress Reports
     </div>
-    <div style="font-size:.78rem;color:#475569">Bahria College — Pakistan Navy Educational Trust</div>
+    <div style="font-size:.78rem;color:#475569"><?= h($schoolName) ?></div>
   </div>
 </div>
 

@@ -44,7 +44,7 @@ if ($user['role'] === 'montessori_teacher' && $teacher) {
 
 $recordDate = date('d/m/Y', strtotime($rec['record_date']));
 $printDate  = date('d M Y');
-$schoolName = 'Beaconhouse Margalla Campus';
+$schoolName = getSetting('school_name', 'Bahria Model College, Bin Qasim');
 ?>
 <!DOCTYPE html>
 <html lang="en">

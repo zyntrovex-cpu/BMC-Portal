@@ -91,7 +91,8 @@ $fdRem       = $fd['remarks']   ?? '';
 $fdNarrative = $fd['narrative'] ?? '';
 $subjects    = $fd['subjects']  ?? [];
 
-$logoBase = defined('BASE_URL') ? BASE_URL : '';
+$logoBase   = defined('BASE_URL') ? BASE_URL : '';
+$schoolName = getSetting('school_name', 'Bahria Model College, Bin Qasim');
 $dobFmt   = !empty($rec['dob'])                  ? date('d-m-y', strtotime($rec['dob']))              : '—';
 $issueFmt = !empty($fdBasic['date_of_issue'])     ? date('d-m-Y', strtotime($fdBasic['date_of_issue'])): '—';
 
@@ -160,7 +161,7 @@ table.pr-tbl th { font-weight:600; }
     <img src="<?= $logoBase ?>/assets/bmc-logo.png" alt="" onerror="this.style.display='none'">
   </div>
   <div class="hdr-center">
-    <div class="hdr-school">BAHRIA COLLEGE — PAKISTAN NAVY EDUCATIONAL TRUST</div>
+    <div class="hdr-school"><?= h(strtoupper($schoolName)) ?></div>
     <div class="hdr-section">PRIMARY SECTION — STUDENT PROGRESS REPORT</div>
     <div class="hdr-rep">
       <?= h($rec['term']) ?><?= $rec['session'] ? ' — SESSION '.h($rec['session']) : '' ?>

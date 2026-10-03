@@ -4,9 +4,10 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user = requireAuth('montessori_teacher', 'teacher', 'vp_main', 'wing_head');
-$db   = getDB();
-$role = $user['role'];
+$user       = requireAuth('montessori_teacher', 'teacher', 'vp_main', 'wing_head');
+$db         = getDB();
+$role       = $user['role'];
+$schoolName = getSetting('school_name', 'Bahria Model College, Bin Qasim');
 
 $teacher = null;
 if ($role === 'montessori_teacher' || $role === 'teacher') {
@@ -224,7 +225,7 @@ pageHead('Progress Report', $role);
        style="width:40px;height:40px;object-fit:contain;flex-shrink:0" onerror="this.style.display='none'">
   <div>
     <div style="font-size:.72rem;font-weight:700;color:#3730a3;letter-spacing:.8px;text-transform:uppercase">Student Progress Report</div>
-    <div style="font-size:.78rem;color:#475569">Bahria College — Pakistan Navy Educational Trust</div>
+    <div style="font-size:.78rem;color:#475569"><?= h($schoolName) ?></div>
   </div>
 </div>
 
@@ -324,7 +325,7 @@ pageHead('Progress Report', $role);
         <div style="padding:16px 18px 20px">
           <div class="text-center mb-3 pb-2" style="border-bottom:2px solid #4338ca">
             <div style="font-size:.64rem;font-weight:700;letter-spacing:1px;color:#3730a3;text-transform:uppercase">
-              Bahria College — Pakistan Navy Educational Trust
+              <?= h(strtoupper($schoolName)) ?>
             </div>
             <div style="font-size:.9rem;font-weight:700;color:#0f172a;margin:.2rem 0 .1rem">Student Progress Report</div>
             <div style="font-size:.72rem;color:#64748b">PRIMARY SECTION</div>

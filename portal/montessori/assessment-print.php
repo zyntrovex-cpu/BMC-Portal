@@ -68,7 +68,7 @@ $ratingLabel = ['AD' => 'AD — As Desired', 'ED' => 'ED — Emerging Desired', 
 $ratingColors = ['AD' => '#16a34a', 'ED' => '#d97706', 'EMD' => '#dc2626'];
 $ratingBg    = ['AD' => '#dcfce7', 'ED' => '#fef3c7', 'EMD' => '#fee2e2'];
 
-$schoolName  = 'Beaconhouse Margalla Campus';
+$schoolName  = getSetting('school_name', 'Bahria Model College, Bin Qasim');
 $printDate   = date('d M Y');
 $assessDate  = date('d M Y', strtotime($assessment['assessment_date']));
 ?>
