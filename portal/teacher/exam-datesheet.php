@@ -67,11 +67,15 @@ pageHead('Exam Date Sheets', $portal);
       <small class="text-muted">AY: <?= h($ds['academic_year']) ?></small>
       <?php if ($ds['stored_filename']): ?>
       <?php $isPdf = ($ds['file_type'] ?? '') === 'pdf'; ?>
-      <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?><?= $isPdf ? '&inline=1' : '' ?>" target="_blank" class="btn btn-sm btn-outline-info">
+      <?php $dsBase = url('/portal/api/serve-document.php') . '?type=datesheet&id=' . (int)$ds['id']; ?>
+      <a href="<?= $dsBase . ($isPdf ? '&inline=1' : '') ?>" target="_blank" class="btn btn-sm btn-outline-info">
         <i class="fas fa-eye me-1"></i>View
       </a>
-      <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?>" class="btn btn-sm btn-success">
+      <a href="<?= $dsBase ?>" class="btn btn-sm btn-success">
         <i class="fas fa-download me-1"></i>Download <?= strtoupper($ds['file_type'] ?? '') ?>
+      </a>
+      <a href="<?= $dsBase . ($isPdf ? '&inline=1' : '') ?>" target="_blank" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-print me-1"></i>Print
       </a>
       <?php endif; ?>
     </div>

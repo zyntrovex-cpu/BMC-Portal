@@ -99,13 +99,17 @@ foreach ($sheets as $ds):
       <small class="text-muted">AY: <?= h($ds['academic_year']) ?></small>
       <?php if ($ds['stored_filename']): ?>
       <?php $isPdf = ($ds['file_type'] ?? '') === 'pdf'; ?>
-      <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?><?= $isPdf ? '&inline=1' : '' ?>" target="_blank" class="btn btn-sm btn-outline-info">
+      <?php $dsBase = url('/portal/api/serve-document.php') . '?type=datesheet&id=' . (int)$ds['id']; ?>
+      <a href="<?= $dsBase . ($isPdf ? '&inline=1' : '') ?>" target="_blank" class="btn btn-sm btn-outline-info">
         <i class="fas fa-eye me-1"></i>View
       </a>
-      <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?>"
+      <a href="<?= $dsBase ?>"
          class="btn btn-sm btn-success">
         <i class="fas fa-download me-1"></i>Download <?= strtoupper($ds['file_type'] ?? '') ?>
         <span class="ms-1 opacity-75" style="font-size:.76rem"><?= $sizeFmt ?></span>
+      </a>
+      <a href="<?= $dsBase . ($isPdf ? '&inline=1' : '') ?>" target="_blank" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-print me-1"></i>Print
       </a>
       <?php else: ?><span class="badge bg-secondary" style="font-size:.72rem">No file</span><?php endif; ?>
     </div>

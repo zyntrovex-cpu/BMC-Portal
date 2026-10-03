@@ -215,6 +215,10 @@ $links = getIlcLinks();
                class="btn btn-xs me-1" style="font-size:.72rem;padding:2px 7px;background:#0891b2;color:#fff">
               <i class="fas fa-download"></i> Download
             </a>
+            <a href="<?=url('/portal/api/serve-document.php')?>?type=timetable&id=<?=$doc['id']?><?=$isPdf?'&inline=1':''?>"
+               target="_blank" class="btn btn-xs btn-outline-secondary me-1" style="font-size:.72rem;padding:2px 7px" title="Print">
+              <i class="fas fa-print"></i> Print
+            </a>
             <?php if(($doc['status']??'active')==='active'):?>
             <form method="POST" style="display:inline" onsubmit="return confirm('Archive this document? Students will no longer see it.')">
               <input type="hidden" name="action" value="archive">

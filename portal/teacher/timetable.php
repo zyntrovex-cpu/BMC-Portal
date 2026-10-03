@@ -25,7 +25,12 @@ try {
 
 $ttDocs = [];
 try {
-    $tdst = $db->prepare("SELECT td.* FROM timetable_documents td WHERE td.wing=? OR td.wing='all' ORDER BY td.created_at DESC");
+    $tdst = $db->prepare(
+        "SELECT td.*, u.name AS uploader_name FROM timetable_documents td
+         LEFT JOIN users u ON u.id = td.uploaded_by
+         WHERE (td.wing = ? OR td.wing = 'all') AND td.status = 'active'
+         ORDER BY td.created_at DESC"
+    );
     $tdst->execute([$teacherWing]);
     $ttDocs = $tdst->fetchAll();
 } catch (Exception $e) {}
@@ -109,23 +114,32 @@ $links = match($user['role']) {
   <div style="padding:12px 16px">
     <?php foreach ($ttDocs as $doc):
       $iconMap = ['pdf' => 'fa-file-pdf text-danger', 'xlsx' => 'fa-file-excel text-success', 'xls' => 'fa-file-excel text-success', 'doc' => 'fa-file-word text-primary', 'docx' => 'fa-file-word text-primary'];
-      $icon    = $iconMap[$doc['file_type']] ?? 'fa-file text-secondary';
+      $icon    = $iconMap[$doc['file_type'] ?? ''] ?? 'fa-file text-secondary';
+      $isPdf   = ($doc['file_type'] ?? '') === 'pdf';
+      $baseUrl = url('/portal/api/serve-document.php') . '?type=timetable&id=' . (int)$doc['id'];
     ?>
     <div class="d-flex align-items-center gap-3 mb-2 p-2" style="background:#f9fafb;border-radius:6px;border:1px solid #e5e7eb">
       <i class="fas <?= $icon ?> fa-lg"></i>
       <div class="flex-grow-1">
         <div class="fw-semibold" style="font-size:.86rem"><?= h($doc['title']) ?></div>
-        <div style="font-size:.76rem;color:#6b7280"><?= h($doc['academic_year']) ?><?= $doc['notes'] ? ' — ' . h($doc['notes']) : '' ?></div>
+        <div style="font-size:.76rem;color:#6b7280">
+          <?= h($doc['academic_year']) ?>
+          <?= $doc['notes'] ? ' — ' . h($doc['notes']) : '' ?>
+          <?= $doc['uploader_name'] ? ' · Uploaded by ' . h($doc['uploader_name']) : '' ?>
+        </div>
       </div>
-      <?php if (($doc['file_type'] ?? '') === 'pdf'): ?>
-      <a href="<?= url('/portal/api/serve-document.php') ?>?type=timetable&id=<?= $doc['id'] ?>&inline=1" target="_blank"
+      <a href="<?= $baseUrl . ($isPdf ? '&inline=1' : '') ?>" target="_blank"
          class="btn btn-xs btn-outline-info me-1" style="font-size:.76rem;padding:3px 10px;white-space:nowrap">
         <i class="fas fa-eye me-1"></i>View
       </a>
-      <?php endif; ?>
-      <a href="<?= url('/portal/api/serve-document.php') ?>?type=timetable&id=<?= $doc['id'] ?>"
-         class="btn btn-xs btn-primary" style="font-size:.76rem;padding:3px 10px;white-space:nowrap">
+      <a href="<?= $baseUrl ?>"
+         class="btn btn-xs btn-primary me-1" style="font-size:.76rem;padding:3px 10px;white-space:nowrap">
         <i class="fas fa-download me-1"></i>Download
+      </a>
+      <a href="<?= $baseUrl . ($isPdf ? '&inline=1' : '') ?>"
+         target="_blank" <?= $isPdf ? '' : 'onclick="window.location.href=\'' . $baseUrl . '\';return false"' ?>
+         class="btn btn-xs btn-outline-secondary" style="font-size:.76rem;padding:3px 10px;white-space:nowrap">
+        <i class="fas fa-print me-1"></i>Print
       </a>
     </div>
     <?php endforeach; ?>
