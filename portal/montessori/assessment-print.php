@@ -44,11 +44,12 @@ if (!empty($assessment['criteria'])) {
 $entries = [];
 $eSt = $db->prepare(
     "SELECT e.student_id, e.ratings, e.overall, e.remarks,
-            st.name AS student_name, st.roll_number
+            u2.name AS student_name, st.roll_no AS roll_number
      FROM montessori_daily_assessment_entries e
      JOIN students st ON e.student_id = st.id
+     JOIN users u2 ON st.user_id = u2.id
      WHERE e.assessment_id = ?
-     ORDER BY st.name"
+     ORDER BY u2.name"
 );
 $eSt->execute([$assessmentId]);
 $entries = $eSt->fetchAll();

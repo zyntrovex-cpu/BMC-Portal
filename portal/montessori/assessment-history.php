@@ -90,7 +90,7 @@ if ($selClassId) {
         $params[] = $perPage;
         $params[] = $offset;
         $dataSt = $db->prepare(
-            "SELECT mda.id, mda.assessment_date, mda.topic, mda.criteria,
+            "SELECT mda.id, mda.subject_id, mda.assessment_date, mda.topic, mda.criteria,
                     s.name AS subject_name,
                     (SELECT COUNT(*) FROM montessori_daily_assessment_entries e WHERE e.assessment_id=mda.id) AS entry_count,
                     t.id AS teacher_id,
@@ -228,7 +228,7 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
           <?php endif; ?>
           <td style="padding:9px 12px;text-align:center">
             <div class="d-flex gap-1 justify-content-center flex-wrap">
-              <a href="/portal/montessori/assessments.php?class_id=<?= $selClassId ?>&date=<?= urlencode($row['assessment_date']) ?>&show_subject=<?= $row['id'] ?>"
+              <a href="/portal/montessori/assessments.php?class_id=<?= $selClassId ?>&date=<?= urlencode($row['assessment_date']) ?>&show_subject=<?= $row['subject_id'] ?>"
                  class="btn btn-sm btn-outline-primary" style="font-size:.72rem;padding:3px 8px"
                  title="Open assessment for this date">
                 <i class="fas fa-eye me-1"></i>View / Edit

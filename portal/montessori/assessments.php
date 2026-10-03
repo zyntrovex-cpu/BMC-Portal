@@ -725,7 +725,7 @@ function activateSubject(sid) {
 
   _activeSubj = sid;
   if (section) {
-    section.style.display = '';
+    section.style.display = 'block';
     setTimeout(function() {
       section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 40);
