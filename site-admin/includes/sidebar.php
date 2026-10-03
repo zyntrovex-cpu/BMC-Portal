@@ -7,7 +7,7 @@ function adminActive(string $file): string {
     return $currentPage === $file ? 'active' : '';
 }
 ?>
-<aside class="admin-sidebar">
+<aside class="admin-sidebar" id="adminSidebar">
   <div class="admin-sidebar-header">
     <div style="display:flex;align-items:center;gap:10px">
       <img src="<?= BASE_URL ?>/assets/bmc-logo.png" alt="BMC Logo"
@@ -53,3 +53,29 @@ function adminActive(string $file): string {
     <div style="font-size:.72rem;color:rgba(255,255,255,.35)"><?= sh(ucfirst(str_replace('_',' ', $admin['role'] ?? ''))) ?></div>
   </div>
 </aside>
+<script>
+(function(){
+  var KEY = "bmcAdminSidebarScrollY";
+  var sb  = document.getElementById("adminSidebar");
+  if (!sb) return;
+
+  var saved = sessionStorage.getItem(KEY);
+  if (saved !== null) sb.scrollTop = parseInt(saved, 10) || 0;
+
+  var pending = false;
+  sb.addEventListener("scroll", function(){
+    if (!pending) {
+      pending = true;
+      requestAnimationFrame(function(){
+        sessionStorage.setItem(KEY, sb.scrollTop);
+        pending = false;
+      });
+    }
+  }, { passive: true });
+
+  sb.addEventListener("click", function(e){
+    var a = e.target.closest("a[href]");
+    if (a) sessionStorage.setItem(KEY, sb.scrollTop);
+  });
+})();
+</script>

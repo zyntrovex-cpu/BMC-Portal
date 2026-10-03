@@ -205,6 +205,41 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
     echo '<a href="#" onclick="toggleSidebar();return false;">'
        . '<i class="fas fa-th-large"></i><span>More</span></a>';
     echo '</nav>';
+
+    // ── Sidebar scroll-position persistence ───────────────────────────
+    // Runs immediately after the sidebar DOM is present (inline script).
+    // sessionStorage is tab-scoped, so multiple portals in different tabs
+    // never interfere with each other.
+    echo '<script>
+(function(){
+  var KEY = "bmcSidebarScrollY";
+  var sb  = document.getElementById("sidebar");
+  if (!sb) return;
+
+  // Restore immediately (sidebar is already in DOM at this point)
+  var saved = sessionStorage.getItem(KEY);
+  if (saved !== null) sb.scrollTop = parseInt(saved, 10) || 0;
+
+  // Persist on scroll (rAF-debounced to avoid per-pixel writes)
+  var pending = false;
+  sb.addEventListener("scroll", function(){
+    if (!pending) {
+      pending = true;
+      requestAnimationFrame(function(){
+        sessionStorage.setItem(KEY, sb.scrollTop);
+        pending = false;
+      });
+    }
+  }, { passive: true });
+
+  // Belt-and-suspenders: also persist on any link click inside sidebar
+  // before the browser navigates away (catches Ctrl+click too)
+  sb.addEventListener("click", function(e){
+    var a = e.target.closest("a[href]");
+    if (a) sessionStorage.setItem(KEY, sb.scrollTop);
+  });
+})();
+</script>';
 }
 
 function viewAsBanner(): void {
