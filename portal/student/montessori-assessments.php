@@ -102,7 +102,7 @@ function smRatingBadge(string $v): string {
     return '<span class="sm-badge none">—</span>';
 }
 
-pageHead('My Daily Assessments', 'student');
+pageHead('My Formative Assessments', 'student');
 $links = getStudentLinks($user, $student);
 ?>
 <style>
@@ -126,7 +126,7 @@ $links = getStudentLinks($user, $student);
 <div class="portal-wrap">
 <?php sidebar('student','montessori-assessments',$links,$user); ?>
 <div class="main-area">
-<?php topbar('My Daily Assessments',$user); ?>
+<?php topbar('My Formative Assessments',$user); ?>
 <div class="page-content">
 <?= flashHtml() ?>
 
@@ -134,13 +134,13 @@ $links = getStudentLinks($user, $student);
 <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
   <div>
     <h5 class="mb-0 fw-bold" style="font-size:1.05rem">
-      <i class="fas fa-clipboard-list me-2 text-primary"></i>My Daily Assessments
+      <i class="fas fa-clipboard-list me-2 text-primary"></i>My Formative Assessments
     </h5>
     <p class="text-muted mb-0" style="font-size:.78rem"><?= h($student['class_name']) ?></p>
   </div>
   <div style="font-size:.78rem;color:var(--t2)">
     <i class="fas fa-info-circle me-1"></i>
-    Showing your submitted assessment results
+    Showing your Formative Assessment results
   </div>
 </div>
 
@@ -173,7 +173,7 @@ $links = getStudentLinks($user, $student);
 <?php if ($total === 0): ?>
 <div class="alert alert-secondary d-flex align-items-center gap-2" style="font-size:.83rem">
   <i class="fas fa-clipboard fa-lg opacity-50"></i>
-  <span>No assessment records found<?= $filterSubject ? ' for this subject' : '' ?>. Assessments appear here once your teacher submits them.</span>
+  <span>No Formative Assessment records found<?= $filterSubject ? ' for this subject' : '' ?>. Results appear here once your teacher submits an assessment.</span>
 </div>
 <?php else: ?>
 

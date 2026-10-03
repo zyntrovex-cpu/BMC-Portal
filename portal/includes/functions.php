@@ -375,7 +375,7 @@ function getStudentLinks(): array {
             ? ['href'=>'/portal/student/progress-report.php', 'icon'=>'<i class="fas fa-file-alt"></i>', 'label'=>'Progress Report', 'key'=>'progress-report']
             : null,
         $isAnyMontessoriStudent
-            ? ['href'=>'/portal/student/montessori-assessments.php', 'icon'=>'<i class="fas fa-clipboard-list"></i>', 'label'=>'Daily Assessments', 'key'=>'montessori-assessments']
+            ? ['href'=>'/portal/student/montessori-assessments.php', 'icon'=>'<i class="fas fa-clipboard-list"></i>', 'label'=>'Formative Assessment', 'key'=>'montessori-assessments']
             : null,
         $isIlcStudent
             ? ['href'=>'/portal/student/session-records.php', 'icon'=>'<i class="fas fa-folder-open"></i>', 'label'=>'Session Records', 'key'=>'session-records']
@@ -492,7 +492,7 @@ function getMonteTeacherLinks(): array {
         ['href'=>'/portal/teacher/dashboard.php',      'icon'=>'<i class="fas fa-home"></i>',                'label'=>'Dashboard',        'key'=>'dashboard'],
         ['href'=>'/portal/teacher/profile.php',        'icon'=>'<i class="fas fa-user-circle"></i>',         'label'=>'My Profile',       'key'=>'profile'],
         ['href'=>'/portal/progress-report/form.php',       'icon'=>'<i class="fas fa-file-alt"></i>',              'label'=>'Progress Report',  'key'=>'progress-report'],
-        ['href'=>'/portal/montessori/assessments.php',       'icon'=>'<i class="fas fa-clipboard-check"></i>',      'label'=>'Daily Assessment', 'key'=>'monte-assessments'],
+        ['href'=>'/portal/montessori/assessments.php',       'icon'=>'<i class="fas fa-clipboard-check"></i>',      'label'=>'Formative Assessment', 'key'=>'monte-assessments'],
         hasPermission('attendance') ? ['href'=>'/portal/teacher/attendance.php',   'icon'=>'<i class="fas fa-calendar-check"></i>',          'label'=>'Attendance',       'key'=>'attendance'] : null,
         hasPermission('timetable')  ? ['href'=>'/portal/teacher/timetable.php',    'icon'=>'<i class="fas fa-table"></i>',                   'label'=>'My Timetable',     'key'=>'timetable']  : null,
         ['href'=>'/portal/teacher/exam-datesheet.php',     'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',  'key'=>'exam-datesheet'],
@@ -634,7 +634,7 @@ function getWingHeadLinks(): array {
         ['href'=>'/portal/wing-head/notices.php',        'icon'=>'<i class="fas fa-bell"></i>',              'label'=>'Notices',          'key'=>'notices'],
         ['href'=>'/portal/wing-head/exam-datesheet.php', 'icon'=>'<i class="fas fa-calendar-day"></i>',      'label'=>'Exam Date Sheets', 'key'=>'exam-datesheet'],
         ['href'=>'/portal/progress-report/form.php',     'icon'=>'<i class="fas fa-file-alt"></i>',          'label'=>'Progress Report',  'key'=>'progress-report'],
-        ['href'=>'/portal/montessori/assessments.php',   'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>'Daily Assessments','key'=>'monte-assessments'],
+        ['href'=>'/portal/montessori/assessments.php',   'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>'Formative Assessment','key'=>'monte-assessments'],
     ]));
 }
 

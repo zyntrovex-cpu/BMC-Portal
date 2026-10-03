@@ -111,13 +111,13 @@ if ($selClassId) {
 $totalPages = $total > 0 ? (int)ceil($total / $perPage) : 1;
 
 $portalRole = ($user['role'] === 'wing_head') ? 'wing_head' : 'montessori_teacher';
-pageHead('Assessment History', $portalRole);
+pageHead('Formative Assessment History', $portalRole);
 $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherLinks();
 ?>
 <div class="portal-wrap">
 <?php sidebar($portalRole,'monte-assessments',$links,$user); ?>
 <div class="main-area">
-<?php topbar('Assessment History',$user); ?>
+<?php topbar('Formative Assessment History',$user); ?>
 <div class="page-content">
 <?= flashHtml() ?>
 
@@ -125,7 +125,7 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
 <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
   <a href="/portal/montessori/assessments.php<?= $selClassId ? '?class_id='.$selClassId : '' ?>"
      class="btn btn-sm btn-outline-secondary" style="font-size:.8rem">
-    <i class="fas fa-arrow-left me-1"></i>Back to Daily Assessment
+    <i class="fas fa-arrow-left me-1"></i>Back to Formative Assessment
   </a>
   <h5 class="mb-0" style="font-size:1rem;font-weight:700">
     <i class="fas fa-history me-2 text-primary"></i>Assessment History

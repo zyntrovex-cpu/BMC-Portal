@@ -36,13 +36,6 @@ function monteSubjectMeta(string $name): array {
     return ['icon'=>'fa-book-open','bg'=>'#f3f4f6','ic'=>'#4b5563','tile'=>'#f9fafb','border'=>'#e5e7eb'];
 }
 
-function monteRatingBadge(string $v): string {
-    if ($v === 'AD')  return '<span class="mda-badge ad">AD</span>';
-    if ($v === 'ED')  return '<span class="mda-badge ed">ED</span>';
-    if ($v === 'EMD') return '<span class="mda-badge emd">EMD</span>';
-    return '<span class="mda-badge none">—</span>';
-}
-
 // ── POST handlers ─────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
@@ -117,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         logActivity($user['id'],'montessori_assessment_save',
-            "Daily assessment: class #$classId, subject #$subjectId, $date");
+            "Formative assessment: class #$classId, subject #$subjectId, $date");
         setFlash('success','Assessment saved successfully.');
         redirect('/portal/montessori/assessments.php?class_id='.$classId.'&date='.urlencode($date).'&show_subject='.$subjectId);
     }
@@ -193,7 +186,7 @@ if ($selClassId) {
     $subjects = $sSt->fetchAll();
 }
 
-// Today's assessments keyed by subject_id
+// Assessments for the selected date keyed by subject_id
 $assessmentsToday = [];
 if ($selClassId) {
     try {
@@ -216,8 +209,8 @@ $students      = $selClassId ? getClassStudents($selClassId) : [];
 $totalStudents = count($students);
 
 // Entries for each assessment
-$entriesMap       = [];   // assessment_id => [student_id => entry]
-$assessedCountMap = [];   // subject_id    => count
+$entriesMap       = [];
+$assessedCountMap = [];
 
 if ($assessmentsToday) {
     try {
@@ -235,148 +228,191 @@ if ($assessmentsToday) {
     } catch (Exception $e) {}
 }
 
-// Page rendering
 $portalRole = ($user['role'] === 'wing_head') ? 'wing_head' : 'montessori_teacher';
-pageHead('Daily Assessment',$portalRole);
+pageHead('Formative Assessment', $portalRole);
 $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherLinks();
 ?>
 <style>
-/* Subject tiles */
-.subject-tile{border-radius:12px;padding:14px 12px;cursor:pointer;transition:.18s;border:2px solid transparent;position:relative;user-select:none}
-.subject-tile:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.1)}
-.subject-tile.active-tile{border-color:#1e40af!important;box-shadow:0 4px 14px rgba(30,64,175,.22)}
-.tile-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:8px}
-.tile-check{position:absolute;top:9px;right:9px;width:21px;height:21px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem}
-.tile-check.done{background:#16a34a;color:#fff}
-.tile-check.undone{background:#e5e7eb;color:#9ca3af}
+/* ─── Subject Navigation Pills ─────────────────────────────────── */
+.subj-nav-wrap{display:flex;flex-wrap:wrap;gap:8px}
+.subj-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:.82rem;font-weight:600;cursor:pointer;border:2px solid transparent;transition:.15s;white-space:nowrap;background:#f1f5f9;color:#64748b;border-color:#e2e8f0}
+.subj-pill:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.1)}
+.subj-pill.active{box-shadow:0 3px 12px rgba(0,0,0,.15)}
+.subj-pill .pill-check{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;flex-shrink:0}
+.subj-pill .pill-check.done{background:#16a34a;color:#fff}
+.subj-pill .pill-check.none{background:#d1d5db;color:#6b7280}
 
-/* Rating badges (read-only) */
-.mda-badge{display:inline-block;padding:2px 9px;border-radius:6px;font-size:.71rem;font-weight:700;letter-spacing:.3px}
-.mda-badge.ad{background:#dcfce7;color:#166534}
-.mda-badge.ed{background:#fef9c3;color:#854d0e}
-.mda-badge.emd{background:#fee2e2;color:#991b1b}
-.mda-badge.none{background:#f3f4f6;color:#9ca3af}
+/* ─── Form Section ──────────────────────────────────────────────── */
+.fa-section{display:none}
 
-/* Rating toggle buttons (entry mode) */
-.rtg-group{display:flex;gap:2px;justify-content:center;align-items:center}
-.rtg-btn{padding:2px 7px;border:1px solid #d1d5db;border-radius:4px;cursor:pointer;font-size:.7rem;font-weight:700;background:#f9fafb;transition:.1s;white-space:nowrap}
-.rtg-btn:hover{border-color:#9ca3af;background:#f3f4f6}
+/* ─── Criteria List ─────────────────────────────────────────────── */
+.criteria-list{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.crit-item{display:flex;align-items:center;gap:8px;padding:5px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px}
+.crit-drag-icon{color:#cbd5e1;font-size:.72rem;cursor:grab;flex-shrink:0}
+.crit-item input{flex:1;font-size:.82rem;min-width:0}
+.btn-crit-remove{background:none;border:1px solid #fca5a5;border-radius:4px;color:#ef4444;padding:2px 7px;font-size:.68rem;cursor:pointer;flex-shrink:0;transition:.1s}
+.btn-crit-remove:hover{background:#fee2e2}
+
+/* ─── Assessment Table ──────────────────────────────────────────── */
+.fa-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.fa-table thead tr{background:#f8fafc}
+.fa-table th{padding:9px 10px;font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;border-bottom:2px solid #e2e8f0;white-space:nowrap;color:#374151}
+.fa-table th.col-name,.fa-table th.col-sr{text-align:left}
+.fa-table th.col-overall,.fa-table th.crit-hdr,.fa-table th.col-remarks{text-align:center}
+.fa-table tbody tr{border-bottom:1px solid #f1f5f9}
+.fa-table tbody tr:hover{background:#fafbfc}
+.fa-table td{padding:8px 10px;vertical-align:middle}
+.fa-table td.col-sr{color:#94a3b8;font-size:.74rem;text-align:left;width:32px}
+.fa-table td.col-name{text-align:left}
+.stu-name{font-weight:600;font-size:.84rem;color:#1e293b;display:block}
+.stu-roll{font-size:.7rem;color:#94a3b8;display:block}
+.fa-table td.col-overall,.fa-table td.crit-col{text-align:center}
+.fa-table td.col-remarks{text-align:center;min-width:100px}
+.fa-remark-inp{font-size:.76rem!important;min-width:90px}
+
+/* ─── Rating Buttons ────────────────────────────────────────────── */
+.rtg-group{display:inline-flex;gap:3px;align-items:center}
+.rtg-btn{padding:3px 9px;border:1.5px solid #d1d5db;border-radius:5px;cursor:pointer;font-size:.72rem;font-weight:700;background:#f9fafb;transition:.12s;white-space:nowrap;line-height:1.5}
+.rtg-btn:hover:not(:disabled){border-color:#9ca3af;background:#f3f4f6}
+.rtg-btn:disabled{cursor:default;opacity:.55}
 .rtg-btn.sel-AD{background:#16a34a!important;color:#fff!important;border-color:#16a34a!important}
 .rtg-btn.sel-ED{background:#d97706!important;color:#fff!important;border-color:#d97706!important}
 .rtg-btn.sel-EMD{background:#dc2626!important;color:#fff!important;border-color:#dc2626!important}
 
-/* Assessment section */
-.assessment-section{display:none}
-.sec-bar{background:linear-gradient(90deg,#0f2456,#1e40af);color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between}
-.mda-table th{font-size:.75rem;font-weight:600;background:#f8fafc;padding:6px 8px;vertical-align:middle;text-align:center;white-space:nowrap;border-bottom:2px solid #e2e8f0}
-.mda-table td{font-size:.79rem;padding:5px 7px;vertical-align:middle;text-align:center}
-.mda-table th:nth-child(1),.mda-table th:nth-child(2),.mda-table th:nth-child(3){text-align:left}
-.mda-table td:nth-child(2){text-align:left;font-weight:600}
-.mda-table td:nth-child(3){text-align:left;color:#6b7280;font-size:.75rem}
+/* ─── Legend Bar ────────────────────────────────────────────────── */
+.fa-legend-bar{background:#f8fafc;border-top:1px solid #e2e8f0;padding:10px 16px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:space-between}
+.legend-chip{display:inline-flex;align-items:center;gap:5px;font-size:.73rem;font-weight:600;padding:3px 10px;border-radius:12px}
+.legend-chip.ad{background:#dcfce7;color:#166534}
+.legend-chip.ed{background:#fef9c3;color:#854d0e}
+.legend-chip.emd{background:#fee2e2;color:#991b1b}
+.fa-save-btn{font-size:.82rem;padding:6px 18px}
 
-/* Right sidebar */
-.rs-subject-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:.1s}
-.rs-subject-row:last-child{border-bottom:none}
-.rs-subject-row:hover{background:#fafafa;margin:0 -14px;padding:7px 14px}
-.rs-check{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.62rem;flex-shrink:0}
-.rs-check.done{background:#16a34a;color:#fff}
-.rs-check.partial{background:#d97706;color:#fff}
-.rs-check.none{background:#e5e7eb;color:#6b7280}
+/* ─── Summary Sidebar ───────────────────────────────────────────── */
+.summary-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:.1s;border-radius:4px}
+.summary-row:last-child{border-bottom:none}
+.summary-row:hover{background:#f8fafc;margin:0 -8px;padding:8px 8px}
+.subj-icon-sm{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.72rem;flex-shrink:0}
+.summary-subj-name{font-size:.82rem;font-weight:600;color:#374151}
+.summary-count{font-size:.73rem;font-weight:600}
+.summary-count.done{color:#16a34a}
+.summary-count.partial{color:#d97706}
+.summary-count.none{color:#9ca3af}
+.summary-dot{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.58rem;flex-shrink:0}
+.summary-dot.done{background:#16a34a;color:#fff}
+.summary-dot.partial{background:#d97706;color:#fff}
+.summary-dot.none{background:#e5e7eb;color:#9ca3af}
 
-/* Criteria row in form */
-.crit-row{display:inline-flex;align-items:center;gap:4px;margin:2px}
-
-.legend-bar{background:#f8fafc;border-top:1px solid #e2e8f0;padding:8px 14px;display:flex;gap:14px;flex-wrap:wrap;font-size:.73rem;align-items:center}
+/* ─── Context bar date display ──────────────────────────────────── */
+.ctx-info-chip{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:12px;padding:3px 12px;font-size:.76rem;font-weight:600}
+.ctx-assessed-chip{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:12px;padding:3px 12px;font-size:.76rem;font-weight:600}
 </style>
 
 <div class="portal-wrap">
 <?php sidebar($portalRole,'monte-assessments',$links,$user); ?>
 <div class="main-area">
-<?php topbar('Daily Assessment',$user); ?>
+<?php topbar('Formative Assessment',$user); ?>
 <div class="page-content">
 <?= flashHtml() ?>
 
-<!-- Date & Class Filter -->
-<div class="sec-card mb-3" style="padding:12px 16px">
-  <form method="GET" class="d-flex align-items-end gap-2 flex-wrap">
-    <div>
-      <label class="form-label fw-semibold mb-1" style="font-size:.77rem">Class</label>
-      <?php if (empty($assignedClasses)): ?>
-        <select class="form-select form-select-sm" disabled><option>No classes assigned</option></select>
-      <?php else: ?>
-        <select name="class_id" class="form-select form-select-sm" style="min-width:150px" onchange="this.form.submit()">
-          <?php foreach ($assignedClasses as $cl): ?>
-          <option value="<?= $cl['id'] ?>" <?= (int)$cl['id']===$selClassId?'selected':'' ?>><?= h($cl['name']) ?></option>
-          <?php endforeach; ?>
-        </select>
+<!-- ── Context Selector ─────────────────────────────────────────── -->
+<div class="sec-card mb-3" style="padding:14px 18px">
+  <form method="GET" id="contextForm">
+    <div class="d-flex align-items-end flex-wrap gap-3">
+      <div>
+        <label class="form-label fw-semibold mb-1" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.4px;color:var(--t3)">Class</label>
+        <?php if (empty($assignedClasses)): ?>
+          <select class="form-select form-select-sm" disabled style="min-width:160px"><option>No classes assigned</option></select>
+        <?php else: ?>
+          <select name="class_id" class="form-select form-select-sm" style="min-width:160px"
+                  onchange="document.getElementById('contextForm').submit()">
+            <?php foreach ($assignedClasses as $cl): ?>
+            <option value="<?= $cl['id'] ?>" <?= (int)$cl['id']===$selClassId?'selected':'' ?>><?= h($cl['name']) ?></option>
+            <?php endforeach; ?>
+          </select>
+        <?php endif; ?>
+      </div>
+      <div>
+        <label class="form-label fw-semibold mb-1" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.4px;color:var(--t3)">Date</label>
+        <input type="date" name="date" class="form-control form-control-sm" value="<?= h($selDate) ?>"
+               onchange="document.getElementById('contextForm').submit()" style="width:155px">
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm" style="font-size:.8rem">
+        <i class="fas fa-sync-alt me-1"></i>Refresh
+      </button>
+      <?php if ($selClassId && !empty($subjects)): ?>
+      <div class="d-flex gap-2 align-items-center flex-wrap ms-auto">
+        <span class="ctx-info-chip">
+          <i class="fas fa-calendar-day me-1"></i><?= date('d M Y', strtotime($selDate)) ?>
+        </span>
+        <?php
+          $assessedToday = count(array_filter($subjects, fn($s)=>isset($assessmentsToday[(int)$s['id']])));
+          $totalSubj     = count($subjects);
+        ?>
+        <span class="<?= $assessedToday===$totalSubj ? 'ctx-assessed-chip' : 'ctx-info-chip' ?>">
+          <i class="fas fa-clipboard-check me-1"></i><?= $assessedToday ?>/<?= $totalSubj ?> subjects assessed
+        </span>
+      </div>
       <?php endif; ?>
     </div>
-    <div>
-      <label class="form-label fw-semibold mb-1" style="font-size:.77rem">Date</label>
-      <input type="date" name="date" class="form-control form-control-sm" value="<?= h($selDate) ?>"
-             onchange="this.form.submit()" style="width:145px">
-    </div>
-    <button type="submit" class="btn btn-sm btn-outline-primary" style="font-size:.78rem">
-      <i class="fas fa-sync-alt me-1"></i>Go
-    </button>
   </form>
 </div>
 
 <?php if (!$selClassId || empty($subjects)): ?>
-<div class="alert alert-info" style="font-size:.83rem">
-  <i class="fas fa-info-circle me-2"></i>
-  <?= !$selClassId ? 'No Montessori classes found. Ask the administrator to assign classes.' : 'No subjects assigned to you for this class.' ?>
+<div class="sec-card">
+  <div class="text-center py-5" style="color:var(--t2)">
+    <i class="fas fa-clipboard-check fa-2x mb-3" style="opacity:.25"></i>
+    <p class="mb-0 fw-semibold" style="font-size:.9rem">
+      <?= !$selClassId ? 'No Montessori classes assigned.' : 'No subjects are assigned for this class.' ?>
+    </p>
+    <p class="text-muted mb-0" style="font-size:.8rem;margin-top:4px">
+      <?= !$selClassId ? 'Contact the administrator to assign Montessori classes.' : 'Ask the administrator to configure subject assignments.' ?>
+    </p>
+  </div>
 </div>
+
 <?php else: ?>
 
 <div class="row g-3">
-  <!-- ── LEFT: Tiles + assessment forms ──────────────────────────── -->
-  <div class="col-lg-8">
 
-    <p class="mb-2" style="font-size:.82rem;color:var(--t2)">
-      Here is your class assessment summary for
-      <strong><?= date('l, d M Y', strtotime($selDate)) ?></strong>
-      <?php if ($classInfo): ?> &mdash; <strong><?= h($classInfo['name']) ?></strong><?php endif; ?>
-    </p>
+  <!-- ── LEFT: Subject Nav + Forms ──────────────────────────────── -->
+  <div class="col-xl-8 col-lg-7">
 
-    <!-- Subject Tiles -->
-    <div class="sec-card mb-3">
-      <div class="sec-card-header">
-        <i class="fas fa-clipboard-check me-2"></i>Today's Assessments
-        <small class="fw-normal ms-2" style="font-size:.74rem;opacity:.8">Select subject to add / view assessment details.</small>
+    <!-- Subject Selector -->
+    <div class="sec-card mb-3" style="padding:14px 18px">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:10px">
+        <i class="fas fa-book-open me-1"></i>Select a Subject to Assess
       </div>
-      <div style="padding:16px">
-        <div class="row g-2">
-          <?php foreach ($subjects as $subj):
-            $meta     = monteSubjectMeta($subj['name']);
-            $assessed = isset($assessmentsToday[(int)$subj['id']]);
-            $topic    = $assessed ? ($assessmentsToday[(int)$subj['id']]['topic'] ?? '') : '';
-          ?>
-          <div class="col-6 col-md-4 col-lg-3">
-            <div class="subject-tile" id="tile-<?= $subj['id'] ?>"
-                 style="background:<?= $meta['tile'] ?>;border-color:<?= $meta['border'] ?>"
-                 onclick="toggleSection(<?= $subj['id'] ?>)" title="<?= h($subj['name']) ?>">
-              <div class="tile-check <?= $assessed ? 'done' : 'undone' ?>">
-                <i class="fas <?= $assessed ? 'fa-check' : 'fa-plus' ?>"></i>
-              </div>
-              <div class="tile-icon" style="background:<?= $meta['bg'] ?>;color:<?= $meta['ic'] ?>">
-                <i class="fas <?= $meta['icon'] ?>"></i>
-              </div>
-              <div style="font-size:.84rem;font-weight:700;color:#1e293b"><?= h($subj['name']) ?></div>
-              <div style="font-size:.72rem;font-weight:600;margin-top:3px;color:<?= $assessed ? '#16a34a' : '#9ca3af' ?>">
-                <?= $assessed ? 'Assessment Taken' : 'Not Assessed' ?>
-              </div>
-              <?php if ($topic): ?>
-              <div style="font-size:.69rem;color:#6b7280;margin-top:1px">(<?= h($topic) ?>)</div>
-              <?php endif; ?>
-            </div>
-          </div>
-          <?php endforeach; ?>
-        </div>
+      <div class="subj-nav-wrap">
+        <?php foreach ($subjects as $subj):
+          $sid  = (int)$subj['id'];
+          $meta = monteSubjectMeta($subj['name']);
+          $done = isset($assessmentsToday[$sid]);
+        ?>
+        <button type="button"
+                class="subj-pill <?= $showSubjectId===$sid||(!$showSubjectId&&(int)$subjects[0]['id']===$sid)?'':''; ?>"
+                id="pill-<?= $sid ?>"
+                onclick="activateSubject(<?= $sid ?>)"
+                style="background:<?= $done?$meta['bg']:'#f1f5f9' ?>;color:<?= $done?$meta['ic']:'#64748b' ?>;border-color:<?= $done?$meta['border']:'#e2e8f0' ?>">
+          <i class="fas <?= $meta['icon'] ?>"></i>
+          <?= h($subj['name']) ?>
+          <span class="pill-check <?= $done?'done':'none' ?>">
+            <?= $done ? '✓' : '○' ?>
+          </span>
+        </button>
+        <?php endforeach; ?>
       </div>
     </div>
 
-    <!-- Per-Subject Assessment Forms -->
+    <!-- Prompt when no subject active -->
+    <div id="noSubjectMsg" class="sec-card mb-3">
+      <div class="text-center py-4" style="color:var(--t2)">
+        <i class="fas fa-hand-point-up fa-lg mb-2" style="opacity:.25"></i>
+        <p class="mb-0" style="font-size:.85rem;font-weight:600">Select a subject above</p>
+        <p class="mb-0 text-muted" style="font-size:.78rem">The assessment form for that subject will appear here.</p>
+      </div>
+    </div>
+
+    <!-- Per-Subject Assessment Forms ───────────────────────────── -->
     <?php foreach ($subjects as $subj):
       $sid        = (int)$subj['id'];
       $meta       = monteSubjectMeta($subj['name']);
@@ -386,88 +422,125 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
       $entries    = $assessment ? ($entriesMap[$assessment['id']] ?? []) : [];
       $aId        = $assessment ? $assessment['id'] : 0;
     ?>
-    <div class="assessment-section" id="section-<?= $sid ?>">
-      <div class="sec-card mb-3">
-        <!-- Section Header -->
-        <div class="sec-bar">
-          <div>
-            <i class="fas <?= $meta['icon'] ?> me-2"></i>
-            <strong><?= h($subj['name']) ?> Assessment</strong>
-            <?php if ($assessment && $assessment['topic']): ?>
-            <span style="font-size:.78rem;opacity:.82;margin-left:6px">(<?= h($assessment['topic']) ?>)</span>
-            <?php endif; ?>
+    <div class="fa-section" id="fa-section-<?= $sid ?>">
+
+      <!-- Section Header Card -->
+      <div class="sec-card mb-3" style="overflow:hidden">
+        <div style="background:linear-gradient(90deg,<?= $meta['ic'] ?>,<?= $meta['ic'] ?>cc);color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0">
+              <i class="fas <?= $meta['icon'] ?>"></i>
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:.96rem;line-height:1.2"><?= h($subj['name']) ?> — Formative Assessment</div>
+              <div style="font-size:.74rem;opacity:.88;margin-top:2px">
+                <?= date('l, d M Y', strtotime($selDate)) ?> &nbsp;&middot;&nbsp; <?= h($classInfo['name'] ?? '') ?>
+              </div>
+            </div>
           </div>
-          <div class="d-flex gap-2">
+          <div class="d-flex align-items-center gap-2">
+            <?php if ($assessed): ?>
+            <span style="background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:12px;padding:3px 11px;font-size:.72rem;font-weight:600">
+              <i class="fas fa-check me-1"></i>Saved
+            </span>
+            <?php endif; ?>
             <?php if ($assessed && $teacher): ?>
-            <form method="POST" class="d-inline" onsubmit="return confirm('Delete this assessment and all student entries?')">
+            <form method="POST" class="d-inline m-0" onsubmit="return confirm('Delete this assessment? All student ratings for this subject on this date will be permanently removed.')">
               <input type="hidden" name="action" value="delete_assessment">
               <input type="hidden" name="assessment_id" value="<?= $aId ?>">
               <input type="hidden" name="class_id" value="<?= $selClassId ?>">
               <input type="hidden" name="date" value="<?= h($selDate) ?>">
-              <button type="submit" class="btn btn-sm" style="font-size:.72rem;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35)">
-                <i class="fas fa-trash-alt"></i>
+              <button type="submit" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:5px;padding:4px 10px;font-size:.72rem;cursor:pointer">
+                <i class="fas fa-trash-alt me-1"></i>Delete Assessment
               </button>
             </form>
             <?php endif; ?>
-            <button type="button" onclick="toggleSection(<?= $sid ?>)"
-                    class="btn btn-sm" style="font-size:.72rem;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)">
-              <i class="fas fa-times"></i>
-            </button>
           </div>
         </div>
+      </div>
 
-        <!-- Assessment Form -->
-        <form method="POST" id="form-<?= $sid ?>">
-          <input type="hidden" name="action" value="save_assessment">
-          <input type="hidden" name="class_id" value="<?= $selClassId ?>">
-          <input type="hidden" name="subject_id" value="<?= $sid ?>">
-          <input type="hidden" name="assessment_date" value="<?= h($selDate) ?>">
+      <!-- Assessment Form -->
+      <form method="POST" id="form-<?= $sid ?>">
+        <input type="hidden" name="action" value="save_assessment">
+        <input type="hidden" name="class_id" value="<?= $selClassId ?>">
+        <input type="hidden" name="subject_id" value="<?= $sid ?>">
+        <input type="hidden" name="assessment_date" value="<?= h($selDate) ?>">
 
-          <!-- Topic & Criteria -->
-          <div style="padding:12px 14px;border-bottom:1px solid #e2e8f0;background:#fafbfc">
-            <div class="row g-2 align-items-start">
-              <div class="col-sm-4">
-                <label class="form-label fw-semibold" style="font-size:.76rem">Topic / Focus Area</label>
-                <input type="text" name="topic" class="form-control form-control-sm" style="font-size:.8rem"
-                       placeholder="e.g. Reading &amp; Writing"
-                       value="<?= h($assessment ? ($assessment['topic'] ?? '') : '') ?>">
-              </div>
-              <div class="col-sm-8">
-                <label class="form-label fw-semibold" style="font-size:.76rem">
-                  Assessment Criteria
-                  <button type="button" onclick="addCriteria(<?= $sid ?>)"
-                          class="btn btn-xs btn-outline-primary ms-1" style="font-size:.66rem;padding:1px 6px">
-                    <i class="fas fa-plus"></i>
-                  </button>
+        <!-- Assessment Info: Topic + Criteria -->
+        <div class="sec-card mb-3">
+          <div class="sec-card-header">
+            <i class="fas fa-info-circle me-2"></i>Assessment Details
+          </div>
+          <div style="padding:18px">
+            <div class="row g-4">
+              <div class="col-md-5">
+                <label class="form-label fw-semibold" style="font-size:.8rem">
+                  Topic / Activity <span class="text-muted fw-normal">(optional)</span>
                 </label>
-                <div id="crit-list-<?= $sid ?>" class="d-flex flex-wrap align-items-center">
+                <input type="text" name="topic" class="form-control form-control-sm"
+                       placeholder="e.g. Counting, Letter Sounds, Shapes…"
+                       value="<?= h($assessment ? ($assessment['topic'] ?? '') : '') ?>">
+                <div class="form-text" style="font-size:.73rem">Describe the skill or activity covered today.</div>
+              </div>
+              <div class="col-md-7">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="form-label fw-semibold mb-0" style="font-size:.8rem">
+                    Assessment Criteria
+                    <span class="text-muted fw-normal" style="font-size:.73rem">(each becomes a rating column)</span>
+                  </label>
+                  <?php if ($teacher): ?>
+                  <button type="button" onclick="addCrit(<?= $sid ?>)"
+                          class="btn btn-sm btn-outline-primary" style="font-size:.72rem;padding:3px 10px">
+                    <i class="fas fa-plus me-1"></i>Add Criterion
+                  </button>
+                  <?php endif; ?>
+                </div>
+                <div id="crit-list-<?= $sid ?>" class="criteria-list">
                   <?php foreach ($criteria as $i => $crit): ?>
-                  <div class="crit-row" id="crow-<?= $sid ?>-<?= $i ?>">
+                  <div class="crit-item" id="critItem-<?= $sid ?>-<?= $i ?>">
+                    <i class="fas fa-grip-vertical crit-drag-icon"></i>
                     <input type="text" name="criteria[]" class="form-control form-control-sm crit-inp"
-                           value="<?= h($crit) ?>" placeholder="Criterion" style="width:120px;font-size:.77rem"
-                           data-subj="<?= $sid ?>" onchange="syncHeaders(<?= $sid ?>)">
-                    <button type="button" class="btn btn-xs btn-outline-danger" style="font-size:.64rem;padding:1px 5px"
-                            onclick="removeCrit(<?= $sid ?>,this)"><i class="fas fa-times"></i></button>
+                           value="<?= h($crit) ?>" placeholder="Criterion name"
+                           data-subj="<?= $sid ?>" onchange="syncHeaders(<?= $sid ?>)"
+                           <?= $teacher ? '' : 'readonly' ?>>
+                    <?php if ($teacher): ?>
+                    <button type="button" class="btn-crit-remove" onclick="removeCrit(<?= $sid ?>,this)" title="Remove this criterion">
+                      <i class="fas fa-times"></i>
+                    </button>
+                    <?php endif; ?>
                   </div>
                   <?php endforeach; ?>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Student Table -->
+        <!-- Student Ratings Table -->
+        <div class="sec-card mb-3">
+          <div class="sec-card-header d-flex align-items-center justify-content-between">
+            <span><i class="fas fa-users me-2"></i>Student Performance Ratings</span>
+            <span class="badge bg-secondary" style="font-size:.71rem"><?= $totalStudents ?> students</span>
+          </div>
+
+          <?php if (empty($students)): ?>
+          <div class="text-center py-4 text-muted" style="font-size:.85rem">
+            <i class="fas fa-user-slash mb-2" style="opacity:.3"></i>
+            <p class="mb-0">No students found in this class.</p>
+          </div>
+          <?php else: ?>
+
           <div class="table-responsive">
-            <table class="table table-hover mb-0 mda-table" id="mtable-<?= $sid ?>">
+            <table class="fa-table" id="fa-table-<?= $sid ?>">
               <thead>
                 <tr>
-                  <th style="width:38px">Sr.</th>
-                  <th>Student Name</th>
-                  <th style="width:72px">Roll No.</th>
+                  <th class="col-sr">#</th>
+                  <th class="col-name">Student</th>
                   <?php foreach ($criteria as $crit): ?>
                   <th class="crit-hdr" data-subj="<?= $sid ?>"><?= h($crit) ?></th>
                   <?php endforeach; ?>
-                  <th>Overall<br>Performance</th>
-                  <th style="min-width:90px">Remarks</th>
+                  <th class="col-overall">Overall</th>
+                  <th class="col-remarks">Remarks</th>
                 </tr>
               </thead>
               <tbody>
@@ -478,33 +551,42 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
                   $remark  = $entry ? ($entry['remarks']     ?? '') : '';
                 ?>
                 <tr>
-                  <td class="text-muted" style="font-size:.76rem"><?= $idx+1 ?></td>
-                  <td><?= h($stu['name']) ?></td>
-                  <td><?= h($stu['roll_no'] ?: ($stu['roll_no_login'] ?? '—')) ?></td>
+                  <td class="col-sr"><?= $idx + 1 ?></td>
+                  <td class="col-name">
+                    <span class="stu-name"><?= h($stu['name']) ?></span>
+                    <?php $rno = $stu['roll_no'] ?: ($stu['roll_no_login'] ?? ''); if ($rno): ?>
+                    <span class="stu-roll">Roll: <?= h($rno) ?></span>
+                    <?php endif; ?>
+                  </td>
                   <?php foreach ($criteria as $crit): ?>
-                  <td>
+                  <td class="crit-col">
                     <div class="rtg-group" data-crit="<?= h($crit) ?>">
                       <input type="hidden" name="ratings[<?= $stu['id'] ?>][<?= h($crit) ?>]"
                              value="<?= h($ratings[$crit] ?? '') ?>">
                       <?php foreach (['AD','ED','EMD'] as $rv): ?>
                       <button type="button" class="rtg-btn <?= ($ratings[$crit]??'')===$rv?'sel-'.$rv:'' ?>"
-                              data-val="<?= $rv ?>"><?= $rv ?></button>
+                              data-val="<?= $rv ?>"
+                              <?= $teacher ? '' : 'disabled' ?>><?= $rv ?></button>
                       <?php endforeach; ?>
                     </div>
                   </td>
                   <?php endforeach; ?>
-                  <td>
-                    <div class="rtg-group rtg-overall">
+                  <td class="col-overall">
+                    <div class="rtg-group">
                       <input type="hidden" name="overall[<?= $stu['id'] ?>]" value="<?= h($overall) ?>">
                       <?php foreach (['AD','ED','EMD'] as $rv): ?>
                       <button type="button" class="rtg-btn <?= $overall===$rv?'sel-'.$rv:'' ?>"
-                              data-val="<?= $rv ?>"><?= $rv ?></button>
+                              data-val="<?= $rv ?>"
+                              <?= $teacher ? '' : 'disabled' ?>><?= $rv ?></button>
                       <?php endforeach; ?>
                     </div>
                   </td>
-                  <td>
-                    <input type="text" name="remarks[<?= $stu['id'] ?>]" class="form-control form-control-sm"
-                           value="<?= h($remark) ?>" placeholder="Optional…" style="font-size:.73rem;min-width:88px">
+                  <td class="col-remarks">
+                    <input type="text" name="remarks[<?= $stu['id'] ?>]"
+                           class="form-control form-control-sm fa-remark-inp"
+                           value="<?= h($remark) ?>"
+                           placeholder="Optional note…"
+                           <?= $teacher ? '' : 'readonly' ?>>
                   </td>
                 </tr>
                 <?php endforeach; ?>
@@ -513,185 +595,209 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
           </div>
 
           <!-- Legend + Save -->
-          <div class="legend-bar">
-            <span style="font-weight:600">Performance Level:</span>
-            <span><span class="mda-badge ad">AD</span> = Advanced Development</span>
-            <span><span class="mda-badge ed">ED</span> = Expected Development</span>
-            <span><span class="mda-badge emd">EMD</span> = Emerging Development</span>
+          <div class="fa-legend-bar">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+              <span style="font-size:.74rem;font-weight:700;color:#374151">Performance Level:</span>
+              <span class="legend-chip ad"><span style="font-weight:800">AD</span> — Advanced Development</span>
+              <span class="legend-chip ed"><span style="font-weight:800">ED</span> — Expected Development</span>
+              <span class="legend-chip emd"><span style="font-weight:800">EMD</span> — Emerging Development</span>
+            </div>
             <?php if ($teacher): ?>
-            <button type="submit" class="btn btn-primary btn-sm ms-auto" style="font-size:.79rem">
-              <i class="fas fa-save me-1"></i><?= $assessed ? 'Update' : 'Save Assessment' ?>
+            <button type="submit" class="btn btn-primary fa-save-btn">
+              <i class="fas fa-save me-1"></i><?= $assessed ? 'Update Assessment' : 'Save Assessment' ?>
             </button>
             <?php else: ?>
-            <span class="text-muted ms-auto" style="font-size:.75rem"><i class="fas fa-lock me-1"></i>View only</span>
+            <span class="text-muted" style="font-size:.76rem"><i class="fas fa-lock me-1"></i>View only</span>
             <?php endif; ?>
           </div>
-        </form>
-      </div>
-    </div>
+          <?php endif; ?>
+
+        </div><!-- /.sec-card students -->
+      </form>
+
+    </div><!-- /.fa-section -->
     <?php endforeach; ?>
 
-  </div><!-- /col-lg-8 -->
+  </div><!-- /col-xl-8 -->
 
-  <!-- ── RIGHT SIDEBAR ─────────────────────────────────────────────── -->
-  <div class="col-lg-4">
+  <!-- ── RIGHT SIDEBAR ──────────────────────────────────────────── -->
+  <div class="col-xl-4 col-lg-5">
 
-    <!-- Subject Summary -->
+    <!-- Today's Progress Summary -->
     <div class="sec-card mb-3">
-      <div class="sec-card-header"><i class="fas fa-chart-pie me-2"></i>Subject Summary</div>
+      <div class="sec-card-header">
+        <i class="fas fa-chart-pie me-2"></i>Today's Progress
+      </div>
       <div style="padding:10px 14px">
-        <?php foreach ($subjects as $subj):
-          $sid   = (int)$subj['id'];
-          $meta  = monteSubjectMeta($subj['name']);
-          $cnt   = $assessedCountMap[$sid] ?? 0;
-          $done  = isset($assessmentsToday[$sid]);
-          $rcls  = $done ? ($cnt>=$totalStudents?'done':'partial') : 'none';
-          $rico  = $done ? ($cnt>=$totalStudents?'fa-check':'fa-circle') : 'fa-minus';
+        <?php
+          $completedToday = 0;
+          foreach ($subjects as $subj):
+            $sid  = (int)$subj['id'];
+            $meta = monteSubjectMeta($subj['name']);
+            $done = isset($assessmentsToday[$sid]);
+            $cnt  = $assessedCountMap[$sid] ?? 0;
+            if ($done) $completedToday++;
+            if ($done) $dotClass = ($cnt>=$totalStudents?'done':'partial');
+            else $dotClass = 'none';
         ?>
-        <div class="rs-subject-row" onclick="toggleSection(<?= $sid ?>)">
+        <div class="summary-row" onclick="activateSubject(<?= $sid ?>)" title="Open <?= h($subj['name']) ?>">
           <div class="d-flex align-items-center gap-2">
-            <div style="width:26px;height:26px;border-radius:7px;background:<?= $meta['bg'] ?>;color:<?= $meta['ic'] ?>;display:flex;align-items:center;justify-content:center;font-size:.72rem;flex-shrink:0">
+            <div class="subj-icon-sm" style="background:<?= $meta['bg'] ?>;color:<?= $meta['ic'] ?>">
               <i class="fas <?= $meta['icon'] ?>"></i>
             </div>
-            <span style="font-size:.82rem;font-weight:600"><?= h($subj['name']) ?></span>
+            <span class="summary-subj-name"><?= h($subj['name']) ?></span>
           </div>
-          <div class="d-flex align-items-center gap-1">
-            <span style="font-size:.74rem;color:<?= $done ? '#6b7280' : '#9ca3af' ?>">
-              <?= $done ? "$cnt / $totalStudents assessed" : 'Not assessed' ?>
+          <div class="d-flex align-items-center gap-2">
+            <span class="summary-count <?= $dotClass ?>">
+              <?= $done ? "$cnt / $totalStudents" : 'Not assessed' ?>
             </span>
-            <div class="rs-check <?= $rcls ?>"><i class="fas <?= $rico ?>"></i></div>
+            <div class="summary-dot <?= $dotClass ?>">
+              <i class="fas <?= $done?($cnt>=$totalStudents?'fa-check':'fa-adjust'):'fa-minus' ?>"></i>
+            </div>
           </div>
         </div>
         <?php endforeach; ?>
+        <div style="font-size:.73rem;color:var(--t3);padding-top:8px;border-top:1px solid #f1f5f9;margin-top:2px">
+          <i class="fas fa-info-circle me-1"></i>
+          <?= $completedToday ?> of <?= count($subjects) ?> subjects assessed today
+        </div>
       </div>
     </div>
 
     <!-- Quick Actions -->
     <div class="sec-card mb-3">
       <div class="sec-card-header"><i class="fas fa-bolt me-2"></i>Quick Actions</div>
-      <div style="padding:12px">
-        <?php $unassessed = array_filter($subjects, fn($s)=>!isset($assessmentsToday[(int)$s['id']])); ?>
-        <?php if ($teacher && !empty($unassessed)): ?>
-        <div class="dropdown mb-2">
-          <button class="btn btn-primary w-100" style="font-size:.82rem" type="button" data-bs-toggle="dropdown">
-            <i class="fas fa-plus me-1"></i>Add Assessment
-          </button>
-          <ul class="dropdown-menu w-100" style="font-size:.82rem">
-            <?php foreach ($unassessed as $s): ?>
-            <li><a class="dropdown-item" href="#" onclick="toggleSection(<?= $s['id'] ?>);return false">
-              <i class="fas <?= monteSubjectMeta($s['name'])['icon'] ?> me-2"></i><?= h($s['name']) ?>
-            </a></li>
-            <?php endforeach; ?>
-          </ul>
-        </div>
-        <?php endif; ?>
+      <div style="padding:12px;display:flex;flex-direction:column;gap:8px">
         <a href="/portal/montessori/assessment-history.php?class_id=<?= $selClassId ?>"
-           class="btn btn-outline-secondary w-100 mb-2" style="font-size:.82rem">
-          <i class="fas fa-history me-1"></i>View History
+           class="btn btn-outline-secondary w-100" style="font-size:.82rem;text-align:left">
+          <i class="fas fa-history me-2"></i>Assessment History
         </a>
         <a href="/portal/progress-report/form.php"
-           class="btn btn-outline-secondary w-100" style="font-size:.82rem">
-          <i class="fas fa-file-alt me-1"></i>Progress Report
+           class="btn btn-outline-secondary w-100" style="font-size:.82rem;text-align:left">
+          <i class="fas fa-file-alt me-2"></i>Progress Report
         </a>
       </div>
     </div>
 
-    <!-- Student Progress info -->
+    <!-- About card -->
     <div class="sec-card">
-      <div class="sec-card-header">
-        <i class="fas fa-users me-2"></i>Student Progress
-        <small class="fw-normal opacity-75 ms-1" style="font-size:.71rem">(Parents View)</small>
-      </div>
+      <div class="sec-card-header"><i class="fas fa-clipboard-check me-2"></i>About Formative Assessment</div>
       <div style="padding:14px">
-        <div class="d-flex gap-3 align-items-start mb-3">
-          <div style="font-size:2rem;color:#cbd5e1"><i class="fas fa-user-friends"></i></div>
-          <p style="font-size:.8rem;color:var(--t2);margin:0">
-            Progress is shared with parents through the Student Portal after saving the assessment.
-          </p>
-        </div>
-        <div style="font-size:.75rem;color:var(--t3);border-top:1px solid #f1f5f9;padding-top:8px">
-          <div class="mb-1"><i class="fas fa-check-circle text-success me-1"></i>Parents can view subject-wise results</div>
-          <div class="mb-1"><i class="fas fa-check-circle text-success me-1"></i>See overall performance level</div>
-          <div><i class="fas fa-check-circle text-success me-1"></i>Track progress over time</div>
+        <p style="font-size:.79rem;color:var(--t2);margin-bottom:10px">
+          Formative assessments track daily student progress in each subject using three performance levels.
+        </p>
+        <div style="font-size:.75rem;color:var(--t3)">
+          <div style="margin-bottom:6px"><i class="fas fa-check-circle text-success me-1"></i>Results are visible to students immediately after saving</div>
+          <div style="margin-bottom:6px"><i class="fas fa-check-circle text-success me-1"></i>Parents can track subject-wise progress over time</div>
+          <div><i class="fas fa-check-circle text-success me-1"></i>Full history is available for review at any time</div>
         </div>
       </div>
     </div>
 
-  </div><!-- /col-lg-4 -->
+  </div><!-- /col-xl-4 -->
 </div><!-- /row -->
 
 <?php endif; ?>
 </div></div></div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Toggle assessment section
-function toggleSection(sid) {
-  var target  = document.getElementById('section-' + sid);
-  var tile    = document.getElementById('tile-' + sid);
-  var wasOpen = target && target.style.display === 'block';
-  document.querySelectorAll('.assessment-section').forEach(function(s){s.style.display='none';});
-  document.querySelectorAll('.subject-tile').forEach(function(t){t.classList.remove('active-tile');});
-  if (!wasOpen && target) {
-    target.style.display = 'block';
-    if (tile) tile.classList.add('active-tile');
-    setTimeout(function(){ target.scrollIntoView({behavior:'smooth',block:'nearest'}); }, 50);
+// ── Subject Activation ────────────────────────────────────────────
+var _activeSubj = 0;
+
+function activateSubject(sid) {
+  // Hide all sections
+  document.querySelectorAll('.fa-section').forEach(function(el) { el.style.display = 'none'; });
+  // Reset all pills
+  document.querySelectorAll('.subj-pill').forEach(function(el) { el.classList.remove('active'); });
+  // Hide the "no subject" prompt
+  var noMsg = document.getElementById('noSubjectMsg');
+  if (noMsg) noMsg.style.display = 'none';
+
+  var section = document.getElementById('fa-section-' + sid);
+  var pill    = document.getElementById('pill-' + sid);
+
+  if (_activeSubj === sid) {
+    // Toggle off: show prompt
+    _activeSubj = 0;
+    if (noMsg) noMsg.style.display = '';
+    return;
+  }
+
+  _activeSubj = sid;
+  if (section) {
+    section.style.display = '';
+    setTimeout(function() {
+      section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 40);
+  }
+  if (pill) {
+    pill.classList.add('active');
+    // Apply active border
+    pill.style.boxShadow = '0 0 0 3px rgba(30,64,175,.25)';
   }
 }
 
-// Rating button toggle
+// ── Rating Button Toggle ──────────────────────────────────────────
 document.addEventListener('click', function(e) {
   var btn = e.target.closest('.rtg-btn');
-  if (!btn) return;
+  if (!btn || btn.disabled) return;
   var grp    = btn.closest('.rtg-group');
   var hidden = grp ? grp.querySelector('input[type=hidden]') : null;
   var val    = btn.dataset.val;
-  grp.querySelectorAll('.rtg-btn').forEach(function(b){b.classList.remove('sel-AD','sel-ED','sel-EMD');});
-  if (hidden && hidden.value === val) {
-    if (hidden) hidden.value = '';  // deselect
+  var cur    = hidden ? hidden.value : '';
+  // Deselect all in group
+  grp.querySelectorAll('.rtg-btn').forEach(function(b) {
+    b.classList.remove('sel-AD','sel-ED','sel-EMD');
+  });
+  if (cur === val) {
+    // Toggle off (click same again)
+    if (hidden) hidden.value = '';
   } else {
     btn.classList.add('sel-' + val);
     if (hidden) hidden.value = val;
   }
 });
 
-// Add criterion
-function addCriteria(sid) {
+// ── Add Criterion ─────────────────────────────────────────────────
+function addCrit(sid) {
   var list  = document.getElementById('crit-list-' + sid);
-  var table = document.getElementById('mtable-' + sid);
-  var idx   = list.querySelectorAll('.crit-row').length;
+  var table = document.getElementById('fa-table-' + sid);
+  var idx   = list.querySelectorAll('.crit-item').length;
   var label = 'Criterion ' + (idx + 1);
 
-  // Add input row
-  var row = document.createElement('div');
-  row.className = 'crit-row';
-  row.id = 'crow-' + sid + '-' + idx;
-  row.innerHTML =
+  // Add to criteria list
+  var item = document.createElement('div');
+  item.className = 'crit-item';
+  item.id = 'critItem-' + sid + '-' + idx;
+  item.innerHTML =
+    '<i class="fas fa-grip-vertical crit-drag-icon"></i>' +
     '<input type="text" name="criteria[]" class="form-control form-control-sm crit-inp"' +
-    ' value="' + label + '" placeholder="Criterion" style="width:120px;font-size:.77rem"' +
-    ' data-subj="' + sid + '" onchange="syncHeaders(' + sid + ')">' +
-    '<button type="button" class="btn btn-xs btn-outline-danger" style="font-size:.64rem;padding:1px 5px"' +
-    ' onclick="removeCrit(' + sid + ',this)"><i class="fas fa-times"></i></button>';
-  list.appendChild(row);
+    ' value="' + label + '" placeholder="Criterion name" data-subj="' + sid + '"' +
+    ' onchange="syncHeaders(' + sid + ')">' +
+    '<button type="button" class="btn-crit-remove" onclick="removeCrit(' + sid + ',this)" title="Remove">' +
+    '<i class="fas fa-times"></i></button>';
+  list.appendChild(item);
 
-  // Add header column before Overall
-  var thead = table.querySelector('thead tr');
-  var ths   = thead.querySelectorAll('th');
-  var overallTh = ths[ths.length - 2];
-  var newTh = document.createElement('th');
+  // Add column to table header (before Overall column)
+  var thead  = table.querySelector('thead tr');
+  var ths    = thead.querySelectorAll('th');
+  var lastTh = ths[ths.length - 1]; // Remarks
+  var overTh = ths[ths.length - 2]; // Overall
+  var newTh  = document.createElement('th');
   newTh.className = 'crit-hdr';
   newTh.dataset.subj = sid;
-  newTh.textContent = label;
-  thead.insertBefore(newTh, overallTh);
+  newTh.textContent  = label;
+  thead.insertBefore(newTh, overTh);
 
-  // Add cell to each body row
+  // Add cell to each body row (before Overall cell)
   table.querySelectorAll('tbody tr').forEach(function(tr) {
-    var tds = tr.querySelectorAll('td');
-    var overallTd = tds[tds.length - 2];
-    var hidden = overallTd.querySelector('input[type=hidden]');
-    var sidM   = hidden ? hidden.name.match(/overall\[(\d+)\]/) : null;
-    var stuId  = sidM ? sidM[1] : 0;
-    var newTd  = document.createElement('td');
+    var tds     = tr.querySelectorAll('td');
+    var overTd  = tds[tds.length - 2]; // Overall
+    var hiddenO = overTd.querySelector('input[type=hidden]');
+    var stuMatch = hiddenO ? hiddenO.name.match(/overall\[(\d+)\]/) : null;
+    var stuId   = stuMatch ? stuMatch[1] : 0;
+    var newTd   = document.createElement('td');
+    newTd.className = 'crit-col';
     newTd.innerHTML =
       '<div class="rtg-group" data-crit="' + label + '">' +
       '<input type="hidden" name="ratings[' + stuId + '][' + label + ']" value="">' +
@@ -699,43 +805,48 @@ function addCriteria(sid) {
       '<button type="button" class="rtg-btn" data-val="ED">ED</button>' +
       '<button type="button" class="rtg-btn" data-val="EMD">EMD</button>' +
       '</div>';
-    tr.insertBefore(newTd, overallTd);
+    tr.insertBefore(newTd, overTd);
   });
 }
 
-// Remove criterion
+// ── Remove Criterion ──────────────────────────────────────────────
 function removeCrit(sid, btn) {
   var list = document.getElementById('crit-list-' + sid);
-  if (list.querySelectorAll('.crit-row').length <= 1) return;
-  var row = btn.closest('.crit-row');
-  var idx = Array.from(list.querySelectorAll('.crit-row')).indexOf(row);
-  row.remove();
-  var table = document.getElementById('mtable-' + sid);
-  var thead = table.querySelector('thead tr');
-  var hdrs  = thead.querySelectorAll('.crit-hdr');
+  if (list.querySelectorAll('.crit-item').length <= 1) {
+    alert('At least one criterion is required.');
+    return;
+  }
+  var item  = btn.closest('.crit-item');
+  var items = Array.from(list.querySelectorAll('.crit-item'));
+  var idx   = items.indexOf(item);
+  item.remove();
+
+  var table = document.getElementById('fa-table-' + sid);
+  var hdrs  = table.querySelectorAll('thead .crit-hdr');
   if (hdrs[idx]) hdrs[idx].remove();
+
   table.querySelectorAll('tbody tr').forEach(function(tr) {
-    var critCells = [];
+    var critTds = [];
     tr.querySelectorAll('td').forEach(function(td, i) {
-      if (i >= 3 && i <= 3 + hdrs.length - 1) critCells.push(td);
+      if (i >= 2 && i <= 2 + hdrs.length) critTds.push(td);
     });
-    if (critCells[idx]) critCells[idx].remove();
+    if (critTds[idx]) critTds[idx].remove();
   });
 }
 
-// Sync table headers & hidden input names when criterion label changes
+// ── Sync Headers when Criterion Name Changes ──────────────────────
 function syncHeaders(sid) {
-  var list   = document.getElementById('crit-list-' + sid);
-  var table  = document.getElementById('mtable-' + sid);
-  var inputs = list.querySelectorAll('input.crit-inp[data-subj="' + sid + '"]');
-  var hdrs   = table.querySelectorAll('thead .crit-hdr[data-subj="' + sid + '"]');
-  inputs.forEach(function(inp, i) {
-    var label = inp.value.trim() || ('Criterion ' + (i+1));
+  var list  = document.getElementById('crit-list-' + sid);
+  var table = document.getElementById('fa-table-' + sid);
+  var inps  = list.querySelectorAll('input.crit-inp[data-subj="' + sid + '"]');
+  var hdrs  = table.querySelectorAll('thead .crit-hdr[data-subj="' + sid + '"]');
+  inps.forEach(function(inp, i) {
+    var label = inp.value.trim() || ('Criterion ' + (i + 1));
     if (hdrs[i]) hdrs[i].textContent = label;
-    // Update hidden input names in column (idx 3+i in tbody)
+    // Rename hidden input fields in that column
     table.querySelectorAll('tbody tr').forEach(function(tr) {
       var tds = tr.querySelectorAll('td');
-      var td  = tds[3 + i];
+      var td  = tds[2 + i];
       if (!td) return;
       var hidden = td.querySelector('input[type=hidden]');
       if (!hidden) return;
@@ -747,10 +858,14 @@ function syncHeaders(sid) {
   });
 }
 
-<?php if ($showSubjectId): ?>
-document.addEventListener('DOMContentLoaded', function(){
-  toggleSection(<?= (int)$showSubjectId ?>);
+// ── Auto-open subject on page load ───────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  <?php if ($showSubjectId): ?>
+  activateSubject(<?= (int)$showSubjectId ?>);
+  <?php elseif (!empty($subjects)): ?>
+  // Auto-open first subject
+  activateSubject(<?= (int)$subjects[0]['id'] ?>);
+  <?php endif; ?>
 });
-<?php endif; ?>
 </script>
-</body></html>
+<?php pageFooter(); ?>
