@@ -121,7 +121,7 @@ foreach ($sheets as $ds):
       <i class="fas <?= $icon ?> fa-2x opacity-75"></i>
       <div>
         <div class="fw-semibold" style="font-size:.9rem"><?= strtoupper($ds['file_type'] ?? '') ?> Document</div>
-        <div style="font-size:.78rem;color:var(--t3)"><?= $sizeFmt ?> &middot; Click Download to view or save</div>
+        <div style="font-size:.78rem;color:var(--t3)"><?= $sizeFmt ?></div>
       </div>
       <?php else: ?>
       <div class="text-muted" style="font-size:.84rem"><i class="fas fa-clock me-1"></i>Document not yet uploaded. Please check back later.</div>

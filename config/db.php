@@ -152,9 +152,17 @@ function getDB(): PDO {
                 file_type         VARCHAR(50)  NOT NULL,
                 file_size         INT          NOT NULL DEFAULT 0,
                 uploaded_by       INT          NOT NULL,
+                status            ENUM('active','archived') NOT NULL DEFAULT 'active',
                 created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE
             ) ENGINE=InnoDB");
+
+            // Add status column if the table already existed without it
+            $ttCols = array_flip(
+                $pdo->query("SHOW COLUMNS FROM timetable_documents")->fetchAll(PDO::FETCH_COLUMN)
+            );
+            if (!isset($ttCols['status']))
+                $pdo->exec("ALTER TABLE timetable_documents ADD COLUMN status ENUM('active','archived') NOT NULL DEFAULT 'active'");
 
             // Add file columns to exam_date_sheets if missing
             $dsCols2 = array_flip(

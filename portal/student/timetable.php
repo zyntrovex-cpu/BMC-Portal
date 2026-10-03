@@ -22,7 +22,7 @@ try {
     $classRow->execute([(int)$student['class_id']]);
     $cr   = $classRow->fetch();
     $wing = $cr ? ($cr['is_ilc'] ? 'ilc' : ($cr['is_montessori'] ? 'montessori' : 'main')) : 'main';
-    $tdst = $db->prepare("SELECT td.* FROM timetable_documents td WHERE td.wing=? OR td.wing='all' ORDER BY td.created_at DESC");
+    $tdst = $db->prepare("SELECT td.* FROM timetable_documents td WHERE (td.wing=? OR td.wing='all') AND td.status='active' ORDER BY td.created_at DESC");
     $tdst->execute([$wing]);
     $ttDocs = $tdst->fetchAll();
 } catch (Exception $e) {}
@@ -93,12 +93,11 @@ $links = getStudentLinks();
         <div class="fw-semibold" style="font-size:.86rem"><?= h($doc['title']) ?></div>
         <div style="font-size:.76rem;color:#6b7280"><?= h($doc['academic_year']) ?><?= $doc['notes'] ? ' — ' . h($doc['notes']) : '' ?></div>
       </div>
-      <?php if (($doc['file_type'] ?? '') === 'pdf'): ?>
-      <a href="<?= url('/portal/api/serve-document.php') ?>?type=timetable&id=<?= $doc['id'] ?>&inline=1" target="_blank"
+      <?php $isPdf = ($doc['file_type'] ?? '') === 'pdf'; ?>
+      <a href="<?= url('/portal/api/serve-document.php') ?>?type=timetable&id=<?= $doc['id'] ?><?= $isPdf ? '&inline=1' : '' ?>" target="_blank"
          class="btn btn-xs btn-outline-info me-1" style="font-size:.76rem;padding:3px 10px;white-space:nowrap">
         <i class="fas fa-eye me-1"></i>View
       </a>
-      <?php endif; ?>
       <a href="<?= url('/portal/api/serve-document.php') ?>?type=timetable&id=<?= $doc['id'] ?>"
          class="btn btn-xs btn-primary" style="font-size:.76rem;padding:3px 10px;white-space:nowrap">
         <i class="fas fa-download me-1"></i>Download

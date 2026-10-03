@@ -66,6 +66,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/portal/ilc/timetable.php');
     }
 
+    if ($action === 'archive' || $action === 'restore') {
+        $docId     = (int)($_POST['doc_id'] ?? 0);
+        $newStatus = $action === 'archive' ? 'archived' : 'active';
+        if ($docId) {
+            $chk = $db->prepare('SELECT wing FROM timetable_documents WHERE id=?');
+            $chk->execute([$docId]);
+            $row = $chk->fetch();
+            if (!$row || $row['wing'] !== $managerWing) { setFlash('danger', 'Access denied.'); redirect('/portal/ilc/timetable.php'); }
+            $db->prepare('UPDATE timetable_documents SET status=? WHERE id=?')->execute([$newStatus, $docId]);
+            $label = $newStatus === 'archived' ? 'archived' : 'restored';
+            logActivity($user['id'], 'timetable_doc_' . $action, "ILC VP " . ucfirst($action) . "d timetable doc #$docId");
+            setFlash('success', "Document $label successfully.");
+        }
+        redirect('/portal/ilc/timetable.php');
+    }
+
     if ($action === 'replace') {
         $docId = (int)($_POST['doc_id'] ?? 0);
         $chk   = $db->prepare('SELECT stored_filename, wing FROM timetable_documents WHERE id=?');
@@ -101,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $docs = $db->prepare(
     "SELECT td.*, u.name AS uploader_name FROM timetable_documents td JOIN users u ON td.uploaded_by=u.id
-     WHERE td.wing=? ORDER BY td.created_at DESC"
+     WHERE td.wing=? ORDER BY td.status ASC, td.created_at DESC"
 );
 $docs->execute([$managerWing]);
 $docs = $docs->fetchAll();
@@ -167,7 +183,7 @@ $links = getIlcLinks();
   <div class="table-responsive">
     <table class="table table-hover mb-0" style="font-size:.84rem">
       <thead class="table-light">
-        <tr><th>Title</th><th>Year</th><th>File</th><th>Size</th><th>Uploaded By</th><th>Date</th><th>Actions</th></tr>
+        <tr><th>Title</th><th>Year</th><th>File</th><th>Size</th><th>Uploaded By</th><th>Date</th><th>Status</th><th>Actions</th></tr>
       </thead>
       <tbody>
         <?php foreach ($docs as $doc):
@@ -182,17 +198,36 @@ $links = getIlcLinks();
           <td style="font-size:.8rem"><?=$sizeFmt?></td>
           <td style="font-size:.8rem"><?=h($doc['uploader_name'])?></td>
           <td style="font-size:.78rem;color:#6b7280"><?=fDate($doc['created_at'])?></td>
+          <td style="font-size:.8rem">
+            <?php if(($doc['status']??'active')==='archived'):?>
+            <span class="badge bg-secondary">Archived</span>
+            <?php else:?>
+            <span class="badge bg-success">Active</span>
+            <?php endif;?>
+          </td>
           <td style="white-space:nowrap">
-            <?php if(($doc['file_type']??'')==='pdf'):?>
-            <a href="<?=url('/portal/api/serve-document.php')?>?type=timetable&id=<?=$doc['id']?>&inline=1" target="_blank"
+            <?php $isPdf=($doc['file_type']??'')==='pdf';?>
+            <a href="<?=url('/portal/api/serve-document.php')?>?type=timetable&id=<?=$doc['id']?><?=$isPdf?'&inline=1':''?>" target="_blank"
                class="btn btn-xs btn-outline-info me-1" style="font-size:.72rem;padding:2px 7px" title="View">
               <i class="fas fa-eye"></i> View
             </a>
-            <?php endif;?>
             <a href="<?=url('/portal/api/serve-document.php')?>?type=timetable&id=<?=$doc['id']?>"
                class="btn btn-xs me-1" style="font-size:.72rem;padding:2px 7px;background:#0891b2;color:#fff">
               <i class="fas fa-download"></i> Download
             </a>
+            <?php if(($doc['status']??'active')==='active'):?>
+            <form method="POST" style="display:inline" onsubmit="return confirm('Archive this document? Students will no longer see it.')">
+              <input type="hidden" name="action" value="archive">
+              <input type="hidden" name="doc_id" value="<?=$doc['id']?>">
+              <button class="btn btn-xs btn-outline-warning me-1" style="font-size:.72rem;padding:2px 7px" title="Archive"><i class="fas fa-archive"></i></button>
+            </form>
+            <?php else:?>
+            <form method="POST" style="display:inline">
+              <input type="hidden" name="action" value="restore">
+              <input type="hidden" name="doc_id" value="<?=$doc['id']?>">
+              <button class="btn btn-xs btn-outline-success me-1" style="font-size:.72rem;padding:2px 7px" title="Restore"><i class="fas fa-undo"></i></button>
+            </form>
+            <?php endif;?>
             <button class="btn btn-xs btn-outline-secondary me-1" style="font-size:.72rem;padding:2px 7px"
                     onclick="openReplace(<?=$doc['id']?>, <?=htmlspecialchars(json_encode($doc['title']))?>)">
               <i class="fas fa-sync"></i> Replace
