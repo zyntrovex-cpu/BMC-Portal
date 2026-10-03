@@ -41,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($user && password_verify($password, $user['password'])) {
 
-            // ── Role / portal-type restriction ────────────────────────
             $selectedType  = $_POST['user_type'] ?? 'student';
             $isStudentRole = $user['role'] === 'student';
 
@@ -50,7 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif ($selectedType === 'staff' && $isStudentRole) {
                 $error = 'This ID belongs to a student account. Please go back and use the <strong>Student</strong> login.';
             } else {
-                // Credentials + type both match — proceed
                 session_regenerate_id(true);
                 $db->prepare('UPDATE users SET last_login = NOW() WHERE id = ?')->execute([$user['id']]);
                 $_SESSION['user'] = [
@@ -87,7 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// If there was a POST error, figure out which phase/type to restore
 $postType = $_POST['user_type'] ?? 'student';
 $postWing = $_POST['wing']      ?? 'main';
 ?>
@@ -96,461 +93,710 @@ $postWing = $_POST['wing']      ?? 'main';
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Login — BMC Portal</title>
+<title>BMC Portal — Bahria Model College</title>
 <link rel="icon" type="image/png" href="<?= BASE_URL ?>/assets/bmc-logo.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
-html { height:100%; }
+/* ── Page foundation ── */
+html, body { height:100%; }
 body {
-  min-height:100%;
-  background: linear-gradient(135deg,#0f1f3d 0%,#1c3054 50%,#0d2847 100%);
-  background-attachment: fixed;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  display:flex; align-items:flex-start; justify-content:center;
-  padding: 32px 16px 40px;
+  min-height:100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
 }
 
-/* ── Card ── */
-.login-card {
-  width: 520px;
-  max-width: 100%;
-  background:#fff; border-radius:18px;
-  box-shadow:0 24px 64px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.08);
-  overflow:visible;
-  display:flex; flex-direction:column;
+/* ── Hero background ── */
+.hero-bg {
+  position: fixed;
+  inset: 0;
+  background-image: url('<?= BASE_URL ?>/assets/school-building.webp');
+  background-size: cover;
+  background-position: center 60%;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+.hero-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    rgba(8, 22, 52, 0.88) 0%,
+    rgba(12, 32, 68, 0.82) 40%,
+    rgba(6, 18, 42, 0.90) 100%
+  );
 }
 
-/* ── Header ── */
-.login-header {
-  padding:28px 32px 22px; text-align:center;
-  position:relative; overflow:hidden; border-radius:18px 18px 0 0;
-  background: var(--hdr, linear-gradient(160deg,#0f1f3d 0%,#1c3054 60%,#1e3a8a 100%));
+/* ── Subtle animated grain overlay ── */
+.hero-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  opacity: 0.25;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── Page scroll container ── */
+.page-wrap {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px 32px;
+}
+
+/* ── School branding header ── */
+.school-header {
+  text-align: center;
+  margin-bottom: 36px;
+  animation: fadeDown .7s cubic-bezier(.22,.68,0,1.2) forwards;
+}
+.school-logo-wrap {
+  width: 82px; height: 82px;
+  background: rgba(255,255,255,.96);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px;
+  padding: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.4), 0 0 0 3px rgba(255,255,255,.18), 0 0 0 6px rgba(255,255,255,.08);
+}
+.school-logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
+.school-name {
+  font-size: 1.65rem; font-weight: 900; color: #fff;
+  letter-spacing: .4px; line-height: 1.15;
+  text-shadow: 0 2px 16px rgba(0,0,0,.5);
+}
+.school-sub {
+  font-size: .85rem; color: rgba(255,255,255,.65);
+  margin-top: 4px; letter-spacing: .3px;
+}
+.portal-welcome {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: .8rem; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(255,255,255,.5);
+  border-top: 1px solid rgba(255,255,255,.15);
+  padding-top: 10px;
+  width: 100%; max-width: 280px;
+}
+
+/* ── Phase 1 — Portal selection cards ── */
+#phase1 {
+  width: 100%; max-width: 680px;
+  animation: fadeUp .65s cubic-bezier(.22,.68,0,1.2) forwards;
+}
+
+.portal-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.portal-card {
+  position: relative;
+  background: rgba(255,255,255,.10);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 22px;
+  padding: 36px 24px 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform .22s cubic-bezier(.4,0,.2,1),
+              box-shadow .22s ease,
+              background .22s ease,
+              border-color .22s ease;
+  overflow: hidden;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.portal-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+}
+.portal-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.12) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.portal-card:hover {
+  transform: translateY(-6px);
+  background: rgba(255,255,255,.16);
+  border-color: rgba(255,255,255,.30);
+  box-shadow: 0 20px 60px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.12);
+}
+.portal-card:active { transform: translateY(-2px); }
+
+/* Card accent glow bottom border on hover */
+.portal-card.card-student:hover { box-shadow: 0 20px 60px rgba(0,0,0,.35), 0 4px 0 0 #3b82f6, 0 0 0 1px rgba(59,130,246,.2); }
+.portal-card.card-staff:hover   { box-shadow: 0 20px 60px rgba(0,0,0,.35), 0 4px 0 0 #8b5cf6, 0 0 0 1px rgba(139,92,246,.2); }
+
+.card-icon-wrap {
+  width: 72px; height: 72px;
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 18px;
+  position: relative; z-index: 1;
+}
+.card-student .card-icon-wrap { background: rgba(59,130,246,.25); box-shadow: 0 8px 24px rgba(59,130,246,.25); }
+.card-staff   .card-icon-wrap { background: rgba(139,92,246,.25); box-shadow: 0 8px 24px rgba(139,92,246,.25); }
+
+.card-icon-wrap i {
+  font-size: 1.9rem;
+}
+.card-student .card-icon-wrap i { color: #93c5fd; }
+.card-staff   .card-icon-wrap i { color: #c4b5fd; }
+
+.card-title {
+  font-size: 1.15rem; font-weight: 800; color: #fff;
+  position: relative; z-index: 1; margin-bottom: 6px;
+  text-shadow: 0 1px 6px rgba(0,0,0,.3);
+}
+.card-desc {
+  font-size: .78rem; color: rgba(255,255,255,.55);
+  position: relative; z-index: 1; line-height: 1.5;
+  margin-bottom: 22px;
+}
+.card-cta {
+  display: inline-flex; align-items: center; gap: 7px;
+  position: relative; z-index: 1;
+  font-size: .8rem; font-weight: 700; letter-spacing: .4px;
+  padding: 8px 22px; border-radius: 50px;
+  border: 1.5px solid rgba(255,255,255,.3);
+  color: #fff;
+  background: rgba(255,255,255,.1);
+  transition: background .18s, border-color .18s, transform .12s;
+}
+.portal-card:hover .card-cta {
+  background: rgba(255,255,255,.2);
+  border-color: rgba(255,255,255,.45);
+}
+.card-student:hover .card-cta { background: rgba(59,130,246,.3); border-color: rgba(59,130,246,.6); }
+.card-staff:hover   .card-cta { background: rgba(139,92,246,.3); border-color: rgba(139,92,246,.6); }
+
+/* ── Phase 2 — Login form ── */
+#phase2 {
+  display: none;
+  width: 100%; max-width: 460px;
+}
+
+.login-glass {
+  background: rgba(255,255,255,.11);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,.20);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,.45);
+}
+
+.login-glass-header {
+  padding: 24px 28px 20px;
+  text-align: center;
+  position: relative;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  background: var(--hdr, rgba(15,31,61,.6));
   transition: background .4s ease;
 }
-.login-header::before {
-  content:''; position:absolute; inset:0;
-  background:radial-gradient(ellipse at 50% -10%,rgba(255,255,255,.15) 0%,transparent 65%);
-  pointer-events:none;
-}
-.logo-ring {
-  width:88px; height:88px; border-radius:50%;
-  background:rgba(255,255,255,.96);
-  display:flex; align-items:center; justify-content:center;
-  margin:0 auto 12px;
-  box-shadow:0 6px 24px rgba(0,0,0,.35), 0 0 0 4px rgba(255,255,255,.2);
-  padding:7px; position:relative; z-index:1;
-}
-.logo-ring img { width:100%; height:100%; object-fit:contain; }
-.login-header h1 { font-size:1.35rem; font-weight:800; color:#fff; position:relative; z-index:1; margin-bottom:4px; }
-.login-header .sub { font-size:.78rem; color:rgba(255,255,255,.72); position:relative; z-index:1; }
-.wing-badge {
-  display:inline-block; margin-top:8px;
-  font-size:.68rem; font-weight:700; letter-spacing:.8px; text-transform:uppercase;
-  background:rgba(255,255,255,.18); color:rgba(255,255,255,.92);
-  border:1px solid rgba(255,255,255,.3); border-radius:20px;
-  padding:3px 14px; position:relative; z-index:1; transition:opacity .3s;
+.login-glass-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
 }
 
-/* ── Card body ── */
-.card-body { border-radius:0 0 18px 18px; overflow:hidden; }
+.login-hdr-logo {
+  width: 56px; height: 56px;
+  background: rgba(255,255,255,.95);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 10px;
+  padding: 5px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.3), 0 0 0 2px rgba(255,255,255,.2);
+}
+.login-hdr-logo img { width:100%; height:100%; object-fit:contain; }
+.login-hdr-title { font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:2px; }
+.login-hdr-sub   { font-size:.73rem; color:rgba(255,255,255,.6); }
+.wing-badge-login {
+  display: inline-block; margin-top:8px;
+  font-size:.67rem; font-weight:700; letter-spacing:.8px; text-transform:uppercase;
+  background:rgba(255,255,255,.15); color:rgba(255,255,255,.9);
+  border:1px solid rgba(255,255,255,.25); border-radius:20px;
+  padding:3px 13px;
+}
 
-/* ── Phase animations ── */
-@keyframes slideInRight {
-  from { transform:translateX(40px); opacity:0; }
-  to   { transform:translateX(0);    opacity:1; }
-}
-@keyframes slideInLeft {
-  from { transform:translateX(-40px); opacity:0; }
-  to   { transform:translateX(0);     opacity:1; }
-}
-.anim-right { animation: slideInRight .3s cubic-bezier(.4,0,.2,1) forwards; }
-.anim-left  { animation: slideInLeft  .3s cubic-bezier(.4,0,.2,1) forwards; }
+.login-glass-body { padding: 24px 28px 26px; }
 
-/* ── Phase 1 — "Who are you?" ── */
-#phase1 { padding:32px 32px 28px; }
-.phase1-title {
-  text-align:center; font-size:.76rem; font-weight:700; color:#9ca3af;
-  text-transform:uppercase; letter-spacing:.7px; margin-bottom:18px;
+/* Back button */
+.btn-back-glass {
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+  border-radius: 8px; padding: 7px 14px;
+  color: rgba(255,255,255,.8); font-size:.8rem; cursor: pointer;
+  transition: background .18s, color .18s;
+  margin-bottom: 18px;
 }
-.type-tiles { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-.type-tile {
-  border:2.5px solid #e5e7eb; border-radius:14px;
-  padding:26px 16px 22px; text-align:center; cursor:pointer;
-  transition:border-color .2s, background .2s, transform .15s, box-shadow .2s;
-  background:#fafafa; user-select:none;
-}
-.type-tile:hover {
-  border-color: var(--accent,#2563eb); background:var(--accent-light,#eff6ff);
-  transform:translateY(-3px); box-shadow:0 6px 20px rgba(37,99,235,.14);
-}
-.type-tile:active { transform:translateY(0); }
-.type-tile .tile-icon {
-  font-size:2.4rem; margin-bottom:10px; display:block;
-  color: var(--accent,#2563eb);
-}
-.type-tile .tile-label { font-size:1rem; font-weight:800; color:#1e293b; }
-.type-tile .tile-sub   { font-size:.74rem; color:#94a3b8; margin-top:5px; line-height:1.4; }
+.btn-back-glass:hover { background: rgba(255,255,255,.18); color: #fff; }
 
-/* ── Phase 2 — Wing + Credentials ── */
-#phase2 { padding:24px 32px 26px; display:none; }
+/* Alert */
+.alert-glass {
+  border-radius: 10px; padding: 10px 14px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 9px; font-size: .83rem;
+}
+.alert-glass-success { background: rgba(16,185,129,.15); border: 1px solid rgba(16,185,129,.3); color: #6ee7b7; }
+.alert-glass-error   { background: rgba(239,68,68,.15);  border: 1px solid rgba(239,68,68,.3);  color: #fca5a5; }
 
-/* Wing tiles */
-.wing-section-label {
+/* Wing tiles in login */
+.wing-label-glass {
   font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.6px;
-  color:#94a3b8; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  color:rgba(255,255,255,.45); margin-bottom:10px;
+  display:flex; align-items:center; gap:8px;
 }
-.wing-section-label::after { content:''; flex:1; height:1px; background:#e5e7eb; }
+.wing-label-glass::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.12); }
 
-.wing-tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:22px; }
-
-/* Base wing tile */
-.wing-tile {
-  border:2.5px solid transparent;
-  border-radius:16px;
-  padding:20px 10px 16px;
-  text-align:center; cursor:pointer;
-  user-select:none; position:relative; overflow:hidden;
-  transition:transform .18s, box-shadow .18s, border-color .18s;
+.wing-tiles-glass { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
+.wing-tile-g {
+  border: 2px solid transparent;
+  border-radius: 14px;
+  padding: 16px 8px 13px;
+  text-align: center; cursor: pointer;
+  user-select: none; position: relative; overflow: hidden;
+  transition: transform .18s, box-shadow .18s, border-color .18s;
 }
-.wing-tile::before {
+.wing-tile-g::before {
   content:''; position:absolute; inset:0; opacity:.08;
   background:radial-gradient(ellipse at 50% 0%,#fff 0%,transparent 70%);
   pointer-events:none;
 }
-.wing-tile:hover  { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.18); }
-.wing-tile:active { transform:translateY(0); }
+.wing-tile-g:hover  { transform:translateY(-3px); }
+.wing-tile-g:active { transform:translateY(0); }
 
-/* Per-wing gradient themes */
-#wt-main {
-  background:linear-gradient(145deg,#1c3054 0%,#2563eb 100%);
-  border-color:#2563eb;
-}
-#wt-montessori {
-  background:linear-gradient(145deg,#064e3b 0%,#059669 100%);
-  border-color:#059669;
-}
-#wt-ilc {
-  background:linear-gradient(145deg,#713f12 0%,#d97706 100%);
-  border-color:#d97706;
-}
+#wt-main        { background:linear-gradient(145deg,#1c3054 0%,#2563eb 100%); border-color:#2563eb; }
+#wt-montessori  { background:linear-gradient(145deg,#064e3b 0%,#059669 100%); border-color:#059669; }
+#wt-ilc         { background:linear-gradient(145deg,#713f12 0%,#d97706 100%); border-color:#d97706; }
 
-/* Active glow ring */
-.wing-tile.active {
-  border-width:2.5px;
-  box-shadow:0 0 0 3px rgba(255,255,255,.25), 0 8px 28px rgba(0,0,0,.22);
-  transform:translateY(-2px);
-}
-#wt-main.active        { box-shadow:0 0 0 3px rgba(37,99,235,.4),   0 8px 28px rgba(37,99,235,.3); }
-#wt-montessori.active  { box-shadow:0 0 0 3px rgba(5,150,105,.4),   0 8px 28px rgba(5,150,105,.3); }
-#wt-ilc.active         { box-shadow:0 0 0 3px rgba(217,119,6,.4),   0 8px 28px rgba(217,119,6,.3); }
+.wing-tile-g.active { box-shadow: 0 0 0 3px rgba(255,255,255,.2), 0 6px 20px rgba(0,0,0,.2); transform:translateY(-2px); }
+#wt-main.active        { box-shadow: 0 0 0 3px rgba(37,99,235,.45),  0 6px 20px rgba(37,99,235,.25); }
+#wt-montessori.active  { box-shadow: 0 0 0 3px rgba(5,150,105,.45),  0 6px 20px rgba(5,150,105,.25); }
+#wt-ilc.active         { box-shadow: 0 0 0 3px rgba(217,119,6,.45),  0 6px 20px rgba(217,119,6,.25); }
 
-/* Icon & label on coloured bg */
-.wing-tile .wt-icon {
-  font-size:2rem; display:block; margin-bottom:8px;
-  filter:drop-shadow(0 2px 4px rgba(0,0,0,.25));
-}
-.wing-tile .wt-label {
-  font-size:.82rem; font-weight:800; color:#fff; letter-spacing:.3px;
-  text-shadow:0 1px 3px rgba(0,0,0,.3);
-}
-.wing-tile .wt-sub {
-  font-size:.67rem; color:rgba(255,255,255,.65);
-  margin-top:3px; font-weight:500;
-}
+.wing-tile-g .wt-icon  { font-size:1.7rem; display:block; margin-bottom:6px; filter:drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
+.wing-tile-g .wt-label { font-size:.78rem; font-weight:800; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.3); }
+.wing-tile-g .wt-sub   { font-size:.63rem; color:rgba(255,255,255,.6); margin-top:2px; }
 
-/* Divider */
-.cred-divider {
+/* Cred divider */
+.cred-divider-glass {
   font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.6px;
-  color:#94a3b8; margin-bottom:14px; display:flex; align-items:center; gap:8px;
+  color:rgba(255,255,255,.45); margin-bottom:14px;
+  display:flex; align-items:center; gap:8px;
 }
-.cred-divider::after { content:''; flex:1; height:1px; background:#e5e7eb; }
-
-/* Alert */
-.alert-msg { font-size:.83rem; border-radius:8px; padding:10px 14px; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
-.alert-success-msg { background:#f0fdf4; border:1px solid #86efac; color:#166534; }
-.alert-error-msg   { background:#fef2f2; border:1px solid #fca5a5; color:#991b1b; }
+.cred-divider-glass::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.12); }
 
 /* Fields */
-.field-group { margin-bottom:14px; }
-.field-group label { display:block; font-size:.8rem; font-weight:600; color:#374151; margin-bottom:5px; }
-.field-group input {
+.field-group-glass { margin-bottom: 14px; }
+.field-group-glass label {
+  display:block; font-size:.78rem; font-weight:600;
+  color:rgba(255,255,255,.75); margin-bottom:6px;
+}
+.field-group-glass input {
   width:100%; padding:11px 14px; font-size:.92rem;
-  border:1.5px solid #d5dde8; border-radius:8px; outline:none;
-  transition:border-color .2s, box-shadow .2s; color:#1e293b;
+  background: rgba(255,255,255,.1);
+  border: 1.5px solid rgba(255,255,255,.2);
+  border-radius: 10px; outline: none;
+  color: #fff;
+  transition: border-color .2s, background .2s, box-shadow .2s;
 }
-.field-group input:focus { border-color:var(--accent,#2563eb); box-shadow:0 0 0 3px var(--accent-glow,rgba(37,99,235,.12)); }
-.field-group input::placeholder { color:#b0bcc8; }
+.field-group-glass input::placeholder { color:rgba(255,255,255,.35); }
+.field-group-glass input:focus {
+  border-color: var(--accent-color, rgba(99,102,241,.8));
+  background: rgba(255,255,255,.15);
+  box-shadow: 0 0 0 3px var(--accent-glow, rgba(99,102,241,.2));
+}
 
-/* Buttons */
-.btn-login {
+/* Login button */
+.btn-login-glass {
   width:100%; padding:13px;
-  background: var(--btn-bg, linear-gradient(135deg,#1c3054,#2563eb));
-  border:none; border-radius:10px; color:#fff; font-weight:700; font-size:.96rem;
-  cursor:pointer; transition:opacity .15s, transform .1s;
+  background: var(--btn-bg, linear-gradient(135deg,#3730a3,#6366f1));
+  border:none; border-radius:12px; color:#fff;
+  font-weight:800; font-size:.96rem;
+  cursor:pointer; letter-spacing:.3px;
+  transition: opacity .15s, transform .1s, box-shadow .2s;
   display:flex; align-items:center; justify-content:center; gap:9px;
-  margin-top:6px; letter-spacing:.2px;
+  margin-top:6px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.3);
 }
-.btn-login:hover { opacity:.88; }
-.btn-login:active { transform:scale(.98); }
-
-.btn-back {
-  background:none; border:none; color:#94a3b8; font-size:.8rem;
-  cursor:pointer; display:flex; align-items:center; gap:6px;
-  padding:0; margin-bottom:16px; transition:color .2s;
-}
-.btn-back:hover { color:#374151; }
+.btn-login-glass:hover  { opacity:.9; box-shadow:0 6px 28px rgba(0,0,0,.4); }
+.btn-login-glass:active { transform:scale(.98); }
 
 /* Footer */
-.login-footer {
+.login-footer-glass {
   display:flex; justify-content:space-between; align-items:center;
   margin-top:14px; padding-top:12px;
-  border-top:1px solid #f1f5f9; font-size:.75rem; color:#9ca3af;
+  border-top:1px solid rgba(255,255,255,.1);
+  font-size:.74rem; color:rgba(255,255,255,.4);
 }
-.login-footer a { color:#6b7280; text-decoration:none; }
-.login-footer a:hover { color:var(--accent,#2563eb); }
+.login-footer-glass a { color:rgba(255,255,255,.5); text-decoration:none; transition:color .18s; }
+.login-footer-glass a:hover { color:rgba(255,255,255,.85); }
 
-/* Cred helper */
-.cred-toggle {
-  width:100%; margin-top:10px; background:none;
-  border:1px dashed #d1d5db; border-radius:8px;
-  padding:7px 12px; font-size:.76rem; color:#9ca3af;
+/* Bottom site footer */
+.site-footer {
+  margin-top: 28px;
+  text-align: center;
+  font-size: .72rem;
+  color: rgba(255,255,255,.28);
+  animation: fadeUp .9s .3s cubic-bezier(.22,.68,0,1.2) both;
+}
+
+/* ── Animations ── */
+@keyframes fadeDown {
+  from { opacity:0; transform:translateY(-24px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(24px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes slideInRight {
+  from { opacity:0; transform:translateX(40px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+@keyframes slideInLeft {
+  from { opacity:0; transform:translateX(-40px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+.anim-right { animation: slideInRight .3s cubic-bezier(.4,0,.2,1) forwards; }
+.anim-left  { animation: slideInLeft  .3s cubic-bezier(.4,0,.2,1) forwards; }
+
+/* ── Credential helper ── */
+.cred-toggle-glass {
+  width:100%; margin-top:10px; background: rgba(255,255,255,.06);
+  border:1px dashed rgba(255,255,255,.2); border-radius:8px;
+  padding:7px 12px; font-size:.75rem; color:rgba(255,255,255,.45);
   cursor:pointer; text-align:center; transition:border-color .2s, color .2s;
 }
-.cred-toggle:hover { border-color:var(--accent,#2563eb); color:var(--accent,#2563eb); }
-.cred-panel { display:none; margin-top:8px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:9px; padding:10px 13px; }
-.cred-panel .cred-title { font-size:.69rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#9ca3af; margin-bottom:7px; }
-.cred-row { display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:6px; cursor:pointer; transition:background .15s; margin-bottom:2px; }
-.cred-row:hover { background:#e0f2fe; }
-.cred-badge { font-size:.64rem; padding:2px 7px; border-radius:10px; font-weight:700; white-space:nowrap; color:#fff; }
-.cred-id   { font-weight:700; color:#1e293b; font-size:.8rem; min-width:60px; }
-.cred-name { color:#6b7280; flex:1; font-size:.76rem; }
-.cred-pass { font-size:.69rem; color:#94a3b8; font-family:monospace; }
+.cred-toggle-glass:hover { border-color:rgba(255,255,255,.4); color:rgba(255,255,255,.75); }
+.cred-panel-glass {
+  display:none; margin-top:8px;
+  background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.1);
+  border-radius:10px; padding:10px 13px;
+}
+.cred-panel-title { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:rgba(255,255,255,.35); margin-bottom:7px; }
+.cred-row-glass {
+  display:flex; align-items:center; gap:8px;
+  padding:5px 8px; border-radius:6px; cursor:pointer;
+  transition:background .15s; margin-bottom:2px;
+}
+.cred-row-glass:hover { background:rgba(255,255,255,.1); }
+.cred-badge { font-size:.63rem; padding:2px 7px; border-radius:10px; font-weight:700; white-space:nowrap; color:#fff; }
+.cred-id-g   { font-weight:700; color:#fff; font-size:.8rem; min-width:54px; }
+.cred-name-g { color:rgba(255,255,255,.6); flex:1; font-size:.75rem; }
+.cred-pass-g { font-size:.68rem; color:rgba(255,255,255,.3); font-family:monospace; }
 
 /* ── Responsive ── */
-@media (max-width: 560px) {
-  body { padding: 16px 12px 32px; align-items:flex-start; }
-  .login-card { width:100%; border-radius:14px; }
-  .login-header { padding:22px 20px 18px; border-radius:14px 14px 0 0; }
-  .logo-ring { width:74px; height:74px; }
-  .login-header h1 { font-size:1.15rem; }
-  #phase1 { padding:24px 20px 22px; }
-  #phase2 { padding:20px 20px 22px; }
-  .type-tile { padding:20px 10px 18px; }
-  .type-tile .tile-icon { font-size:2rem; }
-  .type-tile .tile-label { font-size:.9rem; }
-  .wing-tile { padding:14px 6px 12px; border-radius:12px; }
-  .wing-tile .wt-icon  { font-size:1.6rem; margin-bottom:6px; }
-  .wing-tile .wt-label { font-size:.76rem; }
-  .wing-tile .wt-sub   { font-size:.62rem; }
+@media (max-width: 600px) {
+  .school-name { font-size:1.3rem; }
+  .portal-cards { grid-template-columns:1fr 1fr; gap:13px; }
+  .portal-card  { padding:26px 14px 22px; border-radius:16px; }
+  .card-icon-wrap { width:58px; height:58px; }
+  .card-icon-wrap i { font-size:1.55rem; }
+  .card-title { font-size:1rem; }
+  .card-cta   { font-size:.74rem; padding:7px 16px; }
+  #phase2 { max-width:100%; }
+  .login-glass { border-radius:18px; }
+  .login-glass-body { padding:20px 20px 22px; }
+  .wing-tile-g { padding:12px 6px 10px; }
+}
+@media (max-width: 400px) {
+  .portal-cards { gap:10px; }
+  .card-desc { display:none; }
+  .school-header { margin-bottom:26px; }
 }
 
-@media (max-width: 380px) {
-  .type-tiles { gap:10px; }
-  .wing-tiles  { gap:7px; }
-  .type-tile .tile-icon { font-size:1.7rem; margin-bottom:8px; }
+/* Accessibility */
+.portal-card:focus-visible,
+.wing-tile-g:focus-visible,
+.btn-back-glass:focus-visible {
+  outline: 2.5px solid rgba(255,255,255,.7);
+  outline-offset: 3px;
 }
 </style>
+</head>
+<body>
 
-<div class="login-card" id="loginCard">
+<!-- Hero background image -->
+<div class="hero-bg" role="img" aria-label="Bahria Model College campus building"></div>
 
-  <!-- ── Header ── -->
-  <div class="login-header" id="loginHeader">
-    <div class="logo-ring">
-      <img src="<?= BASE_URL ?>/assets/bmc-logo.png" alt="BMC" id="portalLogo">
+<div class="page-wrap">
+
+  <!-- ── School branding ── -->
+  <header class="school-header">
+    <div class="school-logo-wrap">
+      <img src="<?= BASE_URL ?>/assets/bmc-logo.png" alt="Bahria Model College Logo">
     </div>
-    <h1 id="portalTitle">BMC Portal</h1>
-    <div class="sub">Bahria Model College &mdash; <?= SESSION_YEAR ?></div>
-    <div class="wing-badge" id="wingBadge" style="display:none">Main Wing</div>
+    <div class="school-name">Bahria Model College</div>
+    <div class="school-sub">Bin Qasim, Karachi &nbsp;&middot;&nbsp; <?= SESSION_YEAR ?></div>
+    <div class="portal-welcome">Welcome to the School Portal</div>
+  </header>
+
+  <!-- ── Phase 1: Portal selection ── -->
+  <div id="phase1">
+
+    <?php if ($msg === 'logout'): ?>
+      <div class="alert-glass alert-glass-success mb-4 justify-content-center">
+        <i class="fas fa-check-circle"></i>Logged out successfully.
+      </div>
+    <?php elseif ($msg === 'login'): ?>
+      <div class="alert-glass alert-glass-error mb-4 justify-content-center">
+        <i class="fas fa-lock"></i>Please log in to continue.
+      </div>
+    <?php elseif ($msg === 'unauthorized'): ?>
+      <div class="alert-glass alert-glass-error mb-4 justify-content-center">
+        <i class="fas fa-ban"></i>Access denied. Please log in again.
+      </div>
+    <?php endif; ?>
+
+    <div class="portal-cards" role="list">
+
+      <!-- Student Portal -->
+      <div class="portal-card card-student" role="listitem"
+           tabindex="0" aria-label="Student Portal — sign in as a student"
+           onclick="selectType('student')"
+           onkeydown="if(event.key==='Enter'||event.key===' ')selectType('student')">
+        <div class="card-icon-wrap">
+          <i class="fas fa-user-graduate" aria-hidden="true"></i>
+        </div>
+        <div class="card-title">Student Portal</div>
+        <div class="card-desc">Main &middot; Montessori &middot; ILC<br>Access your grades, reports &amp; schedule</div>
+        <div class="card-cta">
+          <i class="fas fa-arrow-right" aria-hidden="true"></i>Sign In
+        </div>
+      </div>
+
+      <!-- Staff Portal -->
+      <div class="portal-card card-staff" role="listitem"
+           tabindex="0" aria-label="Staff Portal — sign in as a staff member"
+           onclick="selectType('staff')"
+           onkeydown="if(event.key==='Enter'||event.key===' ')selectType('staff')">
+        <div class="card-icon-wrap">
+          <i class="fas fa-user-tie" aria-hidden="true"></i>
+        </div>
+        <div class="card-title">Staff Portal</div>
+        <div class="card-desc">Teachers &middot; Admin &middot; Finance<br>Manage classes, records &amp; reports</div>
+        <div class="card-cta">
+          <i class="fas fa-arrow-right" aria-hidden="true"></i>Sign In
+        </div>
+      </div>
+
+    </div>
   </div>
 
-  <!-- ── Body ── -->
-  <div class="card-body">
+  <!-- ── Phase 2: Credentials ── -->
+  <div id="phase2">
+    <div class="login-glass">
 
-    <!-- ─── Phase 1: Choose type ─── -->
-    <div id="phase1">
-
-      <?php if ($msg === 'logout'): ?>
-        <div class="alert-msg alert-success-msg"><i class="fas fa-check-circle"></i>Logged out successfully.</div>
-      <?php elseif ($msg === 'login'): ?>
-        <div class="alert-msg alert-error-msg"><i class="fas fa-lock"></i>Please log in to continue.</div>
-      <?php elseif ($msg === 'unauthorized'): ?>
-        <div class="alert-msg alert-error-msg"><i class="fas fa-ban"></i>Access denied.</div>
-      <?php endif; ?>
-
-      <div class="phase1-title">Who are you?</div>
-
-      <div class="type-tiles">
-        <div class="type-tile" id="tileStudent" onclick="selectType('student')">
-          <span class="tile-icon"><i class="fas fa-user-graduate"></i></span>
-          <div class="tile-label">Student</div>
-          <div class="tile-sub">Main · Montessori · ILC</div>
+      <!-- Glass header -->
+      <div class="login-glass-header" id="loginGlassHeader">
+        <div class="login-hdr-logo">
+          <img src="<?= BASE_URL ?>/assets/bmc-logo.png" alt="BMC" id="portalLogo">
         </div>
-        <div class="type-tile" id="tileStaff" onclick="selectType('staff')">
-          <span class="tile-icon"><i class="fas fa-user-tie"></i></span>
-          <div class="tile-label">Staff</div>
-          <div class="tile-sub">Teachers · Admin · Finance</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ─── Phase 2: Credentials ─── -->
-    <div id="phase2">
-
-      <!-- Back button -->
-      <button class="btn-back" type="button" onclick="goBack()">
-        <i class="fas fa-arrow-left"></i> Back
-      </button>
-
-      <?php if ($error): ?>
-        <div class="alert-msg alert-error-msg"><i class="fas fa-exclamation-circle"></i><?= $error ?></div>
-      <?php endif; ?>
-
-      <!-- Wing tiles — only for students -->
-      <div id="wingSection" style="display:none">
-        <div class="wing-section-label">Select Wing</div>
-        <div class="wing-tiles">
-          <div class="wing-tile active" id="wt-main"        onclick="selectWing('main')">
-            <span class="wt-icon">🏫</span>
-            <div class="wt-label">Main</div>
-            <div class="wt-sub">Grades 8 – 12</div>
-          </div>
-          <div class="wing-tile"       id="wt-montessori"   onclick="selectWing('montessori')">
-            <span class="wt-icon">🌱</span>
-            <div class="wt-label">Montessori</div>
-            <div class="wt-sub">Early Years</div>
-          </div>
-          <div class="wing-tile"       id="wt-ilc"          onclick="selectWing('ilc')">
-            <span class="wt-icon">🤝</span>
-            <div class="wt-label">ILC</div>
-            <div class="wt-sub">Language Centre</div>
-          </div>
-        </div>
+        <div class="login-hdr-title" id="portalTitle">BMC Portal</div>
+        <div class="login-hdr-sub">Bahria Model College &mdash; <?= SESSION_YEAR ?></div>
+        <div class="wing-badge-login" id="wingBadge" style="display:none">Main Wing</div>
       </div>
 
-      <!-- Credentials form -->
-      <div class="cred-divider">Enter Credentials</div>
+      <!-- Glass body -->
+      <div class="login-glass-body">
 
-      <form method="POST" id="loginForm">
-        <input type="hidden" name="wing"      id="wingHidden"     value="main">
-        <input type="hidden" name="user_type" id="userTypeHidden" value="student">
-
-        <div class="field-group">
-          <label for="userId"><i class="fas fa-id-card" style="margin-right:5px;opacity:.55"></i>User ID</label>
-          <input type="text" name="user_id" id="userId"
-                 placeholder="e.g. 1001 · 2001 · 3001"
-                 value="<?= htmlspecialchars($_POST['user_id'] ?? '') ?>" required autofocus>
-        </div>
-        <div class="field-group">
-          <label for="password"><i class="fas fa-key" style="margin-right:5px;opacity:.55"></i>Password</label>
-          <input type="password" name="password" id="password"
-                 placeholder="Enter your password" required>
-        </div>
-
-        <button type="submit" class="btn-login" id="loginBtn">
-          <i class="fas fa-sign-in-alt"></i>
-          <span id="btnText">Sign In</span>
+        <button class="btn-back-glass" type="button" onclick="goBack()" aria-label="Back to portal selection">
+          <i class="fas fa-arrow-left" aria-hidden="true"></i> Back
         </button>
-      </form>
 
-      <div class="login-footer">
-        <a href="forgot-password.php"><i class="fas fa-question-circle me-1"></i>Forgot password?</a>
-        <span>&copy; <?= date('Y') ?> BMC</span>
+        <?php if ($error): ?>
+          <div class="alert-glass alert-glass-error">
+            <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+            <span><?= $error ?></span>
+          </div>
+        <?php endif; ?>
+
+        <!-- Wing tiles — student only -->
+        <div id="wingSection" style="display:none">
+          <div class="wing-label-glass">Select Wing</div>
+          <div class="wing-tiles-glass" role="radiogroup" aria-label="Select wing">
+            <div class="wing-tile-g active" id="wt-main"
+                 role="radio" aria-checked="true" tabindex="0"
+                 onclick="selectWing('main')"
+                 onkeydown="if(event.key==='Enter'||event.key===' ')selectWing('main')">
+              <span class="wt-icon" aria-hidden="true">🏫</span>
+              <div class="wt-label">Main</div>
+              <div class="wt-sub">Grades 8–12</div>
+            </div>
+            <div class="wing-tile-g" id="wt-montessori"
+                 role="radio" aria-checked="false" tabindex="0"
+                 onclick="selectWing('montessori')"
+                 onkeydown="if(event.key==='Enter'||event.key===' ')selectWing('montessori')">
+              <span class="wt-icon" aria-hidden="true">🌱</span>
+              <div class="wt-label">Montessori</div>
+              <div class="wt-sub">Early Years</div>
+            </div>
+            <div class="wing-tile-g" id="wt-ilc"
+                 role="radio" aria-checked="false" tabindex="0"
+                 onclick="selectWing('ilc')"
+                 onkeydown="if(event.key==='Enter'||event.key===' ')selectWing('ilc')">
+              <span class="wt-icon" aria-hidden="true">🤝</span>
+              <div class="wt-label">ILC</div>
+              <div class="wt-sub">Language Centre</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Credentials form -->
+        <div class="cred-divider-glass">Enter Credentials</div>
+
+        <form method="POST" id="loginForm" novalidate>
+          <input type="hidden" name="wing"      id="wingHidden"     value="main">
+          <input type="hidden" name="user_type" id="userTypeHidden" value="student">
+
+          <div class="field-group-glass">
+            <label for="userId">
+              <i class="fas fa-id-card" style="margin-right:5px;opacity:.6" aria-hidden="true"></i>User ID
+            </label>
+            <input type="text" name="user_id" id="userId"
+                   placeholder="e.g. 1001"
+                   value="<?= htmlspecialchars($_POST['user_id'] ?? '') ?>"
+                   required autocomplete="username">
+          </div>
+          <div class="field-group-glass">
+            <label for="password">
+              <i class="fas fa-key" style="margin-right:5px;opacity:.6" aria-hidden="true"></i>Password
+            </label>
+            <input type="password" name="password" id="password"
+                   placeholder="Enter your password"
+                   required autocomplete="current-password">
+          </div>
+
+          <button type="submit" class="btn-login-glass" id="loginBtn">
+            <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+            <span id="btnText">Sign In</span>
+          </button>
+        </form>
+
+        <button class="cred-toggle-glass" id="credToggleGlass" type="button" onclick="toggleCreds()">
+          <i class="fas fa-key me-1" aria-hidden="true"></i>Show test accounts
+        </button>
+        <div class="cred-panel-glass" id="credPanelGlass">
+          <div class="cred-panel-title">Test Accounts — click to fill</div>
+          <div id="credList"></div>
+        </div>
+
+        <div class="login-footer-glass">
+          <a href="forgot-password.php">
+            <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Forgot password?
+          </a>
+          <span>&copy; <?= date('Y') ?> BMC</span>
+        </div>
+
       </div>
     </div>
+  </div>
 
-  </div><!-- /card-body -->
-</div><!-- /login-card -->
+  <footer class="site-footer">
+    Bahria Model College, Bin Qasim &nbsp;&middot;&nbsp; Secure School Portal
+  </footer>
+
+</div><!-- /page-wrap -->
 
 <script>
 // ── Theme definitions ──────────────────────────────────────────────
 const WING_THEMES = {
   main: {
-    hdr:   'linear-gradient(160deg,#0f1f3d 0%,#1c3054 60%,#1e3a8a 100%)',
-    btn:   'linear-gradient(135deg,#1c3054,#2563eb)',
-    accent:'#2563eb', glow:'rgba(37,99,235,.13)', light:'#eff6ff',
-    badge: 'Main Wing',
-    logo:  '<?= BASE_URL ?>/assets/bmc-logo.png',
-    title: 'BMC Portal',
+    hdr:         'rgba(15,31,61,.7)',
+    btn:         'linear-gradient(135deg,#1c3054,#2563eb)',
+    accent:      'rgba(37,99,235,.8)',
+    glow:        'rgba(37,99,235,.2)',
+    badge:       'Main Wing',
+    logo:        '<?= BASE_URL ?>/assets/bmc-logo.png',
+    title:       'BMC Portal',
   },
   montessori: {
-    hdr:   'linear-gradient(160deg,#052e16 0%,#065f46 60%,#059669 100%)',
-    btn:   'linear-gradient(135deg,#065f46,#059669)',
-    accent:'#059669', glow:'rgba(5,150,105,.13)', light:'#f0fdf4',
-    badge: 'Montessori',
-    logo:  '<?= BASE_URL ?>/assets/bmc-logo.png',
-    title: 'BMC Portal',
+    hdr:         'rgba(6,31,22,.75)',
+    btn:         'linear-gradient(135deg,#065f46,#059669)',
+    accent:      'rgba(5,150,105,.8)',
+    glow:        'rgba(5,150,105,.2)',
+    badge:       'Montessori',
+    logo:        '<?= BASE_URL ?>/assets/bmc-logo.png',
+    title:       'BMC Portal',
   },
   ilc: {
-    hdr:   'linear-gradient(160deg,#0c4a6e 0%,#0369a1 60%,#0891b2 100%)',
-    btn:   'linear-gradient(135deg,#0369a1,#0891b2)',
-    accent:'#0891b2', glow:'rgba(8,145,178,.13)', light:'#ecfeff',
-    badge: 'ILC',
-    logo:  '<?= BASE_URL ?>/assets/ilc-logo.png',
-    title: 'ILC Portal',
+    hdr:         'rgba(12,25,60,.75)',
+    btn:         'linear-gradient(135deg,#0369a1,#0891b2)',
+    accent:      'rgba(8,145,178,.8)',
+    glow:        'rgba(8,145,178,.2)',
+    badge:       'ILC',
+    logo:        '<?= BASE_URL ?>/assets/ilc-logo.png',
+    title:       'ILC Portal',
   },
 };
 const STAFF_THEME = {
-  hdr:   'linear-gradient(160deg,#1e1b4b 0%,#3730a3 60%,#4f46e5 100%)',
-  btn:   'linear-gradient(135deg,#3730a3,#6366f1)',
-  accent:'#6366f1', glow:'rgba(99,102,241,.13)', light:'#eef2ff',
-  badge: null,
-  logo:  '<?= BASE_URL ?>/assets/bmc-logo.png',
-  title: 'BMC Staff Portal',
+  hdr:         'rgba(20,14,70,.72)',
+  btn:         'linear-gradient(135deg,#3730a3,#6366f1)',
+  accent:      'rgba(99,102,241,.8)',
+  glow:        'rgba(99,102,241,.2)',
+  badge:       null,
+  logo:        '<?= BASE_URL ?>/assets/bmc-logo.png',
+  title:       'BMC Staff Portal',
 };
 
-// ── State ──────────────────────────────────────────────────────────
 let selectedType = 'student';
 let selectedWing = 'main';
 let credOpen     = false;
 
-// ── Apply theme ────────────────────────────────────────────────────
 function applyTheme(t) {
-  document.getElementById('loginHeader').style.background = t.hdr;
-  document.getElementById('loginBtn').style.background    = t.btn;
-  document.getElementById('portalLogo').src               = t.logo;
-  document.getElementById('portalTitle').textContent      = t.title;
-  document.documentElement.style.setProperty('--accent',      t.accent);
-  document.documentElement.style.setProperty('--accent-glow', t.glow);
-  document.documentElement.style.setProperty('--accent-light',t.light);
-  document.documentElement.style.setProperty('--btn-bg',      t.btn);
+  document.getElementById('loginGlassHeader').style.background = t.hdr;
+  document.getElementById('loginBtn').style.background         = t.btn;
+  document.getElementById('portalLogo').src                    = t.logo;
+  document.getElementById('portalTitle').textContent           = t.title;
+  document.documentElement.style.setProperty('--accent-color', t.accent);
+  document.documentElement.style.setProperty('--accent-glow',  t.glow);
+  document.documentElement.style.setProperty('--btn-bg',       t.btn);
   const badge = document.getElementById('wingBadge');
   if (t.badge) { badge.textContent = t.badge; badge.style.display = ''; }
   else          { badge.style.display = 'none'; }
 }
 
-// ── Phase transition ───────────────────────────────────────────────
 function selectType(type) {
   selectedType = type;
   document.getElementById('userTypeHidden').value = type;
-
   const isStudent = type === 'student';
 
-  // Theme
   applyTheme(isStudent ? WING_THEMES[selectedWing] : STAFF_THEME);
+  document.getElementById('wingSection').style.display   = isStudent ? 'block' : 'none';
+  document.getElementById('btnText').textContent         = isStudent ? 'Sign In as Student' : 'Sign In as Staff';
 
-  // Wing section
-  document.getElementById('wingSection').style.display = isStudent ? 'block' : 'none';
-
-  // Button label
-  document.getElementById('btnText').textContent = isStudent ? 'Sign In as Student' : 'Sign In as Staff';
-
-  // Animate phase transition
   const p1 = document.getElementById('phase1');
   const p2 = document.getElementById('phase2');
   p1.style.display = 'none';
   p2.style.display = 'block';
   p2.classList.remove('anim-left');
-  void p2.offsetWidth; // reflow
+  void p2.offsetWidth;
   p2.classList.add('anim-right');
-
-  // Focus user ID field
   setTimeout(() => document.getElementById('userId').focus(), 340);
-
-  // Refresh cred list
-  if (credOpen) renderCreds();
 }
 
 function goBack() {
@@ -561,21 +807,17 @@ function goBack() {
   p1.classList.remove('anim-right');
   void p1.offsetWidth;
   p1.classList.add('anim-left');
-  // Reset header to neutral
-  applyTheme(WING_THEMES.main);
-  document.getElementById('wingBadge').style.display = 'none';
 }
 
-// ── Wing selection (student only) ─────────────────────────────────
 function selectWing(wing) {
   selectedWing = wing;
   document.getElementById('wingHidden').value = wing;
   applyTheme(WING_THEMES[wing]);
-  // Update active tile
   ['main','montessori','ilc'].forEach(w => {
-    document.getElementById('wt-'+w).classList.toggle('active', w === wing);
+    const el = document.getElementById('wt-'+w);
+    el.classList.toggle('active', w === wing);
+    el.setAttribute('aria-checked', w === wing ? 'true' : 'false');
   });
-  if (credOpen) renderCreds();
 }
 
 // ── Credential helper ──────────────────────────────────────────────
@@ -628,8 +870,6 @@ const ROLE_COLORS = {
 };
 
 function renderCreds() {
-  const bucket = selectedType === 'staff' ? 'staff' : 'student';
-  // For staff, pool all wings
   let list = [];
   if (selectedType === 'staff') {
     const seen = new Set();
@@ -637,16 +877,16 @@ function renderCreds() {
       (CREDS[w].staff || []).forEach(r => { if (!seen.has(r[0])) { seen.add(r[0]); list.push(r); } });
     });
   } else {
-    list = (CREDS[selectedWing] || CREDS.main)[bucket] || [];
+    list = (CREDS[selectedWing] || CREDS.main)[selectedType === 'staff' ? 'staff' : 'student'] || [];
   }
   const el = document.getElementById('credList');
-  if (!list.length) { el.innerHTML = '<div style="color:#9ca3af;text-align:center;padding:4px 0">No accounts for this selection.</div>'; return; }
+  if (!list.length) { el.innerHTML = '<div style="color:rgba(255,255,255,.4);text-align:center;padding:4px 0">No accounts for this selection.</div>'; return; }
   el.innerHTML = list.map(([id, name, role]) =>
-    `<div class="cred-row" onclick="fillCred('${id}')">
-      <span class="cred-id">${id}</span>
-      <span class="cred-name">${name}</span>
+    `<div class="cred-row-glass" onclick="fillCred('${id}')">
+      <span class="cred-id-g">${id}</span>
+      <span class="cred-name-g">${name}</span>
       <span class="cred-badge" style="background:${ROLE_COLORS[role]||'#64748b'}">${role}</span>
-      <span class="cred-pass">student123</span>
+      <span class="cred-pass-g">student123</span>
     </div>`
   ).join('');
 }
@@ -654,22 +894,21 @@ function renderCreds() {
 function fillCred(userId) {
   document.getElementById('userId').value   = userId;
   document.getElementById('password').value = 'student123';
-  document.getElementById('credPanel').style.display = 'none';
-  document.getElementById('credToggle').innerHTML = '<i class="fas fa-key me-1"></i>Show test accounts';
+  document.getElementById('credPanelGlass').style.display = 'none';
+  document.getElementById('credToggleGlass').innerHTML = '<i class="fas fa-key me-1"></i>Show test accounts';
   credOpen = false;
 }
 
 function toggleCreds() {
   credOpen = !credOpen;
-  document.getElementById('credPanel').style.display = credOpen ? 'block' : 'none';
-  document.getElementById('credToggle').innerHTML = credOpen
+  document.getElementById('credPanelGlass').style.display = credOpen ? 'block' : 'none';
+  document.getElementById('credToggleGlass').innerHTML = credOpen
     ? '<i class="fas fa-times me-1"></i>Hide test accounts'
     : '<i class="fas fa-key me-1"></i>Show test accounts';
   if (credOpen) renderCreds();
 }
 
-// ── Init ───────────────────────────────────────────────────────────
-// If there was a POST error, restore the correct phase
+// ── Restore phase on POST error ────────────────────────────────────
 <?php if ($error): ?>
 (function() {
   const type = '<?= htmlspecialchars($postType) ?>';
