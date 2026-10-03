@@ -175,9 +175,9 @@ $links = getAdminLinks();
   <div class="sec-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
     <span><i class="fas fa-calendar-day me-2"></i>All Exam Date Sheets <span class="fw-normal opacity-75 ms-1" style="font-size:.8rem">(<?= count($sheets) ?>)</span></span>
     <div class="d-flex gap-1 flex-wrap">
-      <a href="<?= $selfUrl ?>" class="btn btn-xs <?= !$filterWing?'btn-secondary':'btn-outline-secondary' ?>" style="font-size:.74rem;padding:2px 8px">All</a>
+      <a href="<?= url($selfUrl) ?>" class="btn btn-xs <?= !$filterWing?'btn-secondary':'btn-outline-secondary' ?>" style="font-size:.74rem;padding:2px 8px">All</a>
       <?php foreach ($wingLabels as $val => $label): ?>
-      <a href="<?= $selfUrl ?>?wing=<?= $val ?>" class="btn btn-xs <?= $filterWing===$val?'btn-primary':'btn-outline-primary' ?>" style="font-size:.74rem;padding:2px 8px"><?= h($label) ?></a>
+      <a href="<?= url($selfUrl) ?>?wing=<?= $val ?>" class="btn btn-xs <?= $filterWing===$val?'btn-primary':'btn-outline-primary' ?>" style="font-size:.74rem;padding:2px 8px"><?= h($label) ?></a>
       <?php endforeach; ?>
     </div>
   </div>
@@ -213,9 +213,8 @@ $links = getAdminLinks();
           <td>
             <div class="d-flex flex-wrap gap-1">
               <?php if ($ds['stored_filename']): ?>
-              <?php if (($ds['file_type'] ?? '') === 'pdf'): ?>
-              <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?>&inline=1" target="_blank" class="btn btn-xs btn-outline-info" style="font-size:.72rem;padding:2px 7px" title="View"><i class="fas fa-eye"></i></a>
-              <?php endif; ?>
+              <?php $isPdf = ($ds['file_type'] ?? '') === 'pdf'; ?>
+              <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?><?= $isPdf ? '&inline=1' : '' ?>" target="_blank" class="btn btn-xs btn-outline-info" style="font-size:.72rem;padding:2px 7px" title="View"><i class="fas fa-eye me-1"></i>View</a>
               <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.72rem;padding:2px 7px" title="Download"><i class="fas fa-download"></i></a>
               <?php endif; ?>
               <button class="btn btn-xs btn-outline-secondary" style="font-size:.72rem;padding:2px 7px" onclick="openReplace(<?= $ds['id'] ?>,<?= htmlspecialchars(json_encode($ds['title'])) ?>)"><i class="fas fa-sync"></i></button>

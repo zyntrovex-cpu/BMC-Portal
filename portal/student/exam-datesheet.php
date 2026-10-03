@@ -37,7 +37,7 @@ if ($isMontessori && $classGrade < 2) {
     <i class="fas fa-child fa-3x mb-3" style="color:#f59e0b;opacity:.7"></i>
     <h5 class="fw-bold mb-2">No Formal Exams for Your Class</h5>
     <p class="text-muted mb-3">Your class uses Progress Reports and Formative Assessment rather than formal examination date sheets.</p>
-    <a href="/portal/student/progress-report.php" class="btn btn-sm btn-primary"><i class="fas fa-chart-line me-1"></i>View Progress Report</a>
+    <a href="<?= url('/portal/student/progress-report.php') ?>" class="btn btn-sm btn-primary"><i class="fas fa-chart-line me-1"></i>View Progress Report</a>
   </div>
 </div>
 </div></div></div>
@@ -98,11 +98,10 @@ foreach ($sheets as $ds):
     <div class="d-flex gap-2 align-items-center flex-wrap">
       <small class="text-muted">AY: <?= h($ds['academic_year']) ?></small>
       <?php if ($ds['stored_filename']): ?>
-      <?php if (($ds['file_type'] ?? '') === 'pdf'): ?>
-      <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?>&inline=1" target="_blank" class="btn btn-sm btn-outline-info">
+      <?php $isPdf = ($ds['file_type'] ?? '') === 'pdf'; ?>
+      <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?><?= $isPdf ? '&inline=1' : '' ?>" target="_blank" class="btn btn-sm btn-outline-info">
         <i class="fas fa-eye me-1"></i>View
       </a>
-      <?php endif; ?>
       <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?>"
          class="btn btn-sm btn-success">
         <i class="fas fa-download me-1"></i>Download <?= strtoupper($ds['file_type'] ?? '') ?>

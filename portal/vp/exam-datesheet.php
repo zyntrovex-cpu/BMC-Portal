@@ -175,9 +175,8 @@ $links = getVpLinks();
           <td>
             <div class="d-flex flex-wrap gap-1">
               <?php if($ds['stored_filename']):?>
-              <?php if(($ds['file_type']??'')==='pdf'):?>
-              <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?>&inline=1" target="_blank" class="btn btn-xs btn-outline-info" style="font-size:.72rem;padding:2px 7px" title="View"><i class="fas fa-eye"></i></a>
-              <?php endif;?>
+              <?php $isPdf = ($ds['file_type']??'')==='pdf'; ?>
+              <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?><?= $isPdf?'&inline=1':'' ?>" target="_blank" class="btn btn-xs btn-outline-info" style="font-size:.72rem;padding:2px 7px" title="View"><i class="fas fa-eye me-1"></i>View</a>
               <a href="<?= url('/portal/api/serve-document.php') ?>?type=datesheet&id=<?= $ds['id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.72rem;padding:2px 7px" title="Download"><i class="fas fa-download"></i></a>
               <?php endif;?>
               <button class="btn btn-xs btn-outline-secondary" style="font-size:.72rem;padding:2px 7px" onclick="openReplace(<?= $ds['id'] ?>,<?= htmlspecialchars(json_encode($ds['title'])) ?>)"><i class="fas fa-sync"></i></button>
