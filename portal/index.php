@@ -309,9 +309,7 @@ body.phase2-active .site-footer   { display: none; }
 /* ── Phase 2 — Login form ── */
 #phase2 {
   display: none;
-  width: 100%;
-  /* max-width set by JS: 700px (student) or 440px (staff) */
-  max-width: 700px;
+  width: 100%; max-width: 460px;
 }
 
 .login-glass {
@@ -361,74 +359,6 @@ body.phase2-active .site-footer   { display: none; }
 }
 
 .login-glass-body { padding: clamp(16px, 2.5vh, 22px) 26px clamp(14px, 2.2vh, 22px); }
-
-/* ── Split layout: Student portal (wing left, form right) ── */
-.login-panel-left, .login-panel-right { display: contents; }
-
-.login-glass-body.split-layout {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  padding: 0;
-}
-.login-glass-body.split-layout .login-panel-left {
-  flex: 0 0 220px;
-  padding: clamp(16px,2.5vh,22px) 18px clamp(14px,2.2vh,20px) 22px;
-  border-right: 1px solid rgba(255,255,255,.1);
-  display: flex;
-  flex-direction: column;
-}
-.login-glass-body.split-layout .login-panel-right {
-  flex: 1;
-  min-width: 0;
-  padding: clamp(16px,2.5vh,22px) 24px clamp(14px,2.2vh,20px) 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-/* Wing tiles: vertical single-column with icon+text in a row */
-.login-glass-body.split-layout .wing-tiles-glass {
-  grid-template-columns: 1fr;
-  gap: 8px;
-  margin-bottom: 0;
-}
-.login-glass-body.split-layout .wing-tile-g {
-  padding: 9px 12px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-  text-align: left;
-  border-radius: 10px;
-}
-.login-glass-body.split-layout .wing-tile-g .wt-icon  { font-size:1.3rem; display:inline; margin-bottom:0; flex-shrink:0; }
-.login-glass-body.split-layout .wing-tile-g .wt-label { font-size:.8rem; }
-.login-glass-body.split-layout .wing-tile-g .wt-sub   { font-size:.63rem; margin-top:1px; }
-/* Back button fill in left panel */
-.login-glass-body.split-layout .btn-back-glass { margin-bottom: clamp(14px,2.2vh,20px); }
-/* Remove bottom margin from wing section in left panel */
-.login-glass-body.split-layout #wingSection { flex: 1; }
-
-/* Responsive: collapse to single column on narrow screens */
-@media (max-width: 640px) {
-  .login-glass-body.split-layout { flex-direction: column; padding: 14px 18px 16px; }
-  .login-glass-body.split-layout .login-panel-left {
-    flex: none; width: 100%;
-    border-right: none;
-    border-bottom: 1px solid rgba(255,255,255,.1);
-    padding: 0 0 14px;
-    margin-bottom: 14px;
-    display: block;
-  }
-  .login-glass-body.split-layout .login-panel-right { padding: 0; display: block; }
-  .login-glass-body.split-layout .wing-tiles-glass { grid-template-columns: repeat(3,1fr); }
-  .login-glass-body.split-layout .wing-tile-g {
-    flex-direction: column;
-    text-align: center;
-    gap: 4px;
-    padding: 9px 6px;
-  }
-}
 
 /* Back button */
 .btn-back-glass {
@@ -699,97 +629,87 @@ body.phase2-active .site-footer   { display: none; }
       </div>
 
       <!-- Glass body -->
-      <div class="login-glass-body" id="loginGlassBody">
+      <div class="login-glass-body">
 
-        <!-- Left panel: back + wing selection (student only) -->
-        <div class="login-panel-left">
+        <button class="btn-back-glass" type="button" onclick="goBack()" aria-label="Back to portal selection">
+          <i class="fas fa-arrow-left" aria-hidden="true"></i> Back
+        </button>
 
-          <button class="btn-back-glass" type="button" onclick="goBack()" aria-label="Back to portal selection">
-            <i class="fas fa-arrow-left" aria-hidden="true"></i> Back
+        <?php if ($error): ?>
+          <div class="alert-glass alert-glass-error">
+            <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+            <span><?= $error ?></span>
+          </div>
+        <?php endif; ?>
+
+        <!-- Wing tiles — student only -->
+        <div id="wingSection" style="display:none">
+          <div class="wing-label-glass">Select Wing</div>
+          <div class="wing-tiles-glass" role="radiogroup" aria-label="Select wing">
+            <div class="wing-tile-g active" id="wt-main"
+                 role="radio" aria-checked="true" tabindex="0"
+                 onclick="selectWing('main')"
+                 onkeydown="if(event.key==='Enter'||event.key===' ')selectWing('main')">
+              <span class="wt-icon" aria-hidden="true">🏫</span>
+              <div class="wt-label">Main</div>
+              <div class="wt-sub">Grades 8–12</div>
+            </div>
+            <div class="wing-tile-g" id="wt-montessori"
+                 role="radio" aria-checked="false" tabindex="0"
+                 onclick="selectWing('montessori')"
+                 onkeydown="if(event.key==='Enter'||event.key===' ')selectWing('montessori')">
+              <span class="wt-icon" aria-hidden="true">🌱</span>
+              <div class="wt-label">Montessori</div>
+              <div class="wt-sub">Early Years</div>
+            </div>
+            <div class="wing-tile-g" id="wt-ilc"
+                 role="radio" aria-checked="false" tabindex="0"
+                 onclick="selectWing('ilc')"
+                 onkeydown="if(event.key==='Enter'||event.key===' ')selectWing('ilc')">
+              <span class="wt-icon" aria-hidden="true">🤝</span>
+              <div class="wt-label">ILC</div>
+              <div class="wt-sub">Language Centre</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Credentials form -->
+        <div class="cred-divider-glass">Enter Credentials</div>
+
+        <form method="POST" id="loginForm" novalidate>
+          <input type="hidden" name="wing"      id="wingHidden"     value="main">
+          <input type="hidden" name="user_type" id="userTypeHidden" value="student">
+
+          <div class="field-group-glass">
+            <label for="userId">
+              <i class="fas fa-id-card" style="margin-right:5px;opacity:.6" aria-hidden="true"></i>User ID
+            </label>
+            <input type="text" name="user_id" id="userId"
+                   placeholder="e.g. 1001"
+                   value="<?= htmlspecialchars($_POST['user_id'] ?? '') ?>"
+                   required autocomplete="username">
+          </div>
+          <div class="field-group-glass">
+            <label for="password">
+              <i class="fas fa-key" style="margin-right:5px;opacity:.6" aria-hidden="true"></i>Password
+            </label>
+            <input type="password" name="password" id="password"
+                   placeholder="Enter your password"
+                   required autocomplete="current-password">
+          </div>
+
+          <button type="submit" class="btn-login-glass" id="loginBtn">
+            <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+            <span id="btnText">Sign In</span>
           </button>
+        </form>
 
-          <!-- Wing tiles — student only -->
-          <div id="wingSection" style="display:none">
-            <div class="wing-label-glass">Select Wing</div>
-            <div class="wing-tiles-glass" role="radiogroup" aria-label="Select wing">
-              <div class="wing-tile-g active" id="wt-main"
-                   role="radio" aria-checked="true" tabindex="0"
-                   onclick="selectWing('main')"
-                   onkeydown="if(event.key==='Enter'||event.key===' ')selectWing('main')">
-                <span class="wt-icon" aria-hidden="true">🏫</span>
-                <div class="wt-label">Main</div>
-                <div class="wt-sub">Grades 8–12</div>
-              </div>
-              <div class="wing-tile-g" id="wt-montessori"
-                   role="radio" aria-checked="false" tabindex="0"
-                   onclick="selectWing('montessori')"
-                   onkeydown="if(event.key==='Enter'||event.key===' ')selectWing('montessori')">
-                <span class="wt-icon" aria-hidden="true">🌱</span>
-                <div class="wt-label">Montessori</div>
-                <div class="wt-sub">Early Years</div>
-              </div>
-              <div class="wing-tile-g" id="wt-ilc"
-                   role="radio" aria-checked="false" tabindex="0"
-                   onclick="selectWing('ilc')"
-                   onkeydown="if(event.key==='Enter'||event.key===' ')selectWing('ilc')">
-                <span class="wt-icon" aria-hidden="true">🤝</span>
-                <div class="wt-label">ILC</div>
-                <div class="wt-sub">Language Centre</div>
-              </div>
-            </div>
-          </div>
-
-        </div><!-- /login-panel-left -->
-
-        <!-- Right panel: error + form + footer -->
-        <div class="login-panel-right">
-
-          <?php if ($error): ?>
-            <div class="alert-glass alert-glass-error">
-              <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
-              <span><?= $error ?></span>
-            </div>
-          <?php endif; ?>
-
-          <!-- Credentials form -->
-          <div class="cred-divider-glass">Enter Credentials</div>
-
-          <form method="POST" id="loginForm" novalidate>
-            <input type="hidden" name="wing"      id="wingHidden"     value="main">
-            <input type="hidden" name="user_type" id="userTypeHidden" value="student">
-
-            <div class="field-group-glass">
-              <label for="userId">
-                <i class="fas fa-id-card" style="margin-right:5px;opacity:.6" aria-hidden="true"></i>User ID
-              </label>
-              <input type="text" name="user_id" id="userId"
-                     placeholder="e.g. 1001"
-                     value="<?= htmlspecialchars($_POST['user_id'] ?? '') ?>"
-                     required autocomplete="username">
-            </div>
-            <div class="field-group-glass">
-              <label for="password">
-                <i class="fas fa-key" style="margin-right:5px;opacity:.6" aria-hidden="true"></i>Password
-              </label>
-              <input type="password" name="password" id="password"
-                     placeholder="Enter your password"
-                     required autocomplete="current-password">
-            </div>
-
-            <button type="submit" class="btn-login-glass" id="loginBtn">
-              <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
-              <span id="btnText">Sign In</span>
-            </button>
-          </form>
-
-          <div class="login-footer-glass">
-            <a href="forgot-password.php">
-              <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Forgot password?
-            </a>
-            <span>&copy; <?= date('Y') ?> BMC</span>
-          </div>
-
-        </div><!-- /login-panel-right -->
+        <div class="login-footer-glass">
+          <a href="forgot-password.php">
+            <i class="fas fa-question-circle me-1" aria-hidden="true"></i>Forgot password?
+          </a>
+          <span>&copy; <?= date('Y') ?> BMC</span>
+        </div>
 
       </div>
     </div>
@@ -867,10 +787,6 @@ function selectType(type) {
   document.getElementById('wingSection').style.display   = isStudent ? 'block' : 'none';
   document.getElementById('btnText').textContent         = isStudent ? 'Sign In as Student' : 'Sign In as Staff';
 
-  const body = document.getElementById('loginGlassBody');
-  body.classList.toggle('split-layout', isStudent);
-  document.getElementById('phase2').style.maxWidth = isStudent ? '720px' : '440px';
-
   const p1 = document.getElementById('phase1');
   const p2 = document.getElementById('phase2');
   p1.style.display = 'none';
@@ -885,7 +801,6 @@ function selectType(type) {
 function goBack() {
   const p1 = document.getElementById('phase1');
   const p2 = document.getElementById('phase2');
-  document.getElementById('loginGlassBody').classList.remove('split-layout');
   p2.style.display = 'none';
   p1.style.display = 'block';
   p1.classList.remove('anim-right');
@@ -917,9 +832,6 @@ function selectWing(wing) {
   applyTheme(isStudent ? WING_THEMES[wing] : STAFF_THEME);
   document.getElementById('wingSection').style.display = isStudent ? 'block' : 'none';
   document.getElementById('btnText').textContent = isStudent ? 'Sign In as Student' : 'Sign In as Staff';
-  const body = document.getElementById('loginGlassBody');
-  body.classList.toggle('split-layout', isStudent);
-  document.getElementById('phase2').style.maxWidth = isStudent ? '720px' : '440px';
   if (isStudent) selectWing(wing);
   document.getElementById('phase1').style.display = 'none';
   document.getElementById('phase2').style.display = 'block';
