@@ -300,6 +300,27 @@ function getDB(): PDO {
         try {
             $pdo->exec("ALTER TABLE montessori_daily_assessments ADD UNIQUE KEY uq_mda_student (student_id, subject_id, assessment_date)");
         } catch (Exception $e) {}
+
+        // Group 14: Montessori anecdotal records table
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS montessori_anecdotal_records (
+                id            INT          PRIMARY KEY AUTO_INCREMENT,
+                class_id      INT          NOT NULL,
+                student_id    INT          NOT NULL,
+                teacher_id    INT          NOT NULL,
+                subject_focus VARCHAR(200) NOT NULL DEFAULT 'General Observation',
+                record_date   DATE         NOT NULL,
+                topic         VARCHAR(300) DEFAULT NULL,
+                observation   TEXT         NOT NULL,
+                created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_mar_student (student_id, record_date),
+                INDEX idx_mar_class (class_id),
+                FOREIGN KEY (class_id)   REFERENCES classes(id)  ON DELETE CASCADE,
+                FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+                FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB");
+        } catch (Exception $e) {}
     }
     return $pdo;
 }

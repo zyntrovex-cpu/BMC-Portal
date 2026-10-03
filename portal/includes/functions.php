@@ -493,6 +493,7 @@ function getMonteTeacherLinks(): array {
         ['href'=>'/portal/teacher/profile.php',        'icon'=>'<i class="fas fa-user-circle"></i>',         'label'=>'My Profile',       'key'=>'profile'],
         ['href'=>'/portal/progress-report/form.php',       'icon'=>'<i class="fas fa-file-alt"></i>',              'label'=>'Progress Report',  'key'=>'progress-report'],
         ['href'=>'/portal/montessori/assessments.php',       'icon'=>'<i class="fas fa-clipboard-check"></i>',      'label'=>'Formative Assessment', 'key'=>'monte-assessments'],
+        ['href'=>'/portal/montessori/anecdotal-records.php','icon'=>'<i class="fas fa-sticky-note"></i>',           'label'=>'Anecdotal Records',    'key'=>'anecdotal-records'],
         hasPermission('attendance') ? ['href'=>'/portal/teacher/attendance.php',   'icon'=>'<i class="fas fa-calendar-check"></i>',          'label'=>'Attendance',       'key'=>'attendance'] : null,
         hasPermission('timetable')  ? ['href'=>'/portal/teacher/timetable.php',    'icon'=>'<i class="fas fa-table"></i>',                   'label'=>'My Timetable',     'key'=>'timetable']  : null,
         ['href'=>'/portal/teacher/exam-datesheet.php',     'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',  'key'=>'exam-datesheet'],
@@ -650,7 +651,8 @@ function getWingHeadLinks(): array {
         ['href'=>'/portal/wing-head/notices.php',        'icon'=>'<i class="fas fa-bell"></i>',              'label'=>'Notices',          'key'=>'notices'],
         ['href'=>'/portal/wing-head/exam-datesheet.php', 'icon'=>'<i class="fas fa-calendar-day"></i>',      'label'=>'Exam Date Sheets', 'key'=>'exam-datesheet'],
         ['href'=>'/portal/progress-report/form.php',     'icon'=>'<i class="fas fa-file-alt"></i>',          'label'=>'Progress Report',  'key'=>'progress-report'],
-        ['href'=>'/portal/montessori/assessments.php',   'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>'Formative Assessment','key'=>'monte-assessments'],
+        ['href'=>'/portal/montessori/assessments.php',      'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>'Formative Assessment','key'=>'monte-assessments'],
+        ['href'=>'/portal/montessori/anecdotal-records.php','icon'=>'<i class="fas fa-sticky-note"></i>',       'label'=>'Anecdotal Records',   'key'=>'anecdotal-records'],
     ]));
 }
 
