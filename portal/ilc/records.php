@@ -153,12 +153,12 @@ $links = getIlcLinks();
 <?php if (!$tableExists): ?>
 <div class="alert alert-warning">
   <i class="fas fa-exclamation-triangle me-2"></i>
-  The <code>ilc_session_records</code> table is missing. Run the ILC features migration SQL first.
+  <i class="fas fa-spinner fa-spin me-2"></i><strong>Database table initialising.</strong> Please refresh the page in a moment.
 </div>
 <?php elseif (!$studentColExists): ?>
-<div class="alert alert-info">
-  <i class="fas fa-info-circle me-2"></i>
-  Run <code>database/migrations/ilc_session_records_student.sql</code> to enable per-student session records.
+<div class="alert alert-warning">
+  <i class="fas fa-exclamation-triangle me-2"></i>
+  <i class="fas fa-spinner fa-spin me-2"></i><strong>Database column initialising.</strong> Please refresh the page in a moment.
 </div>
 <?php else: ?>
 

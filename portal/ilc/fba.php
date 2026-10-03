@@ -286,7 +286,7 @@ $links = getIlcLinks();
 <?php if (!$tableExists): ?>
 <div class="alert alert-warning">
   <i class="fas fa-exclamation-triangle me-2"></i>
-  <strong>Migration not applied.</strong> Run <code>database/migrations/fba_plans.sql</code> to create the FBA table. ⚠️ Back up your DB first!
+  <i class="fas fa-spinner fa-spin me-2"></i><strong>Database table initialising.</strong> Please refresh the page in a moment.
 </div>
 <?php else: ?>
 

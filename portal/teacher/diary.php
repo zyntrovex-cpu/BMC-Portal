@@ -140,7 +140,7 @@ $links = match($user['role']) {
 <?php if (!$tableExists): ?>
 <div class="alert alert-warning">
   <i class="fas fa-exclamation-triangle me-2"></i>
-  The daily diary tables are not set up yet. Ask admin to run the features migration SQL.
+  <i class="fas fa-spinner fa-spin me-2"></i>The diary system is initialising. Please refresh the page in a moment.
 </div>
 <?php else: ?>
 

@@ -219,17 +219,9 @@ $links = getIlcLinks();
 <?php if (!$tableExists): ?>
 <div class="alert alert-warning">
   <i class="fas fa-exclamation-triangle me-2"></i>
-  <strong>Migration not applied.</strong> Run <code>database/migrations/ilc_features.sql</code> first.
+  <i class="fas fa-spinner fa-spin me-2"></i><strong>Database table initialising.</strong> Please refresh the page in a moment.
 </div>
 <?php else: ?>
-
-<?php if (!$abaColExists): ?>
-<div class="alert alert-info" style="font-size:.82rem">
-  <i class="fas fa-info-circle me-1"></i>
-  For full ABA data storage, run <code>database/migrations/aba_therapy.sql</code>.
-  Basic monthly reports still work without it.
-</div>
-<?php endif; ?>
 
 <!-- ILC branding strip -->
 <div class="d-flex align-items-center gap-3 mb-3 p-3"

@@ -225,16 +225,9 @@ $links = getIlcLinks();
 <?php if (!$tableExists): ?>
 <div class="alert alert-warning">
   <i class="fas fa-exclamation-triangle me-2"></i>
-  <strong>Migration not applied.</strong> Run <code>database/migrations/ilc_features.sql</code> first.
+  <i class="fas fa-spinner fa-spin me-2"></i><strong>Database table initialising.</strong> Please refresh the page in a moment.
 </div>
 <?php else: ?>
-<?php if (!$assessColExists): ?>
-<div class="alert alert-info" style="font-size:.83rem">
-  <i class="fas fa-info-circle me-1"></i>
-  Run <code>database/migrations/speech_therapy_assessment.sql</code> to enable full assessment form storage.
-</div>
-<?php endif; ?>
-
 <!-- ILC strip -->
 <div class="d-flex align-items-center gap-3 mb-3 p-3"
      style="background:linear-gradient(90deg,#ecfeff,#f0fdf4);border-radius:10px;border:1px solid #a5f3fc;">

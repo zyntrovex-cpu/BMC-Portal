@@ -212,7 +212,7 @@ $links = getIlcLinks();
 <?php if (!$tableExists): ?>
 <div class="alert alert-warning">
   <i class="fas fa-exclamation-triangle me-2"></i>
-  <strong>Migration not applied.</strong> Run <code>database/migrations/ilc_academic_results.sql</code> to create the Academic Results table. ⚠️ Back up your DB first!
+  <i class="fas fa-spinner fa-spin me-2"></i><strong>Database table initialising.</strong> Please refresh the page in a moment.
 </div>
 <?php else: ?>
 

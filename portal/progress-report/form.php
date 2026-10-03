@@ -154,8 +154,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
 
         if ($action === 'update') {
             $id = (int)($_POST['result_id'] ?? 0);
-            $db->prepare('UPDATE progress_reports SET term=?,session=?,form_data=?,reported_by=? WHERE id=?')
-               ->execute([$term,$session,$json,$user['id'],$id]);
+            $db->prepare('UPDATE progress_reports SET term=?,session=?,form_data=?,reported_by=?,updated_at=NOW() WHERE id=? AND student_id=?')
+               ->execute([$term,$session,$json,$user['id'],$id,$studentId]);
             logActivity($user['id'],'pr_update',"Updated Progress Report #$id");
             setFlash('success','Progress Report updated.');
         } else {
@@ -168,8 +168,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
 
     if ($action === 'delete') {
         $id = (int)($_POST['result_id'] ?? 0);
-        if ($id) {
-            $db->prepare('DELETE FROM progress_reports WHERE id=?')->execute([$id]);
+        if ($id && $studentId && in_array($studentId, array_column($students, 'id'))) {
+            $db->prepare('DELETE FROM progress_reports WHERE id=? AND student_id=?')->execute([$id,$studentId]);
             logActivity($user['id'],'pr_delete',"Deleted Progress Report #$id");
             setFlash('success','Progress Report deleted.');
         }
@@ -231,7 +231,7 @@ pageHead('Progress Report', $role);
 <?php if (!$tableExists): ?>
 <div class="alert alert-warning">
   <i class="fas fa-exclamation-triangle me-2"></i>
-  <strong>Migration not applied.</strong> Run <code>database/migrations/progress_reports.sql</code> first.
+  <strong>Database table initialising.</strong> Please refresh the page in a moment.
 </div>
 <?php else: ?>
 
