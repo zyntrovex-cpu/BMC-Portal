@@ -13,6 +13,10 @@ RedirectMatch 403 ^/config/
 # PHP error handling
 php_flag display_errors Off
 
+# Allow uploads up to 10 MB
+php_value upload_max_filesize 10M
+php_value post_max_size 12M
+
 # Default DirectoryIndex
 DirectoryIndex index.php index.html
 

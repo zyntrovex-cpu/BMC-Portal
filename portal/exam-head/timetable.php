@@ -36,12 +36,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($file['error'] !== UPLOAD_ERR_OK) { setFlash('danger', 'Upload failed.'); redirect($selfUrl); }
 
         $storedName = 'tt_' . uniqid('', true) . '.' . $ext;
-        $dest       =  . $storedName;
+        $dest       = $uploadDir . $storedName;
         if (!move_uploaded_file($file['tmp_name'], $dest)) { setFlash('danger', 'Failed to save file.'); redirect($selfUrl); }
 
-        $db->prepare(
-            'INSERT INTO timetable_documents (title, wing, academic_year, notes, original_filename, stored_filename, file_type, file_size, uploaded_by) VALUES (?,?,?,?,?,?,?,?,?)'
-        )->execute([$title, $managerWing, $year, $notes, $origName, $storedName, $ext, $file['size'], $user['id']]);
+        try {
+            $db->prepare(
+                'INSERT INTO timetable_documents (title, wing, academic_year, notes, original_filename, stored_filename, file_type, file_size, uploaded_by) VALUES (?,?,?,?,?,?,?,?,?)'
+            )->execute([$title, $managerWing, $year, $notes, $origName, $storedName, $ext, $file['size'], $user['id']]);
+        } catch (\PDOException $e) {
+            @unlink($dest);
+            setFlash('danger', 'Database error: ' . $e->getMessage());
+            redirect($selfUrl);
+        }
 
         // Notify main-wing students and teachers
         try {
@@ -68,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $r->execute([$docId]);
         $row   = $r->fetch();
         if ($row && $row['wing'] === $managerWing) {
-            $p =  . $row['stored_filename'];
+            $p = $uploadDir . $row['stored_filename'];
             if (file_exists($p)) @unlink($p);
             $db->prepare('DELETE FROM timetable_documents WHERE id=?')->execute([$docId]);
             logActivity($user['id'], 'timetable_doc_delete', "Exam Head deleted timetable: \"" . $row['title'] . '"');
@@ -92,11 +98,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($file['size'] > $maxSize) { setFlash('danger', 'File too large.'); redirect($selfUrl); }
         if ($file['error'] !== UPLOAD_ERR_OK) { setFlash('danger', 'Upload failed.'); redirect($selfUrl); }
 
-        $oldPath =  . $row['stored_filename'];
+        $oldPath = $uploadDir . $row['stored_filename'];
         if (file_exists($oldPath)) @unlink($oldPath);
 
         $storedName = 'tt_' . uniqid('', true) . '.' . $ext;
-        $dest       =  . $storedName;
+        $dest       = $uploadDir . $storedName;
         if (!move_uploaded_file($file['tmp_name'], $dest)) { setFlash('danger', 'Failed to save file.'); redirect($selfUrl); }
 
         $db->prepare('UPDATE timetable_documents SET original_filename=?, stored_filename=?, file_type=?, file_size=? WHERE id=?')

@@ -5,15 +5,20 @@
 -- =====================================================================
 
 CREATE TABLE IF NOT EXISTS exam_date_sheets (
-  id            INT PRIMARY KEY AUTO_INCREMENT,
-  title         VARCHAR(200)  NOT NULL               COMMENT 'e.g. Mid-Term Exams 2025-2026',
-  wing          ENUM('main','montessori','ilc','all') NOT NULL DEFAULT 'all',
-  academic_year VARCHAR(20)   NOT NULL,
-  status        ENUM('draft','published')            NOT NULL DEFAULT 'draft',
-  notes         TEXT          DEFAULT NULL,
-  created_by    INT           NOT NULL,
-  created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
-  updated_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  id                INT PRIMARY KEY AUTO_INCREMENT,
+  title             VARCHAR(200)  NOT NULL               COMMENT 'e.g. Mid-Term Exams 2025-2026',
+  term              VARCHAR(100)  NOT NULL DEFAULT 'General',
+  wing              ENUM('main','montessori','ilc','all') NOT NULL DEFAULT 'all',
+  academic_year     VARCHAR(20)   NOT NULL,
+  status            ENUM('draft','published')            NOT NULL DEFAULT 'draft',
+  notes             TEXT          DEFAULT NULL,
+  original_filename VARCHAR(255)  DEFAULT NULL,
+  stored_filename   VARCHAR(255)  DEFAULT NULL,
+  file_type         VARCHAR(10)   DEFAULT NULL,
+  file_size         INT UNSIGNED  DEFAULT NULL,
+  created_by        INT           NOT NULL,
+  created_at        TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+  updated_at        TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 

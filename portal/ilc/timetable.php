@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($file['error'] !== UPLOAD_ERR_OK) { setFlash('danger', 'Upload failed.'); redirect('/portal/ilc/timetable.php'); }
 
         $storedName = 'tt_' . uniqid('', true) . '.' . $ext;
-        $dest       =  . $storedName;
+        $dest       = $uploadDir . $storedName;
         if (!move_uploaded_file($file['tmp_name'], $dest)) { setFlash('danger', 'Failed to save file.'); redirect('/portal/ilc/timetable.php'); }
 
         $db->prepare(
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $r->execute([$docId]);
         $row   = $r->fetch();
         if ($row && $row['wing'] === $managerWing) {
-            $p =  . $row['stored_filename'];
+            $p = $uploadDir . $row['stored_filename'];
             if (file_exists($p)) @unlink($p);
             $db->prepare('DELETE FROM timetable_documents WHERE id=?')->execute([$docId]);
             logActivity($user['id'], 'timetable_doc_delete', "ILC VP deleted timetable doc: \"" . $row['title'] . '"');
@@ -81,11 +81,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($file['size'] > $maxSize) { setFlash('danger', 'File too large.'); redirect('/portal/ilc/timetable.php'); }
         if ($file['error'] !== UPLOAD_ERR_OK) { setFlash('danger', 'Upload failed.'); redirect('/portal/ilc/timetable.php'); }
 
-        $oldPath =  . $row['stored_filename'];
+        $oldPath = $uploadDir . $row['stored_filename'];
         if (file_exists($oldPath)) @unlink($oldPath);
 
         $storedName = 'tt_' . uniqid('', true) . '.' . $ext;
-        $dest       =  . $storedName;
+        $dest       = $uploadDir . $storedName;
         if (!move_uploaded_file($file['tmp_name'], $dest)) { setFlash('danger', 'Failed to save file.'); redirect('/portal/ilc/timetable.php'); }
 
         $db->prepare('UPDATE timetable_documents SET original_filename=?, stored_filename=?, file_type=?, file_size=? WHERE id=?')

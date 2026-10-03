@@ -137,11 +137,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Load documents
-$docs = $db->query(
-    "SELECT td.*, u.name AS uploader_name
-     FROM timetable_documents td JOIN users u ON td.uploaded_by=u.id
-     ORDER BY td.created_at DESC"
-)->fetchAll();
+try {
+    $docs = $db->query(
+        "SELECT td.*, u.name AS uploader_name
+         FROM timetable_documents td JOIN users u ON td.uploaded_by=u.id
+         ORDER BY td.created_at DESC"
+    )->fetchAll();
+} catch (\Exception $e) {
+    $docs = [];
+}
 
 pageHead('Timetable Documents', 'admin');
 $links = getAdminLinks();
