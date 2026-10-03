@@ -4,18 +4,21 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher');
+$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head');
 requirePermission('timetable');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
-if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
+if (!$teacher) {
+    if ($user['role'] !== 'wing_head') { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
+    $teacher = ['id' => 0, 'subject_id' => 0, 'name' => $user['name'], 'is_ilc' => 0];
+}
 
 // Determine teacher's wing for timetable documents
 $teacherWing = 'main';
 try {
     if ($user['role'] === 'ilc_teacher' || (isset($teacher['is_ilc']) && $teacher['is_ilc'])) {
         $teacherWing = 'ilc';
-    } elseif ($user['role'] === 'montessori_teacher') {
+    } elseif ($user['role'] === 'montessori_teacher' || $user['role'] === 'wing_head') {
         $teacherWing = 'montessori';
     }
 } catch (Exception $e) {}
@@ -47,7 +50,12 @@ $days    = ['monday','tuesday','wednesday','thursday','friday'];
 $periods = range(1, 8);
 
 pageHead('Timetable', $user['role']);
-$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : ($user['role'] === 'ilc_teacher' ? getIlcTeacherLinks() : getTeacherLinks());
+$links = match($user['role']) {
+    'montessori_teacher' => getMonteTeacherLinks(),
+    'ilc_teacher'        => getIlcTeacherLinks(),
+    'wing_head'          => getWingHeadLinks(),
+    default              => getTeacherLinks(),
+};
 ?>
 <div class="portal-wrap">
 <?php sidebar($user['role'], 'timetable', $links, $user); ?>

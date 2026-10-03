@@ -4,11 +4,14 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher');
+$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head');
 requirePermission('attendance');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
-if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
+if (!$teacher) {
+    if ($user['role'] !== 'wing_head') { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
+    $teacher = ['id' => 0, 'subject_id' => 0, 'name' => $user['name'], 'is_ilc' => 0];
+}
 
 $tab       = $_GET['tab'] ?? 'take';
 $classId   = (int)($_GET['class_id']   ?? 0);
@@ -162,7 +165,12 @@ if ($tab === 'history') {
 }
 
 pageHead('Attendance', $user['role']);
-$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : ($user['role'] === 'ilc_teacher' ? getIlcTeacherLinks() : getTeacherLinks());
+$links = match($user['role']) {
+    'montessori_teacher' => getMonteTeacherLinks(),
+    'ilc_teacher'        => getIlcTeacherLinks(),
+    'wing_head'          => getWingHeadLinks(),
+    default              => getTeacherLinks(),
+};
 ?>
 <div class="portal-wrap">
 <?php sidebar($user['role'], 'attendance', $links, $user); ?>

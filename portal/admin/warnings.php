@@ -4,9 +4,9 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-// Auth: allow both admin and teacher
-$user = requireAuth('admin', 'teacher');
-if ($user['role'] === 'teacher') requirePermission('warnings');
+// Auth: allow admin, teacher, and wing_head (Coordinator Montessori)
+$user = requireAuth('admin', 'teacher', 'wing_head');
+if ($user['role'] === 'teacher' || $user['role'] === 'wing_head') requirePermission('warnings');
 
 $db = getDB();
 
@@ -100,9 +100,13 @@ try {
 
 $classes = getAllClasses();
 
-pageHead('Student Warnings', 'admin');
-$links = $user['role'] === 'admin' ? getAdminLinks() : getTeacherLinks();
-$portal = $user['role'] === 'admin' ? 'admin' : 'teacher';
+pageHead('Student Warnings', $user['role']);
+$links = match($user['role']) {
+    'admin'     => getAdminLinks(),
+    'wing_head' => getWingHeadLinks(),
+    default     => getTeacherLinks(),
+};
+$portal = $user['role'];
 ?>
 <div class="portal-wrap">
 <?php sidebar($portal, 'warnings', $links, $user); ?>
