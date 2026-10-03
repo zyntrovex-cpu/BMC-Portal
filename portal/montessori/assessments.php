@@ -253,22 +253,23 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
 .btn-crit-remove{background:none;border:1px solid #fca5a5;border-radius:4px;color:#ef4444;padding:2px 7px;font-size:.68rem;cursor:pointer;flex-shrink:0;transition:.1s}
 .btn-crit-remove:hover{background:#fee2e2}
 
-/* ─── Assessment Table ──────────────────────────────────────────── */
-.fa-table{width:100%;border-collapse:collapse;font-size:.82rem}
-.fa-table thead tr{background:#f8fafc}
-.fa-table th{padding:9px 10px;font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;border-bottom:2px solid #e2e8f0;white-space:nowrap;color:#374151}
-.fa-table th.col-name,.fa-table th.col-sr{text-align:left}
-.fa-table th.col-overall,.fa-table th.crit-hdr,.fa-table th.col-remarks{text-align:center}
-.fa-table tbody tr{border-bottom:1px solid #f1f5f9}
-.fa-table tbody tr:hover{background:#fafbfc}
-.fa-table td{padding:8px 10px;vertical-align:middle}
-.fa-table td.col-sr{color:#94a3b8;font-size:.74rem;text-align:left;width:32px}
-.fa-table td.col-name{text-align:left}
+/* ─── Student Rating Cards ──────────────────────────────────────── */
+.stu-cards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:14px 16px}
+@media(max-width:700px){.stu-cards-grid{grid-template-columns:1fr}}
+.stu-rating-card{border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;background:#fff}
+.stu-rating-card-header{background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:8px 12px;display:flex;align-items:center;gap:10px}
+.stu-card-num{width:22px;height:22px;border-radius:50%;background:#e2e8f0;color:#64748b;font-size:.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .stu-name{font-weight:600;font-size:.84rem;color:#1e293b;display:block}
 .stu-roll{font-size:.7rem;color:#94a3b8;display:block}
-.fa-table td.col-overall,.fa-table td.crit-col{text-align:center}
-.fa-table td.col-remarks{text-align:center;min-width:100px}
-.fa-remark-inp{font-size:.76rem!important;min-width:90px}
+.stu-rating-card-body{padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.crit-rating-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;border-radius:5px;background:#fafafa;border:1px solid #f1f5f9}
+.crit-label{font-size:.75rem;font-weight:600;color:#374151;flex-shrink:0;min-width:90px;max-width:130px;word-break:break-word}
+.crit-label-overall{color:#1d4ed8}
+.crit-label-remarks{color:#6b7280}
+.crit-rating-overall{background:#eff6ff;border-color:#bfdbfe}
+.crit-rating-remarks{background:#f9fafb;border-color:#e5e7eb;align-items:flex-start}
+.crit-rating-remarks .fa-remark-inp{flex:1;min-width:0}
+.fa-remark-inp{font-size:.76rem!important}
 
 /* ─── Rating Buttons ────────────────────────────────────────────── */
 .rtg-group{display:inline-flex;gap:3px;align-items:center}
@@ -530,68 +531,60 @@ $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherL
           </div>
           <?php else: ?>
 
-          <div class="table-responsive">
-            <table class="fa-table" id="fa-table-<?= $sid ?>">
-              <thead>
-                <tr>
-                  <th class="col-sr">#</th>
-                  <th class="col-name">Student</th>
-                  <?php foreach ($criteria as $crit): ?>
-                  <th class="crit-hdr" data-subj="<?= $sid ?>"><?= h($crit) ?></th>
-                  <?php endforeach; ?>
-                  <th class="col-overall">Overall</th>
-                  <th class="col-remarks">Remarks</th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php foreach ($students as $idx => $stu):
-                  $entry   = $entries[$stu['id']] ?? null;
-                  $ratings = $entry ? ($entry['ratings_arr'] ?? []) : [];
-                  $overall = $entry ? ($entry['overall']     ?? '') : '';
-                  $remark  = $entry ? ($entry['remarks']     ?? '') : '';
-                ?>
-                <tr>
-                  <td class="col-sr"><?= $idx + 1 ?></td>
-                  <td class="col-name">
-                    <span class="stu-name"><?= h($stu['name']) ?></span>
-                    <?php $rno = $stu['roll_no'] ?: ($stu['roll_no_login'] ?? ''); if ($rno): ?>
-                    <span class="stu-roll">Roll: <?= h($rno) ?></span>
-                    <?php endif; ?>
-                  </td>
-                  <?php foreach ($criteria as $crit): ?>
-                  <td class="crit-col">
-                    <div class="rtg-group" data-crit="<?= h($crit) ?>">
-                      <input type="hidden" name="ratings[<?= $stu['id'] ?>][<?= h($crit) ?>]"
-                             value="<?= h($ratings[$crit] ?? '') ?>">
-                      <?php foreach (['AD','ED','EMD'] as $rv): ?>
-                      <button type="button" class="rtg-btn <?= ($ratings[$crit]??'')===$rv?'sel-'.$rv:'' ?>"
-                              data-val="<?= $rv ?>"
-                              <?= $teacher ? '' : 'disabled' ?>><?= $rv ?></button>
-                      <?php endforeach; ?>
-                    </div>
-                  </td>
-                  <?php endforeach; ?>
-                  <td class="col-overall">
-                    <div class="rtg-group">
-                      <input type="hidden" name="overall[<?= $stu['id'] ?>]" value="<?= h($overall) ?>">
-                      <?php foreach (['AD','ED','EMD'] as $rv): ?>
-                      <button type="button" class="rtg-btn <?= $overall===$rv?'sel-'.$rv:'' ?>"
-                              data-val="<?= $rv ?>"
-                              <?= $teacher ? '' : 'disabled' ?>><?= $rv ?></button>
-                      <?php endforeach; ?>
-                    </div>
-                  </td>
-                  <td class="col-remarks">
-                    <input type="text" name="remarks[<?= $stu['id'] ?>]"
-                           class="form-control form-control-sm fa-remark-inp"
-                           value="<?= h($remark) ?>"
-                           placeholder="Optional note…"
-                           <?= $teacher ? '' : 'readonly' ?>>
-                  </td>
-                </tr>
+          <div id="fa-table-<?= $sid ?>" class="stu-cards-grid">
+            <?php foreach ($students as $idx => $stu):
+              $entry   = $entries[$stu['id']] ?? null;
+              $ratings = $entry ? ($entry['ratings_arr'] ?? []) : [];
+              $overall = $entry ? ($entry['overall']     ?? '') : '';
+              $remark  = $entry ? ($entry['remarks']     ?? '') : '';
+            ?>
+            <div class="stu-rating-card">
+              <div class="stu-rating-card-header">
+                <span class="stu-card-num"><?= $idx + 1 ?></span>
+                <div>
+                  <span class="stu-name"><?= h($stu['name']) ?></span>
+                  <?php $rno = $stu['roll_no'] ?: ($stu['roll_no_login'] ?? ''); if ($rno): ?>
+                  <span class="stu-roll">Roll: <?= h($rno) ?></span>
+                  <?php endif; ?>
+                </div>
+              </div>
+              <div class="stu-rating-card-body">
+                <?php foreach ($criteria as $crit): ?>
+                <div class="crit-rating-row" data-subj="<?= $sid ?>">
+                  <span class="crit-label crit-hdr" data-subj="<?= $sid ?>"><?= h($crit) ?></span>
+                  <div class="rtg-group" data-crit="<?= h($crit) ?>">
+                    <input type="hidden" name="ratings[<?= $stu['id'] ?>][<?= h($crit) ?>]"
+                           value="<?= h($ratings[$crit] ?? '') ?>">
+                    <?php foreach (['AD','ED','EMD'] as $rv): ?>
+                    <button type="button" class="rtg-btn <?= ($ratings[$crit]??'')===$rv?'sel-'.$rv:'' ?>"
+                            data-val="<?= $rv ?>"
+                            <?= $teacher ? '' : 'disabled' ?>><?= $rv ?></button>
+                    <?php endforeach; ?>
+                  </div>
+                </div>
                 <?php endforeach; ?>
-              </tbody>
-            </table>
+                <div class="crit-rating-row crit-rating-overall">
+                  <span class="crit-label crit-label-overall">Overall</span>
+                  <div class="rtg-group">
+                    <input type="hidden" name="overall[<?= $stu['id'] ?>]" value="<?= h($overall) ?>">
+                    <?php foreach (['AD','ED','EMD'] as $rv): ?>
+                    <button type="button" class="rtg-btn <?= $overall===$rv?'sel-'.$rv:'' ?>"
+                            data-val="<?= $rv ?>"
+                            <?= $teacher ? '' : 'disabled' ?>><?= $rv ?></button>
+                    <?php endforeach; ?>
+                  </div>
+                </div>
+                <div class="crit-rating-row crit-rating-remarks">
+                  <span class="crit-label crit-label-remarks">Remarks</span>
+                  <input type="text" name="remarks[<?= $stu['id'] ?>]"
+                         class="form-control form-control-sm fa-remark-inp"
+                         value="<?= h($remark) ?>"
+                         placeholder="Optional note…"
+                         <?= $teacher ? '' : 'readonly' ?>>
+                </div>
+              </div>
+            </div>
+            <?php endforeach; ?>
           </div>
 
           <!-- Legend + Save -->
@@ -761,7 +754,7 @@ document.addEventListener('click', function(e) {
 // ── Add Criterion ─────────────────────────────────────────────────
 function addCrit(sid) {
   var list  = document.getElementById('crit-list-' + sid);
-  var table = document.getElementById('fa-table-' + sid);
+  var grid  = document.getElementById('fa-table-' + sid);
   var idx   = list.querySelectorAll('.crit-item').length;
   var label = 'Criterion ' + (idx + 1);
 
@@ -778,34 +771,25 @@ function addCrit(sid) {
     '<i class="fas fa-times"></i></button>';
   list.appendChild(item);
 
-  // Add column to table header (before Overall column)
-  var thead  = table.querySelector('thead tr');
-  var ths    = thead.querySelectorAll('th');
-  var lastTh = ths[ths.length - 1]; // Remarks
-  var overTh = ths[ths.length - 2]; // Overall
-  var newTh  = document.createElement('th');
-  newTh.className = 'crit-hdr';
-  newTh.dataset.subj = sid;
-  newTh.textContent  = label;
-  thead.insertBefore(newTh, overTh);
-
-  // Add cell to each body row (before Overall cell)
-  table.querySelectorAll('tbody tr').forEach(function(tr) {
-    var tds     = tr.querySelectorAll('td');
-    var overTd  = tds[tds.length - 2]; // Overall
-    var hiddenO = overTd.querySelector('input[type=hidden]');
-    var stuMatch = hiddenO ? hiddenO.name.match(/overall\[(\d+)\]/) : null;
+  // Add criterion row to each student card (before .crit-rating-overall)
+  grid.querySelectorAll('.stu-rating-card').forEach(function(card) {
+    var body    = card.querySelector('.stu-rating-card-body');
+    var overall = body.querySelector('.crit-rating-overall');
+    var hidden  = overall.querySelector('input[type=hidden]');
+    var stuMatch = hidden ? hidden.name.match(/overall\[(\d+)\]/) : null;
     var stuId   = stuMatch ? stuMatch[1] : 0;
-    var newTd   = document.createElement('td');
-    newTd.className = 'crit-col';
-    newTd.innerHTML =
+    var row     = document.createElement('div');
+    row.className = 'crit-rating-row';
+    row.dataset.subj = sid;
+    row.innerHTML =
+      '<span class="crit-label crit-hdr" data-subj="' + sid + '">' + label + '</span>' +
       '<div class="rtg-group" data-crit="' + label + '">' +
       '<input type="hidden" name="ratings[' + stuId + '][' + label + ']" value="">' +
       '<button type="button" class="rtg-btn" data-val="AD">AD</button>' +
       '<button type="button" class="rtg-btn" data-val="ED">ED</button>' +
       '<button type="button" class="rtg-btn" data-val="EMD">EMD</button>' +
       '</div>';
-    tr.insertBefore(newTd, overTd);
+    body.insertBefore(row, overall);
   });
 }
 
@@ -821,38 +805,39 @@ function removeCrit(sid, btn) {
   var idx   = items.indexOf(item);
   item.remove();
 
-  var table = document.getElementById('fa-table-' + sid);
-  var hdrs  = table.querySelectorAll('thead .crit-hdr');
-  if (hdrs[idx]) hdrs[idx].remove();
-
-  table.querySelectorAll('tbody tr').forEach(function(tr) {
-    var critTds = [];
-    tr.querySelectorAll('td').forEach(function(td, i) {
-      if (i >= 2 && i <= 2 + hdrs.length) critTds.push(td);
-    });
-    if (critTds[idx]) critTds[idx].remove();
+  // Remove corresponding criterion row from each student card
+  var grid = document.getElementById('fa-table-' + sid);
+  grid.querySelectorAll('.stu-rating-card').forEach(function(card) {
+    var body = card.querySelector('.stu-rating-card-body');
+    var rows = Array.from(body.querySelectorAll(
+      '.crit-rating-row:not(.crit-rating-overall):not(.crit-rating-remarks)'
+    ));
+    if (rows[idx]) rows[idx].remove();
   });
 }
 
 // ── Sync Headers when Criterion Name Changes ──────────────────────
 function syncHeaders(sid) {
   var list  = document.getElementById('crit-list-' + sid);
-  var table = document.getElementById('fa-table-' + sid);
+  var grid  = document.getElementById('fa-table-' + sid);
   var inps  = list.querySelectorAll('input.crit-inp[data-subj="' + sid + '"]');
-  var hdrs  = table.querySelectorAll('thead .crit-hdr[data-subj="' + sid + '"]');
+  var cards = grid.querySelectorAll('.stu-rating-card');
   inps.forEach(function(inp, i) {
     var label = inp.value.trim() || ('Criterion ' + (i + 1));
-    if (hdrs[i]) hdrs[i].textContent = label;
-    // Rename hidden input fields in that column
-    table.querySelectorAll('tbody tr').forEach(function(tr) {
-      var tds = tr.querySelectorAll('td');
-      var td  = tds[2 + i];
-      if (!td) return;
-      var hidden = td.querySelector('input[type=hidden]');
-      if (!hidden) return;
-      var m = hidden.name.match(/ratings\[(\d+)\]/);
-      if (m) hidden.name = 'ratings[' + m[1] + '][' + label + ']';
-      var grp = td.querySelector('.rtg-group');
+    cards.forEach(function(card) {
+      var body = card.querySelector('.stu-rating-card-body');
+      var rows = Array.from(body.querySelectorAll(
+        '.crit-rating-row:not(.crit-rating-overall):not(.crit-rating-remarks)'
+      ));
+      if (!rows[i]) return;
+      var lbl    = rows[i].querySelector('.crit-label');
+      var hidden = rows[i].querySelector('input[type=hidden]');
+      var grp    = rows[i].querySelector('.rtg-group');
+      if (lbl) lbl.textContent = label;
+      if (hidden) {
+        var m = hidden.name.match(/ratings\[(\d+)\]/);
+        if (m) hidden.name = 'ratings[' + m[1] + '][' + label + ']';
+      }
       if (grp) grp.dataset.crit = label;
     });
   });
