@@ -10,6 +10,8 @@ $yearNow = (int)date('Y');
 
 $allowedTypes = ['pdf', 'xlsx', 'xls', 'doc', 'docx'];
 $maxSize      = 10 * 1024 * 1024; // 10 MB
+$uploadDir    = __DIR__ . '/../../uploads/documents/';
+if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
@@ -47,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $storedName = 'tt_' . uniqid('', true) . '.' . $ext;
-        $dest       = __DIR__ . '/../../uploads/documents/' . $storedName;
+        $dest       = $uploadDir . $storedName;
 
         if (!move_uploaded_file($file['tmp_name'], $dest)) {
             setFlash('danger', 'Failed to save file. Please try again.');
@@ -71,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $r->execute([$docId]);
             $row = $r->fetch();
             if ($row) {
-                $filePath = __DIR__ . '/../../uploads/documents/' . $row['stored_filename'];
+                $filePath = $uploadDir . $row['stored_filename'];
                 if (file_exists($filePath)) @unlink($filePath);
                 $db->prepare('DELETE FROM timetable_documents WHERE id=?')->execute([$docId]);
                 logActivity($user['id'], 'timetable_doc_delete', "Deleted timetable doc: \"" . $row['title'] . '"');
@@ -111,12 +113,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $old->execute([$docId]);
         $oldRow = $old->fetch();
         if ($oldRow) {
-            $oldPath = __DIR__ . '/../../uploads/documents/' . $oldRow['stored_filename'];
+            $oldPath = $uploadDir . $oldRow['stored_filename'];
             if (file_exists($oldPath)) @unlink($oldPath);
         }
 
         $storedName = 'tt_' . uniqid('', true) . '.' . $ext;
-        $dest       = __DIR__ . '/../../uploads/documents/' . $storedName;
+        $dest       = $uploadDir . $storedName;
         if (!move_uploaded_file($file['tmp_name'], $dest)) {
             setFlash('danger', 'Failed to save file.');
             redirect('/portal/admin/timetable.php');

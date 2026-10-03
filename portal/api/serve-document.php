@@ -95,13 +95,29 @@ if ($type === 'timetable') {
 
 if (!$storedFilename) {
     http_response_code(404);
-    exit('Document not found.');
+    exit('Document record not found.');
 }
 
 $filePath = __DIR__ . '/../../uploads/documents/' . $storedFilename;
 if (!file_exists($filePath) || !is_file($filePath)) {
     http_response_code(404);
-    exit('File not found on server.');
+    // Friendly HTML error so the user understands what happened
+    $orig = htmlspecialchars($originalFilename ?? $storedFilename);
+    echo "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'><title>File Not Found</title>
+    <style>body{font-family:Arial,sans-serif;background:#f8fafc;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+    .box{background:#fff;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.1);padding:36px 40px;max-width:480px;text-align:center}
+    .icon{font-size:3rem;color:#f59e0b;margin-bottom:12px}h2{color:#1e293b;margin:0 0 8px}
+    p{color:#64748b;font-size:.92rem;line-height:1.6}code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:.83rem}
+    .btn{display:inline-block;margin-top:18px;padding:9px 20px;background:#1e3a5f;color:#fff;border-radius:6px;text-decoration:none;font-size:.88rem}
+    </style></head><body><div class='box'>
+    <div class='icon'>&#9888;</div>
+    <h2>File Not Found</h2>
+    <p>The file <code>$orig</code> is recorded in the database but does not exist on the server disk.</p>
+    <p>This usually means the file was deleted, the <code>uploads/documents/</code> folder is missing or not writable, or the record was imported without its file.</p>
+    <p><strong>To fix:</strong> use the <em>Replace</em> button on the datesheet/timetable page to re-upload the file.</p>
+    <a class='btn' href='javascript:history.back()'>&#8592; Go Back</a>
+    </div></body></html>";
+    exit;
 }
 
 $ext = strtolower(pathinfo($storedFilename, PATHINFO_EXTENSION));

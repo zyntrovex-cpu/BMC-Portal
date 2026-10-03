@@ -14,6 +14,7 @@ $termOptions  = ['Mid-Term', 'Final-Term', 'Unit Test 1', 'Unit Test 2', 'Annual
 $allowedTypes = ['pdf', 'xlsx', 'xls', 'doc', 'docx'];
 $maxSize      = 10 * 1024 * 1024;
 $uploadDir    = __DIR__ . '/../../uploads/documents/';
+if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
 function adminDsUpload(array $file, array $allowedTypes, int $maxSize, string $uploadDir): array {
     $origName = basename($file['name']);

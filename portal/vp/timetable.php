@@ -12,6 +12,9 @@ $managerWing = 'main';
 $allowedTypes = ['pdf', 'xlsx', 'xls', 'doc', 'docx'];
 $maxSize      = 10 * 1024 * 1024;
 
+$uploadDir = __DIR__ . '/../../uploads/documents/';
+if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -35,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($file['error'] !== UPLOAD_ERR_OK) { setFlash('danger', 'Upload failed.'); redirect('/portal/vp/timetable.php'); }
 
         $storedName = 'tt_' . uniqid('', true) . '.' . $ext;
-        $dest       = __DIR__ . '/../../uploads/documents/' . $storedName;
+        $dest       =  . $storedName;
         if (!move_uploaded_file($file['tmp_name'], $dest)) { setFlash('danger', 'Failed to save file.'); redirect('/portal/vp/timetable.php'); }
 
         $db->prepare(
@@ -54,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $r->execute([$docId]);
         $row   = $r->fetch();
         if ($row && $row['wing'] === $managerWing) {
-            $p = __DIR__ . '/../../uploads/documents/' . $row['stored_filename'];
+            $p =  . $row['stored_filename'];
             if (file_exists($p)) @unlink($p);
             $db->prepare('DELETE FROM timetable_documents WHERE id=?')->execute([$docId]);
             logActivity($user['id'], 'timetable_doc_delete', "VP deleted timetable doc: \"" . $row['title'] . '"');
@@ -78,11 +81,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($file['size'] > $maxSize) { setFlash('danger', 'File too large.'); redirect('/portal/vp/timetable.php'); }
         if ($file['error'] !== UPLOAD_ERR_OK) { setFlash('danger', 'Upload failed.'); redirect('/portal/vp/timetable.php'); }
 
-        $oldPath = __DIR__ . '/../../uploads/documents/' . $row['stored_filename'];
+        $oldPath =  . $row['stored_filename'];
         if (file_exists($oldPath)) @unlink($oldPath);
 
         $storedName = 'tt_' . uniqid('', true) . '.' . $ext;
-        $dest       = __DIR__ . '/../../uploads/documents/' . $storedName;
+        $dest       =  . $storedName;
         if (!move_uploaded_file($file['tmp_name'], $dest)) { setFlash('danger', 'Failed to save file.'); redirect('/portal/vp/timetable.php'); }
 
         $db->prepare('UPDATE timetable_documents SET original_filename=?, stored_filename=?, file_type=?, file_size=? WHERE id=?')
