@@ -126,6 +126,7 @@ $links = match($user['role']) {
     'montessori_teacher' => getMonteTeacherLinks(),
     'ilc_teacher'        => getIlcTeacherLinks(),
     'wing_head'          => getWingHeadLinks(),
+    'vp_montessori'      => getVpMontessoriLinks(),
     default              => getTeacherLinks(),
 };
 ?>

@@ -329,9 +329,17 @@ if ($selClassId && !empty($students)) {
 }
 $totalSubjects = count($subjects);
 
-$portalRole = ($user['role']==='wing_head') ? 'wing_head' : 'montessori_teacher';
+$portalRole = match($user['role']) {
+    'wing_head'     => 'wing_head',
+    'vp_montessori' => 'vp_montessori',
+    default         => 'montessori_teacher',
+};
 pageHead('Formative Assessment',$portalRole);
-$links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLinks();
+$links = match($user['role']) {
+    'wing_head'     => getWingHeadLinks(),
+    'vp_montessori' => getVpMontessoriLinks(),
+    default         => getMonteTeacherLinks(),
+};
 ?>
 <style>
 /* ─── Student Picker Grid ───────────────────────────────────────── */

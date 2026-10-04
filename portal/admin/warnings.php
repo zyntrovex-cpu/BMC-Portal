@@ -113,6 +113,7 @@ pageHead('Student Warnings', $user['role']);
 $links = match($user['role']) {
     'admin'              => getAdminLinks(),
     'wing_head'          => getWingHeadLinks(),
+    'vp_montessori'      => getVpMontessoriLinks(),
     'montessori_teacher' => getMonteTeacherLinks(),
     'ilc_teacher'        => getIlcTeacherLinks(),
     default              => getTeacherLinks(),

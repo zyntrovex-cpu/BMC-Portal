@@ -4,12 +4,11 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head', 'vp_montessori');
-requirePermission('timetable');
+$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
 if (!$teacher) {
-    if (!in_array($user['role'], ['wing_head', 'vp_montessori'], true)) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
+    if ($user['role'] !== 'wing_head') { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
     $teacher = ['id' => 0, 'subject_id' => 0, 'name' => $user['name'], 'is_ilc' => 0];
 }
 
@@ -18,7 +17,7 @@ $teacherWing = 'main';
 try {
     if ($user['role'] === 'ilc_teacher' || (isset($teacher['is_ilc']) && $teacher['is_ilc'])) {
         $teacherWing = 'ilc';
-    } elseif (in_array($user['role'], ['montessori_teacher', 'wing_head', 'vp_montessori'], true)) {
+    } elseif (in_array($user['role'], ['montessori_teacher', 'wing_head'], true)) {
         $teacherWing = 'montessori';
     }
 } catch (Exception $e) {}
@@ -40,7 +39,6 @@ $links = match($user['role']) {
     'montessori_teacher' => getMonteTeacherLinks(),
     'ilc_teacher'        => getIlcTeacherLinks(),
     'wing_head'          => getWingHeadLinks(),
-    'vp_montessori'      => getVpMontessoriLinks(),
     default              => getTeacherLinks(),
 };
 ?>

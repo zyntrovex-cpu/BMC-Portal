@@ -101,7 +101,11 @@ $totalPages = $total > 0 ? (int)ceil($total / $perPage) : 1;
 
 $portalRole = in_array($user['role'], ['wing_head','vp_montessori']) ? $user['role'] : 'montessori_teacher';
 pageHead('Anecdotal Record History', $portalRole);
-$links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherLinks();
+$links = match($user['role']) {
+    'wing_head'     => getWingHeadLinks(),
+    'vp_montessori' => getVpMontessoriLinks(),
+    default         => getMonteTeacherLinks(),
+};
 ?>
 <style>
 .obs-preview{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:#475569;font-size:.79rem}

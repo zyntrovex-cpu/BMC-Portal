@@ -128,7 +128,11 @@ $totalPages = $total > 0 ? (int)ceil($total / $perPage) : 1;
 
 $portalRole = in_array($user['role'], ['wing_head','vp_montessori']) ? $user['role'] : 'montessori_teacher';
 pageHead('Formative Assessment History', $portalRole);
-$links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherLinks();
+$links = match($user['role']) {
+    'wing_head'     => getWingHeadLinks(),
+    'vp_montessori' => getVpMontessoriLinks(),
+    default         => getMonteTeacherLinks(),
+};
 ?>
 <div class="portal-wrap">
 <?php sidebar($portalRole,'monte-assessments',$links,$user); ?>
