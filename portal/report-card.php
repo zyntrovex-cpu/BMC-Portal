@@ -12,13 +12,14 @@
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
 
-$user = requireAuth('admin', 'vp_main', 'student_affairs', 'student', 'wing_head');
+$user = requireAuth('admin', 'vp_main', 'student_affairs', 'student', 'wing_head', 'examination_head');
 $db   = getDB();
 $role = $user['role'];
 
-if ($role === 'vp_main')         requirePermission('vp_results');
-elseif ($role === 'student_affairs') requirePermission('sa_students');
-elseif ($role === 'wing_head')   requirePermission('wh_students');
+if ($role === 'vp_main')              requirePermission('vp_results');
+elseif ($role === 'student_affairs')  requirePermission('sa_students');
+elseif ($role === 'wing_head')        requirePermission('wh_students');
+elseif ($role === 'examination_head') requirePermission('eh_results');
 
 if ($role === 'student') {
     $me = getStudentByUserId($user['id']);
@@ -60,6 +61,14 @@ try {
 }
 $student = $st->fetch();
 if (!$student) { redirect('/portal/index.php?msg=unauthorized'); }
+
+// Examination Head: block access to ILC / Montessori students (main campus only)
+if ($role === 'examination_head') {
+    $cWing = strtolower($student['class_wing'] ?? 'main');
+    if ($cWing !== 'main') {
+        redirect('/portal/exam-head/results.php');
+    }
+}
 
 // ── Class-based routing rules ─────────────────────────────
 $classGrade = (int)($student['class_grade'] ?? 99);

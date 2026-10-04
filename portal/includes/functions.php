@@ -291,6 +291,7 @@ function getRolePermissions(string $role): array {
         ],
         'examination_head' => [
             'eh_marks'      => ['label' => 'Assessments & Marks',  'icon' => 'fa-pen-alt'],
+            'eh_results'    => ['label' => 'Results',              'icon' => 'fa-chart-bar'],
             'eh_timetable'  => ['label' => 'Timetable',            'icon' => 'fa-table'],
             'eh_datesheet'  => ['label' => 'Exam Date Sheets',     'icon' => 'fa-calendar-day'],
             'eh_syllabus'   => ['label' => 'Syllabus Management',  'icon' => 'fa-book'],
@@ -651,6 +652,7 @@ function getExamHeadLinks(): array {
     return array_values(array_filter([
         ['href'=>'/portal/exam-head/dashboard.php',      'icon'=>'<i class="fas fa-home"></i>',             'label'=>'Dashboard',            'key'=>'dashboard'],
         hasPermission('eh_marks')     ? ['href'=>'/portal/exam-head/marks.php',       'icon'=>'<i class="fas fa-pen-alt"></i>',       'label'=>'Assessments & Marks',  'key'=>'marks']        : null,
+        hasPermission('eh_results')   ? ['href'=>'/portal/exam-head/results.php',     'icon'=>'<i class="fas fa-chart-bar"></i>',     'label'=>'Results',              'key'=>'results']      : null,
         hasPermission('eh_timetable') ? ['href'=>'/portal/exam-head/timetable.php',   'icon'=>'<i class="fas fa-table"></i>',         'label'=>'Timetable',            'key'=>'timetable']    : null,
         hasPermission('eh_datesheet') ? ['href'=>'/portal/exam-head/exam-datesheet.php','icon'=>'<i class="fas fa-calendar-day"></i>','label'=>'Date Sheets',          'key'=>'exam-datesheet']: null,
         hasPermission('eh_syllabus')  ? ['href'=>'/portal/exam-head/syllabus.php',    'icon'=>'<i class="fas fa-book"></i>',          'label'=>'Syllabus',             'key'=>'syllabus']     : null,

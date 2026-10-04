@@ -196,6 +196,11 @@ $links = getExamHeadLinks();
           <i class="fas fa-pen-alt me-2"></i>Assessments &amp; Marks
         </a>
         <?php endif; ?>
+        <?php if (hasPermission('eh_results')): ?>
+        <a href="/portal/exam-head/results.php" class="btn btn-outline-primary btn-sm text-start">
+          <i class="fas fa-chart-bar me-2"></i>View Results &amp; Report Cards
+        </a>
+        <?php endif; ?>
       </div>
     </div>
   </div>
