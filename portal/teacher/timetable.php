@@ -9,7 +9,7 @@ requirePermission('timetable');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
 if (!$teacher) {
-    if ($user['role'] !== 'wing_head') { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
+    if (!in_array($user['role'], ['wing_head', 'vp_montessori'], true)) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
     $teacher = ['id' => 0, 'subject_id' => 0, 'name' => $user['name'], 'is_ilc' => 0];
 }
 
@@ -18,7 +18,7 @@ $teacherWing = 'main';
 try {
     if ($user['role'] === 'ilc_teacher' || (isset($teacher['is_ilc']) && $teacher['is_ilc'])) {
         $teacherWing = 'ilc';
-    } elseif ($user['role'] === 'montessori_teacher' || $user['role'] === 'wing_head') {
+    } elseif (in_array($user['role'], ['montessori_teacher', 'wing_head', 'vp_montessori'], true)) {
         $teacherWing = 'montessori';
     }
 } catch (Exception $e) {}
@@ -40,6 +40,7 @@ $links = match($user['role']) {
     'montessori_teacher' => getMonteTeacherLinks(),
     'ilc_teacher'        => getIlcTeacherLinks(),
     'wing_head'          => getWingHeadLinks(),
+    'vp_montessori'      => getVpMontessoriLinks(),
     default              => getTeacherLinks(),
 };
 ?>

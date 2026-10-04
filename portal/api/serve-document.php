@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../config/config.php';
 
 // Any authenticated user may download documents
 $user = requireAuth(
-    'admin', 'vp_main', 'ilc_vp', 'wing_head', 'finance',
+    'admin', 'vp_main', 'ilc_vp', 'wing_head', 'vp_montessori', 'finance',
     'student_affairs', 'teacher', 'montessori_teacher', 'ilc_teacher',
     'student', 'examination_head'
 );
@@ -23,10 +23,44 @@ $storedFilename   = null;
 $originalFilename = null;
 
 if ($type === 'timetable') {
-    $st = $db->prepare('SELECT stored_filename, original_filename FROM timetable_documents WHERE id=?');
+    $st = $db->prepare('SELECT stored_filename, original_filename, wing FROM timetable_documents WHERE id=?');
     $st->execute([$id]);
     $row = $st->fetch();
     if ($row) {
+        // Wing-based access control: users may only download documents for their own campus.
+        // Admins bypass this check; 'all' wing documents are visible to every campus.
+        if ($user['role'] !== 'admin' && ($row['wing'] ?? 'all') !== 'all') {
+            $docWing  = $row['wing'];
+            $userWing = 'main'; // default
+            $role     = $user['role'];
+            if (in_array($role, ['montessori_teacher', 'wing_head', 'vp_montessori'], true)) {
+                $userWing = 'montessori';
+            } elseif (in_array($role, ['ilc_teacher', 'ilc_vp'], true)) {
+                $userWing = 'ilc';
+            } elseif ($role === 'teacher') {
+                // Regular teacher: check is_ilc flag on their teacher record
+                try {
+                    $t = getTeacherByUserId($user['id']);
+                    if ($t && !empty($t['is_ilc'])) $userWing = 'ilc';
+                    elseif ($t && ($t['wing'] ?? 'main') === 'montessori') $userWing = 'montessori';
+                } catch (Exception $e) {}
+            } elseif ($role === 'student') {
+                try {
+                    $s = getStudentByUserId($user['id']);
+                    if ($s && !empty($s['class_id'])) {
+                        $cr = $db->prepare('SELECT COALESCE(is_ilc,0) AS is_ilc, COALESCE(is_montessori,0) AS is_montessori FROM classes WHERE id=?');
+                        $cr->execute([(int)$s['class_id']]);
+                        $clsRow = $cr->fetch();
+                        if ($clsRow) $userWing = $clsRow['is_ilc'] ? 'ilc' : ($clsRow['is_montessori'] ? 'montessori' : 'main');
+                    }
+                } catch (Exception $e) {}
+            }
+            // examination_head and vp_main default to 'main' (already set above)
+            if ($userWing !== $docWing) {
+                http_response_code(403);
+                exit('Access denied: this document is not available for your campus.');
+            }
+        }
         $storedFilename   = $row['stored_filename'];
         $originalFilename = $row['original_filename'];
     }
