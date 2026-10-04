@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher');
+$user = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head', 'vp_montessori', 'ilc_vp', 'examination_head');
 $db   = getDB();
 
 $tableExists = false;
@@ -20,7 +20,15 @@ if ($tableExists) {
 }
 
 pageHead('Academic Calendar', $user['role']);
-$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : ($user['role'] === 'ilc_teacher' ? getIlcTeacherLinks() : getTeacherLinks());
+$links = match($user['role']) {
+    'montessori_teacher' => getMonteTeacherLinks(),
+    'ilc_teacher'        => getIlcTeacherLinks(),
+    'wing_head'          => getWingHeadLinks(),
+    'vp_montessori'      => getVpMontessoriLinks(),
+    'ilc_vp'             => getIlcLinks(),
+    'examination_head'   => getExamHeadLinks(),
+    default              => getTeacherLinks(),
+};
 ?>
 <div class="portal-wrap">
 <?php sidebar($user['role'], 'calendar', $links, $user); ?>

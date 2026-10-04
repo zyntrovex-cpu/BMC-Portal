@@ -491,6 +491,7 @@ function getTeacherLinks(): array {
         hasPermission('notices')    ? ['href'=>'/portal/teacher/notices.php',      'icon'=>'<i class="fas fa-bell"></i>',                    'label'=>'Notices',              'key'=>'notices']    : null,
         hasPermission('warnings')   ? ['href'=>'/portal/admin/warnings.php',       'icon'=>'<i class="fas fa-exclamation-triangle"></i>',    'label'=>'Student Warnings',     'key'=>'warnings']   : null,
         hasPermission('complaints') ? ['href'=>'/portal/teacher/complaints.php',   'icon'=>'<i class="fas fa-comment-alt"></i>',             'label'=>'Complaints',           'key'=>'complaints'] : null,
+        ['href'=>'/portal/teacher/calendar.php',               'icon'=>'<i class="fas fa-calendar-week"></i>',           'label'=>'Academic Calendar',    'key'=>'calendar'],
     ]));
 }
 
@@ -509,6 +510,7 @@ function getMonteTeacherLinks(): array {
         hasPermission('notices')    ? ['href'=>'/portal/teacher/notices.php',      'icon'=>'<i class="fas fa-bell"></i>',                    'label'=>'Notices',          'key'=>'notices']    : null,
         hasPermission('warnings')   ? ['href'=>'/portal/admin/warnings.php',       'icon'=>'<i class="fas fa-exclamation-triangle"></i>',    'label'=>'Student Warnings', 'key'=>'warnings']   : null,
         hasPermission('complaints') ? ['href'=>'/portal/teacher/complaints.php',   'icon'=>'<i class="fas fa-comment-alt"></i>',             'label'=>'Complaints',       'key'=>'complaints'] : null,
+        ['href'=>'/portal/teacher/calendar.php',               'icon'=>'<i class="fas fa-calendar-week"></i>',           'label'=>'Academic Calendar',    'key'=>'calendar'],
     ]));
 }
 
@@ -525,6 +527,7 @@ function getIlcTeacherLinks(): array {
         hasPermission('notices')    ? ['href'=>'/portal/teacher/notices.php',      'icon'=>'<i class="fas fa-bell"></i>',                   'label'=>'Notices',             'key'=>'notices']    : null,
         hasPermission('warnings')   ? ['href'=>'/portal/admin/warnings.php',       'icon'=>'<i class="fas fa-exclamation-triangle"></i>',   'label'=>'Student Warnings',    'key'=>'warnings']   : null,
         hasPermission('complaints') ? ['href'=>'/portal/teacher/complaints.php',   'icon'=>'<i class="fas fa-comment-alt"></i>',            'label'=>'Complaints',          'key'=>'complaints'] : null,
+        ['href'=>'/portal/teacher/calendar.php',               'icon'=>'<i class="fas fa-calendar-week"></i>',           'label'=>'Academic Calendar',   'key'=>'calendar'],
     ]));
 }
 
@@ -564,6 +567,7 @@ function getIlcLinks(): array {
         ['href'=>'/portal/ilc/fee-status.php',        'icon'=>'<i class="fas fa-money-bill-wave"></i>',    'label'=>'Fee Status',         'key'=>'fee-status'],
         hasPermission('ilc_viewas')       ? ['href'=>'/portal/ilc/view-as.php',            'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',       'key'=>'viewas']            : null,
         ['href'=>'/portal/ilc/marks-approval.php',       'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>_ilcMarksApprovalLabel(), 'key'=>'marks-approval'],
+        ['href'=>'/portal/teacher/calendar.php',          'icon'=>'<i class="fas fa-calendar-week"></i>',     'label'=>'Academic Calendar',      'key'=>'calendar'],
     ]));
 }
 
@@ -651,6 +655,7 @@ function getWingHeadLinks(): array {
         hasPermission('warnings')   ? ['href'=>'/portal/admin/warnings.php',      'icon'=>'<i class="fas fa-exclamation-triangle"></i>',    'label'=>'Student Warnings',     'key'=>'warnings']    : null,
         hasPermission('complaints') ? ['href'=>'/portal/teacher/complaints.php',  'icon'=>'<i class="fas fa-comment-alt"></i>',             'label'=>'Complaints',           'key'=>'complaints']  : null,
         ['href'=>'/portal/wing-head/teachers.php',            'icon'=>'<i class="fas fa-chalkboard-teacher"></i>',          'label'=>'Montessori Teachers',  'key'=>'teachers'],
+        ['href'=>'/portal/teacher/calendar.php',               'icon'=>'<i class="fas fa-calendar-week"></i>',               'label'=>'Academic Calendar',    'key'=>'calendar'],
     ]));
 }
 
@@ -670,6 +675,7 @@ function getVpMontessoriLinks(): array {
         hasPermission('wh_classes')      ? ['href'=>'/portal/vp-montessori/classes.php',   'icon'=>'<i class="fas fa-chalkboard"></i>',      'label'=>'Classes',       'key'=>'classes']    : null,
         hasPermission('wh_timetable')    ? ['href'=>'/portal/vp-montessori/timetable.php', 'icon'=>'<i class="fas fa-table"></i>',           'label'=>'Timetable',     'key'=>'timetable']  : null,
         hasPermission('wh_students')     ? ['href'=>'/portal/vp-montessori/view-as.php',   'icon'=>'<i class="fas fa-eye"></i>',             'label'=>'View As User',  'key'=>'viewas']     : null,
+        ['href'=>'/portal/teacher/calendar.php',               'icon'=>'<i class="fas fa-calendar-week"></i>',           'label'=>'Academic Calendar',    'key'=>'calendar'],
     ]));
 }
 
@@ -684,6 +690,7 @@ function getExamHeadLinks(): array {
         hasPermission('eh_syllabus')  ? ['href'=>'/portal/exam-head/syllabus.php',    'icon'=>'<i class="fas fa-book"></i>',          'label'=>'Syllabus',             'key'=>'syllabus']     : null,
         hasPermission('eh_notices')   ? ['href'=>'/portal/exam-head/notices.php',     'icon'=>'<i class="fas fa-bell"></i>',          'label'=>'Notices',              'key'=>'notices']      : null,
         ['href'=>'/portal/exam-head/profile.php',        'icon'=>'<i class="fas fa-user-circle"></i>',      'label'=>'My Profile',           'key'=>'profile'],
+        ['href'=>'/portal/teacher/calendar.php',         'icon'=>'<i class="fas fa-calendar-week"></i>',    'label'=>'Academic Calendar',    'key'=>'calendar'],
     ]));
 }
 
