@@ -71,6 +71,20 @@ ensureBiodataColumns($db);
 /** Normalise any common date format to YYYY-MM-DD. */
 function parseDateToSql(string $raw): ?string {
     if ($raw === '' || strtolower($raw) === 'dob') return null;
+
+    // Excel stores dates as numeric serial numbers (e.g. 45678 = a date in 2025).
+    // Excel epoch = Dec 30, 1899; Unix epoch = Excel serial 25569.
+    // The optional ".0" suffix appears when Excel writes a date-only cell as a float.
+    if (preg_match('/^(\d{4,6})(?:\.0+)?$/', $raw, $m)) {
+        $serial = (int)$m[1];
+        // Reasonable range: serial 10000 = ~1927, serial 99999 = ~2173
+        if ($serial >= 10000 && $serial <= 99999) {
+            $ts = ($serial - 25569) * 86400;
+            $d  = date('Y-m-d', $ts);
+            if ($d >= '1900-01-01' && $d <= '2099-12-31') return $d;
+        }
+    }
+
     $formats = [
         'Y-m-d', 'd/m/Y', 'm/d/Y', 'n/j/Y', 'j/n/Y',
         'd-m-Y', 'm-d-Y', 'j-n-Y', 'd.m.Y', 'Y/m/d',
