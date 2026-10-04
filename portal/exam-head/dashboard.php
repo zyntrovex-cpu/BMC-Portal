@@ -155,7 +155,7 @@ $links = getExamHeadLinks();
       <?php else: ?>
       <div class="list-group list-group-flush">
         <?php foreach ($recentSyllabuses as $s): ?>
-        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 px-3" style="font-size:.84rem">
+        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center flex-wrap gap-2 py-2 px-3" style="font-size:.84rem">
           <div>
             <div class="fw-semibold"><?= h($s['title']) ?></div>
             <div style="font-size:.74rem;color:var(--t3)"><?= h($s['class_name'] ?? 'All Classes') ?> · <?= h($s['academic_year']) ?></div>

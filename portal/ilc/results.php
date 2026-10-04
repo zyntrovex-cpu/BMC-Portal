@@ -44,10 +44,10 @@ $links = getIlcLinks();
     <i class="fas fa-filter me-2"></i>Filter by Class
   </div>
   <div style="padding:14px 16px">
-    <form method="GET" class="d-flex gap-2 align-items-end">
+    <form method="GET" class="d-flex gap-2 align-items-end flex-wrap">
       <div>
         <label class="form-label fw-semibold" style="font-size:.82rem">ILC Class</label>
-        <select name="class_id" class="form-select form-select-sm" style="width:200px">
+        <select name="class_id" class="form-select form-select-sm" style="flex:1 1 auto;min-width:150px;max-width:220px">
           <option value="0">Select class…</option>
           <?php foreach ($classes as $c): ?>
           <option value="<?= $c['id'] ?>" <?= $classId==$c['id']?'selected':'' ?>><?= h($c['name']) ?></option>

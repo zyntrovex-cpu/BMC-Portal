@@ -121,8 +121,8 @@ $links = getIlcLinks();
     <span><i class="fas fa-eye me-2"></i>ILC Students &amp; Teachers (<?= count($viewUsers) ?>)</span>
     <form method="GET" class="d-flex gap-2 flex-wrap">
       <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
-             placeholder="Search name / ID…" style="width:170px">
-      <select name="role" class="form-select form-select-sm" style="width:120px" onchange="this.form.submit()">
+             placeholder="Search name / ID…" style="flex:1 1 auto;min-width:120px;max-width:180px">
+      <select name="role" class="form-select form-select-sm" style="flex:1 1 auto;min-width:90px;max-width:130px" onchange="this.form.submit()">
         <option value="">All</option>
         <option value="student" <?= $roleFilter==='student'?'selected':'' ?>>Students</option>
         <option value="teacher" <?= $roleFilter==='teacher'?'selected':'' ?>>Teachers</option>

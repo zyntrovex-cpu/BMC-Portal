@@ -105,7 +105,7 @@ $links = getFinanceLinks();
   <input type="hidden" name="year" value="<?= $year ?>">
 
   <!-- Summary bar -->
-  <div class="d-flex gap-3 mb-2 px-1" style="font-size:.84rem">
+  <div class="d-flex gap-3 mb-2 px-1 flex-wrap" style="font-size:.84rem">
     <span>Total: <strong><?= count($students) ?></strong></span>
     <span class="text-success">Paid: <strong id="cntPaid">0</strong></span>
     <span class="text-danger">Unpaid: <strong id="cntUnpaid"><?= count($students) ?></strong></span>

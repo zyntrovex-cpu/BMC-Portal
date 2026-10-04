@@ -43,9 +43,9 @@ $links = getIlcLinks();
 <div class="sec-card">
   <div class="sec-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
     <span><i class="fas fa-chalkboard-teacher me-2"></i>ILC Teachers (<?= count($teachers) ?>)</span>
-    <form method="GET" class="d-flex gap-2">
+    <form method="GET" class="d-flex gap-2 flex-wrap">
       <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
-             placeholder="Search name / ID…" style="width:180px">
+             placeholder="Search name / ID…" style="flex:1 1 auto;min-width:120px;max-width:190px">
       <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search"></i></button>
       <?php if ($search): ?><a href="<?= url('/portal/ilc/teachers.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
     </form>

@@ -54,7 +54,7 @@ $links = getIlcLinks();
 <?= flashHtml() ?>
 
 <!-- ILC branding strip -->
-<div class="d-flex align-items-center gap-3 mb-4 p-3" style="background:linear-gradient(90deg,#ecfeff,#f0fdf4);border-radius:10px;border:1px solid #a5f3fc;">
+<div class="d-flex align-items-center gap-3 mb-4 p-3 flex-wrap" style="background:linear-gradient(90deg,#ecfeff,#f0fdf4);border-radius:10px;border:1px solid #a5f3fc;">
   <img src="<?= url('/assets/ilc-logo.png') ?>" alt="ILC" style="width:48px;height:48px;object-fit:contain;flex-shrink:0;">
   <div>
     <div style="font-size:.72rem;font-weight:700;color:#0891b2;letter-spacing:.8px;text-transform:uppercase">Inclusive Learning Centre</div>
@@ -67,8 +67,8 @@ $links = getIlcLinks();
     <span><i class="fas fa-user-graduate me-2"></i>ILC Students (<?= count($students) ?>)</span>
     <form method="GET" class="d-flex gap-2 flex-wrap align-items-center">
       <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
-             placeholder="Search name / ID…" style="width:170px">
-      <select name="cat" class="form-select form-select-sm" style="width:190px" onchange="this.form.submit()">
+             placeholder="Search name / ID…" style="flex:1 1 auto;min-width:120px;max-width:180px">
+      <select name="cat" class="form-select form-select-sm" style="flex:1 1 auto;min-width:140px;max-width:200px" onchange="this.form.submit()">
         <option value="0">All disabilities</option>
         <?php foreach ($categories as $cat): ?>
         <option value="<?= $cat['id'] ?>" <?= $catFilter==$cat['id']?'selected':'' ?>><?= h($cat['name']) ?></option>

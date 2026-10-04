@@ -81,7 +81,7 @@ $links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : ($use
           <div class="fw-bold mt-2"><?= h($teacher['name']) ?></div>
           <div style="font-size:.82rem;color:#6b7280"><?= h($teacher['emp_id']) ?></div>
         </div>
-        <table class="table table-sm mb-0" style="font-size:.86rem">
+        <div class="table-responsive"><table class="table table-sm mb-0" style="font-size:.86rem">
           <tr><th style="color:#6b7280;width:45%">Wing</th>
               <td><?= wingBadge($teacher['wing'] ?? 'main') ?></td></tr>
           <tr><th style="color:#6b7280">Subject</th><td><?= h($teacher['subject_name'] ?? '—') ?></td></tr>
@@ -89,7 +89,7 @@ $links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : ($use
           <tr><th style="color:#6b7280">Email</th><td><?= h($teacher['email'] ?: '—') ?></td></tr>
           <tr><th style="color:#6b7280">Phone</th><td><?= h($teacher['phone'] ?: '—') ?></td></tr>
           <tr><th style="color:#6b7280">Qualification</th><td><?= h($teacher['qualification'] ?: '—') ?></td></tr>
-        </table>
+        </table></div>
       </div>
     </div>
   </div>
