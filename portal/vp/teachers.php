@@ -44,7 +44,7 @@ $links = getVpLinks();
     <span><i class="fas fa-chalkboard-teacher me-2"></i>All Teachers (<?= count($teachers) ?>)</span>
     <form method="GET" class="d-flex gap-2">
       <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
-             placeholder="Search name / ID / subject…" style="width:200px">
+             placeholder="Search name / ID / subject…" style="flex:1 1 auto;min-width:130px;max-width:210px">
       <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search"></i></button>
       <?php if ($search): ?><a href="<?= url('/portal/vp/teachers.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
     </form>

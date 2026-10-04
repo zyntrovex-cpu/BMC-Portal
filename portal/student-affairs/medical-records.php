@@ -157,15 +157,15 @@ $links = getStudentAffairsLinks();
     <div class="sec-card">
       <div class="sec-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <span><i class="fas fa-notes-medical me-2"></i>Records (<?= count($records) ?>)</span>
-        <form method="GET" class="d-flex gap-2">
-          <select name="student_id" class="form-select form-select-sm" style="width:200px" onchange="this.form.submit()">
+        <form method="GET" class="d-flex gap-2 flex-wrap">
+          <select name="student_id" class="form-select form-select-sm" style="flex:1 1 auto;min-width:150px;max-width:210px" onchange="this.form.submit()">
             <option value="0">All students</option>
             <?php foreach ($allStudents as $s): ?>
             <option value="<?= $s['student_id'] ?>" <?= $studentId==$s['student_id']?'selected':'' ?>><?= h($s['name']) ?> (<?= h($s['class_name']) ?>)</option>
             <?php endforeach; ?>
           </select>
           <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
-                 placeholder="Search…" style="width:130px">
+                 placeholder="Search…" style="flex:1 1 auto;min-width:100px;max-width:140px">
           <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search"></i></button>
           <?php if ($studentId||$search): ?><a href="<?= url('/portal/student-affairs/medical-records.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a><?php endif; ?>
         </form>

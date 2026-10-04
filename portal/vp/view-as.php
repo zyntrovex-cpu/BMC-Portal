@@ -98,8 +98,8 @@ $links = getVpLinks();
     <span><i class="fas fa-eye me-2"></i>Users (<?= count($viewUsers) ?>)</span>
     <form method="GET" class="d-flex gap-2 flex-wrap">
       <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
-             placeholder="Search…" style="width:160px">
-      <select name="role" class="form-select form-select-sm" style="width:140px" onchange="this.form.submit()">
+             placeholder="Search…" style="flex:1 1 auto;min-width:110px;max-width:170px">
+      <select name="role" class="form-select form-select-sm" style="flex:1 1 auto;min-width:100px;max-width:150px" onchange="this.form.submit()">
         <option value="">All Roles</option>
         <option value="wing_head" <?= $roleFilter==='wing_head'?'selected':'' ?>>Wing Head</option>
         <option value="teacher"   <?= $roleFilter==='teacher'?'selected':'' ?>>Teacher</option>

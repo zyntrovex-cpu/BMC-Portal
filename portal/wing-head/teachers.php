@@ -43,7 +43,7 @@ $links = getWingHeadLinks();
     <span><i class="fas fa-chalkboard-teacher me-2"></i>Montessori Teachers (<?= count($teachers) ?>)</span>
     <form method="GET" class="d-flex gap-2">
       <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
-             placeholder="Search name / ID…" style="width:200px">
+             placeholder="Search name / ID…" style="flex:1 1 auto;min-width:130px;max-width:210px">
       <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-search"></i></button>
       <?php if ($search): ?>
         <a href="<?= url('/portal/wing-head/teachers.php') ?>" class="btn btn-sm btn-outline-danger">Clear</a>

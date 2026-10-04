@@ -93,8 +93,8 @@ $links = getVpLinks();
     <span><i class="fas fa-user-graduate me-2"></i>Students (<?= count($students) ?>)</span>
     <form method="GET" class="d-flex gap-2 flex-wrap align-items-center">
       <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
-             placeholder="Search name / ID…" style="width:160px">
-      <select name="class_id" class="form-select form-select-sm" style="width:130px" onchange="this.form.submit()">
+             placeholder="Search name / ID…" style="flex:1 1 auto;min-width:120px;max-width:170px">
+      <select name="class_id" class="form-select form-select-sm" style="flex:1 1 auto;min-width:100px;max-width:140px" onchange="this.form.submit()">
         <option value="0">All classes</option>
         <?php foreach ($classes as $c): ?>
         <option value="<?= $c['id'] ?>" <?= $classId==$c['id']?'selected':'' ?>><?= h($c['name']) ?><?= $c['is_montessori']?' (M)':'' ?></option>

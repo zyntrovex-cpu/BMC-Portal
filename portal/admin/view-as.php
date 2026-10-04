@@ -107,8 +107,8 @@ $links = getAdminLinks();
     <span><i class="fas fa-eye me-2"></i>All Portal Users (<?= count($viewUsers) ?>)</span>
     <form method="GET" class="d-flex gap-2 align-items-center flex-wrap">
       <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
-             placeholder="Search name or ID…" style="width:180px">
-      <select name="role" class="form-select form-select-sm" style="width:145px" onchange="this.form.submit()">
+             placeholder="Search name or ID…" style="flex:1 1 auto;min-width:120px;max-width:190px">
+      <select name="role" class="form-select form-select-sm" style="flex:1 1 auto;min-width:110px;max-width:155px" onchange="this.form.submit()">
         <option value="">All Roles</option>
         <?php foreach ($roleLabels as $rv => $rl): ?>
         <option value="<?= $rv ?>" <?= $roleFilter===$rv?'selected':'' ?>><?= $rl['label'] ?></option>

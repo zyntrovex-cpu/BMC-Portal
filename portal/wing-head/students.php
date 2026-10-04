@@ -62,8 +62,8 @@ $links = getWingHeadLinks();
     <span><i class="fas fa-child me-2"></i>Montessori Students (<?= count($students) ?>)</span>
     <form method="GET" class="d-flex gap-2 flex-wrap">
       <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
-             placeholder="Search name / roll…" style="width:160px">
-      <select name="class_id" class="form-select form-select-sm" style="width:130px" onchange="this.form.submit()">
+             placeholder="Search name / roll…" style="flex:1 1 auto;min-width:120px;max-width:170px">
+      <select name="class_id" class="form-select form-select-sm" style="flex:1 1 auto;min-width:100px;max-width:140px" onchange="this.form.submit()">
         <option value="0">All classes</option>
         <?php foreach ($classes as $c): ?><option value="<?= $c['id'] ?>" <?= $classId==$c['id']?'selected':'' ?>><?= h($c['name']) ?></option><?php endforeach; ?>
       </select>
