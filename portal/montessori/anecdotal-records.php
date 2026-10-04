@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/db.php';
 
-$user    = requireAuth('montessori_teacher', 'wing_head');
+$user    = requireAuth('montessori_teacher', 'wing_head', 'vp_montessori');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
 
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $ownSt = $db->prepare('SELECT teacher_id FROM montessori_anecdotal_records WHERE id=?');
                 $ownSt->execute([$recordId]);
                 $own = $ownSt->fetch();
-                if ($own && ($user['role']==='wing_head' || (int)$own['teacher_id']===$teacherId)) {
+                if ($own && (in_array($user['role'],['wing_head','vp_montessori']) || (int)$own['teacher_id']===$teacherId)) {
                     $db->prepare(
                         'UPDATE montessori_anecdotal_records
                          SET subject_focus=?,record_date=?,topic=?,observation=?,updated_at=NOW()
@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $own = $ownSt->fetch();
         if ($own) {
             $tid = $teacher ? $teacher['id'] : 0;
-            if ($user['role']==='wing_head' || (int)$own['teacher_id']===$tid) {
+            if (in_array($user['role'],['wing_head','vp_montessori']) || (int)$own['teacher_id']===$tid) {
                 $db->prepare('DELETE FROM montessori_anecdotal_records WHERE id=?')->execute([$recordId]);
                 setFlash('success', 'Record deleted.');
             } else {
@@ -200,9 +200,9 @@ if ($editRecordId && $selStudentId) {
     } catch (Exception $e) {}
 }
 
-$portalRole = ($user['role'] === 'wing_head') ? 'wing_head' : 'montessori_teacher';
+$portalRole = in_array($user['role'], ['wing_head','vp_montessori']) ? $user['role'] : 'montessori_teacher';
 pageHead('Anecdotal Records', $portalRole);
-$links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherLinks();
+$links = $user['role'] === 'vp_montessori' ? getVpMontessoriLinks() : ($user['role'] === 'wing_head' ? getWingHeadLinks() : getMonteTeacherLinks());
 ?>
 <style>
 /* Student picker grid */

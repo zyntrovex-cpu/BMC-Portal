@@ -19,6 +19,7 @@ if (!empty($_SESSION['user'])) {
         'student_affairs'   => '/portal/student-affairs/dashboard.php',
         'vp_main'           => '/portal/vp/dashboard.php',
         'wing_head'         => '/portal/wing-head/dashboard.php',
+        'vp_montessori'     => '/portal/vp-montessori/dashboard.php',
         'examination_head'  => '/portal/exam-head/dashboard.php',
     ];
     redirect($map[$role] ?? '/portal/index.php');
@@ -75,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'student_affairs'   => '/portal/student-affairs/dashboard.php',
                     'vp_main'           => '/portal/vp/dashboard.php',
                     'wing_head'         => '/portal/wing-head/dashboard.php',
+                    'vp_montessori'     => '/portal/vp-montessori/dashboard.php',
                     'examination_head'  => '/portal/exam-head/dashboard.php',
                 ];
                 redirect($map[$user['role']] ?? '/portal/index.php');

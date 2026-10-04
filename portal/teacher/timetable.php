@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head');
+$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head', 'vp_montessori');
 requirePermission('timetable');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);

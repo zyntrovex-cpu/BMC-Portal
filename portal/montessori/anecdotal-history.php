@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/db.php';
 
-$user    = requireAuth('montessori_teacher', 'wing_head');
+$user    = requireAuth('montessori_teacher', 'wing_head', 'vp_montessori');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
 
@@ -99,7 +99,7 @@ if ($selClassId) {
 
 $totalPages = $total > 0 ? (int)ceil($total / $perPage) : 1;
 
-$portalRole = ($user['role'] === 'wing_head') ? 'wing_head' : 'montessori_teacher';
+$portalRole = in_array($user['role'], ['wing_head','vp_montessori']) ? $user['role'] : 'montessori_teacher';
 pageHead('Anecdotal Record History', $portalRole);
 $links = ($user['role'] === 'wing_head') ? getWingHeadLinks() : getMonteTeacherLinks();
 ?>

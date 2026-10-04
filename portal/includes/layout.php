@@ -29,6 +29,7 @@ function pageHead(string $title, string $portal = ''): void {
         'student_affairs'     => '#be185d',
         'vp_main'             => '#0369a1',
         'wing_head'           => '#c2410c',
+        'vp_montessori'       => '#b45309',
         'montessori_teacher'  => '#7c3aed',
         'ilc_teacher'         => '#d97706',
         'examination_head'    => '#b45309',
@@ -86,8 +87,9 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
         'finance'            => 'Finance Portal',
         'ilc_vp'             => 'ILC VP Portal',
         'student_affairs'    => 'Student Affairs',
-        'vp_main'            => 'VP — Main & Montessori',
+        'vp_main'            => 'Vice Principal Main',
         'wing_head'          => 'Montessori Wing Head',
+        'vp_montessori'      => 'VP Montessori Campus',
         'montessori_teacher' => 'Montessori Teacher Portal',
         'ilc_teacher'        => 'ILC Teacher Portal',
         'examination_head'   => 'Examination Head',
@@ -105,6 +107,7 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
         'student_affairs'    => ['href'=>$base.'/portal/student-affairs/profile.php',  'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
         'vp_main'            => ['href'=>$base.'/portal/vp/profile.php',               'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
         'wing_head'          => ['href'=>$base.'/portal/wing-head/profile.php',        'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
+        'vp_montessori'      => ['href'=>$base.'/portal/vp-montessori/profile.php',    'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
         'examination_head'   => ['href'=>$base.'/portal/exam-head/profile.php',        'label'=>'My Profile', 'key'=>'profile', 'icon'=>'fas fa-user'],
     ];
 
@@ -117,8 +120,9 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
         'finance'            => 'Finance Staff',
         'ilc_vp'             => 'VP — ILC',
         'student_affairs'    => 'Student Affairs',
-        'vp_main'            => 'VP — Main & Montessori',
+        'vp_main'            => 'VP — Main',
         'wing_head'          => 'Wing Head',
+        'vp_montessori'      => 'VP — Montessori',
         'montessori_teacher' => 'Montessori Teacher',
         'ilc_teacher'        => 'ILC Teacher',
         'examination_head'   => 'Examination Head',
@@ -248,11 +252,12 @@ function viewAsBanner(): void {
     $base        = defined('BASE_URL') ? BASE_URL : '';
     $adminRole   = $_SESSION['admin_backup']['role'] ?? 'admin';
     $exitUrl     = match($adminRole) {
-        'ilc_vp'  => $base . '/portal/ilc/exit-view-as.php',
-        'vp_main' => $base . '/portal/vp/exit-view-as.php',
-        default   => $base . '/portal/admin/exit-view-as.php',
+        'ilc_vp'        => $base . '/portal/ilc/exit-view-as.php',
+        'vp_main'       => $base . '/portal/vp/exit-view-as.php',
+        'vp_montessori' => $base . '/portal/vp-montessori/exit-view-as.php',
+        default         => $base . '/portal/admin/exit-view-as.php',
     };
-    $roleLabelsB = ['student'=>'Student','teacher'=>'Teacher','admin'=>'Admin','finance'=>'Finance','ilc_vp'=>'ILC VP','student_affairs'=>'Student Affairs','vp_main'=>'VP Main','wing_head'=>'Wing Head'];
+    $roleLabelsB = ['student'=>'Student','teacher'=>'Teacher','admin'=>'Admin','finance'=>'Finance','ilc_vp'=>'ILC VP','student_affairs'=>'Student Affairs','vp_main'=>'VP Main','wing_head'=>'Wing Head','vp_montessori'=>'VP Montessori'];
     $rLabel      = $roleLabelsB[$u['role'] ?? ''] ?? ucfirst(str_replace('_', ' ', $u['role'] ?? ''));
     echo '<div style="background:#f59e0b;color:#1c1c1c;padding:8px 20px;font-size:.82rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;z-index:1100;position:sticky;top:0">
       <i class="fas fa-eye"></i>
@@ -265,7 +270,7 @@ function viewAsBanner(): void {
 }
 
 function _notificationBell(array $user): string {
-    $notifRoles = ['teacher','montessori_teacher','ilc_teacher','vp_main','wing_head','ilc_vp'];
+    $notifRoles = ['teacher','montessori_teacher','ilc_teacher','vp_main','wing_head','vp_montessori','ilc_vp'];
     $role = $user['role'] ?? '';
     if (!in_array($role, $notifRoles, true)) return '';
 
@@ -326,8 +331,10 @@ function topbar(string $pageTitle, array $user, string $badge = ''): void {
         'finance'         => 'Finance Portal',
         'ilc_vp'          => 'ILC VP Portal',
         'student_affairs' => 'Student Affairs',
-        'vp_main'         => 'VP — Main & Montessori',
+        'vp_main'         => 'Vice Principal Main',
         'wing_head'       => 'Montessori Wing Head',
+        'vp_montessori'   => 'VP Montessori Campus',
+        'examination_head'=> 'Examination Head',
     ];
     $portal       = $user['role'] ?? '';
     $portalLabel  = $portalLabels[$portal] ?? 'Portal';

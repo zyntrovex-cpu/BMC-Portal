@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user       = requireAuth('montessori_teacher', 'teacher', 'vp_main', 'wing_head');
+$user       = requireAuth('montessori_teacher', 'teacher', 'vp_main', 'wing_head', 'vp_montessori');
 $db         = getDB();
 $role       = $user['role'];
 $schoolName = getSetting('school_name', 'Bahria Model College, Bin Qasim');
@@ -101,8 +101,8 @@ try {
              ORDER BY c.name, st.roll_no'
         );
         $st->execute([$teacher['id']]);
-    } elseif ($role === 'wing_head') {
-        // Montessori Wing Head: all Montessori students only
+    } elseif ($role === 'wing_head' || $role === 'vp_montessori') {
+        // Montessori Wing Head / VP Montessori: all Montessori students only
         $st = $db->prepare(
             'SELECT st.id, u.name AS student_name, st.roll_no, c.name AS class_name
              FROM students st
@@ -207,6 +207,7 @@ $links = match($role) {
     'teacher'            => getTeacherLinks(),
     'vp_main'            => getVpLinks(),
     'wing_head'          => getWingHeadLinks(),
+    'vp_montessori'      => getVpMontessoriLinks(),
     default              => getMonteTeacherLinks(),
 };
 

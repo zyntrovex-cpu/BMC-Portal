@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email  = trim($_POST['email']   ?? '');
         $role   = $_POST['role'] ?? '';
 
-        if ($name && $userId && in_array($role, ['student','teacher','montessori_teacher','ilc_teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','examination_head'])) {
+        if ($name && $userId && in_array($role, ['student','teacher','montessori_teacher','ilc_teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','vp_montessori','examination_head'])) {
             $check = $db->prepare('SELECT id FROM users WHERE user_id = ?');
             $check->execute([$userId]);
             if ($check->fetch()) {
@@ -271,7 +271,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $allowedRoles = ['student','teacher','montessori_teacher','ilc_teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','examination_head'];
+    $allowedRoles = ['student','teacher','montessori_teacher','ilc_teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','vp_montessori','examination_head'];
     $backRole = in_array($_POST['role_filter'] ?? '', $allowedRoles) ? $_POST['role_filter'] : '';
     redirect('/portal/admin/users.php' . ($backRole ? '?role=' . $backRole : ''));
 }
@@ -467,8 +467,9 @@ $links = getAdminLinks();
               <option value="finance">Finance</option>
               <option value="ilc_vp">ILC VP</option>
               <option value="student_affairs">Student Affairs</option>
-              <option value="vp_main">VP — Main &amp; Montessori</option>
+              <option value="vp_main">VP Main (Vice Principal Main)</option>
               <option value="wing_head">Coordinator (Montessori)</option>
+              <option value="vp_montessori">VP Mont. (Vice Principal Montessori Campus)</option>
               <option value="examination_head">Examination Head (Main Campus)</option>
             </select>
           </div>
@@ -547,7 +548,7 @@ $links = getAdminLinks();
     <!-- Role + Wing filter chips -->
     <div class="d-flex flex-wrap gap-1">
       <span class="text-muted" style="font-size:.72rem;padding:2px 4px;align-self:center">Role:</span>
-      <?php foreach ([''=>'All','student'=>'Student','teacher'=>'Teacher','montessori_teacher'=>'Mont Teacher','ilc_teacher'=>'ILC Teacher','admin'=>'Admin','finance'=>'Finance','ilc_vp'=>'ILC VP','student_affairs'=>'Stu. Affairs','vp_main'=>'VP Main','wing_head'=>'Coordinator'] as $r => $lbl): ?>
+      <?php foreach ([''=>'All','student'=>'Student','teacher'=>'Teacher','montessori_teacher'=>'Mont Teacher','ilc_teacher'=>'ILC Teacher','admin'=>'Admin','finance'=>'Finance','ilc_vp'=>'ILC VP','student_affairs'=>'Stu. Affairs','vp_main'=>'VP Main','wing_head'=>'Coordinator','vp_montessori'=>'VP Mont.'] as $r => $lbl): ?>
         <a href="?role=<?= $r ?>&wing=<?= urlencode($wingFilter) ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>"
            class="btn btn-xs <?= $roleFilter===$r?'btn-primary':'btn-outline-secondary' ?>" style="font-size:.72rem;padding:2px 7px"><?= $lbl ?></a>
       <?php endforeach; ?>
@@ -574,6 +575,7 @@ $links = getAdminLinks();
               'student_affairs'    => 'danger',
               'vp_main'            => 'dark',
               'wing_head'          => 'warning',
+              'vp_montessori'      => 'warning',
               default              => 'secondary'
           };
           // Photo thumbnail
@@ -610,6 +612,7 @@ $links = getAdminLinks();
                 'ilc_vp'             => 'ILC VP',
                 'vp_main'            => 'VP Main',
                 'wing_head'          => 'Coordinator',
+                'vp_montessori'      => 'VP Mont.',
                 default              => ucfirst($u['role']),
             };
           ?>

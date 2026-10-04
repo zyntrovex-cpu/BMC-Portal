@@ -107,7 +107,7 @@ function getDB(): PDO {
         // Group 5: extend users role ENUM
         try {
             $pdo->exec("ALTER TABLE users MODIFY COLUMN role
-                ENUM('student','teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','montessori_teacher','ilc_teacher','examination_head')
+                ENUM('student','teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','montessori_teacher','ilc_teacher','examination_head','vp_montessori')
                 NOT NULL");
         } catch (Exception $e) {}
 

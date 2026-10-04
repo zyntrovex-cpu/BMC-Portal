@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
 // Auth: allow admin, teacher, wing_head, montessori_teacher, and ilc_teacher
-$user = requireAuth('admin', 'teacher', 'wing_head', 'montessori_teacher', 'ilc_teacher');
+$user = requireAuth('admin', 'teacher', 'wing_head', 'vp_montessori', 'montessori_teacher', 'ilc_teacher');
 if (in_array($user['role'], ['teacher', 'wing_head', 'montessori_teacher', 'ilc_teacher'], true)) requirePermission('warnings');
 
 $db = getDB();
