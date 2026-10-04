@@ -204,9 +204,6 @@ pageHead('Dashboard', $user['role']);
                 <a href="<?= url('/portal/teacher/marks.php?tab=assessments') ?>" class="btn btn-outline-secondary btn-sm">
                     <i class="fas fa-plus me-1"></i>New Assessment
                 </a>
-                <a href="<?= url('/portal/teacher/timetable.php') ?>" class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-table me-1"></i>View Timetable
-                </a>
             </div>
         </div>
     </div>

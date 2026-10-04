@@ -47,7 +47,7 @@ $links = match($user['role']) {
 <div class="portal-wrap">
 <?php sidebar($user['role'], 'timetable', $links, $user); ?>
 <div class="main-area">
-<?php topbar('My Timetable', $user); ?>
+<?php topbar('Timetable', $user); ?>
 <div class="page-content">
 <?= flashHtml() ?>
 
