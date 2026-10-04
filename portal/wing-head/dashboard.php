@@ -74,7 +74,7 @@ $links = getWingHeadLinks();
 
 <!-- Welcome Banner -->
 <div class="portal-banner mb-4" style="background:linear-gradient(135deg,#059669,#047857);">
-  <div class="d-flex align-items-center gap-3">
+  <div class="d-flex align-items-center gap-3 flex-wrap">
     <?php
       $_av = _avatarHtml($user['id'], _initials($user['name']), 60);
       if (str_starts_with($_av, '<img')):
@@ -155,7 +155,7 @@ $links = getWingHeadLinks();
         <?php if (empty($monteTeachers)): ?>
           <div class="p-3 text-muted" style="font-size:13px">No montessori teachers found.</div>
         <?php else: ?>
-          <table class="data-table">
+          <div class="table-responsive"><table class="data-table">
             <thead><tr><th>Name</th><th>ID</th><th>Designation</th><th></th></tr></thead>
             <tbody>
               <?php foreach ($monteTeachers as $t): ?>
@@ -174,7 +174,7 @@ $links = getWingHeadLinks();
               </tr>
               <?php endforeach; ?>
             </tbody>
-          </table>
+          </table></div>
         <?php endif; ?>
       </div>
     </div>

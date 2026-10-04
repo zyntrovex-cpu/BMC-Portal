@@ -494,20 +494,20 @@ $links = getStudentAffairsLinks();
     <span><i class="fas fa-user-graduate me-2"></i>All Students (<?= $total ?>)</span>
     <form method="GET" class="d-flex gap-2 flex-wrap align-items-center">
       <input type="text" name="q" value="<?= h($search) ?>" class="form-control form-control-sm"
-             placeholder="Search name, roll no, email…" style="width:200px">
-      <select name="class_id" class="form-select form-select-sm" style="width:140px" onchange="this.form.submit()">
+             placeholder="Search name, roll no, email…" style="flex:1 1 auto;min-width:140px;max-width:200px">
+      <select name="class_id" class="form-select form-select-sm" style="flex:1 1 auto;min-width:110px;max-width:160px" onchange="this.form.submit()">
         <option value="">All Classes</option>
         <?php foreach ($classes as $c): ?>
         <option value="<?= $c['id'] ?>" <?= $classFilter==$c['id']?'selected':'' ?>><?= h($c['name']) ?></option>
         <?php endforeach; ?>
       </select>
-      <select name="status" class="form-select form-select-sm" style="width:110px" onchange="this.form.submit()">
+      <select name="status" class="form-select form-select-sm" style="flex:1 1 auto;min-width:90px;max-width:130px" onchange="this.form.submit()">
         <option value="">All Status</option>
         <option value="active"   <?= $statusFilter==='active'  ?'selected':'' ?>>Active</option>
         <option value="inactive" <?= $statusFilter==='inactive'?'selected':'' ?>>Inactive</option>
       </select>
       <?php if (!empty($studentCategories)): ?>
-      <select name="category" class="form-select form-select-sm" style="width:130px" onchange="this.form.submit()">
+      <select name="category" class="form-select form-select-sm" style="flex:1 1 auto;min-width:100px;max-width:150px" onchange="this.form.submit()">
         <option value="">All Categories</option>
         <option value="__unassigned__" <?= $categoryFilter==='__unassigned__'?'selected':'' ?>>— Unassigned —</option>
         <?php foreach ($studentCategories as $cat): ?>
@@ -540,7 +540,7 @@ $links = getStudentAffairsLinks();
           <th>Phone</th>
           <th>Parent Phone</th>
           <th>Status</th>
-          <th style="width:120px"></th>
+          <th></th>
         </tr>
       </thead>
       <tbody>

@@ -226,7 +226,7 @@ $links = match($user['role']) {
   <input type="hidden" name="date" value="<?= h($date) ?>">
 
   <div class="sec-card mb-3">
-    <div class="sec-card-header d-flex justify-content-between align-items-center">
+    <div class="sec-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
       <span><i class="fas fa-users me-2"></i>Students — <?= date('d M Y', strtotime($date)) ?></span>
       <div class="d-flex gap-2">
         <button type="button" class="btn btn-xs btn-outline-success" onclick="setAll('P')" style="font-size:.76rem;padding:2px 10px">All Present</button>
@@ -235,7 +235,7 @@ $links = match($user['role']) {
     </div>
 
     <!-- Live summary -->
-    <div class="d-flex gap-3 px-3 py-2 border-bottom" style="font-size:.83rem" id="attSummary">
+    <div class="d-flex gap-3 px-3 py-2 border-bottom flex-wrap" style="font-size:.83rem" id="attSummary">
       <span>Present: <strong id="countP" class="text-success">0</strong></span>
       <span>Absent: <strong id="countA" class="text-danger">0</strong></span>
       <span>Leave: <strong id="countL" class="text-warning">0</strong></span>
@@ -424,7 +424,7 @@ $links = match($user['role']) {
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <style>
-.att-pill { display:inline-flex; align-items:center; justify-content:center; width:32px; height:28px; border-radius:4px; border:1.5px solid #d1d5db; cursor:pointer; font-weight:700; font-size:.8rem; color:#6b7280; transition:all .12s; }
+.att-pill { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:6px; border:1.5px solid #d1d5db; cursor:pointer; font-weight:700; font-size:.85rem; color:#6b7280; transition:all .12s; }
 .att-pill.att-P.active, label[for^="P"]:has(+input:checked~label.att-P) { background:#dcfce7; border-color:#16a34a; color:#16a34a; }
 .att-pill.att-A.active { background:#fee2e2; border-color:#dc2626; color:#dc2626; }
 .att-pill.att-L.active { background:#fef9c3; border-color:#ca8a04; color:#ca8a04; }

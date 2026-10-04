@@ -41,7 +41,7 @@ echo '<div class="portal-wrap">';
 sidebar('admin', 'dashboard', $links, $user);
 echo '<div class="main-area">';
 topbar('Admin Dashboard', $user);
-echo '<div class="page-content" style="padding:20px 22px 32px">';
+echo '<div class="page-content">';
 echo flashHtml();
 ?>
 

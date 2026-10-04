@@ -33,7 +33,7 @@ try {
 
     <?php if ($_pwStatus === 'approved' && $_pwImgUrl): ?>
     <!-- Approved photo -->
-    <div class="d-flex align-items-start gap-4 mb-3">
+    <div class="d-flex align-items-start gap-4 mb-3 flex-wrap">
       <img src="<?= h($_pwImgUrl) ?>" alt="Profile Photo"
            style="width:100px;height:100px;object-fit:cover;border-radius:50%;border:3px solid #10b981;flex-shrink:0">
       <div>
@@ -48,7 +48,7 @@ try {
 
     <?php elseif ($_pwStatus === 'pending' && $_pwImgUrl): ?>
     <!-- Pending review — photo IS visible everywhere, just awaiting final admin sign-off -->
-    <div class="d-flex align-items-start gap-4 mb-3">
+    <div class="d-flex align-items-start gap-4 mb-3 flex-wrap">
       <div style="position:relative;flex-shrink:0">
         <img src="<?= h($_pwImgUrl) ?>" alt="Profile Photo"
              style="width:100px;height:100px;object-fit:cover;border-radius:50%;border:3px solid #f59e0b">

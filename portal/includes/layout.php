@@ -301,7 +301,7 @@ function _notificationBell(array $user): string {
     <i class="fas fa-bell" style="font-size:1.05rem"></i>
     ' . $badgeHtml . '
   </button>
-  <div class="dropdown-menu dropdown-menu-end shadow" style="width:320px;padding:0;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb">
+  <div class="dropdown-menu dropdown-menu-end shadow" style="min-width:280px;max-width:calc(100vw - 20px);padding:0;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb">
     <div style="padding:10px 14px;background:var(--accent);color:#fff;font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:6px">
       <i class="fas fa-bell"></i> Notifications
       ' . ($unread > 0 ? '<span style="margin-left:auto;background:rgba(255,255,255,.25);border-radius:12px;padding:1px 8px;font-size:.72rem">' . $unread . ' unread</span>' : '') . '

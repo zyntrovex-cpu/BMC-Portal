@@ -133,7 +133,7 @@ $links = getStudentLinks();
               <span class="badge bg-danger ms-1" style="font-size:9px">Low</span>
             <?php endif; ?>
           </td>
-          <td style="min-width:100px">
+          <td>
             <div class="att-bar-wrap">
               <div class="att-bar-fill" style="width:<?= min($pct, 100) ?>%;background:<?= $color ?>"></div>
             </div>
@@ -151,7 +151,7 @@ $links = getStudentLinks();
   <div class="sec-head">
     <h5><i class="fas fa-chart-line me-2" style="color:#1d4ed8"></i>Monthly Attendance Trend</h5>
   </div>
-  <div class="p-3" style="height:260px">
+  <div class="p-3" style="min-height:260px;height:auto">
     <canvas id="attChart"></canvas>
   </div>
 </div>

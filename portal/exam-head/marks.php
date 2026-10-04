@@ -287,7 +287,7 @@ $links = getExamHeadLinks();
       &nbsp;|&nbsp; <?= fDate($currentAssessment['date']) ?>
     </span>
   </div>
-  <div style="padding:10px 20px;background:#f0fdf4;border-top:2px solid #bbf7d0;display:flex;align-items:center;gap:10px">
+  <div style="padding:10px 20px;background:#f0fdf4;border-top:2px solid #bbf7d0;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <i class="fas fa-check-circle" style="color:#16a34a;font-size:1.2rem"></i>
     <span class="fw-semibold" style="color:#166534;font-size:.9rem">
       <span class="badge bg-success me-2" style="font-size:.78rem">Marks Entry Enabled</span>

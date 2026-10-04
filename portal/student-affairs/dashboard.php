@@ -87,7 +87,7 @@ $links = getStudentAffairsLinks();
       <div class="stat-lbl">Approved</div>
     </div>
   </div>
-  <div class="col-6 col-lg-3">
+  <div class="col-12 col-sm-6 col-lg-3">
     <div class="stat-card">
       <div class="stat-icon" style="background:#fee2e2;color:#dc2626"><i class="fas fa-times-circle"></i></div>
       <div class="stat-val" style="color:#dc2626"><?= $rejected ?></div>

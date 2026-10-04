@@ -191,10 +191,10 @@ foreach (['main','montessori','ilc'] as $w)
     <!-- Title + Search row -->
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
       <span><i class="fas fa-chalkboard-teacher me-2"></i>Teacher Accounts (<?= count($filteredTeachers) ?>)</span>
-      <form method="GET" action="" class="d-flex gap-1 align-items-center">
+      <form method="GET" action="" class="d-flex gap-1 align-items-center flex-wrap">
         <?php if ($wingFilter !== 'all'): ?><input type="hidden" name="wing" value="<?= h($wingFilter) ?>"><?php endif; ?>
         <input type="text" name="q" value="<?= h($search) ?>"
-               class="form-control form-control-sm" style="width:220px;font-size:.82rem"
+               class="form-control form-control-sm" style="flex:1 1 auto;min-width:120px;max-width:220px;font-size:.82rem"
                placeholder="Name, ID, email, subject, phone…" autocomplete="off">
         <button type="submit" class="btn btn-sm btn-primary" style="font-size:.8rem;padding:3px 10px;white-space:nowrap">
           <i class="fas fa-search me-1"></i>Search

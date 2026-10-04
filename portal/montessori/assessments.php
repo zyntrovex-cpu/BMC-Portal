@@ -433,7 +433,7 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
       <div>
         <label class="form-label fw-semibold mb-1" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.4px;color:var(--t3)">Date</label>
         <input type="date" name="date" class="form-control form-control-sm" value="<?= h($selDate) ?>"
-               onchange="document.getElementById('ctxForm').submit()" style="width:155px">
+               onchange="document.getElementById('ctxForm').submit()" style="flex:1 1 auto;min-width:140px;max-width:180px">
       </div>
       <button type="submit" class="btn btn-primary btn-sm" style="font-size:.8rem">
         <i class="fas fa-sync-alt me-1"></i>Refresh
@@ -469,7 +469,7 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
 <div class="row g-3">
 
   <!-- ── MAIN COLUMN ──────────────────────────────────────────────── -->
-  <div class="col-xl-8 col-lg-7">
+  <div class="col-xl-8 col-lg-12">
 
     <!-- STEP 1: Select Student ─────────────────────────────────── -->
     <div class="sec-card mb-3">
@@ -835,7 +835,7 @@ $links = ($user['role']==='wing_head') ? getWingHeadLinks() : getMonteTeacherLin
   </div><!-- /col-xl-8 -->
 
   <!-- ── RIGHT SIDEBAR ──────────────────────────────────────────── -->
-  <div class="col-xl-4 col-lg-5">
+  <div class="col-xl-4 col-lg-12">
 
     <?php if ($selStudentId && $selStudent): ?>
     <!-- Selected Student Card -->

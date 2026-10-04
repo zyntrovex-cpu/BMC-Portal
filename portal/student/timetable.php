@@ -106,7 +106,7 @@ $links = getStudentLinks();
 <?php else: ?>
 <div class="sec-card">
   <div class="sec-card-header"><i class="fas fa-table me-2"></i>Class Timetable — <?= h($student['class_name']) ?></div>
-  <div style="padding:56px;text-align:center">
+  <div style="padding:56px 20px;text-align:center">
     <i class="fas fa-calendar-alt fa-3x mb-3" style="color:var(--accent);opacity:.25"></i>
     <div class="fw-semibold mb-2" style="font-size:1rem;color:var(--t1)">No timetable available yet</div>
     <div style="font-size:.86rem;color:var(--t2)">Your timetable will appear here once it is uploaded by the administration.</div>

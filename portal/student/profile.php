@@ -177,7 +177,7 @@ $links = getStudentLinks();
 
         <!-- ── PERSONAL INFORMATION ───────────────────────── -->
         <div class="bio-section-label">Personal Information</div>
-        <table class="table table-sm mb-2" style="font-size:.86rem">
+        <div class="table-responsive"><table class="table table-sm mb-2" style="font-size:.86rem">
           <tr><th style="width:42%;color:#6b7280;font-weight:500">Name</th>
               <td class="<?= $hasWarnings ? 'student-name-warned' : '' ?>"><?= h($student['name']) ?></td></tr>
           <?php bioRow('Father Name', $student['father_name'] ?? null); ?>
@@ -196,11 +196,11 @@ $links = getStudentLinks();
           <?php endif; ?>
           <?php bioRow('Domicile', $student['domicile'] ?? null); ?>
           <?php bioRow('Child Order', isset($student['child_order']) && $student['child_order'] !== null ? ordinal((int)$student['child_order']).' child' : null); ?>
-        </table>
+        </table></div>
 
         <!-- ── ACADEMIC INFORMATION ───────────────────────── -->
         <div class="bio-section-label">Academic Information</div>
-        <table class="table table-sm mb-2" style="font-size:.86rem">
+        <div class="table-responsive"><table class="table table-sm mb-2" style="font-size:.86rem">
           <tr><th style="width:42%;color:#6b7280;font-weight:500">Class</th><td><?= h($student['class_name']) ?></td></tr>
           <tr><th style="color:#6b7280;font-weight:500">Wing</th>
               <td><?= wingBadge($student['wing'] ?? 'main') ?></td></tr>
@@ -215,11 +215,11 @@ $links = getStudentLinks();
           <?php bioRow('KuickPay ID', $student['kuickpay_id'] ?? null); ?>
           <?php bioRow('Last School', $student['last_school'] ?? null); ?>
           <?php bioRow('Admission Date', fDate($student['admission_date'] ?? '')); ?>
-        </table>
+        </table></div>
 
         <!-- ── CONTACT INFORMATION ────────────────────────── -->
         <div class="bio-section-label">Contact Information</div>
-        <table class="table table-sm mb-2" style="font-size:.86rem">
+        <div class="table-responsive"><table class="table table-sm mb-2" style="font-size:.86rem">
           <tr><th style="width:42%;color:#6b7280;font-weight:500">Email</th>
               <td>
                 <?= h($student['email'] ?: '—') ?>
@@ -233,16 +233,16 @@ $links = getStudentLinks();
           <?php bioRow('Emergency Phone', $student['emergency_phone'] ?? null); ?>
           <?php bioRow('Present Address', $student['address'] ?? null); ?>
           <?php bioRow('Permanent Address', $student['permanent_address'] ?? null); ?>
-        </table>
+        </table></div>
 
         <!-- ── PARENT / GUARDIAN ──────────────────────────── -->
         <div class="bio-section-label">Parent / Guardian</div>
-        <table class="table table-sm mb-2" style="font-size:.86rem">
+        <div class="table-responsive"><table class="table table-sm mb-2" style="font-size:.86rem">
           <?php bioRow('Parent Name', $student['parent_name'] ?? null); ?>
           <?php bioRow('Father Occupation', $student['father_occupation'] ?? null); ?>
           <?php bioRow('Parent Phone', $student['parent_phone'] ?? null); ?>
           <?php bioRow('Parent Email', $student['parent_email'] ?? null); ?>
-        </table>
+        </table></div>
 
         <!-- ── SKILLS / SPORTS / AWARDS ───────────────────── -->
         <?php if (!empty($student['skills']) || !empty($student['sports']) || !empty($student['awards'])): ?>
@@ -290,7 +290,7 @@ $links = getStudentLinks();
               $statusClass = 'warning'; $statusLabel = 'Awaiting SA Review';
           }
         ?>
-        <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="font-size:.84rem">
+        <div class="d-flex justify-content-between align-items-center py-2 border-bottom flex-wrap gap-2" style="font-size:.84rem">
           <div>
             <strong><?= h(ucwords(str_replace('_',' ',$r['field']))) ?></strong>
             <div style="color:#6b7280;font-size:.78rem"><?= h($r['new_value']) ?></div>

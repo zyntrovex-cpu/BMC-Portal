@@ -92,7 +92,7 @@ $postWing = $_POST['wing']      ?? 'main';
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BMC Portal — Bahria Model College</title>
 <link rel="icon" type="image/png" href="<?= BASE_URL ?>/assets/bmc-logo.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
@@ -213,6 +213,9 @@ body.phase2-active .site-footer   { display: none; }
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(14px, 2.5vw, 24px);
+}
+@media (max-width: 360px) {
+  .portal-cards { grid-template-columns: 1fr; }
 }
 
 .portal-card {
@@ -388,6 +391,9 @@ body.phase2-active .site-footer   { display: none; }
 .wing-label-glass::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.12); }
 
 .wing-tiles-glass { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:clamp(12px,2vh,18px); }
+@media (max-width: 380px) {
+  .wing-tiles-glass { grid-template-columns: repeat(2, 1fr); }
+}
 .wing-tile-g {
   border: 2px solid transparent;
   border-radius: 13px;

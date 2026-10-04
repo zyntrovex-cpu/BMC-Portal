@@ -129,7 +129,7 @@ pageHead('Dashboard', $user['role']);
 
 <!-- Welcome Banner -->
 <div class="portal-banner mb-4" style="background: linear-gradient(135deg, #059669, #047857);">
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
         <?php
           $_av = _avatarHtml($user['id'], _initials($user['name']), 60);
           if (str_starts_with($_av, '<img')):
@@ -224,7 +224,7 @@ pageHead('Dashboard', $user['role']);
                 <?php if (empty($ilcStudents)): ?>
                     <div class="p-3 text-muted" style="font-size:13px;">No ILC students enrolled.</div>
                 <?php else: ?>
-                    <table class="data-table">
+                    <div class="table-responsive"><table class="data-table">
                         <thead>
                             <tr><th>Student</th><th>ID</th><th>Class</th><th>Disabilities / Accommodations</th></tr>
                         </thead>
@@ -238,7 +238,7 @@ pageHead('Dashboard', $user['role']);
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
-                    </table>
+                    </table></div>
                 <?php endif; ?>
             </div>
         </div>
@@ -257,7 +257,7 @@ pageHead('Dashboard', $user['role']);
                 <?php if (empty($myClasses)): ?>
                     <div class="p-3 text-muted" style="font-size:13px;">No classes assigned yet.</div>
                 <?php else: ?>
-                    <table class="data-table">
+                    <div class="table-responsive"><table class="data-table">
                         <thead>
                             <tr>
                                 <th>Class</th>
@@ -289,7 +289,7 @@ pageHead('Dashboard', $user['role']);
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
-                    </table>
+                    </table></div>
                 <?php endif; ?>
             </div>
         </div>
@@ -308,7 +308,7 @@ pageHead('Dashboard', $user['role']);
                         <i class="fas fa-check-circle me-1"></i>All marks are up to date!
                     </div>
                 <?php else: ?>
-                    <table class="data-table">
+                    <div class="table-responsive"><table class="data-table">
                         <thead>
                             <tr>
                                 <th>Assessment</th>
@@ -336,7 +336,7 @@ pageHead('Dashboard', $user['role']);
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
-                    </table>
+                    </table></div>
                 <?php endif; ?>
             </div>
         </div>
