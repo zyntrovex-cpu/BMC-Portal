@@ -43,15 +43,18 @@ if (!defined('BASE_URL')) {
     unset($__docRoot, $__projRoot, $__base, $__sn, $__seg, $__pos);
 }
 
-// Grade boundaries (percentage → grade)
+// Grade boundaries — IBCC Pakistan grading scale
 function getGrade(float $pct): array {
-    if ($pct >= 90) return ['label' => 'A+', 'class' => 'grade-aplus'];
-    if ($pct >= 80) return ['label' => 'A',  'class' => 'grade-a'];
-    if ($pct >= 70) return ['label' => 'B+', 'class' => 'grade-bplus'];
-    if ($pct >= 60) return ['label' => 'B',  'class' => 'grade-b'];
-    if ($pct >= 50) return ['label' => 'C',  'class' => 'grade-c'];
-    if ($pct >= 40) return ['label' => 'D',  'class' => 'grade-d'];
-    return ['label' => 'F', 'class' => 'grade-f'];
+    if ($pct >= 95) return ['label' => 'A++', 'class' => 'grade-aplusplus'];
+    if ($pct >= 90) return ['label' => 'A+',  'class' => 'grade-aplus'];
+    if ($pct >= 85) return ['label' => 'A',   'class' => 'grade-a'];
+    if ($pct >= 80) return ['label' => 'B++', 'class' => 'grade-bplusplus'];
+    if ($pct >= 75) return ['label' => 'B+',  'class' => 'grade-bplus'];
+    if ($pct >= 70) return ['label' => 'B',   'class' => 'grade-b'];
+    if ($pct >= 60) return ['label' => 'C',   'class' => 'grade-c'];
+    if ($pct >= 50) return ['label' => 'D',   'class' => 'grade-d'];
+    if ($pct >= 40) return ['label' => 'E',   'class' => 'grade-e'];
+    return ['label' => 'U', 'class' => 'grade-u'];
 }
 
 function gradeHtml(float $pct): string {

@@ -89,7 +89,7 @@ $SECS = [
         'coordinates_music'    => 'Coordinates with music',
     ]],
 ];
-$GRADES = ['A+','A','B','C','D','N.A.'];
+$GRADES = ['A++','A+','A','B++','B+','B','C','D','E','U','N.A.'];
 $TERMS  = ['Mid Term','Final Term','Annual Exam'];
 
 function arGrSel(string $nm, string $val, array $grades): string {
@@ -484,9 +484,17 @@ $links = getIlcLinks();
 <div class="mt-3 p-2 d-flex flex-wrap gap-2 align-items-center" style="font-size:.75rem;color:var(--t2)">
   <span class="fw-semibold">Grade Key:</span>
   <?php
-  $gradeLegend = ['A+'=>['#166534','#dcfce7'],'A'=>['#15803d','#f0fdf4'],'B'=>['#1d4ed8','#dbeafe'],
-                  'C'=>['#b45309','#fef3c7'],'D'=>['#dc2626','#fee2e2'],'N.A.'=>['#6b7280','#f3f4f6']];
-  $gradeNames  = ['A+'=>'Outstanding','A'=>'Excellent','B'=>'Good','C'=>'Satisfactory','D'=>'Needs Improvement','N.A.'=>'Not Assessed'];
+  $gradeLegend = [
+    'A++'=>['#14532d','#dcfce7'],'A+'=>['#166534','#d1fae5'],'A'=>['#15803d','#bbf7d0'],
+    'B++'=>['#1e40af','#dbeafe'],'B+'=>['#1d4ed8','#bfdbfe'],'B'=>['#0369a1','#e0f2fe'],
+    'C'=>['#92400e','#fef3c7'],'D'=>['#7c2d12','#ffedd5'],
+    'E'=>['#9a3412','#fee2e2'],'U'=>['#991b1b','#fecaca'],'N.A.'=>['#6b7280','#f3f4f6'],
+  ];
+  $gradeNames  = [
+    'A++'=>'Outstanding','A+'=>'Excellent','A'=>'Very Good',
+    'B++'=>'Good','B+'=>'Above Average','B'=>'Average',
+    'C'=>'Satisfactory','D'=>'Pass','E'=>'Below Average','U'=>'Ungraded','N.A.'=>'Not Assessed',
+  ];
   foreach ($gradeLegend as $g => [$fg,$bg]):
   ?>
   <span style="background:<?= $bg ?>;color:<?= $fg ?>;padding:2px 8px;border-radius:4px;font-weight:700">

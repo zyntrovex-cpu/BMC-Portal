@@ -154,7 +154,7 @@ $links = getVpLinks();
           <td><?= number_format((float)$r['total_possible'], 0) ?></td>
           <td><?= number_format((float)$r['total_obtained'], 1) ?></td>
           <td>
-            <span class="badge <?= $pct>=80?'bg-success':($pct>=50?'bg-warning text-dark':'bg-danger') ?>"><?= $pct ?>%</span>
+            <span class="badge <?= $pct>=70?'bg-success':($pct>=40?'bg-warning text-dark':'bg-danger') ?>"><?= $pct ?>%</span>
           </td>
           <td>
             <a href="<?= url('/portal/report-card.php?student_id=' . $r['student_id']) ?>"

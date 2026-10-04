@@ -185,15 +185,18 @@ img { max-width: 100%; }
 .table { font-size: 13px; }
 .table thead th { font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
 
-/* ── Grade badges ────────────────────────────────────────────── */
-.grade       { padding: 2px 7px; border-radius: 3px; font-size: 11px; font-weight: 700; display: inline-block; }
-.grade-aplus { background: #dbeafe; color: #1e40af; }
-.grade-a     { background: #dcfce7; color: #166534; }
-.grade-bplus { background: #d1fae5; color: #065f46; }
-.grade-b     { background: #fef9c3; color: #854d0e; }
-.grade-c     { background: #ffedd5; color: #9a3412; }
-.grade-d     { background: #fce7f3; color: #9d174d; }
-.grade-f     { background: #fee2e2; color: #991b1b; }
+/* ── Grade badges — IBCC Pakistan scale ──────────────────────── */
+.grade           { padding: 2px 7px; border-radius: 3px; font-size: 11px; font-weight: 700; display: inline-block; }
+.grade-aplusplus { background: #dcfce7; color: #14532d; }   /* A++ 95–100% Outstanding  */
+.grade-aplus     { background: #d1fae5; color: #166534; }   /* A+  90–94%  Excellent    */
+.grade-a         { background: #bbf7d0; color: #15803d; }   /* A   85–89%  Very Good    */
+.grade-bplusplus { background: #dbeafe; color: #1e40af; }   /* B++ 80–84%  Good         */
+.grade-bplus     { background: #bfdbfe; color: #1d4ed8; }   /* B+  75–79%  Above Avg    */
+.grade-b         { background: #e0f2fe; color: #0369a1; }   /* B   70–74%  Average      */
+.grade-c         { background: #fef3c7; color: #92400e; }   /* C   60–69%  Satisfactory */
+.grade-d         { background: #ffedd5; color: #7c2d12; }   /* D   50–59%  Pass         */
+.grade-e         { background: #fee2e2; color: #9a3412; }   /* E   40–49%  Below Avg    */
+.grade-u         { background: #fecaca; color: #991b1b; }   /* U   <  40%  Ungraded     */
 
 /* ── Attendance pills ────────────────────────────────────────── */
 .att-pill {

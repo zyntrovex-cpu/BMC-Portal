@@ -31,14 +31,18 @@ if ($rcSearch !== '') {
     $rcStudents = $rcSt->fetchAll();
 }
 
-// ── Inline grade helper (not globally defined) ────────────────
+// ── Inline grade helper — IBCC scale ──────────────────────────
 function saGradeHtml(float $pct): string {
-    if ($pct >= 90) { $g = 'A+'; $bg = '#dcfce7'; $cl = '#14532d'; }
-    elseif ($pct >= 80) { $g = 'A';  $bg = '#d1fae5'; $cl = '#166534'; }
-    elseif ($pct >= 70) { $g = 'B';  $bg = '#dbeafe'; $cl = '#1e40af'; }
-    elseif ($pct >= 60) { $g = 'C';  $bg = '#fef3c7'; $cl = '#92400e'; }
-    elseif ($pct >= 50) { $g = 'D';  $bg = '#ffedd5'; $cl = '#7c2d12'; }
-    else                { $g = 'F';  $bg = '#fee2e2'; $cl = '#991b1b'; }
+    if ($pct >= 95)      { $g = 'A++'; $bg = '#dcfce7'; $cl = '#14532d'; }
+    elseif ($pct >= 90)  { $g = 'A+';  $bg = '#d1fae5'; $cl = '#166534'; }
+    elseif ($pct >= 85)  { $g = 'A';   $bg = '#bbf7d0'; $cl = '#15803d'; }
+    elseif ($pct >= 80)  { $g = 'B++'; $bg = '#dbeafe'; $cl = '#1e40af'; }
+    elseif ($pct >= 75)  { $g = 'B+';  $bg = '#bfdbfe'; $cl = '#1d4ed8'; }
+    elseif ($pct >= 70)  { $g = 'B';   $bg = '#e0f2fe'; $cl = '#0369a1'; }
+    elseif ($pct >= 60)  { $g = 'C';   $bg = '#fef3c7'; $cl = '#92400e'; }
+    elseif ($pct >= 50)  { $g = 'D';   $bg = '#ffedd5'; $cl = '#7c2d12'; }
+    elseif ($pct >= 40)  { $g = 'E';   $bg = '#fee2e2'; $cl = '#9a3412'; }
+    else                 { $g = 'U';   $bg = '#fecaca'; $cl = '#991b1b'; }
     return "<span style='display:inline-block;padding:1px 8px;border-radius:4px;font-size:.72rem;font-weight:700;background:$bg;color:$cl'>$g</span>";
 }
 

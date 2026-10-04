@@ -59,8 +59,13 @@ $ASSESSMENT_LEVELS = [
 
 function pdfGrade2(string $g): string {
     if ($g === '') return '<span style="color:#94a3b8">—</span>';
-    $map = ['A+'=>'#166534','A'=>'#166534','B'=>'#1e40af','C'=>'#92400e','D'=>'#991b1b','N.A.'=>'#64748b'];
-    $c   = $map[$g] ?? '#374151';
+    $map = [
+        'A++'=>'#14532d','A+'=>'#166534','A'=>'#15803d',
+        'B++'=>'#1e40af','B+'=>'#1d4ed8','B'=>'#0369a1',
+        'C'=>'#92400e','D'=>'#7c2d12','E'=>'#9a3412','U'=>'#991b1b',
+        'N.A.'=>'#64748b',
+    ];
+    $c = $map[$g] ?? '#374151';
     return "<strong style='color:$c;font-size:.9rem'>$g</strong>";
 }
 
@@ -150,14 +155,19 @@ table.sec-table th { background:#f1f5f9; font-weight:600; }
   <span><strong>Term:</strong> <?= h($term) ?></span>
 </div>
 
-<!-- Grade key -->
+<!-- Grade key — IBCC scale -->
 <div class="grade-key">
-  <strong>Grade Key:</strong>
-  <span><strong style="color:#166534">A+</strong> Outstanding (85%+)</span>
-  <span><strong style="color:#15803d">A</strong> Excellent (70%+)</span>
-  <span><strong style="color:#1e40af">B</strong> Good (50%+)</span>
-  <span><strong style="color:#92400e">C</strong> Satisfactory (40%+)</span>
-  <span><strong style="color:#991b1b">D</strong> Needs Improvement (&lt;40%)</span>
+  <strong>Grade Key (IBCC):</strong>
+  <span><strong style="color:#14532d">A++</strong> Outstanding (95%+)</span>
+  <span><strong style="color:#166534">A+</strong> Excellent (90%+)</span>
+  <span><strong style="color:#15803d">A</strong> Very Good (85%+)</span>
+  <span><strong style="color:#1e40af">B++</strong> Good (80%+)</span>
+  <span><strong style="color:#1d4ed8">B+</strong> Above Avg (75%+)</span>
+  <span><strong style="color:#0369a1">B</strong> Average (70%+)</span>
+  <span><strong style="color:#92400e">C</strong> Satisfactory (60%+)</span>
+  <span><strong style="color:#7c2d12">D</strong> Pass (50%+)</span>
+  <span><strong style="color:#9a3412">E</strong> Below Avg (40%+)</span>
+  <span><strong style="color:#991b1b">U</strong> Ungraded (&lt;40%)</span>
   <span><strong style="color:#64748b">N.A.</strong> Not Assessed</span>
 </div>
 

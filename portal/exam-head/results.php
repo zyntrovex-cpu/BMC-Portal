@@ -73,17 +73,20 @@ if ($rcSearch !== '') {
 
 // ── Grade helper ──────────────────────────────────────────────────────────────
 function ehGrade(float $pct): string {
+    if ($pct >= 95) return 'A++';
     if ($pct >= 90) return 'A+';
-    if ($pct >= 80) return 'A';
-    if ($pct >= 70) return 'B+';
-    if ($pct >= 60) return 'B';
-    if ($pct >= 50) return 'C';
-    if ($pct >= 40) return 'D';
-    return 'F';
+    if ($pct >= 85) return 'A';
+    if ($pct >= 80) return 'B++';
+    if ($pct >= 75) return 'B+';
+    if ($pct >= 70) return 'B';
+    if ($pct >= 60) return 'C';
+    if ($pct >= 50) return 'D';
+    if ($pct >= 40) return 'E';
+    return 'U';
 }
 function ehGradeBadge(float $pct): string {
-    if ($pct >= 80) return 'bg-success';
-    if ($pct >= 50) return 'bg-warning text-dark';
+    if ($pct >= 70) return 'bg-success';
+    if ($pct >= 40) return 'bg-warning text-dark';
     return 'bg-danger';
 }
 
@@ -268,7 +271,7 @@ $passRate = $totalStudents > 0 ? round($passCount / $totalStudents * 100, 0) : 0
       </div>
       <div class="stat-body">
         <div class="stat-num" style="font-size:1.4rem"><?= $passCount ?></div>
-        <div class="stat-label">Passed (≥40%)</div>
+        <div class="stat-label">Passed (Grade E+, ≥40%)</div>
       </div>
     </div>
   </div>

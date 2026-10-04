@@ -14,12 +14,16 @@ if (!$classId || !$subjectId) {
 }
 
 function saGrade(float $pct): string {
+    if ($pct >= 95) return 'A++';
     if ($pct >= 90) return 'A+';
-    if ($pct >= 80) return 'A';
+    if ($pct >= 85) return 'A';
+    if ($pct >= 80) return 'B++';
+    if ($pct >= 75) return 'B+';
     if ($pct >= 70) return 'B';
     if ($pct >= 60) return 'C';
     if ($pct >= 50) return 'D';
-    return 'F';
+    if ($pct >= 40) return 'E';
+    return 'U';
 }
 
 $assessments    = [];

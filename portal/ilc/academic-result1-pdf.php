@@ -68,8 +68,13 @@ $SECS = [
 
 function pdfGrade(string $g): string {
     if ($g === '') return '<span style="color:#94a3b8">—</span>';
-    $map = ['A+'=>'#166534','A'=>'#166534','B'=>'#1e40af','C'=>'#92400e','D'=>'#991b1b','N.A.'=>'#64748b'];
-    $c   = $map[$g] ?? '#374151';
+    $map = [
+        'A++'=>'#14532d','A+'=>'#166534','A'=>'#15803d',
+        'B++'=>'#1e40af','B+'=>'#1d4ed8','B'=>'#0369a1',
+        'C'=>'#92400e','D'=>'#7c2d12','E'=>'#9a3412','U'=>'#991b1b',
+        'N.A.'=>'#64748b',
+    ];
+    $c = $map[$g] ?? '#374151';
     return "<strong style='color:$c;font-size:.9rem'>$g</strong>";
 }
 
