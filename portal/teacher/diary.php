@@ -8,10 +8,13 @@ $user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_hea
 requirePermission('diary');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
+$supervisorRoles = ['wing_head', 'vp_montessori'];
 if (!$teacher) {
-    if ($user['role'] !== 'wing_head') { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
+    if (!in_array($user['role'], $supervisorRoles, true)) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
     $teacher = ['id' => 0, 'subject_id' => 0, 'name' => $user['name'], 'is_ilc' => 0];
 }
+// Supervisor mode: wing_head or vp_montessori with no real teacher record — read-only overview
+$isSupervisor = in_array($user['role'], $supervisorRoles, true) && (int)($teacher['id'] ?? 0) === 0;
 
 // Check tables exist
 $tableExists = false;
@@ -80,13 +83,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
     redirect('/portal/teacher/diary.php');
 }
 
-// Classes assigned to this teacher
-$assignedClasses = $db->prepare(
-    'SELECT DISTINCT c.id, c.name FROM class_subjects cs JOIN classes c ON cs.class_id=c.id
-     WHERE cs.teacher_id=? ORDER BY c.grade, c.section'
-);
-$assignedClasses->execute([$teacher['id']]);
-$classes = $assignedClasses->fetchAll();
+// Classes list: supervisor sees all Montessori classes; teacher sees only assigned classes
+if ($isSupervisor) {
+    $clSt = $db->prepare(
+        "SELECT DISTINCT c.id, c.name FROM classes c
+         WHERE COALESCE(c.is_montessori,0)=1 OR c.wing='montessori'
+         ORDER BY c.grade, c.section"
+    );
+    $clSt->execute();
+    $classes = $clSt->fetchAll();
+} else {
+    $assignedClasses = $db->prepare(
+        'SELECT DISTINCT c.id, c.name FROM class_subjects cs JOIN classes c ON cs.class_id=c.id
+         WHERE cs.teacher_id=? ORDER BY c.grade, c.section'
+    );
+    $assignedClasses->execute([$teacher['id']]);
+    $classes = $assignedClasses->fetchAll();
+}
 
 $filterClass = (int)($_GET['class_id'] ?? 0);
 $filterDate  = $_GET['date']           ?? '';
@@ -94,20 +107,40 @@ $filterDate  = $_GET['date']           ?? '';
 // Fetch diary entries
 $entries = [];
 if ($tableExists) {
-    $where  = 'dd.teacher_id = ?';
-    $params = [$teacher['id']];
-    if ($filterClass) { $where .= ' AND dd.class_id = ?'; $params[] = $filterClass; }
-    if ($filterDate)  { $where .= ' AND dd.date = ?';     $params[] = $filterDate; }
+    if ($isSupervisor) {
+        // Show all entries for Montessori classes, including teacher name
+        $where  = "(COALESCE(c.is_montessori,0)=1 OR c.wing='montessori')";
+        $params = [];
+        if ($filterClass) { $where .= ' AND dd.class_id = ?'; $params[] = $filterClass; }
+        if ($filterDate)  { $where .= ' AND dd.date = ?';     $params[] = $filterDate; }
 
-    $st = $db->prepare(
-        "SELECT dd.*, c.name AS class_name
-         FROM daily_diary dd
-         JOIN classes c ON c.id = dd.class_id
-         WHERE $where
-         ORDER BY dd.date DESC, dd.created_at DESC
-         LIMIT 60"
-    );
-    $st->execute($params);
+        $st = $db->prepare(
+            "SELECT dd.*, c.name AS class_name, u.name AS teacher_name
+             FROM daily_diary dd
+             JOIN classes c ON c.id = dd.class_id
+             JOIN teachers t ON t.id = dd.teacher_id
+             JOIN users u ON u.id = t.user_id
+             WHERE $where
+             ORDER BY dd.date DESC, dd.created_at DESC
+             LIMIT 60"
+        );
+        $st->execute($params);
+    } else {
+        $where  = 'dd.teacher_id = ?';
+        $params = [$teacher['id']];
+        if ($filterClass) { $where .= ' AND dd.class_id = ?'; $params[] = $filterClass; }
+        if ($filterDate)  { $where .= ' AND dd.date = ?';     $params[] = $filterDate; }
+
+        $st = $db->prepare(
+            "SELECT dd.*, c.name AS class_name
+             FROM daily_diary dd
+             JOIN classes c ON c.id = dd.class_id
+             WHERE $where
+             ORDER BY dd.date DESC, dd.created_at DESC
+             LIMIT 60"
+        );
+        $st->execute($params);
+    }
     $entries = $st->fetchAll();
 
     // Fetch images for these entries
@@ -127,6 +160,7 @@ $links = match($user['role']) {
     'montessori_teacher' => getMonteTeacherLinks(),
     'ilc_teacher'        => getIlcTeacherLinks(),
     'wing_head'          => getWingHeadLinks(),
+    'vp_montessori'      => getVpMontessoriLinks(),
     default              => getTeacherLinks(),
 };
 ?>
@@ -145,8 +179,23 @@ $links = match($user['role']) {
 <?php else: ?>
 
 <div class="row g-3">
-  <!-- Add entry form -->
+  <!-- Add entry form / supervisor notice -->
   <div class="col-lg-4">
+    <?php if ($isSupervisor): ?>
+    <div class="sec-card" style="position:sticky;top:70px">
+      <div class="sec-card-header"><i class="fas fa-eye me-2"></i>Montessori Diary — Overview</div>
+      <div style="padding:16px">
+        <div class="alert alert-info mb-3" style="font-size:.84rem">
+          <i class="fas fa-info-circle me-2"></i>
+          You are viewing all Montessori diary entries. To post your own entries you need a
+          <strong>Teacher Profile</strong> — ask an admin to create one for your account.
+        </div>
+        <p style="font-size:.82rem;color:var(--t2);margin-bottom:0">
+          Use the filter on the right to browse entries by class or date.
+        </p>
+      </div>
+    </div>
+    <?php else: ?>
     <div class="sec-card" style="position:sticky;top:70px">
       <div class="sec-card-header"><i class="fas fa-pen me-2"></i>Add Diary Entry</div>
       <div style="padding:16px">
@@ -191,6 +240,7 @@ $links = match($user['role']) {
         </form>
       </div>
     </div>
+    <?php endif; ?>
   </div>
 
   <!-- Entries list -->
@@ -219,14 +269,19 @@ $links = match($user['role']) {
         <div>
           <span class="badge bg-secondary me-1"><?= h($e['class_name']) ?></span>
           <strong><?= h($e['title']) ?></strong>
+          <?php if ($isSupervisor && !empty($e['teacher_name'])): ?>
+          <span class="badge bg-primary ms-1" style="font-size:.72rem;font-weight:500"><?= h($e['teacher_name']) ?></span>
+          <?php endif; ?>
         </div>
         <div class="d-flex gap-1 align-items-center">
           <small class="text-muted"><?= fDate($e['date']) ?></small>
+          <?php if (!$isSupervisor): ?>
           <form method="POST" class="d-inline ms-2" onsubmit="return confirm('Delete this entry?')">
             <input type="hidden" name="action" value="delete_entry">
             <input type="hidden" name="diary_id" value="<?= $e['id'] ?>">
             <button class="btn btn-xs btn-outline-danger" style="font-size:.7rem;padding:1px 6px"><i class="fas fa-trash"></i></button>
           </form>
+          <?php endif; ?>
         </div>
       </div>
       <div style="padding:14px 16px">

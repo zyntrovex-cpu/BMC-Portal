@@ -288,11 +288,13 @@ function getRolePermissions(string $role): array {
             'wh_students'         => ['label' => 'Students',                    'icon' => 'fa-user-graduate'],
             'wh_classes'          => ['label' => 'Classes',                     'icon' => 'fa-chalkboard'],
             'wh_marks_approval'   => ['label' => 'Marks Permission Approvals',  'icon' => 'fa-clipboard-check'],
+            'diary'               => ['label' => 'Daily Diary',                 'icon' => 'fa-book-open'],
         ],
         'vp_montessori' => [
             'wh_students'         => ['label' => 'Students',                    'icon' => 'fa-user-graduate'],
             'wh_classes'          => ['label' => 'Classes',                     'icon' => 'fa-chalkboard'],
             'wh_timetable'        => ['label' => 'Timetable',                   'icon' => 'fa-table'],
+            'diary'               => ['label' => 'Daily Diary',                 'icon' => 'fa-book-open'],
         ],
         'examination_head' => [
             'eh_marks'      => ['label' => 'Assessments & Marks',  'icon' => 'fa-pen-alt'],
@@ -663,6 +665,7 @@ function getVpMontessoriLinks(): array {
         ['href'=>'/portal/vp-montessori/exam-datesheet.php',      'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',      'key'=>'exam-datesheet'],
         ['href'=>'/portal/vp-montessori/notices.php',             'icon'=>'<i class="fas fa-bell"></i>',                        'label'=>'Notices',              'key'=>'notices'],
         ['href'=>'/portal/vp-montessori/teachers.php',            'icon'=>'<i class="fas fa-chalkboard-teacher"></i>',          'label'=>'Montessori Teachers',  'key'=>'teachers'],
+        hasPermission('diary')       ? ['href'=>'/portal/teacher/diary.php',           'icon'=>'<i class="fas fa-book-open"></i>',                'label'=>'Daily Diary',          'key'=>'diary']       : null,
         hasPermission('wh_students')     ? ['href'=>'/portal/vp-montessori/students.php',  'icon'=>'<i class="fas fa-user-graduate"></i>',   'label'=>'Students',      'key'=>'students']   : null,
         hasPermission('wh_classes')      ? ['href'=>'/portal/vp-montessori/classes.php',   'icon'=>'<i class="fas fa-chalkboard"></i>',      'label'=>'Classes',       'key'=>'classes']    : null,
         hasPermission('wh_timetable')    ? ['href'=>'/portal/vp-montessori/timetable.php', 'icon'=>'<i class="fas fa-table"></i>',           'label'=>'Timetable',     'key'=>'timetable']  : null,
