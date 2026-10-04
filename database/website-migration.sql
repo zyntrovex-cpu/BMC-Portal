@@ -2,7 +2,6 @@
 -- BMC Public Website — Database Migration
 -- Run: mysql -u root bmc_portal < website-migration.sql
 -- ===================================================================
-USE bmc_portal;
 
 -- ── Site Settings ─────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS site_settings (

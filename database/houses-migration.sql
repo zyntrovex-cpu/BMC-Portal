@@ -3,7 +3,6 @@
 -- Creates the houses table and adds house_id to students.
 -- ================================================================
 
-USE bmc_portal;
 
 CREATE TABLE IF NOT EXISTS houses (
   id         INT PRIMARY KEY AUTO_INCREMENT,

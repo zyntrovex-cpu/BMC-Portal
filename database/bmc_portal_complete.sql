@@ -10,14 +10,10 @@
 --  ONLY if you want a clean wipe.
 -- ============================================================
 
--- OPTIONAL — Uncomment to wipe and recreate:
--- DROP DATABASE IF EXISTS bmc_portal;
-
-CREATE DATABASE IF NOT EXISTS bmc_portal
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-USE bmc_portal;
+-- NOTE: Import this file directly into your target database using phpMyAdmin
+-- (Database → Import tab) or: mysql -u USER -p YOUR_DB_NAME < bmc_portal_complete.sql
+-- Do NOT run as root with CREATE DATABASE — shared hosting users cannot create databases.
+-- The target database must already exist and be selected before import.
 
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -199,9 +195,7 @@ CREATE TABLE IF NOT EXISTS assessments (
   id          INT PRIMARY KEY AUTO_INCREMENT,
   name        VARCHAR(100) NOT NULL,
   title       VARCHAR(100),
-  type        ENUM('Quiz','Assignment','Mid Term','Final Term','Practical',
-                   'quiz','assignment','class_test','mid_term','final_term','practical')
-                NOT NULL DEFAULT 'Quiz',
+  type        VARCHAR(100) NOT NULL DEFAULT 'Quiz',
   max_marks   DECIMAL(6,2) NOT NULL,
   weight      DECIMAL(5,2) DEFAULT 0,
   date        DATE,

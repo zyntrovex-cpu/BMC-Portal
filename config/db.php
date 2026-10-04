@@ -1,10 +1,15 @@
 <?php
 // Database configuration
+// ── CHANGE THESE before uploading to Hostinger ────────────────────────────
+// DB_HOST: usually 127.0.0.1 on Hostinger
+// DB_NAME: your Hostinger database name (e.g. u123456789_bmc_portal)
+// DB_USER: your Hostinger database username (e.g. u123456789_bmc)
+// DB_PASS: the password you set for that database user in hPanel
 define('DB_HOST', '127.0.0.1');
 define('DB_PORT', '3306');
-define('DB_NAME', 'bmc_portal');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_NAME', 'YOUR_DB_NAME');
+define('DB_USER', 'YOUR_DB_USER');
+define('DB_PASS', 'YOUR_DB_PASS');
 define('DB_CHARSET', 'utf8mb4');
 
 function getDB(): PDO {

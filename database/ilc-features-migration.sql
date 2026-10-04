@@ -4,7 +4,6 @@
 --   mysql -u root bmc_portal < ilc-features-migration.sql
 -- ===================================================================
 
-USE bmc_portal;
 
 -- ── 1. ILC Session Records ────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS ilc_session_records (

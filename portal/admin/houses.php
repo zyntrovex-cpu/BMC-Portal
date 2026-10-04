@@ -212,7 +212,7 @@ $links = getAdminLinks();
   <div>
     <strong>Database table missing.</strong>
     The <code>houses</code> table has not been created yet. Run the migration in phpMyAdmin.
-    <pre class="mt-2 mb-0 p-2" style="background:#f8fafc;border-radius:6px;font-size:.79rem;border:1px solid #e5e7eb">USE bmc_portal;
+    <pre class="mt-2 mb-0 p-2" style="background:#f8fafc;border-radius:6px;font-size:.79rem;border:1px solid #e5e7eb">USE your_database_name; -- replace with your actual Hostinger database name
 CREATE TABLE IF NOT EXISTS houses (
   id INT PRIMARY KEY AUTO_INCREMENT,
   name VARCHAR(100) NOT NULL,

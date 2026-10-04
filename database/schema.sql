@@ -3,8 +3,6 @@
 -- Bahria Model College · MySQL / MariaDB
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS bmc_portal CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE bmc_portal;
 
 -- ─────────────────────────────────────────
 -- 1. USERS (unified auth table)
@@ -95,7 +93,7 @@ CREATE TABLE IF NOT EXISTS class_subjects (
 CREATE TABLE IF NOT EXISTS assessments (
   id          INT PRIMARY KEY AUTO_INCREMENT,
   name        VARCHAR(100) NOT NULL,
-  type        ENUM('quiz','assignment','class_test','mid_term','final_term','practical') NOT NULL,
+  type        VARCHAR(100) NOT NULL DEFAULT 'Quiz',
   max_marks   DECIMAL(6,2) NOT NULL,
   weight      DECIMAL(5,2) DEFAULT 0,
   date        DATE,

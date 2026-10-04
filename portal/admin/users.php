@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
                     $appUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL;
                 }
-                $setPassLink = rtrim($appUrl, '/') . '/reset-password.php?token=' . $token;
+                $setPassLink = rtrim($appUrl, '/') . '/portal/reset-password.php?token=' . $token;
 
                 $sent = false;
                 if ($email) {
@@ -247,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
                 $appUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL;
             }
-            $resetLink = rtrim($appUrl, '/') . '/reset-password.php?token=' . $token;
+            $resetLink = rtrim($appUrl, '/') . '/portal/reset-password.php?token=' . $token;
 
             $sent = false;
             if ($u['email']) {

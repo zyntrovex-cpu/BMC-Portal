@@ -3,7 +3,6 @@
 -- Creates the student_warnings table.
 -- ================================================================
 
-USE bmc_portal;
 
 CREATE TABLE IF NOT EXISTS student_warnings (
   id         INT PRIMARY KEY AUTO_INCREMENT,

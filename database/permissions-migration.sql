@@ -3,7 +3,6 @@
 -- Stores per-user permission grants for non-admin roles.
 -- ================================================================
 
-USE bmc_portal;
 
 CREATE TABLE IF NOT EXISTS user_permissions (
   id         INT PRIMARY KEY AUTO_INCREMENT,

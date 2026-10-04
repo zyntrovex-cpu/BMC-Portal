@@ -3,7 +3,6 @@
 -- Run AFTER schema.sql + migrations.sql + ilc-migration.sql
 -- ================================================================
 
-USE bmc_portal;
 
 -- ── 1. Extend users.role ENUM ────────────────────────────────────
 ALTER TABLE users

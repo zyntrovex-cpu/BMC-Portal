@@ -2,8 +2,6 @@
 -- Import this file in phpMyAdmin → Import tab
 -- ============================================
 
-CREATE DATABASE IF NOT EXISTS `bmc_portal` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `bmc_portal`;
 
 
 /*M!999999\- enable the sandbox mode */ 
@@ -101,7 +99,7 @@ CREATE TABLE `assessments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(100) NOT NULL,
   `name` varchar(100) NOT NULL,
-  `type` enum('Quiz','Assignment','Mid Term','Final Term','Practical') NOT NULL DEFAULT 'Quiz',
+  `type` varchar(100) NOT NULL DEFAULT 'Quiz',
   `max_marks` decimal(6,2) NOT NULL,
   `weight` decimal(5,2) DEFAULT 0.00,
   `date` date DEFAULT NULL,

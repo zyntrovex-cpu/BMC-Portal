@@ -4,7 +4,6 @@
 -- Hash below = password_hash("student123", PASSWORD_BCRYPT, ['cost'=>12])
 -- ================================================================
 
-USE bmc_portal;
 
 UPDATE users
 SET password = '$2y$12$BAsRJJaK24jPek..UJB/puV9NRQb2gLuAXju4fRBH263btU2OmkCG'

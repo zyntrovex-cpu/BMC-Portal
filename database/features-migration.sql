@@ -3,7 +3,6 @@
 -- Run this in phpMyAdmin (SQL tab) or via CLI: mysql -u root bmc_portal < features-migration.sql
 -- ===================================================================
 
-USE bmc_portal;
 
 -- ── 1. Student Complaints ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS student_complaints (
