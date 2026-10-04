@@ -292,7 +292,6 @@ function getRolePermissions(string $role): array {
         'vp_montessori' => [
             'wh_students'         => ['label' => 'Students',                    'icon' => 'fa-user-graduate'],
             'wh_classes'          => ['label' => 'Classes',                     'icon' => 'fa-chalkboard'],
-            'wh_marks_approval'   => ['label' => 'Marks Permission Approvals',  'icon' => 'fa-clipboard-check'],
         ],
         'examination_head' => [
             'eh_marks'      => ['label' => 'Assessments & Marks',  'icon' => 'fa-pen-alt'],
@@ -665,7 +664,6 @@ function getVpMontessoriLinks(): array {
         ['href'=>'/portal/vp-montessori/teachers.php',            'icon'=>'<i class="fas fa-chalkboard-teacher"></i>',          'label'=>'Montessori Teachers',  'key'=>'teachers'],
         hasPermission('wh_students')     ? ['href'=>'/portal/vp-montessori/students.php', 'icon'=>'<i class="fas fa-user-graduate"></i>',   'label'=>'Students',   'key'=>'students']  : null,
         hasPermission('wh_classes')      ? ['href'=>'/portal/vp-montessori/classes.php',  'icon'=>'<i class="fas fa-chalkboard"></i>',      'label'=>'Classes',    'key'=>'classes']   : null,
-        hasPermission('wh_marks_approval') ? ['href'=>'/portal/vp-montessori/marks-approval.php', 'icon'=>'<i class="fas fa-clipboard-check"></i>', 'label'=>'Marks Approvals', 'key'=>'marks-approval'] : null,
         hasPermission('wh_students')     ? ['href'=>'/portal/vp-montessori/view-as.php',  'icon'=>'<i class="fas fa-eye"></i>',             'label'=>'View As User',  'key'=>'viewas']  : null,
     ]));
 }
@@ -754,12 +752,12 @@ function getRecentNotifications(int $userId, int $limit = 6): array {
 
 /**
  * Returns the users.id of every active approver for the given wing.
- * main → vp_main, montessori → wing_head + vp_montessori, ilc → ilc_vp
+ * main → vp_main, montessori → wing_head only, ilc → ilc_vp
  */
 function getApproversForWing(string $wing): array {
     if ($wing === 'montessori') {
         try {
-            $st = getDB()->prepare("SELECT id FROM users WHERE role IN ('wing_head','vp_montessori') AND status='active'");
+            $st = getDB()->prepare("SELECT id FROM users WHERE role = 'wing_head' AND status='active'");
             $st->execute();
             return array_column($st->fetchAll(), 'id');
         } catch (Exception $e) { return []; }
