@@ -381,37 +381,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
     }
 
     // ── Detect header row ─────────────────────────────────────────────────────
-    // Look for row containing "FULL NAME" or "USER ID"
-    $headerIdx = 0;
+    // Strategy 1: score-based keyword scan (≥2 header keywords = header row)
+    $hdrKeywords = ['full name','user id','total subjects','qualification','email',
+                    's.no','s no','role','appointment','subject','employee'];
+    $headerIdx = null;
     foreach ($allRows as $i => $row) {
         $joined = strtolower(implode(' ', $row));
-        if (str_contains($joined, 'full name') || str_contains($joined, 'user id') || str_contains($joined, 'total subjects')) {
-            $headerIdx = $i;
-            break;
+        $score  = 0;
+        foreach ($hdrKeywords as $kw) {
+            if (str_contains($joined, $kw)) $score++;
+        }
+        if ($score >= 2) { $headerIdx = $i; break; }
+    }
+    // Strategy 2: row with most non-numeric text cells (typical of a header row)
+    if ($headerIdx === null) {
+        $bestScore = 0;
+        foreach ($allRows as $i => $row) {
+            $textCount = count(array_filter($row, fn($c) => $c !== '' && !is_numeric($c)));
+            if ($textCount > $bestScore) { $bestScore = $textCount; $headerIdx = $i; }
         }
     }
+    if ($headerIdx === null) $headerIdx = 0;
+
     $headerRow = $allRows[$headerIdx];
     $dataRows  = array_slice($allRows, $headerIdx + 1);
 
     // ── Build column index map from header ────────────────────────────────────
     $colMap = []; // canonical name → 0-based index
     $hdrAliases = [
-        's.no'            => 'sno',     's no'           => 'sno',
-        'sno'             => 'sno',     'serial'         => 'sno',
-        'full name'       => 'name',    'name'           => 'name',
-        'user id'         => 'emp_id',  'userid'         => 'emp_id',  'employee id' => 'emp_id',
-        'role'            => 'role',    'appointment'    => 'role',    'additional duties' => 'role',
-        'email'           => 'email',
-        'specific subject'=> 'subject', 'subject'        => 'subject',
-        'qualification'   => 'qualification',
-        'total subjects'  => 'total_subjects',
+        // S.NO variants
+        's.no'             => 'sno', 's no'            => 'sno',
+        'sno'              => 'sno', 'serial'          => 'sno',   'sr'      => 'sno',
+        // Name variants
+        'full name'        => 'name', 'name'           => 'name',
+        'teacher name'     => 'name', 'staff name'     => 'name',
+        // Employee ID variants
+        'user id'          => 'emp_id', 'userid'       => 'emp_id',
+        'employee id'      => 'emp_id', 'emp id'       => 'emp_id',
+        'emp no'           => 'emp_id', 'id'           => 'emp_id',
+        'staff id'         => 'emp_id',
+        // Role variants
+        'role'             => 'role', 'appointment'    => 'role',
+        'additional duties'=> 'role', 'designation'   => 'role',
+        // Email
+        'email'            => 'email', 'e mail'        => 'email',
+        // Subject
+        'specific subject' => 'subject', 'subject'     => 'subject',
+        'main subject'     => 'subject',
+        // Qualification
+        'qualification'    => 'qualification', 'qualif' => 'qualification',
+        // Total subjects / class assignments
+        'total subjects'   => 'total_subjects',
+        'class assignment' => 'total_subjects',
+        'subjects'         => 'total_subjects',
     ];
     foreach ($headerRow as $ci => $hdr) {
         $norm = strtolower(trim(preg_replace('/[^a-z0-9 ]/i', ' ', $hdr)));
-        $norm = preg_replace('/\s+/', ' ', $norm);
+        $norm = trim(preg_replace('/\s+/', ' ', $norm));
+        if ($norm === '') continue;
         $canonical = $hdrAliases[$norm] ?? null;
-        // Try partial match if no exact
         if (!$canonical) {
+            // Partial: header contains alias keyword
             foreach ($hdrAliases as $kw => $can) {
                 if (str_contains($norm, $kw)) { $canonical = $can; break; }
             }
@@ -421,17 +451,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
         }
     }
 
-    // Positional fallback if headers undetected:
-    // Expected: col0=ignore, col1=sno, col2=name, col3=emp_id, col4=role, col5=email, col6=subject, col7=qualification, col8=total_subjects
+    // ── Positional fallback ───────────────────────────────────────────────────
     $positional = !isset($colMap['name']) && !isset($colMap['emp_id']);
     if ($positional) {
-        $colMap = ['sno' => 1, 'name' => 2, 'emp_id' => 3, 'role' => 4, 'email' => 5, 'subject' => 6, 'qualification' => 7, 'total_subjects' => 8];
+        // Auto-detect column offset:
+        // If the first data row's col0 is a small sequential number and col1 is non-numeric text
+        // → S.NO is at col0, no leading unnamed/index column.
+        // Otherwise assume a leading unnamed column before S.NO.
+        $firstDataRow = $dataRows[0] ?? [];
+        $c0 = trim($firstDataRow[0] ?? '');
+        $c1 = trim($firstDataRow[1] ?? '');
+        if ($c0 !== '' && is_numeric($c0) && (int)$c0 <= 50 && $c1 !== '' && !is_numeric($c1)) {
+            // No leading unnamed column: S.NO=0, NAME=1, USER_ID=2 …
+            $colMap = ['sno'=>0,'name'=>1,'emp_id'=>2,'role'=>3,'email'=>4,'subject'=>5,'qualification'=>6,'total_subjects'=>7];
+        } else {
+            // Leading unnamed column present: S.NO=1, NAME=2, USER_ID=3 …
+            $colMap = ['sno'=>1,'name'=>2,'emp_id'=>3,'role'=>4,'email'=>5,'subject'=>6,'qualification'=>7,'total_subjects'=>8];
+        }
     }
 
-    $gc = fn(array $row, string $col) => trim($row[$colMap[$col] ?? -1] ?? '');
+    $gc = fn(array $row, string $col) => isset($colMap[$col]) ? trim($row[$colMap[$col]] ?? '') : '';
 
     // ── Group rows by emp_id (same teacher → multiple assignment rows) ────────
-    $teacherMap = []; // emp_id → teacher data array
+    $teacherMap  = []; // emp_id → teacher data array
+    $blankSkipped = 0;
     foreach ($dataRows as $row) {
         $sno     = $gc($row, 'sno');
         $name    = $gc($row, 'name');
@@ -443,7 +486,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
         $total   = $gc($row, 'total_subjects');
 
         // Skip blank rows
-        if ($name === '' && $empId === '') continue;
+        if ($name === '' && $empId === '') { $blankSkipped++; continue; }
 
         $key = $empId !== '' ? $empId : ('__name__' . strtolower($name));
 
@@ -633,15 +676,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
     }
 
     $importResults = [
-        'created'       => $created,
-        'updated'       => $updated,
-        'skipped'       => $skipped,
-        'warnings'      => $warnings,
-        'unmatched'     => $unmatched,
-        'assign_stats'  => $assignStats,
-        'details'       => $details,
-        'header_based'  => !$positional,
-        'detected_cols' => array_keys($colMap),
+        'created'          => $created,
+        'updated'          => $updated,
+        'skipped'          => $skipped,
+        'warnings'         => $warnings,
+        'unmatched'        => $unmatched,
+        'assign_stats'     => $assignStats,
+        'details'          => $details,
+        'header_based'     => !$positional,
+        'detected_cols'    => array_keys($colMap),
+        'col_map'          => $colMap,
+        'total_data_rows'  => count($dataRows),
+        'blank_skipped'    => $blankSkipped,
+        'header_row_preview'=> array_slice($headerRow, 0, 10),
+        'first_data_preview'=> array_slice($dataRows[0] ?? [], 0, 10),
+        'header_idx'       => $headerIdx,
     ];
 }
 
@@ -712,13 +761,45 @@ $links = getAdminLinks();
         <div class="alert alert-<?= $importResults['header_based'] ? 'info' : 'warning' ?> mb-3" style="font-size:.82rem;padding:8px 12px">
           <i class="fas fa-<?= $importResults['header_based'] ? 'columns' : 'exclamation-triangle' ?> me-1"></i>
           <?php if ($importResults['header_based']): ?>
-            <strong>Header-based mapping</strong> — detected columns:
+            <strong>Header-based mapping</strong> — detected <?= count($importResults['detected_cols']) ?> column(s):
             <?= implode(', ', array_map('h', $importResults['detected_cols'])) ?>
           <?php else: ?>
-            <strong>No recognised column headers found</strong> — used positional mapping
-            (expects: <em>unnamed, S.NO, FULL NAME, USER ID, ROLE, EMAIL, SPECIFIC SUBJECT, QUALIFICATION, TOTAL SUBJECTS</em>).
+            <strong>Positional mapping used</strong>
+            (column headers were not recognised — fell back to fixed column positions).
+            Mapped as: <?= implode(', ', array_map(fn($k,$v)=>"<code>col$v=$k</code>", array_keys($importResults['col_map']), $importResults['col_map'])) ?>
           <?php endif; ?>
+          &nbsp;·&nbsp; <strong><?= $importResults['total_data_rows'] ?></strong> data row(s) found
+          (<?= $importResults['blank_skipped'] ?> blank, header at row <?= $importResults['header_idx'] ?>).
         </div>
+
+        <?php if (($importResults['created'] + $importResults['updated']) === 0 && $importResults['total_data_rows'] > 0): ?>
+        <!-- Diagnostic: show header + first data row to help debug column mismatch -->
+        <div class="alert alert-danger mb-3" style="font-size:.82rem;padding:10px 14px">
+          <i class="fas fa-bug me-1"></i>
+          <strong>0 teachers were processed — column mapping may be wrong.</strong>
+          <br>Below is what the importer read from your file. Check that the column positions match your data.
+          <div class="table-responsive mt-2">
+            <table class="table table-sm table-bordered mb-1" style="font-size:.75rem">
+              <thead><tr><th>Col #</th>
+                <?php for ($ci=0;$ci<count($importResults['header_row_preview']);$ci++): ?><th><?= $ci ?></th><?php endfor; ?>
+              </tr></thead>
+              <tbody>
+                <tr><td class="fw-bold">Header row</td>
+                  <?php foreach ($importResults['header_row_preview'] as $c): ?><td><?= h($c) ?></td><?php endforeach; ?>
+                </tr>
+                <tr><td class="fw-bold">First data row</td>
+                  <?php foreach ($importResults['first_data_preview'] as $c): ?><td><?= h($c) ?></td><?php endforeach; ?>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <strong>Mapped to:</strong>
+          <?php foreach ($importResults['col_map'] as $field => $colIdx): ?>
+            <code><?= h($field) ?>=col<?= $colIdx ?>
+              (<?= h($importResults['first_data_preview'][$colIdx] ?? 'n/a') ?>)</code>
+          <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
 
         <!-- Per-teacher detail table -->
         <?php if (!empty($importResults['details'])): ?>
