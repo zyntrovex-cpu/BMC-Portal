@@ -4,11 +4,12 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head');
+$mainWingHeadRoles = ['secondary_wing_head','higher_secondary_wing_head','primary_wing_head'];
+$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
 if (!$teacher) {
-    if ($user['role'] !== 'wing_head') { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
+    if (!in_array($user['role'], ['wing_head', ...$mainWingHeadRoles])) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
     $teacher = ['id' => 0, 'subject_id' => 0, 'name' => $user['name'], 'is_ilc' => 0];
 }
 
@@ -36,10 +37,13 @@ try {
 
 pageHead('Timetable', $user['role']);
 $links = match($user['role']) {
-    'montessori_teacher' => getMonteTeacherLinks(),
-    'ilc_teacher'        => getIlcTeacherLinks(),
-    'wing_head'          => getWingHeadLinks(),
-    default              => getTeacherLinks(),
+    'montessori_teacher'           => getMonteTeacherLinks(),
+    'ilc_teacher'                  => getIlcTeacherLinks(),
+    'wing_head'                    => getWingHeadLinks(),
+    'secondary_wing_head'          => getSecondaryWingHeadLinks(),
+    'higher_secondary_wing_head'   => getHigherSecondaryWingHeadLinks(),
+    'primary_wing_head'            => getPrimaryWingHeadLinks(),
+    default                        => getTeacherLinks(),
 };
 ?>
 <div class="portal-wrap">

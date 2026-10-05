@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email  = trim($_POST['email']   ?? '');
         $role   = $_POST['role'] ?? '';
 
-        if ($name && $userId && in_array($role, ['student','teacher','montessori_teacher','ilc_teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','vp_montessori','examination_head'])) {
+        if ($name && $userId && in_array($role, ['student','teacher','montessori_teacher','ilc_teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','vp_montessori','examination_head','secondary_wing_head','higher_secondary_wing_head','primary_wing_head'])) {
             $check = $db->prepare('SELECT id FROM users WHERE user_id = ?');
             $check->execute([$userId]);
             if ($check->fetch()) {
@@ -68,6 +68,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } catch (Exception $e) {
                         $db->prepare('INSERT INTO teachers (user_id, emp_id, qualification, phone, join_date) VALUES (?,?,?,?,?)')
                            ->execute([$newId, $userId, trim($_POST['qualification'] ?? ''), $phone ?: null, $joinDate]);
+                    }
+                } elseif (in_array($role, ['secondary_wing_head','higher_secondary_wing_head','primary_wing_head'])) {
+                    $phone    = trim($_POST['phone'] ?? '');
+                    $joinDate = $_POST['join_date'] ?? date('Y-m-d');
+                    try {
+                        $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification, phone, join_date, wing) VALUES (?,?,?,?,?,?,?)')
+                           ->execute([$newId, $userId, $_POST['subject_id'] ?: null, trim($_POST['qualification'] ?? ''), $phone ?: null, $joinDate, 'main']);
+                    } catch (Exception $e) {
+                        $db->prepare('INSERT INTO teachers (user_id, emp_id, subject_id, qualification, phone, join_date) VALUES (?,?,?,?,?,?)')
+                           ->execute([$newId, $userId, $_POST['subject_id'] ?: null, trim($_POST['qualification'] ?? ''), $phone ?: null, $joinDate]);
                     }
                 }
 
@@ -271,7 +281,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $allowedRoles = ['student','teacher','montessori_teacher','ilc_teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','vp_montessori','examination_head'];
+    $allowedRoles = ['student','teacher','montessori_teacher','ilc_teacher','admin','finance','ilc_vp','student_affairs','vp_main','wing_head','vp_montessori','examination_head','secondary_wing_head','higher_secondary_wing_head','primary_wing_head'];
     $backRole = in_array($_POST['role_filter'] ?? '', $allowedRoles) ? $_POST['role_filter'] : '';
     redirect('/portal/admin/users.php' . ($backRole ? '?role=' . $backRole : ''));
 }
@@ -471,6 +481,9 @@ $links = getAdminLinks();
               <option value="wing_head">Coordinator (Montessori)</option>
               <option value="vp_montessori">VP Mont. (Vice Principal Montessori Campus)</option>
               <option value="examination_head">Examination Head (Main Campus)</option>
+              <option value="secondary_wing_head">Secondary Wing Head (Classes 6–10)</option>
+              <option value="higher_secondary_wing_head">Higher Secondary Wing Head (Classes 11–12)</option>
+              <option value="primary_wing_head">Primary Wing Head (Classes 2–5)</option>
             </select>
           </div>
           <div class="col-md-3"><label class="form-label fw-semibold" style="font-size:.82rem">Email <small class="text-muted">(for set-password link)</small></label><input type="email" name="email" class="form-control form-control-sm"></div>
@@ -548,7 +561,7 @@ $links = getAdminLinks();
     <!-- Role + Wing filter chips -->
     <div class="d-flex flex-wrap gap-1">
       <span class="text-muted" style="font-size:.72rem;padding:2px 4px;align-self:center">Role:</span>
-      <?php foreach ([''=>'All','student'=>'Student','teacher'=>'Teacher','montessori_teacher'=>'Mont Teacher','ilc_teacher'=>'ILC Teacher','admin'=>'Admin','finance'=>'Finance','ilc_vp'=>'ILC VP','student_affairs'=>'Stu. Affairs','vp_main'=>'VP Main','wing_head'=>'Coordinator','vp_montessori'=>'VP Mont.'] as $r => $lbl): ?>
+      <?php foreach ([''=>'All','student'=>'Student','teacher'=>'Teacher','montessori_teacher'=>'Mont Teacher','ilc_teacher'=>'ILC Teacher','admin'=>'Admin','finance'=>'Finance','ilc_vp'=>'ILC VP','student_affairs'=>'Stu. Affairs','vp_main'=>'VP Main','wing_head'=>'Coordinator','vp_montessori'=>'VP Mont.','secondary_wing_head'=>'Sec. WH','higher_secondary_wing_head'=>'HS WH','primary_wing_head'=>'Pri. WH'] as $r => $lbl): ?>
         <a href="?role=<?= $r ?>&wing=<?= urlencode($wingFilter) ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>"
            class="btn btn-xs <?= $roleFilter===$r?'btn-primary':'btn-outline-secondary' ?>" style="font-size:.72rem;padding:2px 7px"><?= $lbl ?></a>
       <?php endforeach; ?>
@@ -574,9 +587,12 @@ $links = getAdminLinks();
               'ilc_vp'             => 'info',
               'student_affairs'    => 'danger',
               'vp_main'            => 'dark',
-              'wing_head'          => 'warning',
-              'vp_montessori'      => 'warning',
-              default              => 'secondary'
+              'wing_head'                    => 'warning',
+              'vp_montessori'                => 'warning',
+              'secondary_wing_head'          => 'warning',
+              'higher_secondary_wing_head'   => 'warning',
+              'primary_wing_head'            => 'warning',
+              default                        => 'secondary'
           };
           // Photo thumbnail
           $thumbUrl   = ($u['photo_status'] ?? '') === 'approved' && !empty($u['profile_photo'])
@@ -611,9 +627,12 @@ $links = getAdminLinks();
                 'student_affairs'    => 'Stu. Affairs',
                 'ilc_vp'             => 'ILC VP',
                 'vp_main'            => 'VP Main',
-                'wing_head'          => 'Coordinator',
-                'vp_montessori'      => 'VP Mont.',
-                default              => ucfirst($u['role']),
+                'wing_head'                    => 'Coordinator',
+                'vp_montessori'                => 'VP Mont.',
+                'secondary_wing_head'          => 'Sec. Wing Head',
+                'higher_secondary_wing_head'   => 'HS Wing Head',
+                'primary_wing_head'            => 'Pri. Wing Head',
+                default                        => ucfirst($u['role']),
             };
           ?>
           <td><span class="badge bg-<?= in_array($roleBadge,['purple','ilc']) ? 'secondary' : $roleBadge ?>"
@@ -784,12 +803,13 @@ $links = getAdminLinks();
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 function toggleRoleFields(role) {
-    const isTeacher = role === 'teacher' || role === 'montessori_teacher' || role === 'ilc_teacher' || role === 'examination_head';
+    const isTeacherLike = ['teacher','montessori_teacher','ilc_teacher','examination_head','secondary_wing_head','higher_secondary_wing_head','primary_wing_head'].includes(role);
+    const hasSubject    = ['teacher','montessori_teacher','ilc_teacher','secondary_wing_head','higher_secondary_wing_head','primary_wing_head'].includes(role);
     document.getElementById('studentFields').classList.toggle('d-none', role !== 'student');
-    document.getElementById('teacherFields').classList.toggle('d-none', !(role === 'teacher' || role === 'montessori_teacher' || role === 'ilc_teacher'));
-    document.getElementById('qualFields').classList.toggle('d-none', !isTeacher);
-    document.getElementById('teacherPhoneField').classList.toggle('d-none', !isTeacher);
-    document.getElementById('teacherJoinDateField').classList.toggle('d-none', !isTeacher);
+    document.getElementById('teacherFields').classList.toggle('d-none', !hasSubject);
+    document.getElementById('qualFields').classList.toggle('d-none', !isTeacherLike);
+    document.getElementById('teacherPhoneField').classList.toggle('d-none', !isTeacherLike);
+    document.getElementById('teacherJoinDateField').classList.toggle('d-none', !isTeacherLike);
 }
 </script>
 </body></html>

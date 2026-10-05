@@ -33,8 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['target_id'])) {
             'student_affairs'    => BASE_URL . '/portal/student-affairs/dashboard.php',
             'finance'            => BASE_URL . '/portal/finance/dashboard.php',
             'vp_main'            => BASE_URL . '/portal/vp/dashboard.php',
-            'wing_head'          => BASE_URL . '/portal/wing-head/dashboard.php',
-            default              => BASE_URL . '/portal/student/dashboard.php',
+            'wing_head'                    => BASE_URL . '/portal/wing-head/dashboard.php',
+            'vp_montessori'                => BASE_URL . '/portal/vp-montessori/dashboard.php',
+            'examination_head'             => BASE_URL . '/portal/exam-head/dashboard.php',
+            'secondary_wing_head'          => BASE_URL . '/portal/secondary-wing-head/dashboard.php',
+            'higher_secondary_wing_head'   => BASE_URL . '/portal/higher-secondary-wing-head/dashboard.php',
+            'primary_wing_head'            => BASE_URL . '/portal/primary-wing-head/dashboard.php',
+            default                        => BASE_URL . '/portal/student/dashboard.php',
         };
         header('Location: ' . $dest);
         exit;
@@ -46,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['target_id'])) {
 $search     = trim($_GET['q'] ?? '');
 $roleFilter = $_GET['role'] ?? '';
 
-$validRoles = ['student','teacher','montessori_teacher','finance','ilc_vp','student_affairs','vp_main','wing_head'];
+$validRoles = ['student','teacher','montessori_teacher','finance','ilc_vp','student_affairs','vp_main','wing_head','vp_montessori','examination_head','secondary_wing_head','higher_secondary_wing_head','primary_wing_head'];
 
 $sql = 'SELECT u.id, u.user_id, u.name, u.role, u.email, u.status,
                c.name AS class_name
@@ -66,7 +71,7 @@ if ($search) {
     $params[] = $like;
     $params[] = $like;
 }
-$sql .= ' ORDER BY FIELD(u.role,"student","teacher","montessori_teacher","finance","ilc_vp","student_affairs","vp_main","wing_head"), u.name';
+$sql .= ' ORDER BY FIELD(u.role,"student","teacher","montessori_teacher","finance","ilc_vp","student_affairs","vp_main","wing_head","secondary_wing_head","higher_secondary_wing_head","primary_wing_head"), u.name';
 
 $st = $db->prepare($sql);
 $st->execute($params);
@@ -80,7 +85,12 @@ $roleLabels = [
     'ilc_vp'             => ['label' => 'ILC VP',                'badge' => 'bg-info text-dark'],
     'student_affairs'    => ['label' => 'Student Affairs',       'badge' => 'bg-danger'],
     'vp_main'            => ['label' => 'VP Main',               'badge' => 'bg-dark'],
-    'wing_head'          => ['label' => 'Coordinator',           'badge' => 'bg-secondary'],
+    'wing_head'                    => ['label' => 'Coordinator',           'badge' => 'bg-secondary'],
+    'vp_montessori'                => ['label' => 'VP Montessori',         'badge' => 'bg-warning text-dark'],
+    'examination_head'             => ['label' => 'Exam Head',             'badge' => 'bg-warning text-dark'],
+    'secondary_wing_head'          => ['label' => 'Sec. Wing Head',        'badge' => 'bg-primary'],
+    'higher_secondary_wing_head'   => ['label' => 'HS Wing Head',          'badge' => 'bg-secondary'],
+    'primary_wing_head'            => ['label' => 'Pri. Wing Head',        'badge' => 'bg-success'],
 ];
 
 pageHead('View As User', 'admin');

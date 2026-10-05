@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher');
+$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
 if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
@@ -61,7 +61,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 pageHead('My Profile', $user['role']);
-$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : ($user['role'] === 'ilc_teacher' ? getIlcTeacherLinks() : getTeacherLinks());
+$links = match($user['role']) {
+    'montessori_teacher'           => getMonteTeacherLinks(),
+    'ilc_teacher'                  => getIlcTeacherLinks(),
+    'secondary_wing_head'          => getSecondaryWingHeadLinks(),
+    'higher_secondary_wing_head'   => getHigherSecondaryWingHeadLinks(),
+    'primary_wing_head'            => getPrimaryWingHeadLinks(),
+    default                        => getTeacherLinks(),
+};
 ?>
 <div class="portal-wrap">
 <?php sidebar($user['role'], 'profile', $links, $user); ?>

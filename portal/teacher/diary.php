@@ -4,11 +4,11 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head', 'vp_montessori');
+$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head', 'vp_montessori', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head');
 requirePermission('diary');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
-$supervisorRoles = ['wing_head', 'vp_montessori'];
+$supervisorRoles = ['wing_head', 'vp_montessori', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head'];
 if (!$teacher) {
     if (!in_array($user['role'], $supervisorRoles, true)) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
     $teacher = ['id' => 0, 'subject_id' => 0, 'name' => $user['name'], 'is_ilc' => 0];
@@ -157,11 +157,14 @@ if ($tableExists) {
 
 pageHead('Daily Diary', $user['role']);
 $links = match($user['role']) {
-    'montessori_teacher' => getMonteTeacherLinks(),
-    'ilc_teacher'        => getIlcTeacherLinks(),
-    'wing_head'          => getWingHeadLinks(),
-    'vp_montessori'      => getVpMontessoriLinks(),
-    default              => getTeacherLinks(),
+    'montessori_teacher'           => getMonteTeacherLinks(),
+    'ilc_teacher'                  => getIlcTeacherLinks(),
+    'wing_head'                    => getWingHeadLinks(),
+    'vp_montessori'                => getVpMontessoriLinks(),
+    'secondary_wing_head'          => getSecondaryWingHeadLinks(),
+    'higher_secondary_wing_head'   => getHigherSecondaryWingHeadLinks(),
+    'primary_wing_head'            => getPrimaryWingHeadLinks(),
+    default                        => getTeacherLinks(),
 };
 ?>
 <div class="portal-wrap">

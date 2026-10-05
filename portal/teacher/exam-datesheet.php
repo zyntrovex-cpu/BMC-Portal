@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher');
+$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head');
 $db      = getDB();
 
 $teacher     = getTeacherByUserId($user['id']);
@@ -22,18 +22,15 @@ try {
     $sheets = $st->fetchAll();
 } catch (Exception $e) {}
 
-$isIlcTeacher   = ($user['role'] === 'ilc_teacher');
-$isMonteTeacher = ($user['role'] === 'montessori_teacher');
-if ($isIlcTeacher) {
-    $links  = getIlcTeacherLinks();
-    $portal = 'ilc_teacher';
-} elseif ($isMonteTeacher) {
-    $links  = getMonteTeacherLinks();
-    $portal = 'montessori_teacher';
-} else {
-    $links  = getTeacherLinks();
-    $portal = 'teacher';
-}
+$links = match($user['role']) {
+    'ilc_teacher'                  => getIlcTeacherLinks(),
+    'montessori_teacher'           => getMonteTeacherLinks(),
+    'secondary_wing_head'          => getSecondaryWingHeadLinks(),
+    'higher_secondary_wing_head'   => getHigherSecondaryWingHeadLinks(),
+    'primary_wing_head'            => getPrimaryWingHeadLinks(),
+    default                        => getTeacherLinks(),
+};
+$portal = $user['role'];
 
 $iconMap = ['pdf'=>'fa-file-pdf text-danger','xlsx'=>'fa-file-excel text-success','xls'=>'fa-file-excel text-success','doc'=>'fa-file-word text-primary','docx'=>'fa-file-word text-primary'];
 

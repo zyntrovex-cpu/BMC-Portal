@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher', 'ilc_teacher', 'montessori_teacher');
+$user    = requireAuth('teacher', 'ilc_teacher', 'montessori_teacher', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head');
 if ($user['role'] === 'montessori_teacher') {
     redirect('/portal/montessori/assessments.php');
 }
@@ -274,7 +274,14 @@ if (empty($assignedSubjects) && !empty($teacher['subject_id'])) {
 }
 
 pageHead('Marks', $user['role']);
-$links = $user['role'] === 'montessori_teacher' ? getMonteTeacherLinks() : ($user['role'] === 'ilc_teacher' ? getIlcTeacherLinks() : getTeacherLinks());
+$links = match($user['role']) {
+    'montessori_teacher'           => getMonteTeacherLinks(),
+    'ilc_teacher'                  => getIlcTeacherLinks(),
+    'secondary_wing_head'          => getSecondaryWingHeadLinks(),
+    'higher_secondary_wing_head'   => getHigherSecondaryWingHeadLinks(),
+    'primary_wing_head'            => getPrimaryWingHeadLinks(),
+    default                        => getTeacherLinks(),
+};
 ?>
 <div class="portal-wrap">
 <?php sidebar($user['role'], 'marks', $links, $user); ?>

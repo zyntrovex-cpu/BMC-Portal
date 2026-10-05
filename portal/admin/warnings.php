@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
 // Auth: allow admin, teacher, wing_head, montessori_teacher, and ilc_teacher
-$user = requireAuth('admin', 'teacher', 'wing_head', 'vp_montessori', 'montessori_teacher', 'ilc_teacher');
+$user = requireAuth('admin', 'teacher', 'wing_head', 'vp_montessori', 'montessori_teacher', 'ilc_teacher', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head');
 if (in_array($user['role'], ['teacher', 'wing_head', 'montessori_teacher', 'ilc_teacher'], true)) requirePermission('warnings');
 
 $db = getDB();
@@ -111,12 +111,15 @@ $classes = getAllClasses();
 
 pageHead('Student Warnings', $user['role']);
 $links = match($user['role']) {
-    'admin'              => getAdminLinks(),
-    'wing_head'          => getWingHeadLinks(),
-    'vp_montessori'      => getVpMontessoriLinks(),
-    'montessori_teacher' => getMonteTeacherLinks(),
-    'ilc_teacher'        => getIlcTeacherLinks(),
-    default              => getTeacherLinks(),
+    'admin'                        => getAdminLinks(),
+    'wing_head'                    => getWingHeadLinks(),
+    'vp_montessori'                => getVpMontessoriLinks(),
+    'montessori_teacher'           => getMonteTeacherLinks(),
+    'ilc_teacher'                  => getIlcTeacherLinks(),
+    'secondary_wing_head'          => getSecondaryWingHeadLinks(),
+    'higher_secondary_wing_head'   => getHigherSecondaryWingHeadLinks(),
+    'primary_wing_head'            => getPrimaryWingHeadLinks(),
+    default                        => getTeacherLinks(),
 };
 $portal = $user['role'];
 ?>

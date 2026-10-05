@@ -293,6 +293,36 @@ function getRolePermissions(string $role): array {
             'wh_timetable'        => ['label' => 'Timetable',                   'icon' => 'fa-table'],
             'diary'               => ['label' => 'Daily Diary',                 'icon' => 'fa-book-open'],
         ],
+        'secondary_wing_head' => [
+            'marks'               => ['label' => 'Assessments & Marks',         'icon' => 'fa-pen-alt'],
+            'attendance'          => ['label' => 'Mark Attendance',              'icon' => 'fa-calendar-check'],
+            'diary'               => ['label' => 'Daily Diary',                  'icon' => 'fa-book-open'],
+            'warnings'            => ['label' => 'Issue Warnings',               'icon' => 'fa-exclamation-triangle'],
+            'complaints'          => ['label' => 'View Complaints',              'icon' => 'fa-comment-alt'],
+            'wh_students'         => ['label' => 'Students',                     'icon' => 'fa-user-graduate'],
+            'wh_classes'          => ['label' => 'Classes',                      'icon' => 'fa-chalkboard'],
+            'wh_marks_approval'   => ['label' => 'Marks Permission Approvals',   'icon' => 'fa-clipboard-check'],
+        ],
+        'higher_secondary_wing_head' => [
+            'marks'               => ['label' => 'Assessments & Marks',         'icon' => 'fa-pen-alt'],
+            'attendance'          => ['label' => 'Mark Attendance',              'icon' => 'fa-calendar-check'],
+            'diary'               => ['label' => 'Daily Diary',                  'icon' => 'fa-book-open'],
+            'warnings'            => ['label' => 'Issue Warnings',               'icon' => 'fa-exclamation-triangle'],
+            'complaints'          => ['label' => 'View Complaints',              'icon' => 'fa-comment-alt'],
+            'wh_students'         => ['label' => 'Students',                     'icon' => 'fa-user-graduate'],
+            'wh_classes'          => ['label' => 'Classes',                      'icon' => 'fa-chalkboard'],
+            'wh_marks_approval'   => ['label' => 'Marks Permission Approvals',   'icon' => 'fa-clipboard-check'],
+        ],
+        'primary_wing_head' => [
+            'marks'               => ['label' => 'Assessments & Marks',         'icon' => 'fa-pen-alt'],
+            'attendance'          => ['label' => 'Mark Attendance',              'icon' => 'fa-calendar-check'],
+            'diary'               => ['label' => 'Daily Diary',                  'icon' => 'fa-book-open'],
+            'warnings'            => ['label' => 'Issue Warnings',               'icon' => 'fa-exclamation-triangle'],
+            'complaints'          => ['label' => 'View Complaints',              'icon' => 'fa-comment-alt'],
+            'wh_students'         => ['label' => 'Students',                     'icon' => 'fa-user-graduate'],
+            'wh_classes'          => ['label' => 'Classes',                      'icon' => 'fa-chalkboard'],
+            'wh_marks_approval'   => ['label' => 'Marks Permission Approvals',   'icon' => 'fa-clipboard-check'],
+        ],
         'examination_head' => [
             'eh_marks'      => ['label' => 'Assessments & Marks',  'icon' => 'fa-pen-alt'],
             'eh_results'    => ['label' => 'Results',              'icon' => 'fa-chart-bar'],
@@ -653,6 +683,60 @@ function getWingHeadLinks(): array {
         hasPermission('complaints') ? ['href'=>'/portal/teacher/complaints.php',  'icon'=>'<i class="fas fa-comment-alt"></i>',             'label'=>'Complaints',           'key'=>'complaints']  : null,
         ['href'=>'/portal/wing-head/teachers.php',            'icon'=>'<i class="fas fa-chalkboard-teacher"></i>',          'label'=>'Montessori Teachers',  'key'=>'teachers'],
         ['href'=>'/portal/teacher/calendar.php',               'icon'=>'<i class="fas fa-calendar-week"></i>',               'label'=>'Academic Calendar',    'key'=>'calendar'],
+    ]));
+}
+
+// ── Secondary Wing Head sidebar links (Classes 6–10, Main Campus) ─
+function getSecondaryWingHeadLinks(): array {
+    return array_values(array_filter([
+        ['href'=>'/portal/secondary-wing-head/dashboard.php',    'icon'=>'<i class="fas fa-home"></i>',                        'label'=>'Dashboard',            'key'=>'dashboard'],
+        ['href'=>'/portal/teacher/profile.php',                  'icon'=>'<i class="fas fa-user-circle"></i>',                 'label'=>'My Profile',           'key'=>'profile'],
+        hasPermission('marks')            ? ['href'=>'/portal/teacher/marks.php',            'icon'=>'<i class="fas fa-pen-alt"></i>',                   'label'=>'Assessments & Marks',  'key'=>'marks']          : null,
+        hasPermission('attendance')       ? ['href'=>'/portal/teacher/attendance.php',       'icon'=>'<i class="fas fa-calendar-check"></i>',            'label'=>'Attendance',           'key'=>'attendance']     : null,
+        ['href'=>'/portal/teacher/timetable.php',                'icon'=>'<i class="fas fa-table"></i>',                       'label'=>'Timetable',            'key'=>'timetable'],
+        ['href'=>'/portal/teacher/exam-datesheet.php',           'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',      'key'=>'exam-datesheet'],
+        hasPermission('diary')            ? ['href'=>'/portal/teacher/diary.php',            'icon'=>'<i class="fas fa-book-open"></i>',                 'label'=>'Daily Diary',          'key'=>'diary']          : null,
+        hasPermission('warnings')         ? ['href'=>'/portal/admin/warnings.php',           'icon'=>'<i class="fas fa-exclamation-triangle"></i>',      'label'=>'Student Warnings',     'key'=>'warnings']       : null,
+        hasPermission('complaints')       ? ['href'=>'/portal/teacher/complaints.php',       'icon'=>'<i class="fas fa-comment-alt"></i>',               'label'=>'Complaints',           'key'=>'complaints']     : null,
+        hasPermission('wh_students')      ? ['href'=>'/portal/secondary-wing-head/students.php',  'icon'=>'<i class="fas fa-user-graduate"></i>',         'label'=>'Students',             'key'=>'students']       : null,
+        hasPermission('wh_classes')       ? ['href'=>'/portal/secondary-wing-head/classes.php',   'icon'=>'<i class="fas fa-chalkboard"></i>',            'label'=>'Classes',              'key'=>'classes']        : null,
+        ['href'=>'/portal/teacher/calendar.php',                 'icon'=>'<i class="fas fa-calendar-week"></i>',               'label'=>'Academic Calendar',    'key'=>'calendar'],
+    ]));
+}
+
+// ── Higher Secondary Wing Head sidebar links (Classes 11–12, Main Campus) ─
+function getHigherSecondaryWingHeadLinks(): array {
+    return array_values(array_filter([
+        ['href'=>'/portal/higher-secondary-wing-head/dashboard.php', 'icon'=>'<i class="fas fa-home"></i>',                   'label'=>'Dashboard',            'key'=>'dashboard'],
+        ['href'=>'/portal/teacher/profile.php',                       'icon'=>'<i class="fas fa-user-circle"></i>',            'label'=>'My Profile',           'key'=>'profile'],
+        hasPermission('marks')            ? ['href'=>'/portal/teacher/marks.php',            'icon'=>'<i class="fas fa-pen-alt"></i>',                   'label'=>'Assessments & Marks',  'key'=>'marks']          : null,
+        hasPermission('attendance')       ? ['href'=>'/portal/teacher/attendance.php',       'icon'=>'<i class="fas fa-calendar-check"></i>',            'label'=>'Attendance',           'key'=>'attendance']     : null,
+        ['href'=>'/portal/teacher/timetable.php',                    'icon'=>'<i class="fas fa-table"></i>',                   'label'=>'Timetable',            'key'=>'timetable'],
+        ['href'=>'/portal/teacher/exam-datesheet.php',               'icon'=>'<i class="fas fa-calendar-day"></i>',            'label'=>'Exam Date Sheet',      'key'=>'exam-datesheet'],
+        hasPermission('diary')            ? ['href'=>'/portal/teacher/diary.php',            'icon'=>'<i class="fas fa-book-open"></i>',                 'label'=>'Daily Diary',          'key'=>'diary']          : null,
+        hasPermission('warnings')         ? ['href'=>'/portal/admin/warnings.php',           'icon'=>'<i class="fas fa-exclamation-triangle"></i>',      'label'=>'Student Warnings',     'key'=>'warnings']       : null,
+        hasPermission('complaints')       ? ['href'=>'/portal/teacher/complaints.php',       'icon'=>'<i class="fas fa-comment-alt"></i>',               'label'=>'Complaints',           'key'=>'complaints']     : null,
+        hasPermission('wh_students')      ? ['href'=>'/portal/higher-secondary-wing-head/students.php', 'icon'=>'<i class="fas fa-user-graduate"></i>',   'label'=>'Students',             'key'=>'students']       : null,
+        hasPermission('wh_classes')       ? ['href'=>'/portal/higher-secondary-wing-head/classes.php',  'icon'=>'<i class="fas fa-chalkboard"></i>',      'label'=>'Classes',              'key'=>'classes']        : null,
+        ['href'=>'/portal/teacher/calendar.php',                     'icon'=>'<i class="fas fa-calendar-week"></i>',           'label'=>'Academic Calendar',    'key'=>'calendar'],
+    ]));
+}
+
+// ── Primary Wing Head sidebar links (Classes 2–5, Main Campus) ─
+function getPrimaryWingHeadLinks(): array {
+    return array_values(array_filter([
+        ['href'=>'/portal/primary-wing-head/dashboard.php',      'icon'=>'<i class="fas fa-home"></i>',                        'label'=>'Dashboard',            'key'=>'dashboard'],
+        ['href'=>'/portal/teacher/profile.php',                  'icon'=>'<i class="fas fa-user-circle"></i>',                 'label'=>'My Profile',           'key'=>'profile'],
+        hasPermission('marks')            ? ['href'=>'/portal/teacher/marks.php',            'icon'=>'<i class="fas fa-pen-alt"></i>',                   'label'=>'Assessments & Marks',  'key'=>'marks']          : null,
+        hasPermission('attendance')       ? ['href'=>'/portal/teacher/attendance.php',       'icon'=>'<i class="fas fa-calendar-check"></i>',            'label'=>'Attendance',           'key'=>'attendance']     : null,
+        ['href'=>'/portal/teacher/timetable.php',                'icon'=>'<i class="fas fa-table"></i>',                       'label'=>'Timetable',            'key'=>'timetable'],
+        ['href'=>'/portal/teacher/exam-datesheet.php',           'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',      'key'=>'exam-datesheet'],
+        hasPermission('diary')            ? ['href'=>'/portal/teacher/diary.php',            'icon'=>'<i class="fas fa-book-open"></i>',                 'label'=>'Daily Diary',          'key'=>'diary']          : null,
+        hasPermission('warnings')         ? ['href'=>'/portal/admin/warnings.php',           'icon'=>'<i class="fas fa-exclamation-triangle"></i>',      'label'=>'Student Warnings',     'key'=>'warnings']       : null,
+        hasPermission('complaints')       ? ['href'=>'/portal/teacher/complaints.php',       'icon'=>'<i class="fas fa-comment-alt"></i>',               'label'=>'Complaints',           'key'=>'complaints']     : null,
+        hasPermission('wh_students')      ? ['href'=>'/portal/primary-wing-head/students.php',  'icon'=>'<i class="fas fa-user-graduate"></i>',           'label'=>'Students',             'key'=>'students']       : null,
+        hasPermission('wh_classes')       ? ['href'=>'/portal/primary-wing-head/classes.php',   'icon'=>'<i class="fas fa-chalkboard"></i>',              'label'=>'Classes',              'key'=>'classes']        : null,
+        ['href'=>'/portal/teacher/calendar.php',                 'icon'=>'<i class="fas fa-calendar-week"></i>',               'label'=>'Academic Calendar',    'key'=>'calendar'],
     ]));
 }
 

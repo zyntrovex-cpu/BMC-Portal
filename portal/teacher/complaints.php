@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head', 'vp_montessori');
+$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head', 'vp_montessori', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head');
 requirePermission('complaints');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
@@ -123,11 +123,14 @@ if (isset($_GET['print']) && $tableExists) {
 
 pageHead('Student Complaints', $user['role']);
 $links = match($user['role']) {
-    'montessori_teacher' => getMonteTeacherLinks(),
-    'ilc_teacher'        => getIlcTeacherLinks(),
-    'wing_head'          => getWingHeadLinks(),
-    'vp_montessori'      => getVpMontessoriLinks(),
-    default              => getTeacherLinks(),
+    'montessori_teacher'           => getMonteTeacherLinks(),
+    'ilc_teacher'                  => getIlcTeacherLinks(),
+    'wing_head'                    => getWingHeadLinks(),
+    'vp_montessori'                => getVpMontessoriLinks(),
+    'secondary_wing_head'          => getSecondaryWingHeadLinks(),
+    'higher_secondary_wing_head'   => getHigherSecondaryWingHeadLinks(),
+    'primary_wing_head'            => getPrimaryWingHeadLinks(),
+    default                        => getTeacherLinks(),
 };
 ?>
 <div class="portal-wrap">
