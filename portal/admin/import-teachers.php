@@ -99,29 +99,41 @@ function parseXlsxRowsT(string $path): array {
  * return the most elevated portal role.
  */
 function detectPortalRole(string $combinedRole): string {
-    $r = strtolower($combinedRole);
-    // Fix known typos
+    $r = strtolower(trim($combinedRole));
     $r = str_replace(['montessoriessori', 'fianance'], ['montessori', 'finance'], $r);
 
+    // Direct: check each line/segment against exact valid portal role names
+    $validRoles = [
+        'admin','finance','student_affairs','ilc_vp','vp_main','vp_montessori',
+        'higher_secondary_wing_head','secondary_wing_head','primary_wing_head',
+        'wing_head','examination_head','montessori_teacher','ilc_teacher','teacher',
+    ];
+    foreach (preg_split('/[\n\r\/\s]+/', $r) as $seg) {
+        $seg = trim($seg, ' ');
+        if (in_array($seg, $validRoles)) return $seg;
+    }
+
+    // Free-text: compare against space-normalised string (underscores → spaces)
+    $rs = str_replace('_', ' ', $r);
     $checks = [
-        'admin'                       => ['principal', 'admin'],
-        'finance'                     => ['finance'],
-        'student_affairs'             => ['student affairs'],
-        'vp_montessori'               => ['vp montessori', 'montessori wing', 'montessoriessori'],
-        'ilc_vp'                      => ['vp ilc', 'ilc vp'],
-        'vp_main'                     => ['vp main', 'vice principal main'],
-        'higher_secondary_wing_head'  => ['higher secondary wing head'],
-        'secondary_wing_head'         => ['secondary wing head'],
-        'primary_wing_head'           => ['primary wing head'],
-        'examination_head'            => ['examination head', 'exam head'],
-        'wing_head'                   => ['coordinator'],
-        'montessori_teacher'          => ['teacher montessori', 'montessori teacher', 'montessori wing'],
-        'ilc_teacher'                 => ['teacher ilc', 'ilc teacher'],
-        'teacher'                     => ['teacher main', 'main campus', 'teacher'],
+        'admin'                      => ['principal', 'admin'],
+        'finance'                    => ['finance'],
+        'student_affairs'            => ['student affairs'],
+        'vp_montessori'              => ['vp montessori', 'montessori wing'],
+        'ilc_vp'                     => ['vp ilc', 'ilc vp'],
+        'vp_main'                    => ['vp main', 'vice principal main', 'vp main campus'],
+        'higher_secondary_wing_head' => ['higher secondary wing head'],
+        'secondary_wing_head'        => ['secondary wing head'],
+        'primary_wing_head'          => ['primary wing head'],
+        'examination_head'           => ['examination head', 'exam head'],
+        'wing_head'                  => ['coordinator'],
+        'montessori_teacher'         => ['teacher montessori', 'montessori teacher', 'montessori wing'],
+        'ilc_teacher'                => ['teacher ilc', 'ilc teacher'],
+        'teacher'                    => ['teacher main', 'main campus', 'teacher'],
     ];
     foreach ($checks as $role => $keywords) {
         foreach ($keywords as $kw) {
-            if (str_contains($r, $kw)) return $role;
+            if (str_contains($rs, $kw)) return $role;
         }
     }
     return 'teacher';
@@ -134,27 +146,46 @@ function roleToWing(string $role): string {
     return 'main';
 }
 
+/** Normalise raw emp_id: bare numbers (8000) become "BMC/Emp-8000". */
+function normalizeEmpId(string $raw): string {
+    $raw = trim($raw);
+    if ($raw === '') return $raw;
+    if (preg_match('/^BMC\//i', $raw)) return $raw;
+    if (preg_match('/^\d{4,}$/', $raw)) return 'BMC/Emp-' . $raw;
+    return $raw;
+}
+
 // ─── Subject typo map ─────────────────────────────────────────────────────────
 
 const SUBJECT_TYPOS = [
-    'mathemaics'   => 'Mathematics',
-    'mathematics'  => 'Mathematics',
-    'english'      => 'English',
-    'urdu'         => 'Urdu',
-    'physics'      => 'Physics',
-    'chemistry'    => 'Chemistry',
-    'biology'      => 'Biology',
-    'computer'     => 'Computer',
-    'islamiat'     => 'Islamiat',
-    'pak studies'  => 'Pakistan Studies',
-    'pst'          => 'Pakistan Studies',
-    'history'      => 'History',
-    'geography'    => 'Geography',
-    'civics'       => 'Civics',
-    'economics'    => 'Economics',
-    'accounting'   => 'Accounting',
-    'commerce'     => 'Commerce',
-    'statistics'   => 'Statistics',
+    'mathemaics'              => 'Mathematics',
+    'mathematics'             => 'Mathematics',
+    'english'                 => 'English',
+    'urdu'                    => 'Urdu',
+    'physics'                 => 'Physics',
+    'chemistry'               => 'Chemistry',
+    'biology'                 => 'Biology',
+    'botany'                  => 'Biology (Botany and Zoology)',
+    'zoology'                 => 'Biology (Botany and Zoology)',
+    'computer'                => 'Computer Science',
+    'computer science'        => 'Computer Science',
+    'computer studies'        => 'Computer Studies',
+    'islamiat'                => 'Islamiat',
+    'islamic studies'         => 'Islamic Studies',
+    'pak studies'             => 'Pakistan Studies',
+    'pakistan studies'        => 'Pakistan Studies',
+    'social studies'          => 'Social Studies',
+    'nazra quran'             => 'Nazra Quran',
+    'moalamul quran'          => 'Moalamul Quran',
+    'muallim-ul-quran'        => 'Moalamul Quran',
+    'muallim ul quran'        => 'Moalamul Quran',
+    'pst'                     => 'Pakistan Studies',
+    'gk'                      => 'General Knowledge',
+    'general knowledge'       => 'General Knowledge',
+    'science'                 => 'Science',
+    'sindhi'                  => 'Sindhi',
+    'art'                     => 'Art',
+    'art and drawing'         => 'Art and Drawing',
 ];
 
 function normalizeSubjectName(string $name): string {
@@ -480,7 +511,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['import_file'])) {
     foreach ($dataRows as $row) {
         $sno     = $gc($row, 'sno');
         $name    = $gc($row, 'name');
-        $empId   = $gc($row, 'emp_id');
+        $empId   = normalizeEmpId($gc($row, 'emp_id'));
         $role    = $gc($row, 'role');
         $email   = $gc($row, 'email');
         $subject = $gc($row, 'subject');
