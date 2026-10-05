@@ -928,7 +928,8 @@ INSERT IGNORE INTO subjects (id, name, code) VALUES
   (17, 'Sindhi',                         'SND'),
   (18, 'Moalamul Quran',                 'MLQ'),
   (19, 'Biology (Botany and Zoology)',   'BZO'),
-  (20, 'Art',                            'ART');
+  (20, 'Art',                            'ART'),
+  (21, 'Social Studies',                 'SS');
 
 -- ── Houses ────────────────────────────────────────────────────────
 INSERT IGNORE INTO houses (id, name, color) VALUES

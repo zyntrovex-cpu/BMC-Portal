@@ -45,3 +45,7 @@ WHERE NOT EXISTS (SELECT 1 FROM subjects WHERE code = 'BZO');
 INSERT INTO subjects (name, code)
 SELECT 'Art', 'ART'
 WHERE NOT EXISTS (SELECT 1 FROM subjects WHERE code = 'ART');
+
+INSERT INTO subjects (name, code)
+SELECT 'Social Studies', 'SS'
+WHERE NOT EXISTS (SELECT 1 FROM subjects WHERE code = 'SS');
