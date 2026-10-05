@@ -76,51 +76,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Handle save attendance
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_attendance') {
-    $pClassId   = (int)$_POST['class_id'];
-    $pSubjectId = (int)$_POST['subject_id'];
-    $pDate      = $_POST['date'] ?? date('Y-m-d');
-    $attInput   = $_POST['attendance'] ?? [];
+    $pClassId    = (int)$_POST['class_id'];
+    $pSubjectRaw = $_POST['subject_id'] ?? '';
+    $pSubjectId  = $pSubjectRaw !== '' ? (int)$pSubjectRaw : null;
+    $pDate       = $_POST['date'] ?? date('Y-m-d');
+    $attInput    = $_POST['attendance'] ?? [];
     $saved = 0;
     foreach ($attInput as $studentId => $status) {
         if (!in_array($status, ['P','A','L'])) continue;
         $db->prepare('INSERT INTO attendance (student_id, class_id, subject_id, date, status, teacher_id)
                       VALUES (?,?,?,?,?,?)
-                      ON DUPLICATE KEY UPDATE status=VALUES(status), teacher_id=VALUES(teacher_id), class_id=VALUES(class_id)')
+                      ON DUPLICATE KEY UPDATE status=VALUES(status), teacher_id=VALUES(teacher_id)')
            ->execute([(int)$studentId, $pClassId, $pSubjectId, $pDate, $status, $teacher['id']]);
         $saved++;
     }
     logActivity($user['id'], 'attendance_save', "Attendance for class #$pClassId, date $pDate ($saved students)");
     setFlash('success', "Attendance saved for $saved students.");
-    redirect("/portal/teacher/attendance.php?tab=take&class_id=$pClassId&subject_id=$pSubjectId&date=$pDate");
+    redirect("/portal/teacher/attendance.php?tab=take&class_id=$pClassId&subject_id=" . ($pSubjectId ?? '') . "&date=$pDate");
 }
 
-// Get classes assigned to this teacher
+// Get classes assigned to this teacher (subject-based + class-teacher)
 $assignedClasses = [];
 try {
-    $classesSt = $db->prepare('SELECT DISTINCT c.id, c.name FROM class_subjects cs JOIN classes c ON cs.class_id = c.id WHERE cs.teacher_id = ? ORDER BY c.grade, c.section');
-    $classesSt->execute([$teacher['id']]);
+    $classesSt = $db->prepare(
+        'SELECT DISTINCT c.id, c.name, COALESCE(c.wing,\'main\') AS wing
+         FROM class_subjects cs JOIN classes c ON cs.class_id = c.id WHERE cs.teacher_id = ?
+         UNION
+         SELECT c.id, c.name, COALESCE(c.wing,\'main\') AS wing
+         FROM class_teacher_assignments cta JOIN classes c ON cta.class_id = c.id WHERE cta.teacher_id = ?
+         ORDER BY name'
+    );
+    $classesSt->execute([$teacher['id'], $teacher['id']]);
     $assignedClasses = $classesSt->fetchAll();
 } catch (Exception $e) {}
 
-// Get subjects assigned to this teacher across all their classes
+// Detect if the selected class is a Montessori/ILC class-teacher class
+$isClassTeacherClass = false;
+if ($classId) {
+    foreach ($assignedClasses as $ac) {
+        if ($ac['id'] == $classId && in_array($ac['wing'], ['montessori','ilc'])) {
+            $isClassTeacherClass = true;
+            break;
+        }
+    }
+    if (!$isClassTeacherClass) {
+        // Verify it's actually assigned as class teacher (in case it's a non-subject assignment)
+        try {
+            $ctCheck = $db->prepare('SELECT 1 FROM class_teacher_assignments cta JOIN classes c ON cta.class_id=c.id WHERE cta.class_id=? AND cta.teacher_id=?');
+            $ctCheck->execute([$classId, $teacher['id']]);
+            if ($ctCheck->fetch()) $isClassTeacherClass = true;
+        } catch (Exception $e) {}
+    }
+}
+
+// Get subjects for selected class (only for Main Campus subject-based classes)
 $assignedSubjects = [];
-try {
-    $subjectsSt = $db->prepare('SELECT DISTINCT s.id, s.name FROM class_subjects cs JOIN subjects s ON cs.subject_id = s.id WHERE cs.teacher_id = ? ORDER BY s.name');
-    $subjectsSt->execute([$teacher['id']]);
-    $assignedSubjects = $subjectsSt->fetchAll();
-} catch (Exception $e) {}
+if ($classId && !$isClassTeacherClass) {
+    try {
+        $subjectsSt = $db->prepare('SELECT DISTINCT s.id, s.name FROM class_subjects cs JOIN subjects s ON cs.subject_id = s.id WHERE cs.teacher_id = ? AND cs.class_id = ? ORDER BY s.name');
+        $subjectsSt->execute([$teacher['id'], $classId]);
+        $assignedSubjects = $subjectsSt->fetchAll();
+    } catch (Exception $e) {}
+} elseif (!$classId) {
+    try {
+        $subjectsSt = $db->prepare('SELECT DISTINCT s.id, s.name FROM class_subjects cs JOIN subjects s ON cs.subject_id = s.id WHERE cs.teacher_id = ? ORDER BY s.name');
+        $subjectsSt->execute([$teacher['id']]);
+        $assignedSubjects = $subjectsSt->fetchAll();
+    } catch (Exception $e) {}
+}
+// Class teacher classes use NULL subject_id
+if ($isClassTeacherClass) $subjectId = 0;
 
 // Get students if class selected
 $students      = [];
 $existingAttendance = [];
 if ($classId && $tab === 'take') {
     $students = getClassStudents($classId);
-    // Load existing attendance for this date/subject
-    if ($subjectId && $date) {
-        $attSt = $db->prepare('SELECT student_id, status FROM attendance WHERE class_id = ? AND subject_id = ? AND date = ?');
-        $attSt->execute([$classId, $subjectId, $date]);
-        foreach ($attSt->fetchAll() as $r) {
-            $existingAttendance[$r['student_id']] = $r['status'];
+    // Load existing attendance for this date
+    if ($date) {
+        if ($isClassTeacherClass) {
+            // Class teacher: match by class + date only (subject_id IS NULL)
+            $attSt = $db->prepare('SELECT student_id, status FROM attendance WHERE class_id = ? AND subject_id IS NULL AND date = ?');
+            $attSt->execute([$classId, $date]);
+        } elseif ($subjectId) {
+            $attSt = $db->prepare('SELECT student_id, status FROM attendance WHERE class_id = ? AND subject_id = ? AND date = ?');
+            $attSt->execute([$classId, $subjectId, $date]);
+        } else {
+            $attSt = null;
+        }
+        if (isset($attSt)) {
+            foreach ($attSt->fetchAll() as $r) {
+                $existingAttendance[$r['student_id']] = $r['status'];
+            }
         }
     }
 }
@@ -210,13 +257,14 @@ $links = match($user['role']) {
   <div class="row g-2 align-items-end">
     <div class="col-sm-3">
       <label class="form-label fw-semibold" style="font-size:.82rem">Class</label>
-      <select name="class_id" class="form-select form-select-sm" required>
+      <select name="class_id" class="form-select form-select-sm" required onchange="this.form.submit()">
         <option value="">Select class</option>
         <?php foreach ($assignedClasses as $c): ?>
           <option value="<?= $c['id'] ?>" <?= $classId===$c['id']?'selected':'' ?>><?= h($c['name']) ?></option>
         <?php endforeach; ?>
       </select>
     </div>
+    <?php if (!$isClassTeacherClass): ?>
     <div class="col-sm-3">
       <label class="form-label fw-semibold" style="font-size:.82rem">Subject</label>
       <select name="subject_id" class="form-select form-select-sm" required>
@@ -226,6 +274,9 @@ $links = match($user['role']) {
         <?php endforeach; ?>
       </select>
     </div>
+    <?php else: ?>
+    <input type="hidden" name="subject_id" value="">
+    <?php endif; ?>
     <div class="col-sm-3">
       <label class="form-label fw-semibold" style="font-size:.82rem">Date</label>
       <input type="date" name="date" class="form-control form-control-sm" value="<?= h($date) ?>" max="<?= date('Y-m-d') ?>">
@@ -240,7 +291,7 @@ $links = match($user['role']) {
 <form method="POST">
   <input type="hidden" name="action" value="save_attendance">
   <input type="hidden" name="class_id" value="<?= $classId ?>">
-  <input type="hidden" name="subject_id" value="<?= $subjectId ?>">
+  <input type="hidden" name="subject_id" value="<?= $isClassTeacherClass ? '' : $subjectId ?>">
   <input type="hidden" name="date" value="<?= h($date) ?>">
 
   <div class="sec-card mb-3">

@@ -770,6 +770,32 @@ function getDB(): PDO {
                 FOREIGN KEY (promoted_by) REFERENCES users(id)    ON DELETE CASCADE
             ) ENGINE=InnoDB");
         } catch (Exception $e) {}
+
+        // Group 26: class_teacher_assignments for Montessori/ILC class teachers (no subject)
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS class_teacher_assignments (
+                id         INT       PRIMARY KEY AUTO_INCREMENT,
+                class_id   INT       NOT NULL,
+                teacher_id INT       NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_cta_class (class_id),
+                FOREIGN KEY (class_id)   REFERENCES classes(id)   ON DELETE CASCADE,
+                FOREIGN KEY (teacher_id) REFERENCES teachers(id)  ON DELETE CASCADE
+            ) ENGINE=InnoDB");
+        } catch (Exception $e) {}
+        // Make attendance.subject_id nullable (class teachers have no subject)
+        try {
+            $attCols = array_flip($pdo->query("SHOW COLUMNS FROM attendance")->fetchAll(PDO::FETCH_COLUMN));
+            if (isset($attCols['subject_id'])) {
+                $colDef = $pdo->query("SHOW COLUMNS FROM attendance LIKE 'subject_id'")->fetch();
+                if ($colDef && stripos($colDef['Null'], 'NO') !== false) {
+                    $pdo->exec("ALTER TABLE attendance MODIFY COLUMN subject_id INT NULL DEFAULT NULL");
+                    // Drop old unique constraint and recreate allowing NULL subject_id
+                    try { $pdo->exec("ALTER TABLE attendance DROP INDEX uq_attendance"); } catch (Exception $e2) {}
+                    try { $pdo->exec("ALTER TABLE attendance ADD UNIQUE KEY uq_attendance (student_id, class_id, subject_id, date)"); } catch (Exception $e2) {}
+                }
+            }
+        } catch (Exception $e) {}
     }
     return $pdo;
 }

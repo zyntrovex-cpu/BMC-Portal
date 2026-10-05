@@ -31,6 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
             $authSt->execute([$teacher['id'], $classId]);
             $authOk = (bool)$authSt->fetchColumn();
+            if (!$authOk) {
+                $ctA = $db->prepare('SELECT 1 FROM class_teacher_assignments cta JOIN classes c ON cta.class_id=c.id WHERE cta.teacher_id=? AND cta.class_id=? AND c.is_montessori=1 LIMIT 1');
+                $ctA->execute([$teacher['id'],$classId]);
+                $authOk = (bool)$ctA->fetchColumn();
+            }
         } else {
             // wing_head — verify class is montessori
             $authSt = $db->prepare('SELECT 1 FROM classes WHERE id=? AND is_montessori=1 LIMIT 1');
@@ -110,14 +115,19 @@ $selClassId   = (int)($_GET['class_id']   ?? $_SESSION['mar_cls'] ?? 0);
 $selStudentId = (int)($_GET['student_id'] ?? $_SESSION['mar_stu'] ?? 0);
 $editRecordId = (int)($_GET['edit']       ?? 0);
 
-// Teacher's montessori classes
+// Teacher's montessori classes (subject-based or class teacher)
 if ($teacher) {
     $cSt = $db->prepare(
         'SELECT DISTINCT c.id,c.name,c.grade,c.section FROM class_subjects cs
          JOIN classes c ON cs.class_id=c.id
-         WHERE cs.teacher_id=? AND c.is_montessori=1 ORDER BY c.grade,c.section'
+         WHERE cs.teacher_id=? AND c.is_montessori=1
+         UNION
+         SELECT c.id,c.name,c.grade,c.section FROM class_teacher_assignments cta
+         JOIN classes c ON cta.class_id=c.id
+         WHERE cta.teacher_id=? AND c.is_montessori=1
+         ORDER BY grade,name'
     );
-    $cSt->execute([$teacher['id']]);
+    $cSt->execute([$teacher['id'],$teacher['id']]);
 } else {
     $cSt = $db->prepare('SELECT id,name,grade,section FROM classes WHERE is_montessori=1 ORDER BY grade,section');
     $cSt->execute([]);

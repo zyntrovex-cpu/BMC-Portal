@@ -77,15 +77,20 @@ function prCountFilled(array $rfd): array {
 $students = [];
 try {
     if ($role === 'montessori_teacher') {
-        // Montessori teacher: only students in their assigned Montessori classes
+        // Montessori teacher: students in their assigned Montessori classes (subject-based or class teacher)
         $st = $db->prepare(
             'SELECT DISTINCT st.id, u.name AS student_name, st.roll_no, c.name AS class_name
              FROM class_subjects cs JOIN classes c ON cs.class_id=c.id
              JOIN students st ON st.class_id=cs.class_id JOIN users u ON st.user_id=u.id
              WHERE cs.teacher_id=? AND c.is_montessori=1
-             ORDER BY c.name, st.roll_no'
+             UNION
+             SELECT DISTINCT st.id, u.name AS student_name, st.roll_no, c.name AS class_name
+             FROM class_teacher_assignments cta JOIN classes c ON cta.class_id=c.id
+             JOIN students st ON st.class_id=c.id JOIN users u ON st.user_id=u.id
+             WHERE cta.teacher_id=? AND c.is_montessori=1
+             ORDER BY class_name, roll_no'
         );
-        $st->execute([$teacher['id']]);
+        $st->execute([$teacher['id'],$teacher['id']]);
     } elseif ($role === 'teacher') {
         // Main-wing teacher: only students in their eligible assigned classes
         // Eligible: Montessori OR non-ILC Class 1-3 (grade <= 3)

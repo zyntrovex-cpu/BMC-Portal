@@ -56,14 +56,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/portal/montessori/assessments.php?class_id='.$classId.'&student_id='.$studentId.'&date='.urlencode($date));
         }
 
-        // Verify teacher assignment
+        // Verify teacher assignment (subject-based or class teacher)
         if ($teacher) {
             $chk = $db->prepare(
                 'SELECT 1 FROM class_subjects cs JOIN classes c ON cs.class_id=c.id
                  WHERE cs.teacher_id=? AND cs.class_id=? AND cs.subject_id=? AND c.is_montessori=1 LIMIT 1'
             );
             $chk->execute([$teacher['id'],$classId,$subjectId]);
-            if (!$chk->fetchColumn()) {
+            $allowed = (bool)$chk->fetchColumn();
+            if (!$allowed) {
+                // Check if class teacher assignment grants access
+                $ctChk = $db->prepare(
+                    'SELECT 1 FROM class_teacher_assignments cta JOIN classes c ON cta.class_id=c.id
+                     WHERE cta.teacher_id=? AND cta.class_id=? AND c.is_montessori=1 LIMIT 1'
+                );
+                $ctChk->execute([$teacher['id'],$classId]);
+                $allowed = (bool)$ctChk->fetchColumn();
+            }
+            if (!$allowed) {
                 setFlash('danger','You are not assigned to this class/subject.');
                 redirect('/portal/montessori/assessments.php?class_id='.$classId.'&student_id='.$studentId.'&date='.urlencode($date));
             }
@@ -199,14 +209,19 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selDate)) $selDate = date('Y-m-d');
 $selMode  = $_GET['mode']    ?? '';   // 'new' = blank new assessment form
 $editId   = (int)($_GET['edit_id'] ?? 0);
 
-// Teacher's montessori classes
+// Teacher's montessori classes (subject-based or class teacher)
 if ($teacher) {
     $cSt = $db->prepare(
         'SELECT DISTINCT c.id,c.name,c.grade FROM class_subjects cs
          JOIN classes c ON cs.class_id=c.id
-         WHERE cs.teacher_id=? AND c.is_montessori=1 ORDER BY c.grade,c.section'
+         WHERE cs.teacher_id=? AND c.is_montessori=1
+         UNION
+         SELECT c.id,c.name,c.grade FROM class_teacher_assignments cta
+         JOIN classes c ON cta.class_id=c.id
+         WHERE cta.teacher_id=? AND c.is_montessori=1
+         ORDER BY grade,name'
     );
-    $cSt->execute([$teacher['id']]);
+    $cSt->execute([$teacher['id'],$teacher['id']]);
 } else {
     $cSt = $db->prepare('SELECT id,name,grade FROM classes WHERE is_montessori=1 ORDER BY grade,section');
     $cSt->execute([]);
@@ -235,8 +250,14 @@ if ($selStudentId) $_SESSION['monte_assess_stu'] = $selStudentId;
 
 // Subjects for selected class+teacher
 $subjects = [];
+$isClassTeacher = false;
+if ($selClassId && $teacher) {
+    $ctChkSel = $db->prepare('SELECT 1 FROM class_teacher_assignments WHERE class_id=? AND teacher_id=?');
+    $ctChkSel->execute([$selClassId,$teacher['id']]);
+    $isClassTeacher = (bool)$ctChkSel->fetchColumn();
+}
 if ($selClassId) {
-    if ($teacher) {
+    if ($teacher && !$isClassTeacher) {
         $sSt = $db->prepare(
             'SELECT DISTINCT s.id,s.name FROM class_subjects cs
              JOIN subjects s ON cs.subject_id=s.id
@@ -244,6 +265,7 @@ if ($selClassId) {
         );
         $sSt->execute([$teacher['id'],$selClassId]);
     } else {
+        // Class teacher or admin: show all class subjects
         $sSt = $db->prepare(
             'SELECT DISTINCT s.id,s.name FROM class_subjects cs
              JOIN subjects s ON cs.subject_id=s.id

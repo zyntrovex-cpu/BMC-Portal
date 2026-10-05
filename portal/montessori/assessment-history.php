@@ -22,14 +22,19 @@ function monteSubjectMetaH(string $name): array {
     return ['icon'=>'fa-book-open','bg'=>'#f3f4f6','ic'=>'#4b5563'];
 }
 
-// Teacher's montessori classes
+// Teacher's montessori classes (subject-based or class teacher)
 if ($teacher) {
     $cSt = $db->prepare(
         'SELECT DISTINCT c.id,c.name,c.grade FROM class_subjects cs
          JOIN classes c ON cs.class_id=c.id
-         WHERE cs.teacher_id=? AND c.is_montessori=1 ORDER BY c.grade,c.section'
+         WHERE cs.teacher_id=? AND c.is_montessori=1
+         UNION
+         SELECT c.id,c.name,c.grade FROM class_teacher_assignments cta
+         JOIN classes c ON cta.class_id=c.id
+         WHERE cta.teacher_id=? AND c.is_montessori=1
+         ORDER BY grade,name'
     );
-    $cSt->execute([$teacher['id']]);
+    $cSt->execute([$teacher['id'],$teacher['id']]);
 } else {
     $cSt = $db->prepare('SELECT id,name,grade FROM classes WHERE is_montessori=1 ORDER BY grade,section');
     $cSt->execute([]);

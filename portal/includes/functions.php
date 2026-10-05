@@ -345,7 +345,7 @@ function hasPermission(string $perm): bool {
 }
 
 /**
- * Returns true when the current user's teachers row has at least one class_subjects assignment.
+ * Returns true when the user has any teaching assignment (class_subjects OR class_teacher_assignments).
  * Used to gate teacher-module access for staff roles that teach when assigned.
  */
 function hasTeacherAssignments(int $userId = 0): bool {
@@ -354,10 +354,41 @@ function hasTeacherAssignments(int $userId = 0): bool {
     if (!$userId) return false;
     if (array_key_exists($userId, $cache)) return $cache[$userId];
     try {
-        $st = getDB()->prepare(
+        $db = getDB();
+        $st = $db->prepare(
             'SELECT COUNT(*) FROM teachers t
              JOIN class_subjects cs ON cs.teacher_id = t.id
              WHERE t.user_id = ?'
+        );
+        $st->execute([$userId]);
+        if ((int)$st->fetchColumn() > 0) { $cache[$userId] = true; return true; }
+        // Also check class_teacher_assignments (Montessori/ILC class teachers)
+        $st2 = $db->prepare(
+            'SELECT COUNT(*) FROM teachers t
+             JOIN class_teacher_assignments cta ON cta.teacher_id = t.id
+             WHERE t.user_id = ?'
+        );
+        $st2->execute([$userId]);
+        $cache[$userId] = (int)$st2->fetchColumn() > 0;
+    } catch (Exception $e) { $cache[$userId] = false; }
+    return $cache[$userId];
+}
+
+/**
+ * Returns true when the user has subject-based assignments (class_subjects only).
+ * Used by marks.php — Montessori/ILC class teachers do not use marks.
+ */
+function hasSubjectTeacherAssignments(int $userId = 0): bool {
+    static $cache = [];
+    if (!$userId) $userId = (int)($_SESSION['user']['id'] ?? 0);
+    if (!$userId) return false;
+    if (array_key_exists($userId, $cache)) return $cache[$userId];
+    try {
+        $st = getDB()->prepare(
+            'SELECT COUNT(*) FROM teachers t
+             JOIN class_subjects cs ON cs.teacher_id = t.id
+             JOIN classes c ON cs.class_id = c.id
+             WHERE t.user_id = ? AND COALESCE(c.wing,\'main\') = \'main\''
         );
         $st->execute([$userId]);
         $cache[$userId] = (int)$st->fetchColumn() > 0;
@@ -497,7 +528,8 @@ function getAdminLinks(): array {
 // Eligible: Montessori (any grade) OR non-ILC Class 1–3 (grade <= 3)
 function teacherHasEligibleClasses(int $teacherId): bool {
     try {
-        $st = getDB()->prepare(
+        $db = getDB();
+        $st = $db->prepare(
             'SELECT 1 FROM class_subjects cs
              JOIN classes c ON cs.class_id = c.id
              WHERE cs.teacher_id = ?
@@ -506,7 +538,16 @@ function teacherHasEligibleClasses(int $teacherId): bool {
              LIMIT 1'
         );
         $st->execute([$teacherId]);
-        return (bool)$st->fetchColumn();
+        if ($st->fetchColumn()) return true;
+        // Also check class_teacher_assignments for Montessori classes
+        $st2 = $db->prepare(
+            'SELECT 1 FROM class_teacher_assignments cta
+             JOIN classes c ON cta.class_id = c.id
+             WHERE cta.teacher_id = ? AND c.is_montessori = 1
+             LIMIT 1'
+        );
+        $st2->execute([$teacherId]);
+        return (bool)$st2->fetchColumn();
     } catch (Exception $e) {
         return false;
     }

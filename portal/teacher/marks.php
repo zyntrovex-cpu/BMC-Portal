@@ -12,8 +12,8 @@ if ($user['role'] === 'montessori_teacher') {
 }
 $staffTeachRoles = ['vp_main', 'ilc_vp', 'wing_head', 'vp_montessori', 'examination_head'];
 if (in_array($user['role'], $staffTeachRoles)) {
-    if (!hasTeacherAssignments($user['id'])) {
-        setFlash('danger', 'You have no teaching assignments. Contact admin to assign a class and subject.');
+    if (!hasSubjectTeacherAssignments($user['id'])) {
+        setFlash('danger', 'You have no Main Campus subject assignments. Contact admin to assign a class and subject.');
         redirect('/portal/index.php');
     }
 } else {
