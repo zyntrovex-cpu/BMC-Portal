@@ -65,15 +65,17 @@ function parseXlsxRowsT(string $path): array {
             $colIdx = xlColToIdxT($m[1]);
             $t      = $c->getAttribute('t');
             $vNodes = $c->getElementsByTagName('v');
-            if ($vNodes->length === 0) {
-                $val = '';
+            $isNodes = $c->getElementsByTagName('is');
+            // Check inline strings first — covers files with no sharedStrings.xml
+            if ($isNodes->length > 0) {
+                $val = trim($isNodes->item(0)->textContent);
             } elseif ($t === 's') {
-                $val = $sharedStrings[(int)$vNodes->item(0)->textContent] ?? '';
-            } elseif ($t === 'inlineStr') {
-                $isN = $c->getElementsByTagName('is');
-                $val = $isN->length ? $isN->item(0)->textContent : '';
-            } else {
+                $idx = $vNodes->length ? (int)$vNodes->item(0)->textContent : -1;
+                $val = $sharedStrings[$idx] ?? '';
+            } elseif ($vNodes->length > 0) {
                 $val = $vNodes->item(0)->textContent;
+            } else {
+                $val = '';
             }
             $rowData[$colIdx] = $val;
         }
