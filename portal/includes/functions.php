@@ -522,6 +522,7 @@ function getAdminLinks(): array {
         ['href'=>'/portal/admin/users.php',              'icon'=>'<i class="fas fa-users"></i>',              'label'=>'Staff & Students',  'key'=>'users'],
         ['href'=>'/portal/admin/photo-approvals.php',    'icon'=>'<i class="fas fa-user-check"></i>',         'label'=>$photoLabel,         'key'=>'photo-approvals'],
         ['href'=>'/portal/admin/import-students.php',    'icon'=>'<i class="fas fa-file-import"></i>',        'label'=>'Import Students',   'key'=>'import'],
+        ['href'=>'/portal/admin/import-teachers.php',   'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Import Teachers',   'key'=>'import-teachers'],
         ['href'=>'/portal/admin/classes.php',            'icon'=>'<i class="fas fa-chalkboard"></i>',         'label'=>'Classes & Subjects','key'=>'classes'],
         ['href'=>'/portal/admin/teachers.php',           'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teacher Accounts',  'key'=>'teachers'],
         ['href'=>'/portal/admin/promote.php',            'icon'=>'<i class="fas fa-level-up-alt"></i>',       'label'=>'Class Promotion',   'key'=>'promote'],

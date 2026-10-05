@@ -567,6 +567,17 @@ $links = getAdminLinks();
 <div class="page-content">
 <?= flashHtml() ?>
 
+<!-- Section switcher -->
+<div class="d-flex gap-2 mb-3 flex-wrap">
+  <span class="btn btn-sm btn-primary" style="cursor:default">
+    <i class="fas fa-user-graduate me-1"></i>Import Students
+  </span>
+  <a href="<?= url('/portal/admin/import-teachers.php') ?>"
+     class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-chalkboard-teacher me-1"></i>Import Teachers
+  </a>
+</div>
+
 <?php if ($importResults !== null): ?>
 <!-- ── Import Results ──────────────────────────────────────────────────────── -->
 <div class="row justify-content-center">
