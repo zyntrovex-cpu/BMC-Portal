@@ -74,13 +74,23 @@ $upcomingAss = $stUpcoming->fetchAll();
 // ── Top 3 notices ─────────────────────────────────────────────────
 $topNotices = array_slice($notices, 0, 3);
 
-// Wing / ILC detection
-$studentWing     = 'main';
-$ilcDisabilities = [];
+// Wing / ILC / Montessori-style detection
+$studentWing        = 'main';
+$isMonteStyleStudent = false;
+$ilcDisabilities    = [];
 try {
-    $stWing = $db->prepare('SELECT wing FROM classes WHERE id = ?');
+    $stWing = $db->prepare(
+        'SELECT COALESCE(wing,\'main\') AS wing,
+                COALESCE(is_montessori,0) AS is_montessori,
+                COALESCE(grade,0) AS grade
+         FROM classes WHERE id = ?'
+    );
     $stWing->execute([$student['class_id']]);
-    $studentWing = $stWing->fetchColumn() ?: 'main';
+    $wingRow     = $stWing->fetch() ?: ['wing'=>'main','is_montessori'=>0,'grade'=>0];
+    $studentWing = $wingRow['wing'];
+    // Treat as Montessori-style if actual Montessori OR Main Campus Class 2/3
+    $isMonteStyleStudent = $wingRow['is_montessori']
+        || ($studentWing === 'main' && in_array((int)$wingRow['grade'], [2, 3]));
     if ($studentWing === 'ilc') {
         $stDis = $db->prepare(
             'SELECT dc.name AS category, dst.name AS subtype, sd.notes
@@ -126,7 +136,11 @@ $links = getStudentLinks();
       </small>
       </div><!-- /text -->
     </div><!-- /left flex -->
+    <?php if ($isMonteStyleStudent): ?>
+    <a href="<?= url('/portal/student/progress-report.php') ?>" class="btn btn-light btn-sm fw-semibold">Progress Report</a>
+    <?php else: ?>
     <a href="<?= url('/portal/student/results.php') ?>" class="btn btn-light btn-sm fw-semibold">View Results</a>
+    <?php endif; ?>
   </div>
 </div>
 

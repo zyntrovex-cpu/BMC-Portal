@@ -407,13 +407,14 @@ function requirePermission(string $perm): void {
 
 // ── Student sidebar links ─────────────────────────────────────────
 function getStudentLinks(): array {
-    // Check if this student is in an ILC class or a Montessori class
-    $isIlcStudent = false;
-    $isMontessoriStudent = false;
+    $isIlcStudent           = false;
+    $isMontessoriStudent    = false;
+    $isAnyMontessoriStudent = false;
     try {
-        $db = getDB();
+        $db   = getDB();
         $sess = $_SESSION['user'] ?? [];
         if (!empty($sess['id'])) {
+            // ILC check
             $chk = $db->prepare(
                 'SELECT 1 FROM students s JOIN classes c ON c.id = s.class_id
                  WHERE s.user_id = ? AND c.is_ilc = 1 LIMIT 1'
@@ -422,6 +423,7 @@ function getStudentLinks(): array {
             $isIlcStudent = (bool)$chk->fetchColumn();
         }
         if (!$isIlcStudent && !empty($sess['id'])) {
+            // Strict Montessori (grade < 2) — hides Results/Syllabus
             $chkM = $db->prepare(
                 'SELECT 1 FROM students s JOIN classes c ON c.id = s.class_id
                  WHERE s.user_id = ? AND c.is_montessori = 1 AND COALESCE(c.grade, 0) < 2 LIMIT 1'
@@ -429,7 +431,7 @@ function getStudentLinks(): array {
             $chkM->execute([$sess['id']]);
             $isMontessoriStudent = (bool)$chkM->fetchColumn();
         }
-        // Any-grade Montessori check (for Progress Report link — Class-2/3 Montessori still use Progress Reports)
+        // Any-grade Montessori — shows Progress Report + Formative Assessment
         $isAnyMontessoriStudent = $isMontessoriStudent;
         if (!$isIlcStudent && !$isMontessoriStudent && !empty($sess['id'])) {
             $chkMA = $db->prepare(
@@ -438,6 +440,20 @@ function getStudentLinks(): array {
             );
             $chkMA->execute([$sess['id']]);
             $isAnyMontessoriStudent = (bool)$chkMA->fetchColumn();
+        }
+        // Main Campus Class 2 and 3: same portal experience as Montessori
+        // (wing/campus assignment stays Main Campus in the DB)
+        if (!$isIlcStudent && !$isAnyMontessoriStudent && !empty($sess['id'])) {
+            $chkML = $db->prepare(
+                'SELECT 1 FROM students s JOIN classes c ON c.id = s.class_id
+                 WHERE s.user_id = ? AND COALESCE(c.wing,\'main\') = \'main\'
+                 AND COALESCE(c.is_montessori,0) = 0 AND c.grade IN (2,3) LIMIT 1'
+            );
+            $chkML->execute([$sess['id']]);
+            if ((bool)$chkML->fetchColumn()) {
+                $isMontessoriStudent    = true;
+                $isAnyMontessoriStudent = true;
+            }
         }
     } catch (Exception $e) {}
 

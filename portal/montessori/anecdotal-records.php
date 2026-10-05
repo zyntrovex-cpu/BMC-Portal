@@ -24,21 +24,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'save_anecdotal' && $classId && $studentId) {
         // Verify teacher is assigned to this montessori class
         $authOk = false;
+        $msC = "(c.is_montessori=1 OR (COALESCE(c.wing,'main')='main' AND c.grade IN (2,3) AND COALESCE(c.is_ilc,0)=0))";
         if ($teacher) {
             $authSt = $db->prepare(
-                'SELECT 1 FROM class_subjects cs JOIN classes c ON cs.class_id=c.id
-                 WHERE cs.teacher_id=? AND cs.class_id=? AND c.is_montessori=1 LIMIT 1'
+                "SELECT 1 FROM class_subjects cs JOIN classes c ON cs.class_id=c.id
+                 WHERE cs.teacher_id=? AND cs.class_id=? AND $msC LIMIT 1"
             );
             $authSt->execute([$teacher['id'], $classId]);
             $authOk = (bool)$authSt->fetchColumn();
             if (!$authOk) {
-                $ctA = $db->prepare('SELECT 1 FROM class_teacher_assignments cta JOIN classes c ON cta.class_id=c.id WHERE cta.teacher_id=? AND cta.class_id=? AND c.is_montessori=1 LIMIT 1');
+                $ctA = $db->prepare("SELECT 1 FROM class_teacher_assignments cta JOIN classes c ON cta.class_id=c.id WHERE cta.teacher_id=? AND cta.class_id=? AND $msC LIMIT 1");
                 $ctA->execute([$teacher['id'],$classId]);
                 $authOk = (bool)$ctA->fetchColumn();
             }
         } else {
-            // wing_head — verify class is montessori
-            $authSt = $db->prepare('SELECT 1 FROM classes WHERE id=? AND is_montessori=1 LIMIT 1');
+            // wing_head — verify class uses montessori-style portal
+            $authSt = $db->prepare("SELECT 1 FROM classes c WHERE c.id=? AND $msC LIMIT 1");
             $authSt->execute([$classId]);
             $authOk = (bool)$authSt->fetchColumn();
         }
@@ -115,21 +116,22 @@ $selClassId   = (int)($_GET['class_id']   ?? $_SESSION['mar_cls'] ?? 0);
 $selStudentId = (int)($_GET['student_id'] ?? $_SESSION['mar_stu'] ?? 0);
 $editRecordId = (int)($_GET['edit']       ?? 0);
 
-// Teacher's montessori classes (subject-based or class teacher)
+// Teacher's montessori-style classes (subject-based or class teacher, includes Main Campus Class 2/3)
+$monteStyleCond = "(c.is_montessori=1 OR (COALESCE(c.wing,'main')='main' AND c.grade IN (2,3) AND COALESCE(c.is_ilc,0)=0))";
 if ($teacher) {
     $cSt = $db->prepare(
-        'SELECT DISTINCT c.id,c.name,c.grade,c.section FROM class_subjects cs
+        "SELECT DISTINCT c.id,c.name,c.grade,c.section FROM class_subjects cs
          JOIN classes c ON cs.class_id=c.id
-         WHERE cs.teacher_id=? AND c.is_montessori=1
+         WHERE cs.teacher_id=? AND $monteStyleCond
          UNION
          SELECT c.id,c.name,c.grade,c.section FROM class_teacher_assignments cta
          JOIN classes c ON cta.class_id=c.id
-         WHERE cta.teacher_id=? AND c.is_montessori=1
-         ORDER BY grade,name'
+         WHERE cta.teacher_id=? AND $monteStyleCond
+         ORDER BY grade,name"
     );
     $cSt->execute([$teacher['id'],$teacher['id']]);
 } else {
-    $cSt = $db->prepare('SELECT id,name,grade,section FROM classes WHERE is_montessori=1 ORDER BY grade,section');
+    $cSt = $db->prepare("SELECT id,name,grade,section FROM classes WHERE $monteStyleCond ORDER BY grade,name");
     $cSt->execute([]);
 }
 $assignedClasses = $cSt->fetchAll();

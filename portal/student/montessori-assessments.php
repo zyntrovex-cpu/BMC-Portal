@@ -9,15 +9,21 @@ $db   = getDB();
 
 // Resolve student record
 $stuSt = $db->prepare(
-    'SELECT s.id,s.class_id,s.roll_no,c.name AS class_name,c.is_montessori
+    'SELECT s.id,s.class_id,s.roll_no,c.name AS class_name,c.is_montessori,
+            COALESCE(c.wing,\'main\') AS wing, COALESCE(c.grade,0) AS grade
      FROM students s JOIN classes c ON s.class_id=c.id
      WHERE s.user_id=? AND s.deleted_at IS NULL LIMIT 1'
 );
 $stuSt->execute([$user['id']]);
 $student = $stuSt->fetch();
 
-if (!$student || !$student['is_montessori']) {
-    setFlash('danger', 'This page is only available for Montessori students.');
+// Eligible: actual Montessori class OR Main Campus Class 2/3
+$isMontePortalEligible = $student && (
+    $student['is_montessori'] ||
+    ($student['wing'] === 'main' && in_array((int)$student['grade'], [2, 3]))
+);
+if (!$isMontePortalEligible) {
+    setFlash('danger', 'This page is only available for Montessori-style students.');
     redirect('/portal/student/dashboard.php');
 }
 

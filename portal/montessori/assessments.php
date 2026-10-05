@@ -58,17 +58,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Verify teacher assignment (subject-based or class teacher)
         if ($teacher) {
+            $msCondAuth = "(c.is_montessori=1 OR (COALESCE(c.wing,'main')='main' AND c.grade IN (2,3) AND COALESCE(c.is_ilc,0)=0))";
             $chk = $db->prepare(
-                'SELECT 1 FROM class_subjects cs JOIN classes c ON cs.class_id=c.id
-                 WHERE cs.teacher_id=? AND cs.class_id=? AND cs.subject_id=? AND c.is_montessori=1 LIMIT 1'
+                "SELECT 1 FROM class_subjects cs JOIN classes c ON cs.class_id=c.id
+                 WHERE cs.teacher_id=? AND cs.class_id=? AND cs.subject_id=? AND $msCondAuth LIMIT 1"
             );
             $chk->execute([$teacher['id'],$classId,$subjectId]);
             $allowed = (bool)$chk->fetchColumn();
             if (!$allowed) {
-                // Check if class teacher assignment grants access
                 $ctChk = $db->prepare(
-                    'SELECT 1 FROM class_teacher_assignments cta JOIN classes c ON cta.class_id=c.id
-                     WHERE cta.teacher_id=? AND cta.class_id=? AND c.is_montessori=1 LIMIT 1'
+                    "SELECT 1 FROM class_teacher_assignments cta JOIN classes c ON cta.class_id=c.id
+                     WHERE cta.teacher_id=? AND cta.class_id=? AND $msCondAuth LIMIT 1"
                 );
                 $ctChk->execute([$teacher['id'],$classId]);
                 $allowed = (bool)$ctChk->fetchColumn();
@@ -209,21 +209,25 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selDate)) $selDate = date('Y-m-d');
 $selMode  = $_GET['mode']    ?? '';   // 'new' = blank new assessment form
 $editId   = (int)($_GET['edit_id'] ?? 0);
 
-// Teacher's montessori classes (subject-based or class teacher)
+// SQL fragment: classes that use the Montessori-style portal
+// (actual Montessori classes OR Main Campus Class 2/3)
+$monteStyleCond = "(c.is_montessori=1 OR (COALESCE(c.wing,'main')='main' AND c.grade IN (2,3) AND COALESCE(c.is_ilc,0)=0))";
+
+// Teacher's montessori-style classes (subject-based or class teacher)
 if ($teacher) {
     $cSt = $db->prepare(
-        'SELECT DISTINCT c.id,c.name,c.grade FROM class_subjects cs
+        "SELECT DISTINCT c.id,c.name,c.grade FROM class_subjects cs
          JOIN classes c ON cs.class_id=c.id
-         WHERE cs.teacher_id=? AND c.is_montessori=1
+         WHERE cs.teacher_id=? AND $monteStyleCond
          UNION
          SELECT c.id,c.name,c.grade FROM class_teacher_assignments cta
          JOIN classes c ON cta.class_id=c.id
-         WHERE cta.teacher_id=? AND c.is_montessori=1
-         ORDER BY grade,name'
+         WHERE cta.teacher_id=? AND $monteStyleCond
+         ORDER BY grade,name"
     );
     $cSt->execute([$teacher['id'],$teacher['id']]);
 } else {
-    $cSt = $db->prepare('SELECT id,name,grade FROM classes WHERE is_montessori=1 ORDER BY grade,section');
+    $cSt = $db->prepare("SELECT id,name,grade FROM classes WHERE $monteStyleCond ORDER BY grade,name");
     $cSt->execute([]);
 }
 $assignedClasses = $cSt->fetchAll();

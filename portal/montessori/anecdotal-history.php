@@ -8,21 +8,22 @@ $user    = requireAuth('montessori_teacher', 'wing_head', 'vp_montessori');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
 
-// Teacher's montessori classes (subject-based or class teacher)
+// Teacher's montessori-style classes (subject-based or class teacher, includes Main Campus Class 2/3)
+$monteStyleCond = "(c.is_montessori=1 OR (COALESCE(c.wing,'main')='main' AND c.grade IN (2,3) AND COALESCE(c.is_ilc,0)=0))";
 if ($teacher) {
     $cSt = $db->prepare(
-        'SELECT DISTINCT c.id,c.name,c.grade FROM class_subjects cs
+        "SELECT DISTINCT c.id,c.name,c.grade FROM class_subjects cs
          JOIN classes c ON cs.class_id=c.id
-         WHERE cs.teacher_id=? AND c.is_montessori=1
+         WHERE cs.teacher_id=? AND $monteStyleCond
          UNION
          SELECT c.id,c.name,c.grade FROM class_teacher_assignments cta
          JOIN classes c ON cta.class_id=c.id
-         WHERE cta.teacher_id=? AND c.is_montessori=1
-         ORDER BY grade,name'
+         WHERE cta.teacher_id=? AND $monteStyleCond
+         ORDER BY grade,name"
     );
     $cSt->execute([$teacher['id'],$teacher['id']]);
 } else {
-    $cSt = $db->prepare('SELECT id,name,grade FROM classes WHERE is_montessori=1 ORDER BY grade,section');
+    $cSt = $db->prepare("SELECT id,name,grade FROM classes WHERE $monteStyleCond ORDER BY grade,name");
     $cSt->execute([]);
 }
 $assignedClasses = $cSt->fetchAll();
