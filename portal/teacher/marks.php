@@ -4,11 +4,21 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher', 'ilc_teacher', 'montessori_teacher', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head');
+$user    = requireAuth('teacher', 'ilc_teacher', 'montessori_teacher',
+    'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head',
+    'vp_main', 'ilc_vp', 'wing_head', 'vp_montessori', 'examination_head');
 if ($user['role'] === 'montessori_teacher') {
     redirect('/portal/montessori/assessments.php');
 }
-requirePermission('marks');
+$staffTeachRoles = ['vp_main', 'ilc_vp', 'wing_head', 'vp_montessori', 'examination_head'];
+if (in_array($user['role'], $staffTeachRoles)) {
+    if (!hasTeacherAssignments($user['id'])) {
+        setFlash('danger', 'You have no teaching assignments. Contact admin to assign a class and subject.');
+        redirect('/portal/index.php');
+    }
+} else {
+    requirePermission('marks');
+}
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
 if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
@@ -280,6 +290,11 @@ $links = match($user['role']) {
     'secondary_wing_head'          => getSecondaryWingHeadLinks(),
     'higher_secondary_wing_head'   => getHigherSecondaryWingHeadLinks(),
     'primary_wing_head'            => getPrimaryWingHeadLinks(),
+    'vp_main'                      => getVpLinks(),
+    'ilc_vp'                       => getIlcLinks(),
+    'wing_head'                    => getWingHeadLinks(),
+    'vp_montessori'                => getVpMontessoriLinks(),
+    'examination_head'             => getExamHeadLinks(),
     default                        => getTeacherLinks(),
 };
 ?>

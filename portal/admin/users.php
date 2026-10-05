@@ -69,6 +69,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $db->prepare('INSERT INTO teachers (user_id, emp_id, qualification, phone, join_date) VALUES (?,?,?,?,?)')
                            ->execute([$newId, $userId, trim($_POST['qualification'] ?? ''), $phone ?: null, $joinDate]);
                     }
+                } elseif (in_array($role, ['vp_main','ilc_vp','wing_head','vp_montessori'])) {
+                    $phone    = trim($_POST['phone'] ?? '');
+                    $joinDate = $_POST['join_date'] ?? date('Y-m-d');
+                    $wingVal  = match($role) {
+                        'ilc_vp'        => 'ilc',
+                        'wing_head'     => 'montessori',
+                        'vp_montessori' => 'montessori',
+                        default         => 'main',
+                    };
+                    try {
+                        $db->prepare('INSERT INTO teachers (user_id, emp_id, qualification, phone, join_date, wing) VALUES (?,?,?,?,?,?)')
+                           ->execute([$newId, $userId, trim($_POST['qualification'] ?? ''), $phone ?: null, $joinDate, $wingVal]);
+                    } catch (Exception $e) {
+                        $db->prepare('INSERT INTO teachers (user_id, emp_id, qualification, phone, join_date) VALUES (?,?,?,?,?)')
+                           ->execute([$newId, $userId, trim($_POST['qualification'] ?? ''), $phone ?: null, $joinDate]);
+                    }
                 } elseif (in_array($role, ['secondary_wing_head','higher_secondary_wing_head','primary_wing_head'])) {
                     $phone    = trim($_POST['phone'] ?? '');
                     $joinDate = $_POST['join_date'] ?? date('Y-m-d');

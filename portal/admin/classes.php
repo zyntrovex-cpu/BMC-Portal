@@ -205,7 +205,7 @@ $subjects = getAllSubjects();
 // ── Teachers list ─────────────────────────────────────────────────────────────
 try {
     $teachersSt = $db->query(
-        'SELECT t.id, u.name, sb.name AS subject
+        'SELECT t.id, u.name, u.role, sb.name AS subject
          FROM teachers t
          JOIN users u ON t.user_id = u.id
          LEFT JOIN subjects sb ON t.subject_id = sb.id
@@ -441,8 +441,12 @@ $activeKey = 'classes';
             <label class="form-label fw-semibold" style="font-size:.82rem">Teacher <small class="text-muted">(optional)</small></label>
             <select name="teacher_id" class="form-select form-select-sm" style="min-width:160px">
               <option value="">— No teacher —</option>
-              <?php foreach ($teachers as $t): ?>
-              <option value="<?= $t['id'] ?>"><?= h($t['name']) ?><?= $t['subject'] ? ' · '.$t['subject'] : '' ?></option>
+              <?php
+              $staffRoleLabels = ['vp_main'=>'VP Main','ilc_vp'=>'ILC VP','wing_head'=>'Coord.','vp_montessori'=>'VP Mont.','examination_head'=>'Exam Head'];
+              foreach ($teachers as $t):
+                $roleTag = isset($staffRoleLabels[$t['role']]) ? ' [' . $staffRoleLabels[$t['role']] . ']' : '';
+              ?>
+              <option value="<?= $t['id'] ?>"><?= h($t['name'] . $roleTag) ?><?= $t['subject'] ? ' · '.$t['subject'] : '' ?></option>
               <?php endforeach; ?>
             </select>
           </div>

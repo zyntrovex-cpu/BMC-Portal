@@ -5,20 +5,23 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
 $mainWingHeadRoles = ['secondary_wing_head','higher_secondary_wing_head','primary_wing_head'];
-$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head');
+$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head', 'vp_montessori',
+    'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head',
+    'vp_main', 'ilc_vp', 'examination_head');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
+$noTeacherFallbackRoles = ['wing_head', 'vp_montessori', 'vp_main', 'ilc_vp', 'examination_head', ...$mainWingHeadRoles];
 if (!$teacher) {
-    if (!in_array($user['role'], ['wing_head', ...$mainWingHeadRoles])) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
+    if (!in_array($user['role'], $noTeacherFallbackRoles)) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
     $teacher = ['id' => 0, 'subject_id' => 0, 'name' => $user['name'], 'is_ilc' => 0];
 }
 
 // Determine teacher's wing for timetable documents
 $teacherWing = 'main';
 try {
-    if ($user['role'] === 'ilc_teacher' || (isset($teacher['is_ilc']) && $teacher['is_ilc'])) {
+    if ($user['role'] === 'ilc_teacher' || $user['role'] === 'ilc_vp' || (isset($teacher['is_ilc']) && $teacher['is_ilc'])) {
         $teacherWing = 'ilc';
-    } elseif (in_array($user['role'], ['montessori_teacher', 'wing_head'], true)) {
+    } elseif (in_array($user['role'], ['montessori_teacher', 'wing_head', 'vp_montessori'], true)) {
         $teacherWing = 'montessori';
     }
 } catch (Exception $e) {}
@@ -40,9 +43,13 @@ $links = match($user['role']) {
     'montessori_teacher'           => getMonteTeacherLinks(),
     'ilc_teacher'                  => getIlcTeacherLinks(),
     'wing_head'                    => getWingHeadLinks(),
+    'vp_montessori'                => getVpMontessoriLinks(),
     'secondary_wing_head'          => getSecondaryWingHeadLinks(),
     'higher_secondary_wing_head'   => getHigherSecondaryWingHeadLinks(),
     'primary_wing_head'            => getPrimaryWingHeadLinks(),
+    'vp_main'                      => getVpLinks(),
+    'ilc_vp'                       => getIlcLinks(),
+    'examination_head'             => getExamHeadLinks(),
     default                        => getTeacherLinks(),
 };
 ?>

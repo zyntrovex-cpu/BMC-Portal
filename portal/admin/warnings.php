@@ -4,9 +4,16 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-// Auth: allow admin, teacher, wing_head, montessori_teacher, and ilc_teacher
-$user = requireAuth('admin', 'teacher', 'wing_head', 'vp_montessori', 'montessori_teacher', 'ilc_teacher', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head');
-if (in_array($user['role'], ['teacher', 'wing_head', 'montessori_teacher', 'ilc_teacher'], true)) requirePermission('warnings');
+// Auth: allow admin, teacher and all staff roles that can teach
+$user = requireAuth('admin', 'teacher', 'wing_head', 'vp_montessori', 'montessori_teacher', 'ilc_teacher',
+    'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head',
+    'vp_main', 'ilc_vp', 'examination_head');
+$staffTeachRoles = ['vp_main', 'ilc_vp', 'examination_head'];
+if (in_array($user['role'], ['teacher', 'wing_head', 'montessori_teacher', 'ilc_teacher'], true)) {
+    requirePermission('warnings');
+} elseif (in_array($user['role'], $staffTeachRoles, true)) {
+    if (!hasTeacherAssignments($user['id'])) { setFlash('danger', 'You have no teaching assignments.'); redirect('/portal/index.php'); }
+}
 
 $db = getDB();
 
@@ -119,6 +126,9 @@ $links = match($user['role']) {
     'secondary_wing_head'          => getSecondaryWingHeadLinks(),
     'higher_secondary_wing_head'   => getHigherSecondaryWingHeadLinks(),
     'primary_wing_head'            => getPrimaryWingHeadLinks(),
+    'vp_main'                      => getVpLinks(),
+    'ilc_vp'                       => getIlcLinks(),
+    'examination_head'             => getExamHeadLinks(),
     default                        => getTeacherLinks(),
 };
 $portal = $user['role'];

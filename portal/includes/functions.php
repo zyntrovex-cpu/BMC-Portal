@@ -344,6 +344,27 @@ function hasPermission(string $perm): bool {
     return (bool)($perms[$perm] ?? true);
 }
 
+/**
+ * Returns true when the current user's teachers row has at least one class_subjects assignment.
+ * Used to gate teacher-module access for staff roles that teach when assigned.
+ */
+function hasTeacherAssignments(int $userId = 0): bool {
+    static $cache = [];
+    if (!$userId) $userId = (int)($_SESSION['user']['id'] ?? 0);
+    if (!$userId) return false;
+    if (array_key_exists($userId, $cache)) return $cache[$userId];
+    try {
+        $st = getDB()->prepare(
+            'SELECT COUNT(*) FROM teachers t
+             JOIN class_subjects cs ON cs.teacher_id = t.id
+             WHERE t.user_id = ?'
+        );
+        $st->execute([$userId]);
+        $cache[$userId] = (int)$st->fetchColumn() > 0;
+    } catch (Exception $e) { $cache[$userId] = false; }
+    return $cache[$userId];
+}
+
 // Redirects to unauthorized page if permission is missing.
 function requirePermission(string $perm): void {
     if (!hasPermission($perm)) {
@@ -574,6 +595,7 @@ function getFinanceLinks(): array {
 
 // ── ILC sidebar links (permission-filtered) ───────────────────────
 function getIlcLinks(): array {
+    $isTeaching = hasTeacherAssignments();
     return array_values(array_filter([
         ['href'=>'/portal/ilc/dashboard.php',         'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',          'key'=>'dashboard'],
         hasPermission('ilc_students')     ? ['href'=>'/portal/ilc/students.php',           'icon'=>'<i class="fas fa-user-graduate"></i>',      'label'=>'ILC Students',       'key'=>'students']          : null,
@@ -595,6 +617,9 @@ function getIlcLinks(): array {
         hasPermission('ilc_viewas')       ? ['href'=>'/portal/ilc/view-as.php',            'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',       'key'=>'viewas']            : null,
         ['href'=>'/portal/ilc/marks-approval.php',       'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>_ilcMarksApprovalLabel(), 'key'=>'marks-approval'],
         ['href'=>'/portal/teacher/calendar.php',          'icon'=>'<i class="fas fa-calendar-week"></i>',     'label'=>'Academic Calendar',      'key'=>'calendar'],
+        $isTeaching ? ['href'=>'/portal/teacher/marks.php',      'icon'=>'<i class="fas fa-pen-alt"></i>',        'label'=>'Assessments & Marks', 'key'=>'marks']      : null,
+        $isTeaching ? ['href'=>'/portal/teacher/attendance.php', 'icon'=>'<i class="fas fa-calendar-check"></i>', 'label'=>'Mark Attendance',     'key'=>'take-attend'] : null,
+        $isTeaching ? ['href'=>'/portal/teacher/diary.php',      'icon'=>'<i class="fas fa-book-open"></i>',      'label'=>'Daily Diary',         'key'=>'diary']       : null,
     ]));
 }
 
@@ -649,6 +674,7 @@ function getVpLinks(): array {
         ? ' <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem">' . $pendingMarksCount . '</span>'
         : '');
 
+    $isTeaching = hasTeacherAssignments();
     return array_values(array_filter([
         ['href'=>'/portal/vp/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',            'key'=>'dashboard'],
         hasPermission('vp_teachers')     ? ['href'=>'/portal/vp/teachers.php',               'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teachers',             'key'=>'teachers']     : null,
@@ -663,17 +689,22 @@ function getVpLinks(): array {
         hasPermission('vp_viewas')       ? ['href'=>'/portal/vp/view-as.php',                'icon'=>'<i class="fas fa-eye"></i>',                'label'=>'View As User',         'key'=>'viewas']       : null,
         ['href'=>'/portal/vp/exam-datesheet.php',        'icon'=>'<i class="fas fa-calendar-day"></i>',       'label'=>'Exam Date Sheets',     'key'=>'exam-datesheet'],
         ['href'=>'/portal/progress-report/form.php', 'icon'=>'<i class="fas fa-file-alt"></i>', 'label'=>'Progress Report', 'key'=>'progress-report'],
+        $isTeaching ? ['href'=>'/portal/teacher/marks.php',      'icon'=>'<i class="fas fa-pen-alt"></i>',         'label'=>'Assessments & Marks',  'key'=>'marks']      : null,
+        $isTeaching ? ['href'=>'/portal/teacher/attendance.php', 'icon'=>'<i class="fas fa-calendar-check"></i>',  'label'=>'Mark Attendance',      'key'=>'take-attend'] : null,
+        $isTeaching ? ['href'=>'/portal/teacher/diary.php',      'icon'=>'<i class="fas fa-book-open"></i>',       'label'=>'Daily Diary',          'key'=>'diary']       : null,
     ]));
 }
 
 // ── Wing Head / Coordinator Montessori sidebar links ──────────────
 function getWingHeadLinks(): array {
+    $isTeaching = hasTeacherAssignments();
     return array_values(array_filter([
         ['href'=>'/portal/wing-head/dashboard.php',           'icon'=>'<i class="fas fa-home"></i>',                        'label'=>'Dashboard',            'key'=>'dashboard'],
         ['href'=>'/portal/wing-head/profile.php',             'icon'=>'<i class="fas fa-user-circle"></i>',                 'label'=>'My Profile',           'key'=>'profile'],
         ['href'=>'/portal/progress-report/form.php',          'icon'=>'<i class="fas fa-file-alt"></i>',                    'label'=>'Progress Report',      'key'=>'progress-report'],
         ['href'=>'/portal/montessori/assessments.php',        'icon'=>'<i class="fas fa-clipboard-check"></i>',             'label'=>'Formative Assessment', 'key'=>'monte-assessments'],
         ['href'=>'/portal/montessori/anecdotal-records.php',  'icon'=>'<i class="fas fa-sticky-note"></i>',                 'label'=>'Anecdotal Records',    'key'=>'anecdotal-records'],
+        $isTeaching ? ['href'=>'/portal/teacher/marks.php', 'icon'=>'<i class="fas fa-pen-alt"></i>', 'label'=>'Assessments & Marks', 'key'=>'marks'] : null,
         hasPermission('attendance') ? ['href'=>'/portal/teacher/attendance.php',  'icon'=>'<i class="fas fa-calendar-check"></i>',          'label'=>'Attendance',           'key'=>'attendance']  : null,
         ['href'=>'/portal/teacher/timetable.php',             'icon'=>'<i class="fas fa-table"></i>',                   'label'=>'Timetable',            'key'=>'timetable'],
         ['href'=>'/portal/wing-head/exam-datesheet.php',      'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',      'key'=>'exam-datesheet'],
@@ -742,12 +773,14 @@ function getPrimaryWingHeadLinks(): array {
 
 // ── VP Montessori Campus sidebar links ────────────────────────────
 function getVpMontessoriLinks(): array {
+    $isTeaching = hasTeacherAssignments();
     return array_values(array_filter([
         ['href'=>'/portal/vp-montessori/dashboard.php',           'icon'=>'<i class="fas fa-home"></i>',                        'label'=>'Dashboard',            'key'=>'dashboard'],
         ['href'=>'/portal/vp-montessori/profile.php',             'icon'=>'<i class="fas fa-user-circle"></i>',                 'label'=>'My Profile',           'key'=>'profile'],
         ['href'=>'/portal/progress-report/form.php',              'icon'=>'<i class="fas fa-file-alt"></i>',                    'label'=>'Progress Report',      'key'=>'progress-report'],
         ['href'=>'/portal/montessori/assessments.php',            'icon'=>'<i class="fas fa-clipboard-check"></i>',             'label'=>'Formative Assessment', 'key'=>'monte-assessments'],
         ['href'=>'/portal/montessori/anecdotal-records.php',      'icon'=>'<i class="fas fa-sticky-note"></i>',                 'label'=>'Anecdotal Records',    'key'=>'anecdotal-records'],
+        $isTeaching ? ['href'=>'/portal/teacher/marks.php', 'icon'=>'<i class="fas fa-pen-alt"></i>', 'label'=>'Assessments & Marks', 'key'=>'marks'] : null,
         ['href'=>'/portal/vp-montessori/exam-datesheet.php',      'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',      'key'=>'exam-datesheet'],
         ['href'=>'/portal/vp-montessori/notices.php',             'icon'=>'<i class="fas fa-bell"></i>',                        'label'=>'Notices',              'key'=>'notices'],
         ['href'=>'/portal/vp-montessori/teachers.php',            'icon'=>'<i class="fas fa-chalkboard-teacher"></i>',          'label'=>'Montessori Teachers',  'key'=>'teachers'],
@@ -762,6 +795,7 @@ function getVpMontessoriLinks(): array {
 
 // ── Examination Head sidebar links ───────────────────────────────
 function getExamHeadLinks(): array {
+    $isTeaching = hasTeacherAssignments();
     return array_values(array_filter([
         ['href'=>'/portal/exam-head/dashboard.php',      'icon'=>'<i class="fas fa-home"></i>',             'label'=>'Dashboard',            'key'=>'dashboard'],
         hasPermission('eh_marks')     ? ['href'=>'/portal/exam-head/marks.php',       'icon'=>'<i class="fas fa-pen-alt"></i>',       'label'=>'Assessments & Marks',  'key'=>'marks']        : null,
@@ -772,6 +806,9 @@ function getExamHeadLinks(): array {
         hasPermission('eh_notices')   ? ['href'=>'/portal/exam-head/notices.php',     'icon'=>'<i class="fas fa-bell"></i>',          'label'=>'Notices',              'key'=>'notices']      : null,
         ['href'=>'/portal/exam-head/profile.php',        'icon'=>'<i class="fas fa-user-circle"></i>',      'label'=>'My Profile',           'key'=>'profile'],
         ['href'=>'/portal/teacher/calendar.php',         'icon'=>'<i class="fas fa-calendar-week"></i>',    'label'=>'Academic Calendar',    'key'=>'calendar'],
+        $isTeaching ? ['href'=>'/portal/teacher/marks.php',      'icon'=>'<i class="fas fa-pen-alt"></i>',        'label'=>'Teach: Marks Entry',   'key'=>'teach-marks']  : null,
+        $isTeaching ? ['href'=>'/portal/teacher/attendance.php', 'icon'=>'<i class="fas fa-calendar-check"></i>', 'label'=>'Teach: Attendance',    'key'=>'take-attend']  : null,
+        $isTeaching ? ['href'=>'/portal/teacher/diary.php',      'icon'=>'<i class="fas fa-book-open"></i>',      'label'=>'Teach: Daily Diary',   'key'=>'teach-diary']  : null,
     ]));
 }
 

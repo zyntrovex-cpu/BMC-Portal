@@ -704,6 +704,22 @@ function getDB(): PDO {
                 $pdo->exec("ALTER TABLE admission_requests ADD COLUMN enrolled_gr_no VARCHAR(30) NULL AFTER enrolled_student_id");
         } catch (Exception $e) {}
 
+        // Group 25: backfill teachers rows for staff roles that can function as teachers
+        try {
+            $pdo->exec("INSERT IGNORE INTO teachers (user_id, emp_id, wing)
+                SELECT u.id, u.user_id,
+                    CASE u.role
+                        WHEN 'ilc_vp'        THEN 'ilc'
+                        WHEN 'wing_head'     THEN 'montessori'
+                        WHEN 'vp_montessori' THEN 'montessori'
+                        ELSE 'main'
+                    END
+                FROM users u
+                WHERE u.role IN ('vp_main','ilc_vp','wing_head','vp_montessori')
+                  AND u.status = 'active'
+                  AND NOT EXISTS (SELECT 1 FROM teachers t2 WHERE t2.user_id = u.id)");
+        } catch (Exception $e) {}
+
         // Group 24: houses table + students.house_id + promotion history + graduation columns
         try {
             $pdo->exec("CREATE TABLE IF NOT EXISTS houses (

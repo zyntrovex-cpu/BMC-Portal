@@ -4,7 +4,9 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head');
+$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher',
+    'wing_head', 'vp_montessori', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head',
+    'vp_main', 'ilc_vp', 'examination_head');
 requirePermission('notices');
 $db      = getDB();
 
@@ -69,9 +71,14 @@ pageHead('Notices', $user['role']);
 $links = match($user['role']) {
     'montessori_teacher'           => getMonteTeacherLinks(),
     'ilc_teacher'                  => getIlcTeacherLinks(),
+    'wing_head'                    => getWingHeadLinks(),
+    'vp_montessori'                => getVpMontessoriLinks(),
     'secondary_wing_head'          => getSecondaryWingHeadLinks(),
     'higher_secondary_wing_head'   => getHigherSecondaryWingHeadLinks(),
     'primary_wing_head'            => getPrimaryWingHeadLinks(),
+    'vp_main'                      => getVpLinks(),
+    'ilc_vp'                       => getIlcLinks(),
+    'examination_head'             => getExamHeadLinks(),
     default                        => getTeacherLinks(),
 };
 ?>

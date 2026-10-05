@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head', 'vp_montessori', 'ilc_vp', 'examination_head', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head');
+$user = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head', 'vp_montessori', 'ilc_vp', 'examination_head', 'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head', 'vp_main');
 $db   = getDB();
 
 $tableExists = false;
@@ -30,6 +30,7 @@ $links = match($user['role']) {
     'secondary_wing_head'          => getSecondaryWingHeadLinks(),
     'higher_secondary_wing_head'   => getHigherSecondaryWingHeadLinks(),
     'primary_wing_head'            => getPrimaryWingHeadLinks(),
+    'vp_main'                      => getVpLinks(),
     default                        => getTeacherLinks(),
 };
 ?>
