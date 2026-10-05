@@ -146,13 +146,9 @@ function roleToWing(string $role): string {
     return 'main';
 }
 
-/** Normalise raw emp_id: bare numbers (8000) become "BMC/Emp-8000". */
+/** Return emp_id exactly as it appears in the Excel file (trim only). */
 function normalizeEmpId(string $raw): string {
-    $raw = trim($raw);
-    if ($raw === '') return $raw;
-    if (preg_match('/^BMC\//i', $raw)) return $raw;
-    if (preg_match('/^\d{4,}$/', $raw)) return 'BMC/Emp-' . $raw;
-    return $raw;
+    return trim($raw);
 }
 
 // ─── Subject typo map ─────────────────────────────────────────────────────────
