@@ -541,6 +541,27 @@ function getAdminLinks(): array {
     ];
 }
 
+// ── Returns true if the teacher has any assignment to Main Campus Class 2 or 3 ──
+function teacherIsAssignedToClass23(int $teacherId): bool {
+    try {
+        $db   = getDB();
+        $cond = "COALESCE(c.wing,'main')='main' AND COALESCE(c.is_montessori,0)=0
+                 AND COALESCE(c.is_ilc,0)=0 AND c.grade IN (2,3)";
+        $st = $db->prepare(
+            "SELECT 1 FROM class_subjects cs JOIN classes c ON cs.class_id=c.id
+             WHERE cs.teacher_id=? AND $cond LIMIT 1"
+        );
+        $st->execute([$teacherId]);
+        if ($st->fetchColumn()) return true;
+        $st2 = $db->prepare(
+            "SELECT 1 FROM class_teacher_assignments cta JOIN classes c ON cta.class_id=c.id
+             WHERE cta.teacher_id=? AND $cond LIMIT 1"
+        );
+        $st2->execute([$teacherId]);
+        return (bool)$st2->fetchColumn();
+    } catch (Exception $e) { return false; }
+}
+
 // ── Returns true if the teacher has at least one eligible Progress Report class ──
 // Eligible: Montessori (any grade) OR non-ILC Class 1–3 (grade <= 3)
 function teacherHasEligibleClasses(int $teacherId): bool {
@@ -574,13 +595,17 @@ function teacherHasEligibleClasses(int $teacherId): bool {
 function getTeacherLinks(): array {
     // Check if this teacher is assigned to any Progress Report–eligible class
     $hasEligible = false;
+    $hasClass23  = false;
     try {
         $uid = (int)($_SESSION['user']['id'] ?? 0);
         if ($uid) {
             $tSt = getDB()->prepare('SELECT id FROM teachers WHERE user_id = ?');
             $tSt->execute([$uid]);
             $tRow = $tSt->fetch();
-            if ($tRow) $hasEligible = teacherHasEligibleClasses((int)$tRow['id']);
+            if ($tRow) {
+                $hasEligible = teacherHasEligibleClasses((int)$tRow['id']);
+                $hasClass23  = teacherIsAssignedToClass23((int)$tRow['id']);
+            }
         }
     } catch (Exception $e) {}
 
@@ -588,6 +613,8 @@ function getTeacherLinks(): array {
         ['href'=>'/portal/teacher/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',                'label'=>'Dashboard',        'key'=>'dashboard'],
         ['href'=>'/portal/teacher/profile.php',    'icon'=>'<i class="fas fa-user-circle"></i>',         'label'=>'My Profile',       'key'=>'profile'],
         $hasEligible                ? ['href'=>'/portal/progress-report/form.php',   'icon'=>'<i class="fas fa-file-alt"></i>',               'label'=>'Progress Report',    'key'=>'progress-report'] : null,
+        $hasClass23 ? ['href'=>'/portal/montessori/assessments.php',     'icon'=>'<i class="fas fa-clipboard-check"></i>', 'label'=>'Formative Assessment', 'key'=>'monte-assessments']  : null,
+        $hasClass23 ? ['href'=>'/portal/montessori/anecdotal-records.php','icon'=>'<i class="fas fa-sticky-note"></i>',   'label'=>'Anecdotal Records',    'key'=>'anecdotal-records'] : null,
         hasPermission('marks')      ? ['href'=>'/portal/teacher/marks.php',        'icon'=>'<i class="fas fa-pen-alt"></i>',                 'label'=>'Assessments & Marks', 'key'=>'marks']      : null,
         hasPermission('attendance') ? ['href'=>'/portal/teacher/attendance.php',   'icon'=>'<i class="fas fa-calendar-check"></i>',          'label'=>'Attendance',           'key'=>'attendance'] : null,
         ['href'=>'/portal/teacher/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',                   'label'=>'Timetable',            'key'=>'timetable'],

@@ -4,9 +4,15 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/db.php';
 
-$user    = requireAuth('montessori_teacher', 'wing_head', 'vp_montessori');
+$user    = requireAuth('montessori_teacher', 'wing_head', 'vp_montessori', 'teacher');
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
+
+// Main-campus 'teacher' role: only allowed if assigned to Class 2 or 3
+if ($user['role'] === 'teacher') {
+    $allowed = $teacher && teacherIsAssignedToClass23((int)$teacher['id']);
+    if (!$allowed) { setFlash('danger','Access restricted to Class 2/3 teachers.'); redirect('/portal/teacher/dashboard.php'); }
+}
 
 $FOCUS_OPTIONS = [
     'General Observation','English','Mathematics','Science','Urdu',
@@ -212,9 +218,18 @@ if ($editRecordId && $selStudentId) {
     } catch (Exception $e) {}
 }
 
-$portalRole = in_array($user['role'], ['wing_head','vp_montessori']) ? $user['role'] : 'montessori_teacher';
+$portalRole = match($user['role']) {
+    'wing_head', 'vp_montessori' => $user['role'],
+    'teacher'                    => 'teacher',
+    default                      => 'montessori_teacher',
+};
 pageHead('Anecdotal Records', $portalRole);
-$links = $user['role'] === 'vp_montessori' ? getVpMontessoriLinks() : ($user['role'] === 'wing_head' ? getWingHeadLinks() : getMonteTeacherLinks());
+$links = match($user['role']) {
+    'vp_montessori' => getVpMontessoriLinks(),
+    'wing_head'     => getWingHeadLinks(),
+    'teacher'       => getTeacherLinks(),
+    default         => getMonteTeacherLinks(),
+};
 ?>
 <style>
 /* Student picker grid */
