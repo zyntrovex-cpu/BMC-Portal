@@ -632,7 +632,6 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
     <div class="rc-head-meta">
       <span class="doc-lbl">Report Card</span>
       Session: <?= h($sessionYear) ?><br>
-      <?php if ($currentTerm): ?>Term: <?= h($currentTerm) ?><br><?php endif; ?>
       Date: <?= $reportDate ?>
       <div class="rc-head-grno">GR# <?= h($student['gr_no'] ?? '—') ?></div>
     </div>
@@ -647,7 +646,6 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
     </div>
     <div class="rc-title-sub">
       Academic Session <?= h($sessionYear) ?>
-      <?php if ($currentTerm): ?><span class="dmd">&#9670;</span><?= h($currentTerm) ?><?php endif; ?>
       <span class="dmd">&#9670;</span><?= h($campusLabel) ?>
     </div>
   </div>
