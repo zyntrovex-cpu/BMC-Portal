@@ -169,11 +169,11 @@ $_activePage = $activePage ?? '';
              class="<?= $_activePage === 'admissions' ? 'active' : '' ?>">Admissions</a>
         </li>
 
-        <!-- Portal link -->
+        <!-- Portal link — styled CTA button -->
         <li>
           <a href="<?= BASE_URL ?>/portal/"
-             class="<?= $_activePage === 'portal' ? 'active' : '' ?>">
-            Portal
+             class="nav-portal-cta <?= $_activePage === 'portal' ? 'active' : '' ?>">
+            <i class="fas fa-sign-in-alt"></i>Portal Login
           </a>
         </li>
 

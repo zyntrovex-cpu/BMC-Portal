@@ -35,12 +35,14 @@ const openMobileMenu = () => {
   ham?.classList.add('open');
   mobileMenu?.classList.add('open');
   mobileOverlay?.classList.add('open');
+  document.body.classList.add('menu-open');
   document.body.style.overflow = 'hidden';
 };
 const closeMobileMenu = () => {
   ham?.classList.remove('open');
   mobileMenu?.classList.remove('open');
   mobileOverlay?.classList.remove('open');
+  document.body.classList.remove('menu-open');
   document.body.style.overflow = '';
 };
 
