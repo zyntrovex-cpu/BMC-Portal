@@ -296,8 +296,8 @@ $_activePage = $activePage ?? '';
       </li>
 
       <li>
-        <a href="<?= BASE_URL ?>/portal/" class="mobile-portal-link">
-          <i class="fas fa-sign-in-alt"></i> Portal Login
+        <a href="<?= BASE_URL ?>/portal/" class="mobile-nav-link mobile-portal-link">
+          <i class="fas fa-sign-in-alt"></i>Portal Login
         </a>
       </li>
 

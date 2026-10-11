@@ -2029,3 +2029,118 @@ img, video, iframe, embed, object { max-width: 100% !important; height: auto; }
 
 /* ── 40. Fix: body doesn't shift when mobile menu opens ─────── */
 body.menu-open { overflow: hidden; position: fixed; width: 100%; }
+
+/* ================================================================
+   PORTAL LOGIN BUTTON — Consistent with other nav items (v3 fix)
+   ================================================================ */
+
+/* Desktop: match every other nav-links > li > a exactly */
+.nav-portal-cta {
+  background: none !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 8px !important;
+  height: 64px !important;
+  margin: 0 !important;
+  color: var(--text-2) !important;
+  font-weight: 500 !important;
+  font-size: .81rem !important;
+  gap: 4px !important;
+  transform: none !important;
+  transition: color var(--transition) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  position: relative !important;
+  text-decoration: none !important;
+}
+.nav-portal-cta:hover,
+.nav-portal-cta:focus {
+  background: none !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--primary) !important;
+  transform: none !important;
+}
+.nav-portal-cta.active {
+  color: var(--primary) !important;
+  background: none !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+/* Same active underline indicator as other nav links */
+.nav-portal-cta.active::after {
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 8px !important;
+  right: 8px !important;
+  height: 2px !important;
+  background: var(--blue) !important;
+  border-radius: 2px 2px 0 0 !important;
+}
+/* Blue icon — subtle visual cue matching other icon-carrying links */
+.nav-portal-cta i {
+  color: var(--blue) !important;
+  font-size: .75rem !important;
+  width: 14px !important;
+  opacity: .85 !important;
+}
+[data-theme="dark"] .nav-portal-cta {
+  color: var(--text-2) !important;
+}
+[data-theme="dark"] .nav-portal-cta:hover,
+[data-theme="dark"] .nav-portal-cta.active {
+  color: #fff !important;
+}
+
+/* Mobile: reset all special styling — inherit from .mobile-nav-link */
+.mobile-portal-link.mobile-nav-link,
+.mobile-portal-link {
+  background: none !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 14px 20px !important;
+  border-radius: 0 !important;
+  color: var(--text) !important;
+  font-weight: 500 !important;
+  font-size: .93rem !important;
+  min-height: 52px !important;
+  gap: 10px !important;
+  letter-spacing: normal !important;
+  transform: none !important;
+  display: flex !important;
+  align-items: center !important;
+  text-decoration: none !important;
+  transition: color var(--transition), background var(--transition) !important;
+  width: 100% !important;
+}
+.mobile-portal-link.mobile-nav-link:hover,
+.mobile-portal-link:hover,
+.mobile-portal-link.mobile-nav-link:active,
+.mobile-portal-link:active {
+  color: var(--blue) !important;
+  background: var(--bg-2) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+/* Icon: same as other mobile nav icons */
+.mobile-portal-link i,
+.mobile-portal-link.mobile-nav-link i {
+  width: 16px !important;
+  color: var(--blue) !important;
+  font-size: .85rem !important;
+  flex-shrink: 0 !important;
+}
+/* Restore list-item border-bottom (was removed by previous rule) */
+.mobile-nav-list > li:has(> .mobile-portal-link) {
+  border-bottom: 1px solid var(--border) !important;
+}
+[data-theme="dark"] .mobile-nav-list > li:has(> .mobile-portal-link) {
+  border-color: #1e293b !important;
+}
