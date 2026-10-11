@@ -4,9 +4,18 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('admin', 'student_affairs');
+$user    = requireAuth('admin', 'student_affairs', 'vp_main', 'vp_montessori', 'ilc_vp');
 $isAdmin = $user['role'] === 'admin';
 $db      = getDB();
+
+// Wing scope for VP roles (null = no restriction — admin/student_affairs see all wings)
+$vpWing = match($user['role']) {
+    'vp_main'       => 'main',
+    'vp_montessori' => 'montessori',
+    'ilc_vp'        => 'ilc',
+    default         => null,
+};
+$isVp = $vpWing !== null;
 
 // ── Auto-migration: widen columns, ensure wing/montessori/ilc flags ───────────
 try { $db->exec("ALTER TABLE classes MODIFY name    VARCHAR(60) NOT NULL"); }          catch (Exception $e) {}
@@ -123,6 +132,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $classId   = (int)$_POST['class_id'];
         $subjectId = (int)$_POST['subject_id'];
         $teacherId = (int)($_POST['teacher_id'] ?? 0);
+        // Backend wing authorization: VP can only modify classes in their wing
+        if ($isVp) {
+            $wc = $db->prepare('SELECT wing FROM classes WHERE id=?');
+            $wc->execute([$classId]);
+            $wrow = $wc->fetch();
+            if (!$wrow || $wrow['wing'] !== $vpWing) {
+                setFlash('danger', 'Access denied: this class does not belong to your wing.');
+                redirect('/portal/admin/classes.php');
+            }
+        }
         if ($classId && $subjectId) {
             $db->prepare('INSERT INTO class_subjects (class_id, subject_id, teacher_id) VALUES (?,?,?)
                           ON DUPLICATE KEY UPDATE teacher_id = VALUES(teacher_id)')
@@ -136,6 +155,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'remove_subject') {
         $csId    = (int)$_POST['cs_id'];
         $backId  = (int)($_POST['view_class'] ?? 0);
+        // Backend wing authorization for VPs
+        if ($isVp) {
+            $wc = $db->prepare('SELECT c.wing FROM class_subjects cs JOIN classes c ON cs.class_id=c.id WHERE cs.id=?');
+            $wc->execute([$csId]);
+            $wrow = $wc->fetch();
+            if (!$wrow || $wrow['wing'] !== $vpWing) {
+                setFlash('danger', 'Access denied: this subject belongs to a different wing.');
+                redirect('/portal/admin/classes.php');
+            }
+        }
         $db->prepare('DELETE FROM class_subjects WHERE id = ?')->execute([$csId]);
         setFlash('success', 'Subject removed.');
         redirect('/portal/admin/classes.php?view=' . $backId);
@@ -145,6 +174,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'assign_class_teacher') {
         $classId   = (int)$_POST['class_id'];
         $teacherId = (int)($_POST['teacher_id'] ?? 0);
+        // Backend wing authorization for VPs
+        if ($isVp) {
+            $wc = $db->prepare('SELECT wing FROM classes WHERE id=?');
+            $wc->execute([$classId]);
+            $wrow = $wc->fetch();
+            if (!$wrow || $wrow['wing'] !== $vpWing) {
+                setFlash('danger', 'Access denied: this class does not belong to your wing.');
+                redirect('/portal/admin/classes.php');
+            }
+        }
         if ($classId && $teacherId) {
             try {
                 $db->prepare(
@@ -164,6 +203,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ─── Remove class teacher ──────────────────────────────────────────────
     if ($action === 'remove_class_teacher') {
         $classId = (int)$_POST['class_id'];
+        // Backend wing authorization for VPs
+        if ($isVp) {
+            $wc = $db->prepare('SELECT wing FROM classes WHERE id=?');
+            $wc->execute([$classId]);
+            $wrow = $wc->fetch();
+            if (!$wrow || $wrow['wing'] !== $vpWing) {
+                setFlash('danger', 'Access denied: this class does not belong to your wing.');
+                redirect('/portal/admin/classes.php');
+            }
+        }
         $db->prepare('DELETE FROM class_teacher_assignments WHERE class_id = ?')->execute([$classId]);
         setFlash('success', 'Class teacher removed.');
         redirect('/portal/admin/classes.php?view=' . $classId);
@@ -172,10 +221,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $viewClassId = (int)($_GET['view'] ?? 0);
 $wingFilter  = $_GET['wing'] ?? '';
+// VPs are always scoped to their own wing — override any ?wing= URL parameter
+if ($isVp) {
+    $wingFilter = $vpWing;
+}
 
-// ── Stats ─────────────────────────────────────────────────────────────────────
-$totalStudents = (int)$db->query('SELECT COUNT(*) FROM students')->fetchColumn();
-$totalClasses  = (int)$db->query('SELECT COUNT(*) FROM classes')->fetchColumn();
+// ── Stats (scoped to VP's wing when applicable) ───────────────────────────────
+if ($isVp) {
+    $stCount = $db->prepare('SELECT COUNT(*) FROM students s JOIN classes c ON s.class_id=c.id WHERE c.wing=?');
+    $stCount->execute([$vpWing]);
+    $totalStudents = (int)$stCount->fetchColumn();
+    $clCount = $db->prepare('SELECT COUNT(*) FROM classes WHERE wing=?');
+    $clCount->execute([$vpWing]);
+    $totalClasses = (int)$clCount->fetchColumn();
+} else {
+    $totalStudents = (int)$db->query('SELECT COUNT(*) FROM students')->fetchColumn();
+    $totalClasses  = (int)$db->query('SELECT COUNT(*) FROM classes')->fetchColumn();
+}
 $totalSubjects = (int)$db->query('SELECT COUNT(*) FROM subjects')->fetchColumn();
 
 // ── Classes list (with wing + student count) ──────────────────────────────────
@@ -213,44 +275,75 @@ try {
     $classes = $classesSt->fetchAll();
 }
 
-// ── Subject overview ──────────────────────────────────────────────────────────
+// ── Subject overview (scoped to VP's wing when applicable) ───────────────────
 try {
-    $subjectsSt = $db->query(
-        'SELECT s.id, s.name, s.code,
-                GROUP_CONCAT(DISTINCT c.name ORDER BY c.grade, c.section SEPARATOR ", ") AS class_list,
-                COUNT(DISTINCT cs.class_id)  AS class_count,
-                COUNT(DISTINCT cs.teacher_id) AS teacher_count
-         FROM subjects s
-         LEFT JOIN class_subjects cs ON cs.subject_id = s.id
-         LEFT JOIN classes c ON cs.class_id = c.id
-         GROUP BY s.id, s.name, s.code
-         ORDER BY s.name'
-    );
+    if ($isVp) {
+        $subjectsSt = $db->prepare(
+            'SELECT s.id, s.name, s.code,
+                    GROUP_CONCAT(DISTINCT c.name ORDER BY c.grade, c.section SEPARATOR ", ") AS class_list,
+                    COUNT(DISTINCT cs.class_id)   AS class_count,
+                    COUNT(DISTINCT cs.teacher_id) AS teacher_count
+             FROM subjects s
+             JOIN class_subjects cs ON cs.subject_id = s.id
+             JOIN classes c ON cs.class_id = c.id
+             WHERE c.wing = ?
+             GROUP BY s.id, s.name, s.code
+             ORDER BY s.name'
+        );
+        $subjectsSt->execute([$vpWing]);
+    } else {
+        $subjectsSt = $db->query(
+            'SELECT s.id, s.name, s.code,
+                    GROUP_CONCAT(DISTINCT c.name ORDER BY c.grade, c.section SEPARATOR ", ") AS class_list,
+                    COUNT(DISTINCT cs.class_id)  AS class_count,
+                    COUNT(DISTINCT cs.teacher_id) AS teacher_count
+             FROM subjects s
+             LEFT JOIN class_subjects cs ON cs.subject_id = s.id
+             LEFT JOIN classes c ON cs.class_id = c.id
+             GROUP BY s.id, s.name, s.code
+             ORDER BY s.name'
+        );
+    }
     $subjectsWithClasses = $subjectsSt->fetchAll();
 } catch (PDOException $e) { $subjectsWithClasses = []; }
 
 $subjects = getAllSubjects();
 
-// ── Teachers list ─────────────────────────────────────────────────────────────
+// ── Teachers list (scoped to VP's wing for dropdowns) ─────────────────────────
 try {
-    $teachersSt = $db->query(
-        'SELECT t.id, u.name, u.role, sb.name AS subject
-         FROM teachers t
-         JOIN users u ON t.user_id = u.id
-         LEFT JOIN subjects sb ON t.subject_id = sb.id
-         ORDER BY u.name'
-    );
+    if ($isVp) {
+        $teachersSt = $db->prepare(
+            "SELECT t.id, u.name, u.role, sb.name AS subject
+             FROM teachers t
+             JOIN users u ON t.user_id = u.id
+             LEFT JOIN subjects sb ON t.subject_id = sb.id
+             WHERE COALESCE(t.wing,'main') = ?
+             ORDER BY u.name"
+        );
+        $teachersSt->execute([$vpWing]);
+    } else {
+        $teachersSt = $db->query(
+            'SELECT t.id, u.name, u.role, sb.name AS subject
+             FROM teachers t
+             JOIN users u ON t.user_id = u.id
+             LEFT JOIN subjects sb ON t.subject_id = sb.id
+             ORDER BY u.name'
+        );
+    }
     $teachers = $teachersSt->fetchAll();
 } catch (PDOException $e) { $teachers = []; }
 
 // ── Class detail (subjects assigned / class teacher) ─────────────────────────
-$classSubjects   = [];
-$classTeacher    = null;
-$viewClass       = null;
+$classSubjects     = [];
+$classTeacher      = null;
+$viewClass         = null;
+$isNonSubjectClass = false;
 if ($viewClassId) {
     foreach ($classes as $c) {
         if ($c['id'] === $viewClassId) { $viewClass = $c; break; }
     }
+    // $viewClass will be null if a VP tries to access a class outside their wing
+    // (because $classes is already filtered to $vpWing when $isVp is true)
     $isNonSubjectClass = $viewClass && in_array($viewClass['wing'] ?? 'main', ['montessori', 'ilc']);
 
     if ($isNonSubjectClass) {
@@ -291,13 +384,26 @@ function wingBadgeClass(string $wing): string {
     };
 }
 
-$pageTitle = $isAdmin ? 'Class Management' : 'Classes & Teacher Assignment';
-pageHead($pageTitle, $user['role'] === 'student_affairs' ? 'student_affairs' : 'admin');
-$links = $user['role'] === 'student_affairs' ? getStudentAffairsLinks() : getAdminLinks();
+$pageTitle = $isAdmin ? 'Class Management' : 'Classes & Subjects';
+$sidebarPortal = match($user['role']) {
+    'student_affairs' => 'student_affairs',
+    'vp_main'         => 'vp_main',
+    'vp_montessori'   => 'vp_montessori',
+    'ilc_vp'          => 'ilc_vp',
+    default           => 'admin',
+};
+pageHead($pageTitle, $sidebarPortal);
+$links = match($user['role']) {
+    'student_affairs' => getStudentAffairsLinks(),
+    'vp_main'         => getVpLinks(),
+    'vp_montessori'   => getVpMontessoriLinks(),
+    'ilc_vp'          => getIlcLinks(),
+    default           => getAdminLinks(),
+};
 $activeKey = 'classes';
 ?>
 <div class="portal-wrap">
-<?php sidebar($user['role'] === 'student_affairs' ? 'student_affairs' : 'admin', $activeKey, $links, $user); ?>
+<?php sidebar($sidebarPortal, $activeKey, $links, $user); ?>
 <div class="main-area">
 <?php topbar($pageTitle, $user); ?>
 <div class="page-content">
@@ -309,14 +415,14 @@ $activeKey = 'classes';
     <div class="stat-card">
       <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
       <div class="stat-val"><?= $totalStudents ?></div>
-      <div class="stat-lbl">Total Students</div>
+      <div class="stat-lbl">Students<?= $isVp ? ' · ' . ucfirst($vpWing) : '' ?></div>
     </div>
   </div>
   <div class="col-md-4">
     <div class="stat-card">
       <div class="stat-icon"><i class="fas fa-chalkboard"></i></div>
       <div class="stat-val"><?= $totalClasses ?></div>
-      <div class="stat-lbl">Total Classes</div>
+      <div class="stat-lbl">Classes<?= $isVp ? ' · ' . ucfirst($vpWing) : '' ?></div>
     </div>
   </div>
   <div class="col-md-4">
@@ -407,7 +513,8 @@ $activeKey = 'classes';
     </div>
     <?php endif; ?>
 
-    <!-- Wing filter -->
+    <!-- Wing filter (admins/student_affairs only; VPs are locked to their wing) -->
+    <?php if (!$isVp): ?>
     <div class="d-flex gap-1 mb-2">
       <a href="?wing="           class="btn btn-sm <?= !$wingFilter?'btn-primary':'btn-outline-secondary' ?>" style="font-size:.78rem">All (<?= count($classes) ?>)</a>
       <?php
@@ -418,6 +525,12 @@ $activeKey = 'classes';
       <a href="?wing=montessori"  class="btn btn-sm <?= $wingFilter==='montessori' ?'btn-warning':'btn-outline-secondary' ?>" style="font-size:.78rem">Montessori (<?= $wingCounts['montessori'] ?>)</a>
       <a href="?wing=ilc"         class="btn btn-sm <?= $wingFilter==='ilc'        ?'btn-info':'btn-outline-secondary' ?>" style="font-size:.78rem">ILC (<?= $wingCounts['ilc'] ?>)</a>
     </div>
+    <?php else: ?>
+    <div class="mb-2 d-flex align-items-center gap-2">
+      <?= wingBadgeClass($vpWing) ?>
+      <span style="font-size:.8rem;color:var(--t2)">You are managing <?= ucfirst($vpWing) ?> wing (<?= count($classes) ?> classes)</span>
+    </div>
+    <?php endif; ?>
 
     <!-- Classes list -->
     <div class="sec-card">
@@ -425,13 +538,13 @@ $activeKey = 'classes';
       <div class="table-responsive">
         <table class="table table-hover mb-0" style="font-size:.83rem">
           <thead class="table-light">
-            <tr><th>Class</th><th>Wing</th><th>Students</th><th></th></tr>
+            <tr><th>Class</th><?php if (!$isVp): ?><th>Wing</th><?php endif; ?><th>Students</th><th></th></tr>
           </thead>
           <tbody>
             <?php foreach ($classes as $c): ?>
             <tr class="<?= $viewClassId===$c['id']?'table-active':'' ?>">
               <td class="fw-semibold"><?= h($c['name']) ?></td>
-              <td><?= wingBadgeClass($c['wing']) ?></td>
+              <?php if (!$isVp): ?><td><?= wingBadgeClass($c['wing']) ?></td><?php endif; ?>
               <td><?= $c['student_count'] ?></td>
               <td class="d-flex gap-1">
                 <a href="?view=<?= $c['id'] ?><?= $wingFilter?"&wing=".urlencode($wingFilter):'' ?>"
@@ -450,7 +563,7 @@ $activeKey = 'classes';
             </tr>
             <?php endforeach; ?>
             <?php if (empty($classes)): ?>
-            <tr><td colspan="4" class="text-center text-muted py-3">No classes found.</td></tr>
+            <tr><td colspan="<?= $isVp ? 3 : 4 ?>" class="text-center text-muted py-3">No classes found.</td></tr>
             <?php endif; ?>
           </tbody>
         </table>
@@ -615,7 +728,7 @@ $activeKey = 'classes';
         </tr>
         <?php endforeach; ?>
         <?php if (empty($subjectsWithClasses)): ?>
-        <tr><td colspan="4" class="text-center text-muted py-3">No subjects found.</td></tr>
+        <tr><td colspan="4" class="text-center text-muted py-3">No subjects found<?= $isVp ? ' assigned to your wing\'s classes' : '' ?>.</td></tr>
         <?php endif; ?>
       </tbody>
     </table>
