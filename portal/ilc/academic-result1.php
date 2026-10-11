@@ -124,6 +124,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
             'days_absent'   => trim($_POST['att_days_absent']   ?? ''),
             'punctuality'   => trim($_POST['att_punctuality']   ?? ''),
         ];
+        // Per-section extra custom fields
+        foreach (array_keys($SECS) as $sk) {
+            $exL = (array)($_POST['sec_extra_label'][$sk] ?? []);
+            $exG = (array)($_POST['sec_extra_grade'][$sk] ?? []);
+            $extras = [];
+            foreach ($exL as $ei => $el) {
+                $el = trim($el);
+                if ($el !== '') $extras[] = ['label'=>$el, 'grade'=>trim($exG[$ei]??'')];
+            }
+            if (!empty($extras)) $fd[$sk]['_extra'] = $extras;
+        }
+        // Extra custom sections (JSON-encoded by JS before submit)
+        $rawXS = trim($_POST['extra_sections_json'] ?? '');
+        if ($rawXS) {
+            $parsedXS = json_decode($rawXS, true);
+            if (is_array($parsedXS)) {
+                $cleanXS = [];
+                foreach ($parsedXS as $xs) {
+                    $xt = trim($xs['title'] ?? '');
+                    $xf = [];
+                    foreach ((array)($xs['fields'] ?? []) as $xfield) {
+                        $xl = trim($xfield['label'] ?? '');
+                        if ($xl !== '') $xf[] = ['label'=>$xl, 'grade'=>trim($xfield['grade']??'')];
+                    }
+                    if ($xt !== '' || !empty($xf)) $cleanXS[] = ['title'=>$xt, 'fields'=>$xf];
+                }
+                if (!empty($cleanXS)) $fd['extra_sections'] = $cleanXS;
+            }
+        }
         $json    = json_encode($fd, JSON_UNESCAPED_UNICODE);
         $term    = $fd['basic']['term'];
         $session = $fd['basic']['session'];
@@ -183,8 +212,10 @@ foreach ($students as $s) { if ((int)$s['id']===$studentId) { $curStudent=$s; br
 
 $fd = [];
 if ($editResult && !empty($editResult['form_data'])) $fd = json_decode($editResult['form_data'],true) ?? [];
-$fdBasic = $fd['basic'] ?? ['term'=>'Final Term','session'=>''];
-$fdAtt   = $fd['attendance'] ?? [];
+$fdBasic      = $fd['basic']          ?? ['term'=>'Final Term','session'=>''];
+$fdAtt        = $fd['attendance']     ?? [];
+$fdExtraSecs  = $fd['extra_sections'] ?? [];
+$fdExtraSecsJson = json_encode($fdExtraSecs, JSON_HEX_TAG|JSON_UNESCAPED_UNICODE);
 
 pageHead('Academic Result 1', 'ilc_vp');
 $links = getIlcLinks();
@@ -297,17 +328,16 @@ $links = getIlcLinks();
             <?php
             $secNum = 2;
             foreach ($SECS as $sk => $sec):
-                $isPairs = !empty($sec['pairs']);
-                $secFd   = $fd[$sk] ?? [];
+                $isPairs    = !empty($sec['pairs']);
+                $secFd      = $fd[$sk] ?? [];
+                $secFdExtra = $secFd['_extra'] ?? [];
             ?>
             <!-- Section: <?= h($sec['title']) ?> -->
             <div class="fba-sec mb-2">
               <div class="fba-sh" style="background:<?= $sec['hdr'] ?>"><?= $secNum ?>. <?= h($sec['title']) ?></div>
               <div class="fba-sb" style="padding:0">
                 <?php if ($isPairs):
-                    $fieldKeys  = array_keys($sec['fields']);
-                    $fieldLabels= array_values($sec['fields']);
-                    $pairs      = array_chunk($fieldKeys, 2);
+                    $pairs = array_chunk(array_keys($sec['fields']), 2);
                 ?>
                 <table class="table table-sm table-bordered mb-0" style="font-size:.8rem">
                   <thead><tr style="background:#e8edf5">
@@ -351,9 +381,56 @@ $links = getIlcLinks();
                   </tbody>
                 </table>
                 <?php endif; ?>
+
+                <!-- Custom extra fields for this section -->
+                <table class="table table-sm table-bordered mb-0 ar-extra-tbl<?= empty($secFdExtra)?' d-none':'' ?>"
+                       style="font-size:.79rem;background:#fffbeb" id="extras-table-<?= $sk ?>">
+                  <tbody id="extras-<?= $sk ?>">
+                  <?php foreach ($secFdExtra as $ef): ?>
+                  <tr class="extra-row">
+                    <td class="align-middle">
+                      <input type="text" name="sec_extra_label[<?= h($sk) ?>][]"
+                             class="form-control form-control-sm border-0 p-0"
+                             value="<?= h($ef['label']) ?>" placeholder="Custom field label">
+                    </td>
+                    <td class="text-center align-middle" style="width:82px">
+                      <?= arGrSel("sec_extra_grade[{$sk}][]", $ef['grade']??'', $GRADES) ?>
+                    </td>
+                    <td style="width:34px;text-align:center;vertical-align:middle">
+                      <button type="button" class="btn btn-xs btn-outline-danger remove-extra-row"
+                              style="padding:0 5px;font-size:.8rem" title="Remove">×</button>
+                    </td>
+                  </tr>
+                  <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+              <div style="padding:4px 10px 5px;background:#f8f9fa;border-top:1px solid #e2e8f0">
+                <button type="button" class="btn btn-xs btn-outline-secondary add-extra-btn"
+                        data-sk="<?= h($sk) ?>" style="font-size:.71rem;padding:1px 8px">
+                  <i class="fas fa-plus me-1"></i>Add custom field
+                </button>
               </div>
             </div>
             <?php $secNum++; endforeach; ?>
+
+            <!-- Custom Extra Sections -->
+            <div class="fba-sec mb-2" id="customSecsWrap">
+              <div class="fba-sh" style="background:#4b5563;display:flex;justify-content:space-between;align-items:center">
+                <span><?= $secNum ?>. Custom Sections</span>
+                <button type="button" id="addCustomSecBtn"
+                        style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:.7rem;padding:1px 9px;border-radius:4px;cursor:pointer">
+                  <i class="fas fa-plus me-1"></i>Add Section
+                </button>
+              </div>
+              <div id="customSecsList">
+                <div id="noCustomSecs" class="fba-sb" style="font-size:.78rem;color:var(--t2)">
+                  No custom sections. Click "Add Section" to create one.
+                </div>
+              </div>
+            </div>
+            <input type="hidden" name="extra_sections_json" id="extraSectionsJson" value="">
+            <?php $secNum++; ?>
 
             <!-- Attendance -->
             <div class="fba-sec mb-3">
@@ -512,6 +589,138 @@ $links = getIlcLinks();
 .fba-sb{padding:10px 12px}
 .fba-lbl{font-size:.78rem;font-weight:600;margin-bottom:2px;display:block}
 .ar-gs{width:68px;font-size:.78rem;padding:2px 4px;border-radius:4px;border:1px solid #d1d5db;font-weight:600}
+.ar-extra-tbl td{padding:3px 7px}
+.custom-sec-block{border:1px dashed #94a3b8;border-radius:6px;margin:8px 12px}
+.csf-row{padding:3px 0}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const AR1_GRADES = <?= json_encode($GRADES) ?>;
+
+// ── Per-section extra field rows (event delegation) ────────────────────────
+document.addEventListener('click', function(e) {
+    // Add extra field to existing section
+    if (e.target.closest('.add-extra-btn')) {
+        const btn = e.target.closest('.add-extra-btn');
+        const sk = btn.dataset.sk;
+        const tbody = document.getElementById('extras-' + sk);
+        const table = document.getElementById('extras-table-' + sk);
+        if (!tbody || !table) return;
+        table.classList.remove('d-none');
+        const tr = document.createElement('tr');
+        tr.className = 'extra-row';
+        tr.innerHTML =
+          '<td class="align-middle"><input type="text" name="sec_extra_label['+sk+'][]"'
+          +' class="form-control form-control-sm border-0 p-0" placeholder="Custom field label"></td>'
+          +'<td class="text-center align-middle" style="width:82px">'
+          +'<select name="sec_extra_grade['+sk+'][]" class="ar-gs"><option value="">—</option>'
+          +AR1_GRADES.map(g=>'<option value="'+g+'">'+g+'</option>').join('')
+          +'</select></td>'
+          +'<td style="width:34px;text-align:center;vertical-align:middle">'
+          +'<button type="button" class="btn btn-xs btn-outline-danger remove-extra-row"'
+          +' style="padding:0 5px;font-size:.8rem" title="Remove">×</button></td>';
+        tbody.appendChild(tr);
+        return;
+    }
+    // Remove extra field row
+    if (e.target.closest('.remove-extra-row')) {
+        const row = e.target.closest('.extra-row');
+        const tbody = row.parentElement;
+        const table = tbody.parentElement;
+        row.remove();
+        if (tbody.children.length === 0) table.classList.add('d-none');
+        return;
+    }
+    // Remove custom section block
+    if (e.target.closest('.remove-custom-sec')) {
+        e.target.closest('.custom-sec-block').remove();
+        updateNoSecsMsg();
+        return;
+    }
+    // Add field to custom section
+    if (e.target.closest('.add-csf-btn')) {
+        const fieldsDiv = e.target.closest('.custom-sec-block').querySelector('.cs-fields-list');
+        addCsfRow(fieldsDiv, '', '');
+        return;
+    }
+    // Remove field from custom section
+    if (e.target.closest('.remove-csf')) {
+        e.target.closest('.csf-row').remove();
+        return;
+    }
+});
+
+// ── Custom Sections ────────────────────────────────────────────────────────
+function updateNoSecsMsg() {
+    const list   = document.getElementById('customSecsList');
+    const noMsg  = document.getElementById('noCustomSecs');
+    const hasSecs= list && list.querySelectorAll('.custom-sec-block').length > 0;
+    if (noMsg) noMsg.style.display = hasSecs ? 'none' : '';
+}
+
+function addCsfRow(container, label, grade) {
+    const row = document.createElement('div');
+    row.className = 'csf-row d-flex gap-1 align-items-center';
+    row.innerHTML =
+      '<input type="text" class="csf-label form-control form-control-sm" placeholder="Field label"'
+      +' value="'+label.replace(/"/g,'&quot;')+'" style="flex:1">'
+      +'<select class="csf-grade ar-gs"><option value="">—</option>'
+      +AR1_GRADES.map(g=>'<option value="'+g+'"'+(g===grade?' selected':'')+'>'+g+'</option>').join('')
+      +'</select>'
+      +'<button type="button" class="btn btn-xs btn-outline-danger remove-csf"'
+      +' style="padding:0 5px;font-size:.8rem" title="Remove">×</button>';
+    container.appendChild(row);
+}
+
+function addCustomSectionBlock(title, fields) {
+    const list  = document.getElementById('customSecsList');
+    const noMsg = document.getElementById('noCustomSecs');
+    if (noMsg) noMsg.style.display = 'none';
+    const block = document.createElement('div');
+    block.className = 'custom-sec-block';
+    block.innerHTML =
+      '<div class="d-flex align-items-center gap-2 px-2 py-1" style="background:#f1f5f9;border-bottom:1px solid #e2e8f0">'
+      +'<input type="text" class="cs-title form-control form-control-sm"'
+      +' value="'+( (title||'').replace(/"/g,'&quot;') )+'"'
+      +' placeholder="Section title (e.g. Handwriting, Science)" style="flex:1;font-weight:600">'
+      +'<button type="button" class="btn btn-xs btn-outline-danger remove-custom-sec"'
+      +' style="padding:1px 6px" title="Remove section"><i class="fas fa-trash"></i></button>'
+      +'</div>'
+      +'<div class="cs-fields-list px-2 pt-1 pb-1"></div>'
+      +'<div style="padding:3px 10px 6px">'
+      +'<button type="button" class="add-csf-btn btn btn-xs btn-outline-secondary" style="font-size:.7rem">'
+      +'<i class="fas fa-plus me-1"></i>Add field</button></div>';
+    list.appendChild(block);
+    const fieldsDiv = block.querySelector('.cs-fields-list');
+    (fields||[]).forEach(function(f) { addCsfRow(fieldsDiv, f.label||'', f.grade||''); });
+}
+
+document.getElementById('addCustomSecBtn').addEventListener('click', function() {
+    addCustomSectionBlock('', []);
+});
+
+// Serialize custom sections to JSON before form submit
+document.getElementById('arForm').addEventListener('submit', function() {
+    var sections = [];
+    document.querySelectorAll('.custom-sec-block').forEach(function(block) {
+        var title = block.querySelector('.cs-title').value.trim();
+        var fields = [];
+        block.querySelectorAll('.csf-row').forEach(function(row) {
+            var label = row.querySelector('.csf-label').value.trim();
+            var grade = row.querySelector('.csf-grade').value;
+            if (label) fields.push({label:label, grade:grade});
+        });
+        sections.push({title:title, fields:fields});
+    });
+    document.getElementById('extraSectionsJson').value = JSON.stringify(sections);
+});
+
+// Restore existing extra sections from server data
+var _initExtraSecs = <?= $fdExtraSecsJson ?>;
+if (_initExtraSecs && _initExtraSecs.length) {
+    _initExtraSecs.forEach(function(sec) { addCustomSectionBlock(sec.title||'', sec.fields||[]); });
+} else {
+    updateNoSecsMsg();
+}
+</script>
 </body></html>

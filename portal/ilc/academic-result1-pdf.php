@@ -167,8 +167,9 @@ table.sec-table th { background:#f1f5f9; font-weight:600; }
 </div>
 
 <?php foreach ($SECS as $sk => $sec):
-  $secFd  = $fd[$sk] ?? [];
-  $isPairs= !empty($sec['pairs']);
+  $secFd      = $fd[$sk] ?? [];
+  $secFdExtra = $secFd['_extra'] ?? [];
+  $isPairs    = !empty($sec['pairs']);
 ?>
 <div class="sec-title"><?= h($sec['title']) ?></div>
 <?php if ($isPairs):
@@ -191,6 +192,12 @@ table.sec-table th { background:#f1f5f9; font-weight:600; }
     <td class="grade-cell"><?= $k2 ? pdfGrade($secFd[$k2]??'') : '' ?></td>
   </tr>
   <?php endforeach; ?>
+  <?php foreach ($secFdExtra as $ef): ?>
+  <tr style="background:#fffbeb">
+    <td colspan="3"><?= h($ef['label']) ?></td>
+    <td class="grade-cell"><?= pdfGrade($ef['grade']??'') ?></td>
+  </tr>
+  <?php endforeach; ?>
   </tbody>
 </table>
 <?php else: ?>
@@ -206,9 +213,37 @@ table.sec-table th { background:#f1f5f9; font-weight:600; }
     <td class="grade-cell"><?= pdfGrade($secFd[$fk]??'') ?></td>
   </tr>
   <?php endforeach; ?>
+  <?php foreach ($secFdExtra as $ef): ?>
+  <tr style="background:#fffbeb">
+    <td><?= h($ef['label']) ?></td>
+    <td class="grade-cell"><?= pdfGrade($ef['grade']??'') ?></td>
+  </tr>
+  <?php endforeach; ?>
   </tbody>
 </table>
 <?php endif; ?>
+<?php endforeach; ?>
+
+<?php
+$fdExtraSecs = $fd['extra_sections'] ?? [];
+foreach ($fdExtraSecs as $xs):
+  if (empty($xs['fields'])) continue;
+?>
+<div class="sec-title" style="background:#4b5563"><?= h($xs['title']??'Custom Section') ?></div>
+<table class="sec-table">
+  <thead><tr>
+    <th>Skill / Competency</th>
+    <th class="grade-cell">Grade</th>
+  </tr></thead>
+  <tbody>
+  <?php foreach ($xs['fields'] as $xf): ?>
+  <tr>
+    <td><?= h($xf['label']) ?></td>
+    <td class="grade-cell"><?= pdfGrade($xf['grade']??'') ?></td>
+  </tr>
+  <?php endforeach; ?>
+  </tbody>
+</table>
 <?php endforeach; ?>
 
 <!-- Attendance -->

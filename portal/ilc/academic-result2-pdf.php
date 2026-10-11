@@ -222,6 +222,18 @@ table.sec-table th { background:#f1f5f9; font-weight:600; }
     <td class="grade-cell"><?= pdfGrade2($fdSkill[$k2]??'') ?></td>
   </tr>
   <?php endforeach; ?>
+  <?php
+  $fdSkillExtra = $fd['skills_extra'] ?? [];
+  foreach ($fdSkillExtra as $se):
+    if (($se['label1']??'') === '' && ($se['label2']??'') === '') continue;
+  ?>
+  <tr style="background:#fffbeb">
+    <td><?= h($se['label1']??'') ?></td>
+    <td class="grade-cell"><?= pdfGrade2($se['grade1']??'') ?></td>
+    <td><?= h($se['label2']??'') ?></td>
+    <td class="grade-cell"><?= pdfGrade2($se['grade2']??'') ?></td>
+  </tr>
+  <?php endforeach; ?>
   </tbody>
 </table>
 
@@ -237,6 +249,16 @@ table.sec-table th { background:#f1f5f9; font-weight:600; }
   <tr>
     <td><strong><?= h($ll) ?></strong></td>
     <td class="grade-cell"><?= pdfGrade2($fdLevel[$lk]??'') ?></td>
+  </tr>
+  <?php endforeach; ?>
+  <?php
+  $fdLevelExtra = $fd['levels_extra'] ?? [];
+  foreach ($fdLevelExtra as $le):
+    if (($le['label']??'') === '') continue;
+  ?>
+  <tr style="background:#f5f3ff">
+    <td><strong><?= h($le['label']) ?></strong></td>
+    <td class="grade-cell"><?= pdfGrade2($le['grade']??'') ?></td>
   </tr>
   <?php endforeach; ?>
   </tbody>

@@ -110,7 +110,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
         // Remarks
         $remarks = trim($_POST['remarks'] ?? '');
 
-        $fd   = compact('basic','subjects','skills','levels','remarks');
+        // Extra custom skill pairs
+        $skills_extra = [];
+        $sel1 = (array)($_POST['skill_extra_label1'] ?? []);
+        $seg1 = (array)($_POST['skill_extra_grade1'] ?? []);
+        $sel2 = (array)($_POST['skill_extra_label2'] ?? []);
+        $seg2 = (array)($_POST['skill_extra_grade2'] ?? []);
+        foreach ($sel1 as $i => $l1) {
+            $l1 = trim($l1); $l2 = trim($sel2[$i] ?? '');
+            $g1 = trim($seg1[$i] ?? ''); $g2 = trim($seg2[$i] ?? '');
+            if ($l1 !== '' || $l2 !== '') {
+                $skills_extra[] = ['label1'=>$l1,'grade1'=>$g1,'label2'=>$l2,'grade2'=>$g2];
+            }
+        }
+        // Extra custom assessment levels
+        $levels_extra = [];
+        $lel = (array)($_POST['level_extra_label'] ?? []);
+        $leg = (array)($_POST['level_extra_grade']  ?? []);
+        foreach ($lel as $i => $ll) {
+            $ll = trim($ll);
+            if ($ll !== '') $levels_extra[] = ['label'=>$ll, 'grade'=>trim($leg[$i]??'')];
+        }
+
+        $fd   = compact('basic','subjects','skills','levels','remarks','skills_extra','levels_extra');
         $json = json_encode($fd, JSON_UNESCAPED_UNICODE);
         $term = $basic['term']; $session = $basic['session'];
 
@@ -171,9 +193,11 @@ $fd = [];
 if ($editResult && !empty($editResult['form_data'])) $fd = json_decode($editResult['form_data'],true) ?? [];
 $fdBasic  = $fd['basic']    ?? ['gr_no'=>'','teacher_name'=>'','attendance'=>'','category'=>'','term'=>'First Term','session'=>''];
 $fdSubj   = $fd['subjects'] ?? [];
-$fdSkills = $fd['skills']   ?? [];
-$fdLevels = $fd['levels']   ?? [];
-$fdRem    = $fd['remarks']  ?? '';
+$fdSkills      = $fd['skills']        ?? [];
+$fdLevels      = $fd['levels']        ?? [];
+$fdRem         = $fd['remarks']       ?? '';
+$fdSkillExtra  = $fd['skills_extra']  ?? [];
+$fdLevelExtra  = $fd['levels_extra']  ?? [];
 
 // Build subject rows for form (FIXED_SUBJECTS pre-filled, then blanks)
 $formSubjRows = [];
@@ -326,11 +350,12 @@ $links = getIlcLinks();
                   <table class="table table-sm table-bordered mb-0" id="subjTable" style="font-size:.8rem">
                     <thead>
                       <tr style="background:#d1fae5;text-align:center">
-                        <th style="text-align:left;width:30%">Subject</th>
+                        <th style="text-align:left;width:28%">Subject</th>
                         <th style="width:13%">Max Marks</th>
                         <th style="width:13%">Obtained</th>
                         <th style="width:13%">Percentage</th>
-                        <th style="width:11%">Grade</th>
+                        <th style="width:10%">Grade</th>
+                        <th style="width:5%"></th>
                       </tr>
                     </thead>
                     <tbody id="subjBody">
@@ -362,6 +387,10 @@ $links = getIlcLinks();
                         <span class="ar2-grade-badge">—</span>
                         <?php endif; ?>
                       </td>
+                      <td class="text-center align-middle" style="width:30px">
+                        <button type="button" class="btn btn-xs btn-outline-danger remove-subj-row"
+                                style="padding:0 4px;font-size:.8rem" title="Remove row">×</button>
+                      </td>
                     </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -370,14 +399,18 @@ $links = getIlcLinks();
                         <td style="padding:4px 8px">Total</td>
                         <td class="text-center" id="totalMax">—</td>
                         <td class="text-center" id="totalObt">—</td>
-                        <td colspan="2"></td>
+                        <td colspan="3"></td>
                       </tr>
                     </tfoot>
                   </table>
                 </div>
-                <div style="padding:6px 10px;font-size:.73rem;color:var(--t2)">
-                  <i class="fas fa-info-circle me-1"></i>
-                  Percentage &amp; grade auto-calculated. IBCC scale: A++(95%+) · A+(90%+) · A(85%+) · B++(80%+) · B+(75%+) · B(70%+) · C(60%+) · D(50%+) · E(40%+) · U(&lt;40%)
+                <div class="d-flex align-items-center gap-2 px-2 py-1" style="background:#f0fdf4;border-top:1px solid #bbf7d0">
+                  <button type="button" id="addSubjRowBtn" class="btn btn-xs btn-outline-success" style="font-size:.71rem;padding:1px 8px">
+                    <i class="fas fa-plus me-1"></i>Add Row
+                  </button>
+                  <span style="font-size:.72rem;color:var(--t2)">
+                    <i class="fas fa-info-circle me-1"></i>IBCC: A++(95%+) · A+(90%+) · A(85%+) · B++(80%+) · B+(75%+) · B(70%+) · C(60%+) · D(50%+) · E(40%+) · U(&lt;40%)
+                  </span>
                 </div>
               </div>
             </div>
@@ -408,6 +441,39 @@ $links = getIlcLinks();
                   <?php endforeach; ?>
                   </tbody>
                 </table>
+                <!-- Extra custom skill pairs -->
+                <table class="table table-sm table-bordered mb-0 ar2-skill-extra-tbl<?= empty($fdSkillExtra)?' d-none':'' ?>"
+                       style="font-size:.79rem;background:#fffbeb" id="skillExtraTable">
+                  <tbody id="skillExtraTbody">
+                  <?php foreach ($fdSkillExtra as $se): ?>
+                  <tr class="skill-extra-row">
+                    <td class="align-middle">
+                      <input type="text" name="skill_extra_label1[]" class="form-control form-control-sm border-0 p-0"
+                             value="<?= h($se['label1']??'') ?>" placeholder="Skill 1 label">
+                    </td>
+                    <td class="text-center align-middle" style="width:74px">
+                      <?= ar2GrSel('skill_extra_grade1[]', $se['grade1']??'', $GRADES) ?>
+                    </td>
+                    <td class="align-middle">
+                      <input type="text" name="skill_extra_label2[]" class="form-control form-control-sm border-0 p-0"
+                             value="<?= h($se['label2']??'') ?>" placeholder="Skill 2 label (optional)">
+                    </td>
+                    <td class="text-center align-middle" style="width:74px">
+                      <?= ar2GrSel('skill_extra_grade2[]', $se['grade2']??'', $GRADES) ?>
+                    </td>
+                    <td style="width:34px;text-align:center;vertical-align:middle">
+                      <button type="button" class="btn btn-xs btn-outline-danger remove-skill-extra"
+                              style="padding:0 4px;font-size:.8rem">×</button>
+                    </td>
+                  </tr>
+                  <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+              <div style="padding:4px 10px 5px;background:#f8f9fa;border-top:1px solid #e2e8f0">
+                <button type="button" id="addSkillExtraBtn" class="btn btn-xs btn-outline-secondary" style="font-size:.71rem;padding:1px 8px">
+                  <i class="fas fa-plus me-1"></i>Add custom skill
+                </button>
               </div>
             </div>
 
@@ -431,6 +497,32 @@ $links = getIlcLinks();
                   <?php endforeach; ?>
                   </tbody>
                 </table>
+                <!-- Extra custom levels -->
+                <table class="table table-sm table-bordered mb-0 ar2-level-extra-tbl<?= empty($fdLevelExtra)?' d-none':'' ?>"
+                       style="font-size:.79rem;background:#f5f3ff" id="levelExtraTable">
+                  <tbody id="levelExtraTbody">
+                  <?php foreach ($fdLevelExtra as $le): ?>
+                  <tr class="level-extra-row">
+                    <td class="align-middle">
+                      <input type="text" name="level_extra_label[]" class="form-control form-control-sm border-0 p-0"
+                             value="<?= h($le['label']??'') ?>" placeholder="Level label">
+                    </td>
+                    <td class="text-center align-middle" style="width:74px">
+                      <?= ar2GrSel('level_extra_grade[]', $le['grade']??'', ['A+','A','B','C','D']) ?>
+                    </td>
+                    <td style="width:34px;text-align:center;vertical-align:middle">
+                      <button type="button" class="btn btn-xs btn-outline-danger remove-level-extra"
+                              style="padding:0 4px;font-size:.8rem">×</button>
+                    </td>
+                  </tr>
+                  <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+              <div style="padding:4px 10px 5px;background:#f8f9fa;border-top:1px solid #e2e8f0">
+                <button type="button" id="addLevelExtraBtn" class="btn btn-xs btn-outline-secondary" style="font-size:.71rem;padding:1px 8px">
+                  <i class="fas fa-plus me-1"></i>Add custom level
+                </button>
               </div>
             </div>
 
@@ -548,10 +640,14 @@ $links = getIlcLinks();
 .fba-lbl{font-size:.78rem;font-weight:600;margin-bottom:2px;display:block}
 .ar2-gs{width:68px;font-size:.78rem;padding:2px 4px;border-radius:4px;border:1px solid #d1d5db;font-weight:600}
 .ar2-grade-badge{display:inline-block;min-width:32px;text-align:center;font-weight:700;font-size:.78rem;padding:1px 6px;border-radius:4px}
+.ar2-skill-extra-tbl td,.ar2-level-extra-tbl td{padding:3px 6px}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+const AR2_GRADES      = <?= json_encode($GRADES) ?>;
+const AR2_LEVEL_GRADES= ['A+','A','B','C','D'];
+
 const GRADE_COLORS = {
   'A++':['#14532d','#dcfce7'],'A+':['#166534','#d1fae5'],'A':['#15803d','#bbf7d0'],
   'B++':['#1e40af','#dbeafe'],'B+':['#1d4ed8','#bfdbfe'],'B':['#0369a1','#e0f2fe'],
@@ -623,5 +719,105 @@ document.querySelectorAll('.ar2-grade-badge[data-grade]').forEach(function(el) {
   }
 });
 updateTotals();
+
+// ── Subject rows: add / remove ─────────────────────────────────────────────
+function newSubjRowHtml() {
+  return '<tr class="subj-row">'
+    +'<td style="padding:3px 6px"><input type="text" name="subj_name[]"'
+    +' class="form-control form-control-sm border-0 p-0 subj-name" placeholder="Subject name"></td>'
+    +'<td style="padding:3px 6px"><input type="number" name="subj_max[]" step="0.5" min="0"'
+    +' class="form-control form-control-sm border-0 p-0 subj-max text-center" oninput="calcRow(this)"></td>'
+    +'<td style="padding:3px 6px"><input type="number" name="subj_obt[]" step="0.5" min="0"'
+    +' class="form-control form-control-sm border-0 p-0 subj-obt text-center" oninput="calcRow(this)"></td>'
+    +'<td class="text-center align-middle subj-pct-cell" style="font-weight:600;color:#0f172a">—</td>'
+    +'<td class="text-center align-middle subj-grade-cell"><span class="ar2-grade-badge">—</span></td>'
+    +'<td class="text-center align-middle" style="width:30px">'
+    +'<button type="button" class="btn btn-xs btn-outline-danger remove-subj-row"'
+    +' style="padding:0 4px;font-size:.8rem" title="Remove">×</button></td></tr>';
+}
+document.getElementById('addSubjRowBtn').addEventListener('click', function() {
+  var tbody = document.getElementById('subjBody');
+  var div = document.createElement('tbody');
+  div.innerHTML = newSubjRowHtml();
+  tbody.appendChild(div.firstChild);
+  updateTotals();
+});
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.remove-subj-row')) {
+    e.target.closest('.subj-row').remove();
+    updateTotals();
+  }
+});
+
+// ── Extra skills rows ──────────────────────────────────────────────────────
+function newSkillExtraRow(l1, g1, l2, g2) {
+  var makeOpts = function(g, grades) {
+    return grades.map(function(x) {
+      return '<option value="'+x+'"'+(x===g?' selected':'')+'>'+x+'</option>';
+    }).join('');
+  };
+  return '<tr class="skill-extra-row">'
+    +'<td class="align-middle"><input type="text" name="skill_extra_label1[]"'
+    +' class="form-control form-control-sm border-0 p-0" value="'+(l1||'')+'" placeholder="Skill 1 label"></td>'
+    +'<td class="text-center align-middle" style="width:74px">'
+    +'<select name="skill_extra_grade1[]" class="ar2-gs"><option value="">—</option>'
+    +makeOpts(g1||'',AR2_GRADES)+'</select></td>'
+    +'<td class="align-middle"><input type="text" name="skill_extra_label2[]"'
+    +' class="form-control form-control-sm border-0 p-0" value="'+(l2||'')+'" placeholder="Skill 2 (optional)"></td>'
+    +'<td class="text-center align-middle" style="width:74px">'
+    +'<select name="skill_extra_grade2[]" class="ar2-gs"><option value="">—</option>'
+    +makeOpts(g2||'',AR2_GRADES)+'</select></td>'
+    +'<td style="width:34px;text-align:center;vertical-align:middle">'
+    +'<button type="button" class="btn btn-xs btn-outline-danger remove-skill-extra"'
+    +' style="padding:0 4px;font-size:.8rem">×</button></td></tr>';
+}
+document.getElementById('addSkillExtraBtn').addEventListener('click', function() {
+  var tbody = document.getElementById('skillExtraTbody');
+  var table = document.getElementById('skillExtraTable');
+  table.classList.remove('d-none');
+  var div = document.createElement('tbody');
+  div.innerHTML = newSkillExtraRow('','','','');
+  tbody.appendChild(div.firstChild);
+});
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.remove-skill-extra')) {
+    var row = e.target.closest('.skill-extra-row');
+    var tbody = row.parentElement;
+    row.remove();
+    if (!tbody.children.length) document.getElementById('skillExtraTable').classList.add('d-none');
+  }
+});
+
+// ── Extra level rows ───────────────────────────────────────────────────────
+function newLevelExtraRow(label, grade) {
+  var opts = AR2_LEVEL_GRADES.map(function(g) {
+    return '<option value="'+g+'"'+(g===grade?' selected':'')+'>'+g+'</option>';
+  }).join('');
+  return '<tr class="level-extra-row">'
+    +'<td class="align-middle"><input type="text" name="level_extra_label[]"'
+    +' class="form-control form-control-sm border-0 p-0" value="'+(label||'')+'" placeholder="Level label"></td>'
+    +'<td class="text-center align-middle" style="width:74px">'
+    +'<select name="level_extra_grade[]" class="ar2-gs"><option value="">—</option>'
+    +opts+'</select></td>'
+    +'<td style="width:34px;text-align:center;vertical-align:middle">'
+    +'<button type="button" class="btn btn-xs btn-outline-danger remove-level-extra"'
+    +' style="padding:0 4px;font-size:.8rem">×</button></td></tr>';
+}
+document.getElementById('addLevelExtraBtn').addEventListener('click', function() {
+  var tbody = document.getElementById('levelExtraTbody');
+  var table = document.getElementById('levelExtraTable');
+  table.classList.remove('d-none');
+  var div = document.createElement('tbody');
+  div.innerHTML = newLevelExtraRow('','');
+  tbody.appendChild(div.firstChild);
+});
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.remove-level-extra')) {
+    var row = e.target.closest('.level-extra-row');
+    var tbody = row.parentElement;
+    row.remove();
+    if (!tbody.children.length) document.getElementById('levelExtraTable').classList.add('d-none');
+  }
+});
 </script>
 </body></html>
