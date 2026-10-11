@@ -32,14 +32,21 @@ $teacherSt->execute([$user['id']]);
 $teacher   = $teacherSt->fetch();
 $teacherId = $teacher ? $teacher['id'] : null;
 
+// Block re-saves: return 409 if attendance already exists for this class/subject/date
+$ck = $db->prepare('SELECT COUNT(*) FROM attendance WHERE class_id=? AND subject_id=? AND date=?');
+$ck->execute([$classId, $subjectId, $date]);
+if ((int)$ck->fetchColumn() > 0) {
+    jsonResponse(['error' => 'Attendance already saved for this date. Submit a correction request to make changes.'], 409);
+}
+
 $saved = 0;
 foreach ($records as $studentId => $status) {
     if (!in_array($status, ['P', 'A', 'L'])) continue;
     $db->prepare(
-        'INSERT INTO attendance (student_id, subject_id, date, status, teacher_id)
-         VALUES (?, ?, ?, ?, ?)
+        'INSERT INTO attendance (student_id, class_id, subject_id, date, status, teacher_id)
+         VALUES (?, ?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE status = VALUES(status), teacher_id = VALUES(teacher_id)'
-    )->execute([(int)$studentId, $subjectId, $date, $status, $teacherId]);
+    )->execute([(int)$studentId, $classId, $subjectId, $date, $status, $teacherId]);
     $saved++;
 }
 
