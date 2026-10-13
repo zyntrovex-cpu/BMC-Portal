@@ -4,37 +4,35 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
-$user    = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head', 'vp_montessori',
+$user = requireAuth('teacher', 'montessori_teacher', 'ilc_teacher', 'wing_head', 'vp_montessori',
     'secondary_wing_head', 'higher_secondary_wing_head', 'primary_wing_head',
     'vp_main', 'ilc_vp', 'examination_head');
-$staffTeachRoles = ['vp_main', 'ilc_vp', 'examination_head'];
-if (in_array($user['role'], $staffTeachRoles)) {
-    if (!hasTeacherAssignments($user['id'])) {
-        setFlash('danger', 'You have no teaching assignments. Contact admin to assign a class and subject.');
-        redirect('/portal/index.php');
-    }
-} else {
+
+// Staff VP/admin roles bypass the attendance permission (they supervise); teachers need it
+$staffBypassRoles = ['vp_main', 'ilc_vp', 'examination_head', 'wing_head', 'vp_montessori'];
+if (!in_array($user['role'], $staffBypassRoles)) {
     requirePermission('attendance');
 }
+
 $db      = getDB();
 $teacher = getTeacherByUserId($user['id']);
 if (!$teacher) {
-    $wingHeadRoles = ['wing_head', 'vp_main', 'ilc_vp', 'vp_montessori', 'examination_head'];
-    if (!in_array($user['role'], $wingHeadRoles)) { setFlash('danger','Teacher record not found.'); redirect('/portal/index.php'); }
+    if (!in_array($user['role'], $staffBypassRoles)) {
+        setFlash('danger', 'Teacher record not found.');
+        redirect('/portal/index.php');
+    }
     $teacher = ['id' => 0, 'subject_id' => 0, 'name' => $user['name'], 'is_ilc' => 0];
 }
 
-$tab       = $_GET['tab'] ?? 'take';
-$classId   = (int)($_GET['class_id']   ?? 0);
-$subjectId = (int)($_GET['subject_id'] ?? $teacher['subject_id'] ?? 0);
-$date      = $_GET['date'] ?? date('Y-m-d');
+$tab     = $_GET['tab'] ?? 'take';
+$classId = (int)($_GET['class_id'] ?? 0);
+$date    = $_GET['date'] ?? date('Y-m-d');
 
-// Pre-fill params for correction form (set from per-student "Request Correction" links)
+// Pre-fill params for correction form
 $rcStudent = (int)($_GET['rc_student'] ?? 0);
 $rcClass   = (int)($_GET['rc_class']   ?? $classId);
-$rcSubject = (int)($_GET['rc_subject'] ?? $subjectId);
-$rcDate    = $_GET['rc_date']  ?? $date;
-$rcOld     = $_GET['rc_old']   ?? '';
+$rcDate    = $_GET['rc_date'] ?? $date;
+$rcOld     = $_GET['rc_old']  ?? '';
 
 // Handle attendance edit request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'request_edit') {
@@ -42,32 +40,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     try { $db->query('SELECT 1 FROM attendance_edit_requests LIMIT 0'); $reqTableExists = true; } catch (Exception $e) {}
 
     if ($reqTableExists) {
-        $studentId  = (int)$_POST['student_id'];
-        $classId    = (int)$_POST['class_id'];
-        $subjectId  = (int)$_POST['subject_id'];
-        $reqDate    = $_POST['date']        ?? '';
-        $oldStatus  = $_POST['old_status']  ?? '';
-        $newStatus  = $_POST['new_status']  ?? '';
-        $reason     = trim($_POST['reason'] ?? '');
+        $studentId = (int)$_POST['student_id'];
+        $classId   = (int)$_POST['class_id'];
+        $reqDate   = $_POST['date']       ?? '';
+        $oldStatus = $_POST['old_status'] ?? '';
+        $newStatus = $_POST['new_status'] ?? '';
+        $reason    = trim($_POST['reason'] ?? '');
 
-        if ($studentId && $classId && $subjectId && $reqDate && $oldStatus && in_array($newStatus,['P','A','L']) && $reason) {
-            // Check no duplicate pending request
+        if ($studentId && $classId && $reqDate && $oldStatus && in_array($newStatus, ['P','A','L']) && $reason) {
             $ck = $db->prepare(
                 'SELECT id FROM attendance_edit_requests
-                 WHERE student_id=? AND class_id=? AND subject_id=? AND date=? AND status="pending"'
+                 WHERE student_id=? AND class_id=? AND subject_id IS NULL AND date=? AND status="pending"'
             );
-            $ck->execute([$studentId, $classId, $subjectId, $reqDate]);
+            $ck->execute([$studentId, $classId, $reqDate]);
             if ($ck->fetch()) {
-                setFlash('warning', 'A pending request already exists for this record.');
+                setFlash('warning', 'A pending correction request already exists for this record.');
             } else {
                 try {
                     $db->prepare(
                         'INSERT INTO attendance_edit_requests
                          (teacher_id, student_id, class_id, subject_id, date, old_status, new_status, reason)
-                         VALUES (?,?,?,?,?,?,?,?)'
-                    )->execute([$teacher['id'], $studentId, $classId, $subjectId, $reqDate, $oldStatus, $newStatus, $reason]);
+                         VALUES (?,?,?,NULL,?,?,?,?)'
+                    )->execute([$teacher['id'], $studentId, $classId, $reqDate, $oldStatus, $newStatus, $reason]);
                     logActivity($user['id'], 'att_edit_request', "Requested attendance edit for student #$studentId on $reqDate");
-                    setFlash('success', 'Edit request submitted for VP approval.');
+                    setFlash('success', 'Correction request submitted for approval.');
                 } catch (Exception $e) {
                     setFlash('danger', 'Failed to submit request: ' . $e->getMessage());
                 }
@@ -83,132 +79,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Handle save attendance
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_attendance') {
-    $pClassId    = (int)$_POST['class_id'];
-    $pSubjectRaw = $_POST['subject_id'] ?? '';
-    $pSubjectId  = $pSubjectRaw !== '' ? (int)$pSubjectRaw : null;
-    $pDate       = $_POST['date'] ?? date('Y-m-d');
-    $attInput    = $_POST['attendance'] ?? [];
+    $pClassId = (int)$_POST['class_id'];
+    $pDate    = $_POST['date'] ?? date('Y-m-d');
+    $attInput = $_POST['attendance'] ?? [];
 
-    // Block re-saves: attendance for this class/subject/date already exists
-    if ($pSubjectId === null) {
-        $ck = $db->prepare('SELECT COUNT(*) FROM attendance WHERE class_id=? AND subject_id IS NULL AND date=?');
-        $ck->execute([$pClassId, $pDate]);
-    } else {
-        $ck = $db->prepare('SELECT COUNT(*) FROM attendance WHERE class_id=? AND subject_id=? AND date=?');
-        $ck->execute([$pClassId, $pSubjectId, $pDate]);
+    // Backend authorization: verify teacher is allowed to take attendance for this class
+    $authorized = false;
+    if ($teacher['id'] > 0) {
+        try {
+            $authChk = $db->prepare('SELECT 1 FROM attendance_class_permissions WHERE teacher_id=? AND class_id=?');
+            $authChk->execute([$teacher['id'], $pClassId]);
+            $authorized = (bool)$authChk->fetch();
+        } catch (Exception $e) {}
     }
+    if (!$authorized) {
+        setFlash('danger', 'You are not authorized to take attendance for this class.');
+        redirect('/portal/teacher/attendance.php?tab=take');
+    }
+
+    // Block re-saves
+    $ck = $db->prepare('SELECT COUNT(*) FROM attendance WHERE class_id=? AND subject_id IS NULL AND date=?');
+    $ck->execute([$pClassId, $pDate]);
     if ((int)$ck->fetchColumn() > 0) {
         setFlash('warning', 'Attendance for this date is already saved. Submit a correction request to make changes.');
-        redirect("/portal/teacher/attendance.php?tab=take&class_id=$pClassId&subject_id=" . urlencode($pSubjectRaw) . "&date=$pDate");
+        redirect("/portal/teacher/attendance.php?tab=take&class_id=$pClassId&date=" . urlencode($pDate));
     }
 
     $saved = 0;
     foreach ($attInput as $studentId => $status) {
         if (!in_array($status, ['P','A','L'])) continue;
-        if ($pSubjectId === null) {
-            // Class-teacher: use check-then-insert to avoid MySQL NULL UNIQUE key bypass
-            $chk = $db->prepare('SELECT id FROM attendance WHERE student_id=? AND class_id=? AND subject_id IS NULL AND date=?');
-            $chk->execute([(int)$studentId, $pClassId, $pDate]);
-            if ($row = $chk->fetch()) {
-                $db->prepare('UPDATE attendance SET status=?, teacher_id=? WHERE id=?')
-                   ->execute([$status, $teacher['id'], $row['id']]);
-            } else {
-                $db->prepare('INSERT INTO attendance (student_id, class_id, subject_id, date, status, teacher_id) VALUES (?,?,NULL,?,?,?)')
-                   ->execute([(int)$studentId, $pClassId, $pDate, $status, $teacher['id']]);
-            }
+        $chk = $db->prepare('SELECT id FROM attendance WHERE student_id=? AND class_id=? AND subject_id IS NULL AND date=?');
+        $chk->execute([(int)$studentId, $pClassId, $pDate]);
+        if ($row = $chk->fetch()) {
+            $db->prepare('UPDATE attendance SET status=?, teacher_id=? WHERE id=?')
+               ->execute([$status, $teacher['id'], $row['id']]);
         } else {
-            $db->prepare('INSERT INTO attendance (student_id, class_id, subject_id, date, status, teacher_id)
-                          VALUES (?,?,?,?,?,?)
-                          ON DUPLICATE KEY UPDATE status=VALUES(status), teacher_id=VALUES(teacher_id)')
-               ->execute([(int)$studentId, $pClassId, $pSubjectId, $pDate, $status, $teacher['id']]);
+            $db->prepare('INSERT INTO attendance (student_id, class_id, subject_id, date, status, teacher_id) VALUES (?,?,NULL,?,?,?)')
+               ->execute([(int)$studentId, $pClassId, $pDate, $status, $teacher['id']]);
         }
         $saved++;
     }
     logActivity($user['id'], 'attendance_save', "Attendance for class #$pClassId, date $pDate ($saved students)");
     setFlash('success', "Attendance saved for $saved students.");
-    redirect("/portal/teacher/attendance.php?tab=take&class_id=$pClassId&subject_id=" . urlencode($pSubjectRaw) . "&date=$pDate");
+    redirect("/portal/teacher/attendance.php?tab=take&class_id=$pClassId&date=" . urlencode($pDate));
 }
 
-// Get classes assigned to this teacher (subject-based + class-teacher)
+// Get classes assigned to this teacher via attendance_class_permissions
 $assignedClasses = [];
 try {
-    $classesSt = $db->prepare(
-        'SELECT DISTINCT c.id, c.name, COALESCE(c.wing,\'main\') AS wing
-         FROM class_subjects cs JOIN classes c ON cs.class_id = c.id WHERE cs.teacher_id = ?
-         UNION
-         SELECT c.id, c.name, COALESCE(c.wing,\'main\') AS wing
-         FROM class_teacher_assignments cta JOIN classes c ON cta.class_id = c.id WHERE cta.teacher_id = ?
-         ORDER BY name'
-    );
-    $classesSt->execute([$teacher['id'], $teacher['id']]);
-    $assignedClasses = $classesSt->fetchAll();
+    if ($teacher['id'] > 0) {
+        $classesSt = $db->prepare(
+            'SELECT c.id, c.name, COALESCE(c.wing,\'main\') AS wing
+             FROM attendance_class_permissions acp
+             JOIN classes c ON acp.class_id = c.id
+             WHERE acp.teacher_id = ?
+             ORDER BY c.name'
+        );
+        $classesSt->execute([$teacher['id']]);
+        $assignedClasses = $classesSt->fetchAll();
+    }
 } catch (Exception $e) {}
 
-// Detect if the selected class is a Montessori/ILC class-teacher class
-$isClassTeacherClass = false;
-if ($classId) {
-    foreach ($assignedClasses as $ac) {
-        if ($ac['id'] == $classId && in_array($ac['wing'], ['montessori','ilc'])) {
-            $isClassTeacherClass = true;
-            break;
-        }
-    }
-    if (!$isClassTeacherClass) {
-        // Verify it's actually assigned as class teacher (in case it's a non-subject assignment)
-        try {
-            $ctCheck = $db->prepare('SELECT 1 FROM class_teacher_assignments cta JOIN classes c ON cta.class_id=c.id WHERE cta.class_id=? AND cta.teacher_id=?');
-            $ctCheck->execute([$classId, $teacher['id']]);
-            if ($ctCheck->fetch()) $isClassTeacherClass = true;
-        } catch (Exception $e) {}
-    }
-}
-
-// Get subjects for selected class (only for Main Campus subject-based classes)
-$assignedSubjects = [];
-if ($classId && !$isClassTeacherClass) {
-    try {
-        $subjectsSt = $db->prepare('SELECT DISTINCT s.id, s.name FROM class_subjects cs JOIN subjects s ON cs.subject_id = s.id WHERE cs.teacher_id = ? AND cs.class_id = ? ORDER BY s.name');
-        $subjectsSt->execute([$teacher['id'], $classId]);
-        $assignedSubjects = $subjectsSt->fetchAll();
-    } catch (Exception $e) {}
-} elseif (!$classId) {
-    try {
-        $subjectsSt = $db->prepare('SELECT DISTINCT s.id, s.name FROM class_subjects cs JOIN subjects s ON cs.subject_id = s.id WHERE cs.teacher_id = ? ORDER BY s.name');
-        $subjectsSt->execute([$teacher['id']]);
-        $assignedSubjects = $subjectsSt->fetchAll();
-    } catch (Exception $e) {}
-}
-// Class teacher classes use NULL subject_id
-if ($isClassTeacherClass) $subjectId = 0;
-
-// Get students if class selected
-$students      = [];
+// Get students for selected class (with authorization check)
+$students           = [];
 $existingAttendance = [];
-$alreadySaved  = false;
+$alreadySaved       = false;
 if ($classId && $tab === 'take') {
-    $students = getClassStudents($classId);
-    // Load existing attendance for this date
-    if ($date) {
-        if ($isClassTeacherClass) {
-            // Class teacher: match by class + date only (subject_id IS NULL)
-            $attSt = $db->prepare('SELECT student_id, status FROM attendance WHERE class_id = ? AND subject_id IS NULL AND date = ?');
+    $classAuthorized = false;
+    foreach ($assignedClasses as $ac) {
+        if ((int)$ac['id'] === $classId) { $classAuthorized = true; break; }
+    }
+    if ($classAuthorized) {
+        $students = getClassStudents($classId);
+        if ($date) {
+            $attSt = $db->prepare('SELECT student_id, status FROM attendance WHERE class_id=? AND subject_id IS NULL AND date=?');
             $attSt->execute([$classId, $date]);
-        } elseif ($subjectId) {
-            $attSt = $db->prepare('SELECT student_id, status FROM attendance WHERE class_id = ? AND subject_id = ? AND date = ?');
-            $attSt->execute([$classId, $subjectId, $date]);
-        } else {
-            $attSt = null;
-        }
-        if (isset($attSt)) {
             foreach ($attSt->fetchAll() as $r) {
                 $existingAttendance[$r['student_id']] = $r['status'];
             }
         }
+        $alreadySaved = !empty($existingAttendance);
     }
-    $alreadySaved = !empty($existingAttendance);
 }
 
-// My edit requests tab
+// Edit requests tab
 $myRequests = [];
 $reqTableOk = false;
 if ($tab === 'requests') {
@@ -222,9 +176,9 @@ if ($tab === 'requests') {
              FROM attendance_edit_requests aer
              JOIN students s ON s.id = aer.student_id
              JOIN users su   ON su.id = s.user_id
-             LEFT JOIN classes c ON c.id = aer.class_id
+             LEFT JOIN classes c  ON c.id = aer.class_id
              LEFT JOIN subjects sb ON sb.id = aer.subject_id
-             LEFT JOIN users vu ON vu.id = aer.reviewed_by
+             LEFT JOIN users vu   ON vu.id = aer.reviewed_by
              WHERE aer.teacher_id = ?
              ORDER BY aer.created_at DESC
              LIMIT 50'
@@ -240,7 +194,7 @@ if ($tab === 'history') {
     try {
         $histSt = $db->prepare(
             'SELECT a.date, a.class_id, a.subject_id,
-                    COALESCE(sb.name, "(Class Teacher)") AS subject_name,
+                    COALESCE(sb.name, "Class Attendance") AS subject_name,
                     COALESCE(c2.name, c.name) AS class_name,
                     COUNT(*) AS total,
                     SUM(a.status="P") AS present,
@@ -249,11 +203,11 @@ if ($tab === 'history') {
              FROM attendance a
              LEFT JOIN subjects sb ON a.subject_id = sb.id
              JOIN students st ON a.student_id = st.id
-             JOIN classes c ON st.class_id = c.id
+             JOIN classes c  ON st.class_id = c.id
              LEFT JOIN classes c2 ON a.class_id = c2.id
              WHERE a.teacher_id = ?
              GROUP BY a.date, a.class_id, a.subject_id
-             ORDER BY a.date DESC, sb.name
+             ORDER BY a.date DESC, a.class_id
              LIMIT 60'
         );
         $histSt->execute([$teacher['id']]);
@@ -290,44 +244,42 @@ $links = match($user['role']) {
 </ul>
 
 <?php if ($tab === 'take'): ?>
+
+<?php if (empty($assignedClasses)): ?>
+<div class="alert alert-info d-flex align-items-start gap-2" style="border-radius:8px">
+  <i class="fas fa-info-circle mt-1"></i>
+  <div>
+    <strong>No classes assigned for attendance.</strong><br>
+    <small>Contact your administrator to enable attendance and assign classes to your account.</small>
+  </div>
+</div>
+<?php else: ?>
+
 <!-- Filter form -->
 <form method="GET" class="sec-card mb-3" style="padding:14px 16px">
   <input type="hidden" name="tab" value="take">
   <div class="row g-2 align-items-end">
-    <div class="col-sm-3">
+    <div class="col-sm-4 col-md-4">
       <label class="form-label fw-semibold" style="font-size:.82rem">Class</label>
       <select name="class_id" class="form-select form-select-sm" required onchange="this.form.submit()">
-        <option value="">Select class</option>
+        <option value="">Select class…</option>
         <?php foreach ($assignedClasses as $c): ?>
           <option value="<?= $c['id'] ?>" <?= $classId===$c['id']?'selected':'' ?>><?= h($c['name']) ?></option>
         <?php endforeach; ?>
       </select>
     </div>
-    <?php if (!$isClassTeacherClass): ?>
-    <div class="col-sm-3">
-      <label class="form-label fw-semibold" style="font-size:.82rem">Subject</label>
-      <select name="subject_id" class="form-select form-select-sm" required>
-        <option value="">Select subject</option>
-        <?php foreach ($assignedSubjects as $s): ?>
-          <option value="<?= $s['id'] ?>" <?= $subjectId===$s['id']?'selected':'' ?>><?= h($s['name']) ?></option>
-        <?php endforeach; ?>
-      </select>
-    </div>
-    <?php else: ?>
-    <input type="hidden" name="subject_id" value="">
-    <?php endif; ?>
-    <div class="col-sm-3">
+    <div class="col-sm-4 col-md-4">
       <label class="form-label fw-semibold" style="font-size:.82rem">Date</label>
       <input type="date" name="date" class="form-control form-control-sm" value="<?= h($date) ?>" max="<?= date('Y-m-d') ?>">
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-4 col-md-4">
       <button type="submit" class="btn btn-sm btn-primary w-100">Load Students</button>
     </div>
   </div>
 </form>
 
 <?php if ($classId && !empty($students) && $alreadySaved): ?>
-<!-- Read-only view: attendance already saved for this date -->
+<!-- Read-only: attendance already saved -->
 <div class="sec-card mb-3">
   <div class="sec-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
     <span><i class="fas fa-lock me-2 text-warning"></i>Attendance — <?= date('d M Y', strtotime($date)) ?> <span class="badge bg-warning text-dark ms-2" style="font-size:.72rem">Saved / Read-only</span></span>
@@ -351,9 +303,9 @@ $links = match($user['role']) {
       </thead>
       <tbody>
         <?php foreach ($students as $i => $st):
-          $status = $existingAttendance[$st['id']] ?? null;
-          $rowCls = $status==='A'?'table-danger':($status==='L'?'table-warning':'');
-          $badgeCls = $status==='P'?'bg-success':($status==='A'?'bg-danger':'bg-warning text-dark');
+          $status    = $existingAttendance[$st['id']] ?? null;
+          $rowCls    = $status==='A'?'table-danger':($status==='L'?'table-warning':'');
+          $badgeCls  = $status==='P'?'bg-success':($status==='A'?'bg-danger':'bg-warning text-dark');
           $statusLabel = ['P'=>'Present','A'=>'Absent','L'=>'Leave'][$status] ?? '—';
         ?>
         <tr class="<?= $rowCls ?>">
@@ -362,13 +314,11 @@ $links = match($user['role']) {
           <td class="fw-semibold"><?= h($st['name']) ?></td>
           <td><?php if ($status): ?><span class="badge <?= $badgeCls ?>"><?= $statusLabel ?></span><?php else: ?><span class="text-muted">—</span><?php endif; ?></td>
           <td>
-            <?php if ($status && !$isClassTeacherClass): ?>
-            <a href="?tab=requests&rc_student=<?= $st['id'] ?>&rc_class=<?= $classId ?>&rc_subject=<?= $subjectId ?>&rc_date=<?= urlencode($date) ?>&rc_old=<?= $status ?>"
+            <?php if ($status): ?>
+            <a href="?tab=requests&rc_student=<?= $st['id'] ?>&rc_class=<?= $classId ?>&rc_date=<?= urlencode($date) ?>&rc_old=<?= $status ?>"
                class="btn btn-xs btn-outline-secondary" style="font-size:.72rem;padding:1px 7px" title="Request correction">
               <i class="fas fa-edit"></i>
             </a>
-            <?php elseif ($status && $isClassTeacherClass): ?>
-            <span class="text-muted" style="font-size:.72rem" title="Contact admin to correct class-teacher attendance">—</span>
             <?php endif; ?>
           </td>
         </tr>
@@ -382,7 +332,6 @@ $links = match($user['role']) {
 <form method="POST" id="attForm">
   <input type="hidden" name="action" value="save_attendance">
   <input type="hidden" name="class_id" value="<?= $classId ?>">
-  <input type="hidden" name="subject_id" value="<?= $isClassTeacherClass ? '' : $subjectId ?>">
   <input type="hidden" name="date" value="<?= h($date) ?>">
 
   <div class="sec-card mb-3">
@@ -394,7 +343,6 @@ $links = match($user['role']) {
       </div>
     </div>
 
-    <!-- Live summary -->
     <div class="d-flex gap-3 px-3 py-2 border-bottom flex-wrap" style="font-size:.83rem" id="attSummary">
       <span>Present: <strong id="countP" class="text-success">0</strong></span>
       <span>Absent: <strong id="countA" class="text-danger">0</strong></span>
@@ -436,8 +384,10 @@ $links = match($user['role']) {
   </div>
 </form>
 <?php elseif ($classId && empty($students)): ?>
-  <div class="sec-card p-3 text-muted">No students found in selected class.</div>
+  <div class="sec-card p-3 text-muted">No students found in the selected class.</div>
 <?php endif; ?>
+
+<?php endif; // end non-empty assignedClasses ?>
 
 <?php elseif ($tab === 'history'): ?>
 <!-- History -->
@@ -446,19 +396,19 @@ $links = match($user['role']) {
   <div class="table-responsive">
     <table class="table table-hover mb-0" style="font-size:.85rem">
       <thead class="table-light">
-        <tr><th>Date</th><th>Class</th><th>Subject</th><th>Total</th><th class="text-success">P</th><th class="text-danger">A</th><th class="text-warning">L</th><th></th></tr>
+        <tr><th>Date</th><th>Class</th><th>Type</th><th>Total</th><th class="text-success">P</th><th class="text-danger">A</th><th class="text-warning">L</th><th></th></tr>
       </thead>
       <tbody>
         <?php foreach ($history as $h2): ?>
         <tr>
           <td><?= fDate($h2['date']) ?></td>
           <td><?= h($h2['class_name']) ?></td>
-          <td><?= h($h2['subject_name']) ?></td>
+          <td><span class="badge bg-secondary" style="font-size:.7rem"><?= h($h2['subject_name']) ?></span></td>
           <td><?= $h2['total'] ?></td>
           <td class="text-success fw-semibold"><?= $h2['present'] ?></td>
           <td class="text-danger fw-semibold"><?= $h2['absent'] ?></td>
           <td class="text-warning fw-semibold"><?= $h2['leave'] ?></td>
-          <td><a href="?tab=take&class_id=<?= (int)$h2['class_id'] ?>&subject_id=<?= urlencode((string)$h2['subject_id']) ?>&date=<?= urlencode($h2['date']) ?>" class="btn btn-xs btn-outline-primary" style="font-size:.75rem;padding:2px 8px"><i class="fas fa-eye me-1"></i>View</a></td>
+          <td><a href="?tab=take&class_id=<?= (int)$h2['class_id'] ?>&date=<?= urlencode($h2['date']) ?>" class="btn btn-xs btn-outline-primary" style="font-size:.75rem;padding:2px 8px"><i class="fas fa-eye me-1"></i>View</a></td>
         </tr>
         <?php endforeach; ?>
         <?php if (empty($history)): ?>
@@ -477,7 +427,6 @@ $links = match($user['role']) {
 
 <!-- Request Form -->
 <?php
-// Build class→students map for JS dropdown population
 $classStudentsData = [];
 foreach ($assignedClasses as $ac) {
     $clsStuds = getClassStudents($ac['id']);
@@ -496,7 +445,7 @@ $prefillOpen = $rcStudent > 0 ? 'show' : '';
       <form method="POST">
         <input type="hidden" name="action" value="request_edit">
         <div class="row g-2">
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label class="form-label fw-semibold" style="font-size:.82rem">Class <span class="text-danger">*</span></label>
             <select name="class_id" class="form-select form-select-sm" id="reqClassSel" required>
               <option value="">Select…</option>
@@ -505,20 +454,11 @@ $prefillOpen = $rcStudent > 0 ? 'show' : '';
               <?php endforeach; ?>
             </select>
           </div>
-          <div class="col-md-3">
-            <label class="form-label fw-semibold" style="font-size:.82rem">Subject <span class="text-danger">*</span></label>
-            <select name="subject_id" class="form-select form-select-sm" id="reqSubjectSel" required>
-              <option value="">Select…</option>
-              <?php foreach ($assignedSubjects as $as): ?>
-              <option value="<?= $as['id'] ?>" <?= $rcSubject===$as['id']?'selected':'' ?>><?= h($as['name']) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label class="form-label fw-semibold" style="font-size:.82rem">Date <span class="text-danger">*</span></label>
             <input type="date" name="date" class="form-control form-control-sm" max="<?= date('Y-m-d') ?>" value="<?= h($rcDate) ?>" required>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label class="form-label fw-semibold" style="font-size:.82rem">Student <span class="text-danger">*</span></label>
             <select name="student_id" class="form-select form-select-sm" id="reqStudentSel" required>
               <option value="">Select class first…</option>
@@ -529,7 +469,7 @@ $prefillOpen = $rcStudent > 0 ? 'show' : '';
               <?php endif; ?>
             </select>
           </div>
-          <div class="col-md-2">
+          <div class="col-md-3">
             <label class="form-label fw-semibold" style="font-size:.82rem">Current Status <span class="text-danger">*</span></label>
             <select name="old_status" class="form-select form-select-sm" required>
               <?php foreach (['P'=>'Present','A'=>'Absent','L'=>'Leave'] as $v=>$l): ?>
@@ -537,7 +477,7 @@ $prefillOpen = $rcStudent > 0 ? 'show' : '';
               <?php endforeach; ?>
             </select>
           </div>
-          <div class="col-md-2">
+          <div class="col-md-3">
             <label class="form-label fw-semibold" style="font-size:.82rem">Correct Status <span class="text-danger">*</span></label>
             <select name="new_status" class="form-select form-select-sm" required>
               <option value="P">Present</option>
@@ -545,7 +485,7 @@ $prefillOpen = $rcStudent > 0 ? 'show' : '';
               <option value="L">Leave</option>
             </select>
           </div>
-          <div class="col-md-8">
+          <div class="col-md-6">
             <label class="form-label fw-semibold" style="font-size:.82rem">Reason <span class="text-danger">*</span></label>
             <input type="text" name="reason" class="form-control form-control-sm" required placeholder="Explain why the correction is needed…">
           </div>
@@ -569,7 +509,7 @@ $prefillOpen = $rcStudent > 0 ? 'show' : '';
   <div class="table-responsive">
     <table class="table table-hover mb-0" style="font-size:.84rem">
       <thead class="table-light">
-        <tr><th>Student</th><th>Class</th><th>Subject</th><th>Date</th><th>Old</th><th>New</th><th>Reason</th><th>Status</th><th>Reviewed</th></tr>
+        <tr><th>Student</th><th>Class</th><th>Date</th><th>Old</th><th>New</th><th>Reason</th><th>Status</th><th>Reviewed</th></tr>
       </thead>
       <tbody>
         <?php foreach ($myRequests as $r):
@@ -579,13 +519,12 @@ $prefillOpen = $rcStudent > 0 ? 'show' : '';
         <tr>
           <td><?= h($r['student_name']) ?><div style="font-size:.74rem;color:var(--t3)"><?= h($r['roll_no']) ?></div></td>
           <td><?= h($r['class_name'] ?? '—') ?></td>
-          <td><?= h($r['subject_name'] ?? '—') ?></td>
           <td><?= fDate($r['date']) ?></td>
           <td><span class="badge bg-<?= $r['old_status']==='P'?'success':($r['old_status']==='A'?'danger':'warning') ?>"><?= $attL[$r['old_status']] ?? $r['old_status'] ?></span></td>
           <td><span class="badge bg-<?= $r['new_status']==='P'?'success':($r['new_status']==='A'?'danger':'warning') ?>"><?= $attL[$r['new_status']] ?? $r['new_status'] ?></span></td>
           <td style="max-width:160px"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<?= h($r['reason']) ?>"><?= h($r['reason']) ?></div></td>
           <td><span class="badge bg-<?= $statusClass ?>"><?= ucfirst($r['status']) ?></span></td>
-          <td><?= $r['reviewed_by_name'] ? h($r['reviewed_by_name']).'<br><small style="color:var(--t3)">'.fDate($r['reviewed_at']).'</small>' : '<span class="text-muted">—</span>' ?></td>
+          <td><?= $r['reviewed_by_name'] ? h($r['reviewed_by_name']).'<br><small style="color:var(--t3)">'.fDate($r['reviewed_at'] ?? '').'</small>' : '<span class="text-muted">—</span>' ?></td>
         </tr>
         <?php endforeach; ?>
       </tbody>
@@ -603,12 +542,11 @@ $prefillOpen = $rcStudent > 0 ? 'show' : '';
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <style>
 .att-pill { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:6px; border:1.5px solid #d1d5db; cursor:pointer; font-weight:700; font-size:.85rem; color:#6b7280; transition:all .12s; }
-.att-pill.att-P.active, label[for^="P"]:has(+input:checked~label.att-P) { background:#dcfce7; border-color:#16a34a; color:#16a34a; }
+.att-pill.att-P.active { background:#dcfce7; border-color:#16a34a; color:#16a34a; }
 .att-pill.att-A.active { background:#fee2e2; border-color:#dc2626; color:#dc2626; }
 .att-pill.att-L.active { background:#fef9c3; border-color:#ca8a04; color:#ca8a04; }
 </style>
 <script>
-// Attendance pills / summary
 function updatePills() {
     let P=0, A=0, L=0;
     document.querySelectorAll('.att-radio').forEach(radio => {
@@ -641,7 +579,6 @@ function setAll(val) {
 }
 updatePills();
 
-// Double-submit prevention
 const attForm = document.getElementById('attForm');
 if (attForm) {
     attForm.addEventListener('submit', function() {
@@ -650,7 +587,6 @@ if (attForm) {
     });
 }
 
-// Correction form: dynamic student dropdown
 const classStudentsData = <?= $classStudentsJson ?? '{}' ?>;
 const reqClassSel   = document.getElementById('reqClassSel');
 const reqStudentSel = document.getElementById('reqStudentSel');
@@ -668,7 +604,6 @@ function populateStudents(classId, preselectId) {
 }
 if (reqClassSel) {
     reqClassSel.addEventListener('change', () => populateStudents(reqClassSel.value, 0));
-    // On load: if pre-filled, populate now
     if (reqClassSel.value) populateStudents(reqClassSel.value, <?= $rcStudent ?>);
 }
 </script>

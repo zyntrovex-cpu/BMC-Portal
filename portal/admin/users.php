@@ -132,8 +132,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $rolePermsNew = getRolePermissions($role);
                 if ($rolePermsNew) {
                     try {
-                        $insP = $db->prepare('INSERT IGNORE INTO user_permissions (user_id, permission, granted) VALUES (?,?,1)');
-                        foreach ($rolePermsNew as $perm => $def) { $insP->execute([$newId, $perm]); }
+                        $teacherLikeRolesForPerm = ['teacher','montessori_teacher','ilc_teacher','secondary_wing_head','higher_secondary_wing_head','primary_wing_head'];
+                        $insP = $db->prepare('INSERT IGNORE INTO user_permissions (user_id, permission, granted) VALUES (?,?,?)');
+                        foreach ($rolePermsNew as $perm => $def) {
+                            $grantVal = ($perm === 'attendance' && in_array($role, $teacherLikeRolesForPerm)) ? 0 : 1;
+                            $insP->execute([$newId, $perm, $grantVal]);
+                        }
                     } catch (Exception $e) {}
                 }
 
@@ -223,6 +227,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         unset($_SESSION['user_perms'], $_SESSION['_perms_uid']);
                     }
                 } catch (Exception $e) { /* permissions table may not exist yet */ }
+            }
+
+            // Save attendance class permissions for teacher-like roles
+            $teacherLikeForAcp = ['teacher','montessori_teacher','ilc_teacher','secondary_wing_head','higher_secondary_wing_head','primary_wing_head'];
+            if (in_array($uRole, $teacherLikeForAcp)) {
+                try {
+                    $tStAcp = $db->prepare('SELECT id FROM teachers WHERE user_id=?');
+                    $tStAcp->execute([$id]);
+                    $tRowAcp = $tStAcp->fetch();
+                    if ($tRowAcp) {
+                        $tIdAcp = (int)$tRowAcp['id'];
+                        $db->prepare('DELETE FROM attendance_class_permissions WHERE teacher_id=?')->execute([$tIdAcp]);
+                        if (!empty($_POST['perms']['attendance']) && !empty($_POST['acp_classes'])) {
+                            $acpIns = $db->prepare('INSERT IGNORE INTO attendance_class_permissions (teacher_id, class_id, granted_by) VALUES (?,?,?)');
+                            foreach ($_POST['acp_classes'] as $cid) {
+                                if ((int)$cid > 0) $acpIns->execute([$tIdAcp, (int)$cid, $user['id']]);
+                            }
+                        }
+                    }
+                } catch (Exception $e) {}
             }
 
             logActivity($user['id'], 'user_edit', "Edited user #$id ($uRole)");
@@ -406,6 +430,29 @@ try {
 
 $classes  = getAllClasses();
 $subjects = getAllSubjects();
+
+// Pre-load teacher IDs and attendance_class_permissions for users on this page
+$teacherIdByUserId = [];
+$teacherAcpMap     = [];
+try {
+    $teacherRolesForAcp = ['teacher','montessori_teacher','ilc_teacher','secondary_wing_head','higher_secondary_wing_head','primary_wing_head','vp_main','ilc_vp','examination_head','wing_head','vp_montessori'];
+    $teacherUids = array_column(
+        array_filter($users, fn($u2) => in_array($u2['role'], $teacherRolesForAcp)),
+        'id'
+    );
+    if ($teacherUids) {
+        $tIdIn = implode(',', array_map('intval', $teacherUids));
+        foreach ($db->query("SELECT user_id, id FROM teachers WHERE user_id IN ($tIdIn)")->fetchAll() as $t) {
+            $teacherIdByUserId[(int)$t['user_id']] = (int)$t['id'];
+        }
+        if ($teacherIdByUserId) {
+            $tVals = implode(',', array_values($teacherIdByUserId));
+            foreach ($db->query("SELECT teacher_id, class_id FROM attendance_class_permissions WHERE teacher_id IN ($tVals)")->fetchAll() as $acp) {
+                $teacherAcpMap[(int)$acp['teacher_id']][] = (int)$acp['class_id'];
+            }
+        }
+    }
+} catch (Exception $e) {}
 
 pageHead('Users', 'admin');
 $links = getAdminLinks();
@@ -787,6 +834,41 @@ $links = getAdminLinks();
                   <div class="mt-2" style="font-size:.74rem;color:#9ca3af">
                     <i class="fas fa-info-circle me-1"></i>Unchecked items are hidden from the user's sidebar and blocked at the page level.
                   </div>
+
+                  <?php
+                    // Attendance class assignment section for teacher-like roles
+                    $teacherRolesForAcpModal = ['teacher','montessori_teacher','ilc_teacher','secondary_wing_head','higher_secondary_wing_head','primary_wing_head'];
+                    if (in_array($u['role'], $teacherRolesForAcpModal)):
+                      $tIdForAcp = $teacherIdByUserId[$u['id']] ?? 0;
+                      $assignedAcpClassIds = $tIdForAcp ? ($teacherAcpMap[$tIdForAcp] ?? []) : [];
+                      $attChecked = (bool)($userPermsModal['attendance'] ?? false);
+                  ?>
+                  <div id="acpSection<?= $u['id'] ?>" class="mt-2" style="<?= $attChecked ? '' : 'display:none' ?>">
+                    <hr class="my-2">
+                    <p class="mb-2 fw-semibold" style="font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;color:#16a34a">
+                      <i class="fas fa-calendar-check me-1"></i>Attendance — Assigned Classes
+                    </p>
+                    <div class="row g-1">
+                      <?php foreach ($classes as $cls): ?>
+                      <div class="col-lg-4 col-md-6 col-6">
+                        <div class="form-check" style="padding:5px 8px;border-radius:6px;background:#f0fdf4;border:1px solid #bbf7d0">
+                          <input class="form-check-input" type="checkbox"
+                                 name="acp_classes[]" id="acp_<?= $u['id'] ?>_<?= $cls['id'] ?>"
+                                 value="<?= $cls['id'] ?>"
+                                 <?= in_array((int)$cls['id'], $assignedAcpClassIds) ? 'checked' : '' ?>>
+                          <label class="form-check-label" for="acp_<?= $u['id'] ?>_<?= $cls['id'] ?>" style="font-size:.80rem;cursor:pointer">
+                            <?= h($cls['name']) ?> <small class="text-muted">(<?= wingLabel($cls['wing']) ?>)</small>
+                          </label>
+                        </div>
+                      </div>
+                      <?php endforeach; ?>
+                    </div>
+                    <div class="mt-1" style="font-size:.73rem;color:#9ca3af">
+                      <i class="fas fa-info-circle me-1"></i>Teacher can only take attendance for checked classes.
+                    </div>
+                  </div>
+                  <?php endif; ?>
+
                   <?php endif; ?>
 
                 </div>
@@ -818,6 +900,16 @@ $links = getAdminLinks();
 </div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// Toggle attendance class section based on attendance permission checkbox
+document.querySelectorAll('input[type="checkbox"][id*="_attendance"]').forEach(cb => {
+    const m = cb.id.match(/^perm_(\d+)_attendance$/);
+    if (!m) return;
+    const section = document.getElementById('acpSection' + m[1]);
+    if (section) {
+        cb.addEventListener('change', () => { section.style.display = cb.checked ? '' : 'none'; });
+    }
+});
+
 function toggleRoleFields(role) {
     const isTeacherLike = ['teacher','montessori_teacher','ilc_teacher','examination_head','secondary_wing_head','higher_secondary_wing_head','primary_wing_head'].includes(role);
     const hasSubject    = ['teacher','montessori_teacher','ilc_teacher','secondary_wing_head','higher_secondary_wing_head','primary_wing_head'].includes(role);
