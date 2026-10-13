@@ -870,6 +870,7 @@ function getVpMontessoriLinks(): array {
         ['href'=>'/portal/vp-montessori/exam-datesheet.php',      'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',      'key'=>'exam-datesheet'],
         ['href'=>'/portal/vp-montessori/notices.php',             'icon'=>'<i class="fas fa-bell"></i>',                        'label'=>'Notices',              'key'=>'notices'],
         ['href'=>'/portal/vp-montessori/teachers.php',            'icon'=>'<i class="fas fa-chalkboard-teacher"></i>',          'label'=>'Montessori Teachers',  'key'=>'teachers'],
+        ['href'=>'/portal/vp-montessori/class-assignments.php', 'icon'=>'<i class="fas fa-users-cog"></i>',                   'label'=>'Class Assignments',    'key'=>'class-assignments'],
         hasPermission('diary')       ? ['href'=>'/portal/teacher/diary.php',           'icon'=>'<i class="fas fa-book-open"></i>',                'label'=>'Daily Diary',          'key'=>'diary']       : null,
         hasPermission('wh_students')     ? ['href'=>'/portal/vp-montessori/students.php',  'icon'=>'<i class="fas fa-user-graduate"></i>',   'label'=>'Students',      'key'=>'students']   : null,
         hasPermission('wh_classes')      ? ['href'=>'/portal/admin/classes.php',           'icon'=>'<i class="fas fa-chalkboard"></i>',      'label'=>'Classes & Subjects', 'key'=>'classes'] : null,
