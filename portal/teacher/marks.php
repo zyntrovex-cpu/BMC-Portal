@@ -64,14 +64,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $weight    = (float)$_POST['weight'];
         $date      = $_POST['date'] ?? date('Y-m-d');
         if ($classId && $subjectId && $title && $maxMarks) {
-            $db->prepare(
-                'INSERT INTO assessments (class_id, subject_id, teacher_id, title, name, type, max_marks, weight, date)
-                 VALUES (?,?,?,?,?,?,?,?,?)'
-            )->execute([$classId, $subjectId, $teacher['id'], $title, $title, $type, $maxMarks, $weight, $date]);
+            // Main campus: create as draft (requires VP approval before students can see)
+            // ILC/Montessori: bypass workflow, publish immediately
+            $publishStatus = ($teacherWing === 'main') ? 'draft' : 'published';
+            try {
+                $db->prepare(
+                    'INSERT INTO assessments (class_id, subject_id, teacher_id, title, name, type, max_marks, weight, date, publish_status)
+                     VALUES (?,?,?,?,?,?,?,?,?,?)'
+                )->execute([$classId, $subjectId, $teacher['id'], $title, $title, $type, $maxMarks, $weight, $date, $publishStatus]);
+            } catch (Exception $e) {
+                // publish_status column may not exist yet — fall back to plain INSERT
+                $db->prepare(
+                    'INSERT INTO assessments (class_id, subject_id, teacher_id, title, name, type, max_marks, weight, date)
+                     VALUES (?,?,?,?,?,?,?,?,?)'
+                )->execute([$classId, $subjectId, $teacher['id'], $title, $title, $type, $maxMarks, $weight, $date]);
+            }
             logActivity($user['id'], 'assessment_create', "Created: $title");
-            setFlash('success', 'Assessment created. Request marks entry permission below to start entering marks.');
+            if ($teacherWing === 'main') {
+                setFlash('success', 'Assessment created (Draft). Request marks entry permission, enter marks, then submit for VP review to publish.');
+            } else {
+                setFlash('success', 'Assessment created. Request marks entry permission below to start entering marks.');
+            }
         } else {
             setFlash('danger', 'All required fields must be filled.');
+        }
+        redirect('/portal/teacher/marks.php?tab=assessments');
+    }
+
+    // ── Submit assessment for VP review ───────────────────────────────────
+    if ($action === 'submit_for_review') {
+        $aId = (int)$_POST['assessment_id'];
+        $chk = $db->prepare("SELECT id, publish_status, title, name FROM assessments WHERE id=? AND teacher_id=?");
+        $chk->execute([$aId, $teacher['id']]);
+        $asmRow = $chk->fetch();
+        if ($asmRow && in_array($asmRow['publish_status'] ?? 'published', ['draft', 'changes_requested'])) {
+            $db->prepare(
+                "UPDATE assessments SET publish_status='pending_review', submitted_at=NOW(), review_note=NULL WHERE id=?"
+            )->execute([$aId]);
+            logActivity($user['id'], 'result_submit_review', "Submitted for review: assessment #$aId");
+            // Notify approvers
+            try {
+                $asmTitle = $asmRow['title'] ?: $asmRow['name'];
+                $infoSt = $db->prepare(
+                    'SELECT c.name AS class_name, s.name AS subject_name
+                     FROM assessments a JOIN classes c ON a.class_id=c.id JOIN subjects s ON a.subject_id=s.id
+                     WHERE a.id=?'
+                );
+                $infoSt->execute([$aId]);
+                $info = $infoSt->fetch();
+                $msg  = "Result submitted for review by {$user['name']}: \"" . h($asmTitle) . '"'
+                      . ($info ? ' — ' . h($info['class_name']) . ' / ' . h($info['subject_name']) : '');
+                foreach (getApproversForWing('main') as $approverId) {
+                    createNotification($approverId, 'result_submitted', $msg, $aId, 'assessment');
+                }
+                createNotification($user['id'], 'result_submitted_confirm',
+                    "Your result for \"" . h($asmTitle) . "\" has been submitted for VP review.", $aId, 'assessment');
+            } catch (Exception $e) {}
+            setFlash('success', 'Result submitted for VP review. You will be notified once it is reviewed.');
+        } else {
+            setFlash('info', 'This assessment cannot be submitted for review in its current state.');
         }
         redirect('/portal/teacher/marks.php?tab=assessments');
     }
@@ -190,7 +241,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $saved++;
         }
         logActivity($user['id'], 'marks_save', "Saved marks for assessment #$aId ($saved students)");
-        setFlash('success', "Marks saved for $saved student(s).");
+
+        // Main campus: if this assessment was already published, editing marks
+        // resets it to draft so it requires re-submission and VP re-approval.
+        $resetToReview = false;
+        if ($teacherWing === 'main') {
+            try {
+                $pubSt = $db->prepare("SELECT publish_status FROM assessments WHERE id=?");
+                $pubSt->execute([$aId]);
+                $pubRow = $pubSt->fetch();
+                if ($pubRow && $pubRow['publish_status'] === 'published') {
+                    $db->prepare(
+                        "UPDATE assessments SET publish_status='draft', published_by=NULL, published_at=NULL WHERE id=?"
+                    )->execute([$aId]);
+                    $resetToReview = true;
+                }
+            } catch (Exception $e) {}
+        }
+
+        if ($resetToReview) {
+            setFlash('warning', "Marks saved for $saved student(s). This result was published, so it has been moved back to Draft — please re-submit for VP review and re-publishing.");
+        } else {
+            setFlash('success', "Marks saved for $saved student(s).");
+        }
         redirect('/portal/teacher/marks.php?tab=marks&assessment_id=' . $aId);
     }
 }
@@ -377,7 +450,9 @@ $links = match($user['role']) {
         <tr>
           <th>Title</th><th>Type</th><th>Class</th><th>Subject</th>
           <th>Max</th><th>Weight</th><th>Date</th><th>Marks</th>
-          <th>Permission</th><th></th>
+          <th>Permission</th>
+          <?php if ($teacherWing === 'main'): ?><th>Result Status</th><?php endif; ?>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -389,9 +464,27 @@ $links = match($user['role']) {
               'rejected' => '<span class="badge bg-danger" style="font-size:.7rem"><i class="fas fa-times me-1"></i>Rejected</span>',
               default    => '<span class="badge bg-secondary" style="font-size:.7rem"><i class="fas fa-lock me-1"></i>Not Requested</span>',
           };
+          $pubStatus = $a['publish_status'] ?? 'published';
+          $pubBadge = match($pubStatus) {
+              'draft'              => '<span class="badge bg-secondary" style="font-size:.68rem">Draft</span>',
+              'pending_review'     => '<span class="badge bg-warning text-dark" style="font-size:.68rem"><i class="fas fa-hourglass-half me-1"></i>Pending Review</span>',
+              'changes_requested'  => '<span class="badge bg-danger" style="font-size:.68rem"><i class="fas fa-edit me-1"></i>Changes Requested</span>',
+              'approved'           => '<span class="badge bg-success" style="font-size:.68rem"><i class="fas fa-check me-1"></i>Approved</span>',
+              'published'          => '<span class="badge bg-primary" style="font-size:.68rem"><i class="fas fa-check-double me-1"></i>Published</span>',
+              default              => '',
+          };
+          $canSubmit = ($teacherWing === 'main' && in_array($pubStatus, ['draft', 'changes_requested']));
+          $reviewNote = $a['review_note'] ?? '';
         ?>
         <tr>
-          <td class="fw-semibold"><?= h($a['title'] ?: $a['name']) ?></td>
+          <td class="fw-semibold">
+            <?= h($a['title'] ?: $a['name']) ?>
+            <?php if ($reviewNote && $pubStatus === 'changes_requested'): ?>
+            <div style="margin-top:3px;font-size:.76rem;color:#991b1b;background:#fef2f2;border-radius:3px;padding:3px 6px">
+              <strong>VP Note:</strong> <?= h($reviewNote) ?>
+            </div>
+            <?php endif; ?>
+          </td>
           <td><span class="badge bg-secondary" style="font-size:.74rem"><?= h($a['type']) ?></span></td>
           <td><?= h($a['class_name']) ?></td>
           <td><?= h($a['subject_name']) ?></td>
@@ -400,6 +493,25 @@ $links = match($user['role']) {
           <td style="white-space:nowrap"><?= fDate($a['date']) ?></td>
           <td><?= $a['marks_entered'] ?> entered</td>
           <td><?= $permBadge ?></td>
+          <?php if ($teacherWing === 'main'): ?>
+          <td>
+            <?= $pubBadge ?>
+            <?php if ($canSubmit && $a['marks_entered'] > 0): ?>
+            <div style="margin-top:4px">
+              <form method="POST" class="d-inline">
+                <input type="hidden" name="action" value="submit_for_review">
+                <input type="hidden" name="assessment_id" value="<?= $a['id'] ?>">
+                <button class="btn btn-xs btn-outline-success" style="font-size:.7rem;padding:2px 7px"
+                        onclick="return confirm('Submit this result for VP review?')">
+                  <i class="fas fa-paper-plane me-1"></i>Submit for Review
+                </button>
+              </form>
+            </div>
+            <?php elseif ($canSubmit && $a['marks_entered'] == 0): ?>
+            <div style="font-size:.74rem;color:#9ca3af;margin-top:2px">Enter marks first</div>
+            <?php endif; ?>
+          </td>
+          <?php endif; ?>
           <td style="white-space:nowrap">
             <a href="?tab=marks&assessment_id=<?= $a['id'] ?>" class="btn btn-xs btn-outline-primary" style="font-size:.75rem;padding:2px 8px">Enter Marks</a>
             <form method="POST" class="d-inline" onsubmit="return confirm('Delete this assessment and all its marks?')">
@@ -411,7 +523,7 @@ $links = match($user['role']) {
         </tr>
         <?php endforeach; ?>
         <?php if (empty($assessments)): ?>
-        <tr><td colspan="10" class="text-center text-muted py-3">No assessments created yet. Use the form above to create one.</td></tr>
+        <tr><td colspan="<?= $teacherWing === 'main' ? 11 : 10 ?>" class="text-center text-muted py-3">No assessments created yet. Use the form above to create one.</td></tr>
         <?php endif; ?>
       </tbody>
     </table>

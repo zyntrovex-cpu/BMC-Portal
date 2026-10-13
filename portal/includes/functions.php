@@ -271,15 +271,16 @@ function getRolePermissions(string $role): array {
             'sa_calendar'   => ['label' => 'Academic Calendar',   'icon' => 'fa-calendar-week'],
         ],
         'vp_main' => [
-            'vp_teachers'         => ['label' => 'Teachers',                 'icon' => 'fa-chalkboard-teacher'],
-            'vp_students'         => ['label' => 'Students',                 'icon' => 'fa-user-graduate'],
-            'vp_attendance'       => ['label' => 'Attendance',               'icon' => 'fa-calendar-check'],
-            'vp_att_requests'     => ['label' => 'Attendance Requests',      'icon' => 'fa-edit'],
-            'vp_results'          => ['label' => 'Results',                  'icon' => 'fa-chart-bar'],
-            'vp_timetable'        => ['label' => 'Timetable',                'icon' => 'fa-table'],
-            'vp_calendar'         => ['label' => 'Academic Calendar',        'icon' => 'fa-calendar-week'],
-            'vp_viewas'           => ['label' => 'View As User',             'icon' => 'fa-eye'],
-            'vp_marks_approval'   => ['label' => 'Marks Permission Approvals', 'icon' => 'fa-clipboard-check'],
+            'vp_teachers'         => ['label' => 'Teachers',                     'icon' => 'fa-chalkboard-teacher'],
+            'vp_students'         => ['label' => 'Students',                     'icon' => 'fa-user-graduate'],
+            'vp_attendance'       => ['label' => 'Attendance',                   'icon' => 'fa-calendar-check'],
+            'vp_att_requests'     => ['label' => 'Attendance Requests',          'icon' => 'fa-edit'],
+            'vp_results'          => ['label' => 'Results',                      'icon' => 'fa-chart-bar'],
+            'vp_publish_results'  => ['label' => 'Result Approval & Publishing', 'icon' => 'fa-paper-plane'],
+            'vp_timetable'        => ['label' => 'Timetable',                    'icon' => 'fa-table'],
+            'vp_calendar'         => ['label' => 'Academic Calendar',            'icon' => 'fa-calendar-week'],
+            'vp_viewas'           => ['label' => 'View As User',                 'icon' => 'fa-eye'],
+            'vp_marks_approval'   => ['label' => 'Marks Permission Approvals',   'icon' => 'fa-clipboard-check'],
         ],
         'wing_head' => [
             'wh_students'         => ['label' => 'Students',                    'icon' => 'fa-user-graduate'],
@@ -524,6 +525,7 @@ function getAdminLinks(): array {
         ['href'=>'/portal/admin/import-students.php',    'icon'=>'<i class="fas fa-file-import"></i>',        'label'=>'Import Students',   'key'=>'import'],
         ['href'=>'/portal/admin/import-teachers.php',   'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Import Teachers',   'key'=>'import-teachers'],
         ['href'=>'/portal/admin/classes.php',            'icon'=>'<i class="fas fa-chalkboard"></i>',         'label'=>'Classes & Subjects','key'=>'classes'],
+        ['href'=>'/portal/admin/subjects.php',           'icon'=>'<i class="fas fa-book"></i>',               'label'=>'Subjects',           'key'=>'subjects'],
         ['href'=>'/portal/admin/teachers.php',           'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teacher Accounts',  'key'=>'teachers'],
         ['href'=>'/portal/admin/promote.php',            'icon'=>'<i class="fas fa-level-up-alt"></i>',       'label'=>'Class Promotion',   'key'=>'promote'],
         ['href'=>'/portal/admin/houses.php',             'icon'=>'<i class="fas fa-shield-alt"></i>',         'label'=>'Houses',            'key'=>'houses'],
@@ -722,6 +724,20 @@ function _ilcMarksApprovalLabel(): string {
     return 'Marks Approvals';
 }
 
+function _vpResultApprovalsLabel(): string {
+    try {
+        $st = getDB()->prepare(
+            "SELECT COUNT(*) FROM assessments a
+             JOIN classes c ON a.class_id=c.id
+             WHERE COALESCE(c.wing,'main')='main' AND a.publish_status='pending_review'"
+        );
+        $st->execute();
+        $n = (int)$st->fetchColumn();
+        if ($n > 0) return 'Result Approvals <span class="badge bg-danger ms-1" style="font-size:.65rem">' . $n . '</span>';
+    } catch (Exception $e) {}
+    return 'Result Approvals';
+}
+
 // ── Student Affairs sidebar links (permission-filtered) ───────────
 function getStudentAffairsLinks(): array {
     return array_values(array_filter([
@@ -767,8 +783,10 @@ function getVpLinks(): array {
         hasPermission('vp_students')     ? ['href'=>'/portal/vp/students.php',               'icon'=>'<i class="fas fa-user-graduate"></i>',      'label'=>'Students',             'key'=>'students']     : null,
         hasPermission('vp_attendance')   ? ['href'=>'/portal/vp/attendance.php',             'icon'=>'<i class="fas fa-calendar-check"></i>',     'label'=>'Attendance',           'key'=>'attendance']   : null,
         hasPermission('vp_att_requests') ? ['href'=>'/portal/vp/attendance-requests.php',    'icon'=>'<i class="fas fa-edit"></i>',               'label'=>'Attendance Requests',  'key'=>'att_requests'] : null,
-        hasPermission('vp_results')      ? ['href'=>'/portal/vp/results.php',                'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'Results',              'key'=>'results']      : null,
-        ['href'=>'/portal/vp/marks-approval.php',         'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>$marksApprovalLabel,    'key'=>'marks-approval'],
+        hasPermission('vp_results')         ? ['href'=>'/portal/vp/results.php',                'icon'=>'<i class="fas fa-chart-bar"></i>',          'label'=>'Results',              'key'=>'results']         : null,
+        hasPermission('vp_publish_results') ? ['href'=>'/portal/vp/result-approvals.php',      'icon'=>'<i class="fas fa-paper-plane"></i>',        'label'=>_vpResultApprovalsLabel(), 'key'=>'result-approvals'] : null,
+        ['href'=>'/portal/vp/marks-approval.php',              'icon'=>'<i class="fas fa-clipboard-check"></i>',   'label'=>$marksApprovalLabel,        'key'=>'marks-approval'],
+        ['href'=>'/portal/admin/subjects.php',                 'icon'=>'<i class="fas fa-book"></i>',             'label'=>'Subjects',                 'key'=>'subjects'],
         ['href'=>'/portal/vp/timetable.php',              'icon'=>'<i class="fas fa-table"></i>',              'label'=>'Timetable',            'key'=>'timetable'],
         ['href'=>'/portal/vp/notices.php',               'icon'=>'<i class="fas fa-bell"></i>',               'label'=>'Notices',              'key'=>'notices'],
         hasPermission('vp_calendar')     ? ['href'=>'/portal/admin/academic-calendar.php',   'icon'=>'<i class="fas fa-calendar-week"></i>',      'label'=>'Academic Calendar',    'key'=>'calendar']     : null,

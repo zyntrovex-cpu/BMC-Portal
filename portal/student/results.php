@@ -23,15 +23,17 @@ if (($student['wing'] ?? 'main') === 'montessori') {
 $db = getDB();
 
 // ── Fetch all assessments for this class with student marks ───────
+// Students only see published results (main campus) or all (ILC/Montessori bypass)
 $st = $db->prepare(
-    'SELECT a.id AS assessment_id, a.name AS title, a.type, a.max_marks, a.weight, a.date,
+    "SELECT a.id AS assessment_id, a.name AS title, a.type, a.max_marks, a.weight, a.date,
             sb.id AS subject_id, sb.name AS subject_name, sb.code AS subject_code,
             m.marks_obtained, m.remarks
      FROM assessments a
      JOIN subjects sb ON a.subject_id = sb.id
      LEFT JOIN marks m ON m.assessment_id = a.id AND m.student_id = ?
      WHERE a.class_id = ?
-     ORDER BY sb.name, a.date'
+       AND COALESCE(a.publish_status, 'published') = 'published'
+     ORDER BY sb.name, a.date"
 );
 $st->execute([$student['id'], $student['class_id']]);
 $rows = $st->fetchAll();

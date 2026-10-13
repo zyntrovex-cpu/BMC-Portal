@@ -80,16 +80,18 @@ if ($montessoriLowGrade && $role === 'student') {
 }
 
 // ── Fetch assessments + marks grouped by subject ──────────
+// Students only see published results; staff/admin see all
+$pubFilter = ($role === 'student') ? " AND COALESCE(a.publish_status, 'published') = 'published'" : '';
 $st = $db->prepare(
-    'SELECT a.id AS assessment_id, a.name AS assessment_name, a.type,
+    "SELECT a.id AS assessment_id, a.name AS assessment_name, a.type,
             a.max_marks, a.weight, a.date,
             sb.id AS subject_id, sb.name AS subject_name, sb.code AS subject_code,
             m.marks_obtained, m.remarks
      FROM assessments a
      JOIN subjects sb ON a.subject_id = sb.id
      LEFT JOIN marks m ON m.assessment_id = a.id AND m.student_id = ?
-     WHERE a.class_id = ?
-     ORDER BY sb.name, a.date, a.id'
+     WHERE a.class_id = ?$pubFilter
+     ORDER BY sb.name, a.date, a.id"
 );
 $st->execute([$studentId, $student['class_id']]);
 $rows = $st->fetchAll();

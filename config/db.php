@@ -796,6 +796,28 @@ function getDB(): PDO {
                 }
             }
         } catch (Exception $e) {}
+
+        // Group 27: Main Campus result approval & publishing workflow columns on assessments
+        try {
+            $asmCols27 = array_flip($pdo->query("SHOW COLUMNS FROM assessments")->fetchAll(PDO::FETCH_COLUMN));
+            if (!isset($asmCols27['publish_status']))
+                $pdo->exec("ALTER TABLE assessments ADD COLUMN publish_status ENUM('draft','pending_review','changes_requested','approved','published') NOT NULL DEFAULT 'published' COMMENT 'Main campus approval state'");
+            if (!isset($asmCols27['submitted_at']))
+                $pdo->exec("ALTER TABLE assessments ADD COLUMN submitted_at DATETIME NULL DEFAULT NULL");
+            if (!isset($asmCols27['review_note']))
+                $pdo->exec("ALTER TABLE assessments ADD COLUMN review_note TEXT NULL DEFAULT NULL");
+            if (!isset($asmCols27['reviewed_by']))
+                $pdo->exec("ALTER TABLE assessments ADD COLUMN reviewed_by INT NULL DEFAULT NULL");
+            if (!isset($asmCols27['published_by']))
+                $pdo->exec("ALTER TABLE assessments ADD COLUMN published_by INT NULL DEFAULT NULL");
+            if (!isset($asmCols27['published_at']))
+                $pdo->exec("ALTER TABLE assessments ADD COLUMN published_at DATETIME NULL DEFAULT NULL");
+        } catch (Exception $e) {}
+
+        // Group 28: Botany and Zoology subjects (Biology kept to preserve existing records)
+        try {
+            $pdo->exec("INSERT IGNORE INTO subjects (name, code) VALUES ('Botany', 'BOT'), ('Zoology', 'ZOO')");
+        } catch (Exception $e) {}
     }
     return $pdo;
 }
