@@ -5,6 +5,9 @@ require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
 
 $user = requireAuth('ilc_vp');
+http_response_code(403);
+echo '<h1>403 Forbidden</h1><p>This page has been removed.</p>';
+exit;
 $db   = getDB();
 
 $tab          = $_GET['tab']           ?? 'assessments';

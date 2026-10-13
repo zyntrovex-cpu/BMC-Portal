@@ -11,12 +11,22 @@ $db = getDB();
 $uploadDir = __DIR__ . '/../assets/uploads/ilc-records/';
 if (!is_dir($uploadDir)) @mkdir($uploadDir, 0755, true);
 
+$photoDir = __DIR__ . '/../assets/uploads/ilc-session-photos/';
+if (!is_dir($photoDir)) @mkdir($photoDir, 0755, true);
+
 // Column availability
-$tableExists     = false;
+$tableExists      = false;
 $studentColExists = false;
+$photosColExists  = false;
 try { $db->query('SELECT 1 FROM ilc_session_records LIMIT 0'); $tableExists = true; } catch (Exception $e) {}
 if ($tableExists) {
     try { $db->query('SELECT student_id FROM ilc_session_records LIMIT 0'); $studentColExists = true; } catch (Exception $e) {}
+    try { $db->query('SELECT photos FROM ilc_session_records LIMIT 0'); $photosColExists = true; } catch (Exception $e) {
+        try {
+            $db->exec('ALTER TABLE ilc_session_records ADD COLUMN photos JSON NULL DEFAULT NULL');
+            $photosColExists = true;
+        } catch (Exception $e2) {}
+    }
 }
 
 // Lazy expiry cleanup (only for records with a non-null expires_at)
@@ -66,8 +76,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
                 $expiry   = $days > 0 ? date('Y-m-d H:i:s', strtotime("+$days days")) : null;
                 $sdateVal = $sessionDate ?: null;
 
+                // Handle photo uploads (up to 10 images)
+                $photos = [];
+                if ($photosColExists && isset($_FILES['photos'])) {
+                    $photoAllowed = ['image/jpeg'=>'jpg','image/png'=>'png','image/gif'=>'gif','image/webp'=>'webp'];
+                    $photoFiles   = $_FILES['photos'];
+                    $count = count((array)($photoFiles['tmp_name'] ?? []));
+                    for ($pi = 0; $pi < min($count, 10); $pi++) {
+                        if (empty($photoFiles['tmp_name'][$pi])) continue;
+                        $pmime = mime_content_type($photoFiles['tmp_name'][$pi]);
+                        if (!isset($photoAllowed[$pmime])) continue;
+                        if ($photoFiles['size'][$pi] > 5 * 1024 * 1024) continue;
+                        $pext  = $photoAllowed[$pmime];
+                        $pfn   = 'ilcph_' . bin2hex(random_bytes(8)) . '.' . $pext;
+                        if (move_uploaded_file($photoFiles['tmp_name'][$pi], $photoDir . $pfn)) {
+                            $photos[] = $pfn;
+                        }
+                    }
+                }
+
                 if (move_uploaded_file($_FILES['file']['tmp_name'], $uploadDir . $filename)) {
-                    if ($studentColExists) {
+                    $photosJson = !empty($photos) ? json_encode($photos) : null;
+                    if ($studentColExists && $photosColExists) {
+                        $db->prepare(
+                            'INSERT INTO ilc_session_records
+                             (student_id, title, description, session_date, session_type, filename, file_type, uploaded_by, expires_at, photos)
+                             VALUES (?,?,?,?,?,?,?,?,?,?)'
+                        )->execute([
+                            $studentId, $title, $description ?: null,
+                            $sdateVal, $sessionType ?: null,
+                            $filename, $type, $user['id'], $expiry, $photosJson
+                        ]);
+                    } elseif ($studentColExists) {
                         $db->prepare(
                             'INSERT INTO ilc_session_records
                              (student_id, title, description, session_date, session_type, filename, file_type, uploaded_by, expires_at)
@@ -83,7 +123,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
                              VALUES (?,?,?,?,?,?)'
                         )->execute([$title, $description ?: null, $filename, $type, $user['id'], $expiry]);
                     }
-                    $msg = $expiry ? "Record saved. Auto-deletes after $days day(s)." : 'Record saved (no auto-delete).';
+                    $photoMsg = !empty($photos) ? ' ('.count($photos).' photo(s) attached)' : '';
+                    $msg = $expiry ? "Record saved. Auto-deletes after $days day(s).$photoMsg" : "Record saved.$photoMsg";
                     logActivity($user['id'], 'ilc_record_upload', "Uploaded session record: $title for student #$studentId");
                     setFlash('success', $msg);
                 } else {
@@ -94,13 +135,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
         redirect('/portal/ilc/records.php?student_id=' . $studentId);
     }
 
+    if ($action === 'delete_photo') {
+        $recId  = (int)($_POST['rec_id']    ?? 0);
+        $photoFn = trim($_POST['photo_fn'] ?? '');
+        if ($recId && $photoFn && $photosColExists) {
+            $st = $db->prepare('SELECT photos FROM ilc_session_records WHERE id=?');
+            $st->execute([$recId]);
+            $row = $st->fetch();
+            if ($row) {
+                $existingPhotos = json_decode($row['photos'] ?? '[]', true) ?? [];
+                $existingPhotos = array_values(array_filter($existingPhotos, fn($p) => $p !== $photoFn));
+                @unlink($photoDir . $photoFn);
+                $db->prepare('UPDATE ilc_session_records SET photos=? WHERE id=?')
+                   ->execute([$existingPhotos ? json_encode($existingPhotos) : null, $recId]);
+                logActivity($user['id'], 'ilc_photo_delete', "Deleted photo $photoFn from record #$recId");
+                setFlash('success', 'Photo deleted.');
+            }
+        }
+        redirect('/portal/ilc/records.php?student_id=' . $studentId);
+    }
+
     if ($action === 'delete') {
         $id = (int)($_POST['rec_id'] ?? 0);
-        $st = $db->prepare('SELECT filename FROM ilc_session_records WHERE id=?');
+        $st = $db->prepare('SELECT filename' . ($photosColExists ? ', photos' : '') . ' FROM ilc_session_records WHERE id=?');
         $st->execute([$id]);
         $row = $st->fetch();
         if ($row) {
             @unlink($uploadDir . $row['filename']);
+            if ($photosColExists && !empty($row['photos'])) {
+                foreach (json_decode($row['photos'], true) ?? [] as $pfn) @unlink($photoDir . $pfn);
+            }
             $db->prepare('DELETE FROM ilc_session_records WHERE id=?')->execute([$id]);
             logActivity($user['id'], 'ilc_record_delete', "Deleted session record #$id");
             setFlash('success', 'Record deleted.');
@@ -124,14 +188,15 @@ foreach ($students as $s) { if ($s['id'] === $studentId) { $curStudent = $s; bre
 $records = [];
 if ($tableExists && $studentId) {
     if ($studentColExists) {
+        $photosSel = $photosColExists ? ', r.photos' : '';
         $st = $db->prepare(
-            'SELECT r.*, u.name AS uploader_name,
+            "SELECT r.*$photosSel, u.name AS uploader_name,
                     CASE WHEN r.expires_at IS NOT NULL THEN TIMESTAMPDIFF(HOUR, NOW(), r.expires_at) ELSE NULL END AS hours_left
              FROM ilc_session_records r
              LEFT JOIN users u ON u.id = r.uploaded_by
              WHERE r.student_id = ?
                AND (r.expires_at IS NULL OR r.expires_at > NOW())
-             ORDER BY r.created_at DESC'
+             ORDER BY r.created_at DESC"
         );
         $st->execute([$studentId]);
         $records = $st->fetchAll();
@@ -220,7 +285,7 @@ $links = getIlcLinks();
         </span>
       </div>
       <div style="padding:16px">
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST" enctype="multipart/form-data" id="recordUploadForm">
           <input type="hidden" name="action" value="upload">
           <input type="hidden" name="student_id" value="<?= $studentId ?>">
 
@@ -267,6 +332,22 @@ $links = getIlcLinks();
               PDF or video (MP4/WEBM/MOV/AVI) · max 500 MB
             </div>
           </div>
+
+          <?php if ($photosColExists): ?>
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:.8rem">
+              Session Photos <small class="text-muted">(optional, up to 10)</small>
+            </label>
+            <input type="file" name="photos[]" id="photosInput"
+                   class="form-control form-control-sm"
+                   accept="image/jpeg,image/png,image/gif,image/webp"
+                   multiple>
+            <div class="form-text mt-1" style="color:#64748b;font-size:.76rem">
+              JPG/PNG/GIF/WEBP · max 5 MB each · up to 10 images
+            </div>
+            <div id="photoPreviewWrap" class="d-flex flex-wrap gap-2 mt-2"></div>
+          </div>
+          <?php endif; ?>
 
           <div class="mb-3">
             <label class="form-label fw-semibold" style="font-size:.8rem">Auto-Delete After</label>
@@ -403,6 +484,43 @@ $links = getIlcLinks();
           </video>
         </div>
         <?php endif; ?>
+
+        <?php
+          $recPhotos = [];
+          if ($photosColExists && !empty($r['photos'])) {
+              $recPhotos = json_decode($r['photos'], true) ?? [];
+          }
+          if (!empty($recPhotos)):
+        ?>
+        <div class="mt-2">
+          <div style="font-size:.76rem;font-weight:600;color:#475569;margin-bottom:5px">
+            <i class="fas fa-images me-1"></i>Session Photos (<?= count($recPhotos) ?>)
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+          <?php foreach ($recPhotos as $pfn): ?>
+          <?php $pUrl = url('/assets/uploads/ilc-session-photos/' . h($pfn)); ?>
+            <div style="position:relative;flex-shrink:0">
+              <a href="<?= $pUrl ?>" target="_blank">
+                <img src="<?= $pUrl ?>" alt="Photo"
+                     style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">
+              </a>
+              <form method="POST" class="d-inline"
+                    onsubmit="return confirm('Delete this photo?')"
+                    style="position:absolute;top:-4px;right:-4px">
+                <input type="hidden" name="action"     value="delete_photo">
+                <input type="hidden" name="student_id" value="<?= $studentId ?>">
+                <input type="hidden" name="rec_id"     value="<?= $r['id'] ?>">
+                <input type="hidden" name="photo_fn"   value="<?= h($pfn) ?>">
+                <button type="submit"
+                        style="width:18px;height:18px;padding:0;border-radius:50%;border:none;
+                               background:#ef4444;color:#fff;font-size:.7rem;line-height:1;cursor:pointer"
+                        title="Delete photo">×</button>
+              </form>
+            </div>
+          <?php endforeach; ?>
+          </div>
+        </div>
+        <?php endif; ?>
       </div>
       <?php endforeach; ?>
       <?php endif; ?>
@@ -414,4 +532,37 @@ $links = getIlcLinks();
 <?php endif; // tableExists / colExists ?>
 </div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Photo preview for upload form
+const photosInput = document.getElementById('photosInput');
+const previewWrap = document.getElementById('photoPreviewWrap');
+if (photosInput && previewWrap) {
+  photosInput.addEventListener('change', function() {
+    previewWrap.innerHTML = '';
+    const files = Array.from(this.files).slice(0, 10);
+    files.forEach(function(file) {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const div = document.createElement('div');
+        div.style.cssText = 'position:relative;flex-shrink:0';
+        div.innerHTML = '<img src="' + e.target.result + '" alt="preview"'
+          + ' style="width:70px;height:70px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1">'
+          + '<span style="position:absolute;bottom:2px;left:0;right:0;text-align:center;'
+          + 'font-size:.6rem;background:rgba(0,0,0,.45);color:#fff;border-radius:0 0 5px 5px;padding:1px">'
+          + (file.name.length > 12 ? file.name.slice(0, 12) + '…' : file.name) + '</span>';
+        previewWrap.appendChild(div);
+      };
+      reader.readAsDataURL(file);
+    });
+    if (this.files.length > 10) {
+      const warn = document.createElement('div');
+      warn.className = 'text-warning';
+      warn.style.fontSize = '.76rem';
+      warn.textContent = 'Only the first 10 photos will be uploaded.';
+      previewWrap.appendChild(warn);
+    }
+  });
+}
+</script>
 </body></html>

@@ -57,10 +57,34 @@ function ar2GrSel(string $nm, string $val, array $grades): string {
     return $h.'</select>';
 }
 
+$ar2AttachDir = __DIR__ . '/../assets/uploads/ilc-attachments/';
+if (!is_dir($ar2AttachDir)) @mkdir($ar2AttachDir, 0755, true);
+
 // ── POST handler ──────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
     $action    = $_POST['action']     ?? '';
     $studentId = (int)($_POST['student_id'] ?? 0);
+
+    if ($action === 'delete_attachment') {
+        $id = (int)($_POST['result_id'] ?? 0);
+        if ($id) {
+            $row = $db->prepare('SELECT form_data FROM ilc_academic_results2 WHERE id=?');
+            $row->execute([$id]);
+            $row = $row->fetch();
+            if ($row) {
+                $rfd = json_decode($row['form_data'], true) ?? [];
+                if (!empty($rfd['attachment_file'])) {
+                    @unlink($ar2AttachDir . $rfd['attachment_file']);
+                    unset($rfd['attachment_file']);
+                    $db->prepare('UPDATE ilc_academic_results2 SET form_data=? WHERE id=?')
+                       ->execute([json_encode($rfd, JSON_UNESCAPED_UNICODE), $id]);
+                    logActivity($user['id'], 'ar2_attach_delete', "Deleted AR2 attachment for result #$id");
+                    setFlash('success', 'Attachment deleted.');
+                }
+            }
+        }
+        redirect('/portal/ilc/academic-result2.php' . ($studentId ? "?student_id=$studentId" : ''));
+    }
 
     if (in_array($action, ['create','update']) && $studentId) {
         // Basic info
@@ -133,6 +157,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
         }
 
         $fd   = compact('basic','subjects','skills','levels','remarks','skills_extra','levels_extra');
+
+        // File attachment (PDF/JPG/PNG/DOCX, max 5MB)
+        if (!empty($_FILES['attachment']['tmp_name'])) {
+            $allowedMimes = [
+                'application/pdf'                                                    => 'pdf',
+                'image/jpeg'                                                         => 'jpg',
+                'image/png'                                                          => 'png',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+                'application/msword'                                                 => 'doc',
+            ];
+            $mime = mime_content_type($_FILES['attachment']['tmp_name']);
+            if (isset($allowedMimes[$mime]) && $_FILES['attachment']['size'] <= 5 * 1024 * 1024) {
+                if ($action === 'update') {
+                    $oldId2 = (int)($_POST['result_id'] ?? 0);
+                    $oldRow2 = $db->prepare('SELECT form_data FROM ilc_academic_results2 WHERE id=?');
+                    $oldRow2->execute([$oldId2]);
+                    $oldRow2 = $oldRow2->fetch();
+                    if ($oldRow2) {
+                        $oldFd2 = json_decode($oldRow2['form_data'], true) ?? [];
+                        if (!empty($oldFd2['attachment_file'])) @unlink($ar2AttachDir . $oldFd2['attachment_file']);
+                    }
+                }
+                $ext2 = $allowedMimes[$mime];
+                $attFilename2 = 'ar2att_' . bin2hex(random_bytes(8)) . '.' . $ext2;
+                if (move_uploaded_file($_FILES['attachment']['tmp_name'], $ar2AttachDir . $attFilename2)) {
+                    $fd['attachment_file'] = $attFilename2;
+                }
+            } else {
+                setFlash('warning', 'Attachment skipped: only PDF/JPG/PNG/DOCX up to 5MB allowed.');
+            }
+        }
+
         $json = json_encode($fd, JSON_UNESCAPED_UNICODE);
         $term = $basic['term']; $session = $basic['session'];
 
@@ -287,7 +343,7 @@ $links = getIlcLinks();
             </div>
           </div>
 
-          <form method="POST" id="ar2Form">
+          <form method="POST" id="ar2Form" enctype="multipart/form-data">
             <input type="hidden" name="action"     value="<?= $editResult?'update':'create' ?>">
             <input type="hidden" name="student_id" value="<?= $studentId ?>">
             <?php if ($editResult): ?>
@@ -535,6 +591,26 @@ $links = getIlcLinks();
               </div>
             </div>
 
+            <!-- File Attachment -->
+            <div class="fba-sec mb-3">
+              <div class="fba-sh" style="background:#475569">Attachment (optional)</div>
+              <div class="fba-sb">
+                <?php
+                  $curAttach2 = $fd['attachment_file'] ?? ($editResult ? (json_decode($editResult['form_data'],true)['attachment_file'] ?? '') : '');
+                ?>
+                <?php if ($curAttach2): ?>
+                <div class="mb-2 p-2" style="background:#f0fdf4;border-radius:6px;border:1px solid #86efac;font-size:.8rem">
+                  <i class="fas fa-paperclip me-1 text-success"></i>
+                  <a href="<?= url('/assets/uploads/ilc-attachments/'.h($curAttach2)) ?>" target="_blank" class="text-success fw-semibold">View current attachment</a>
+                  <span class="text-muted ms-2">(upload a new file to replace it)</span>
+                </div>
+                <?php endif; ?>
+                <input type="file" name="attachment" class="form-control form-control-sm"
+                       accept=".pdf,.jpg,.jpeg,.png,.docx,.doc">
+                <div class="form-text" style="font-size:.75rem;color:#64748b">PDF, JPG, PNG or DOCX · max 5 MB</div>
+              </div>
+            </div>
+
             <div class="d-flex gap-2 pt-1">
               <button type="submit" class="btn btn-success btn-sm">
                 <i class="fas fa-save me-1"></i><?= $editResult?'Update Report':'Save Report' ?>
@@ -580,13 +656,27 @@ $links = getIlcLinks();
                 <?= fDate($r['created_at']) ?> · <?= h($r['recorder_name']) ?>
               </span>
             </div>
-            <div class="d-flex gap-1">
+            <div class="d-flex gap-1 flex-wrap">
               <a href="<?= url('/portal/ilc/academic-result2-pdf.php?id='.$r['id']) ?>"
                  target="_blank" class="btn btn-xs btn-outline-success">
                 <i class="fas fa-file-pdf me-1"></i>PDF
               </a>
               <a href="?student_id=<?= $studentId ?>&edit=<?= $r['id'] ?>"
                  class="btn btn-xs btn-outline-primary"><i class="fas fa-edit"></i></a>
+              <?php if (!empty($rfd['attachment_file'])): ?>
+              <a href="<?= url('/assets/uploads/ilc-attachments/'.h($rfd['attachment_file'])) ?>"
+                 target="_blank" class="btn btn-xs btn-outline-info" title="View Attachment">
+                <i class="fas fa-paperclip me-1"></i>File
+              </a>
+              <form method="POST" class="d-inline" onsubmit="return confirm('Delete this attachment?')">
+                <input type="hidden" name="action"     value="delete_attachment">
+                <input type="hidden" name="student_id" value="<?= $studentId ?>">
+                <input type="hidden" name="result_id"  value="<?= $r['id'] ?>">
+                <button class="btn btn-xs btn-outline-warning" title="Delete Attachment">
+                  <i class="fas fa-paperclip"></i><i class="fas fa-times ms-1" style="font-size:.65rem"></i>
+                </button>
+              </form>
+              <?php endif; ?>
               <form method="POST" class="d-inline" onsubmit="return confirm('Delete this report?')">
                 <input type="hidden" name="action"     value="delete">
                 <input type="hidden" name="student_id" value="<?= $studentId ?>">
