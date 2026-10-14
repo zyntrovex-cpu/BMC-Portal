@@ -68,8 +68,8 @@ $links = getFinanceLinks();
 <!-- Collection chart -->
 <div class="sec-card mb-3">
   <div class="sec-card-header"><i class="fas fa-chart-bar me-2"></i>Monthly Collection — <?= $year ?></div>
-  <div style="padding:16px;max-height:320px">
-    <canvas id="collectionChart"></canvas>
+  <div style="padding:16px">
+    <canvas id="collectionChart" style="max-height:320px"></canvas>
   </div>
 </div>
 

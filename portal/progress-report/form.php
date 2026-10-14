@@ -682,8 +682,8 @@ function renderSubjects() {
       ${delSubjBtn}
     </div>
   </div>
-  <div>
-    <table class="table table-sm table-bordered mb-0" style="font-size:.8rem;border-top:none">
+  <div class="table-responsive">
+    <table class="table table-sm table-bordered mb-0" style="font-size:.8rem;border-top:none;min-width:420px">
       <thead><tr class="pr-subj-thead" style="background:${theadBg}">
         <th colspan="2">Learning Area / Performance Indicator</th>
         <th class="text-center" style="width:82px">Performance</th>

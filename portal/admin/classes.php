@@ -667,6 +667,7 @@ $activeKey = 'classes';
         </form>
 
         <!-- Assigned subjects table -->
+        <div class="table-responsive">
         <table class="table table-sm mb-0" style="font-size:.84rem">
           <thead class="table-light">
             <tr><th>Subject</th><th>Code</th><th>Teacher</th><th></th></tr>
@@ -696,6 +697,7 @@ $activeKey = 'classes';
             <?php endif; ?>
           </tbody>
         </table>
+        </div>
       <?php endif; ?>
 
       </div>

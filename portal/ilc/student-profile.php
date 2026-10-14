@@ -241,6 +241,7 @@ $links = getIlcLinks();
           <span class="badge mt-1" style="background:<?= h($student['house_color']) ?>"><?= h($student['house_name']) ?></span>
           <?php endif; ?>
         </div>
+        <div class="table-responsive">
         <table class="table table-sm" style="font-size:.82rem">
           <tr><td class="text-muted">Roll No</td><td class="fw-semibold"><?= h($student['roll_no']) ?></td></tr>
           <tr><td class="text-muted">Class</td><td><span class="badge bg-secondary"><?= h($student['class_name']) ?></span></td></tr>
@@ -250,6 +251,7 @@ $links = getIlcLinks();
           <tr><td class="text-muted">Parent Ph.</td><td><?= h($student['parent_phone'] ?: '—') ?></td></tr>
           <tr><td class="text-muted">Email</td><td><?= h($student['email'] ?: '—') ?></td></tr>
         </table>
+        </div>
         <button class="btn btn-sm btn-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#editBioModal">
           <i class="fas fa-edit me-1"></i>Edit Biodata
         </button>

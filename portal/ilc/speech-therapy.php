@@ -372,7 +372,7 @@ $s2Keys = [
 
 <!-- §3 Speech & Language Assessment -->
 <div style="<?= $secStyle ?>">3. SPEECH &amp; LANGUAGE ASSESSMENT</div>
-<div style="overflow-x:auto;margin-bottom:4px">
+<div class="table-responsive mb-1">
 <table class="table table-sm table-bordered mb-0" style="font-size:.8rem;min-width:600px">
   <thead style="background:#e0f2fe">
     <tr>
@@ -406,7 +406,7 @@ $s2Keys = [
 
 <!-- §4 Articulation / Speech Sound Screening -->
 <div style="<?= $secStyle ?>">4. ARTICULATION / SPEECH SOUND SCREENING</div>
-<div style="overflow-x:auto;margin-bottom:4px">
+<div class="table-responsive mb-1">
 <table class="table table-sm table-bordered mb-0" style="font-size:.8rem;min-width:540px">
   <thead style="background:#e0f2fe">
     <tr>

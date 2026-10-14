@@ -224,6 +224,7 @@ $links = getIlcLinks();
         <?php if (empty($categories)): ?>
         <div style="padding:20px;text-align:center;color:var(--t2);font-size:.84rem">No categories yet.</div>
         <?php else: ?>
+        <div class="table-responsive">
         <table class="table table-sm mb-0" style="font-size:.83rem">
           <thead class="table-light"><tr><th>#</th><th>Name</th><th style="width:60px"></th></tr></thead>
           <tbody>
@@ -242,6 +243,7 @@ $links = getIlcLinks();
             <?php endforeach; ?>
           </tbody>
         </table>
+        </div>
         <?php endif; ?>
       </div>
     </div>
@@ -275,7 +277,7 @@ $links = getIlcLinks();
           </div>
         </form>
       </div>
-      <div style="padding:0;max-height:300px;overflow-y:auto">
+      <div style="padding:0;max-height:300px;overflow-y:auto;overflow-x:auto">
         <?php if (empty($allSubtypes)): ?>
         <div style="padding:20px;text-align:center;color:var(--t2);font-size:.84rem">No subtypes yet.</div>
         <?php else: ?>

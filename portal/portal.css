@@ -377,13 +377,9 @@ img { max-width: 100%; }
   .table-responsive,
   .sec-card .table-responsive { -webkit-overflow-scrolling: touch; }
 
-  /* Wrap bare tables inside cards */
+  /* Bare tables inside cards that lack a .table-responsive wrapper: scroll via parent */
   .sec-card > .table,
-  .sec-card > div > .table {
-    display: block; overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
-  }
+  .sec-card > div > .table { min-width: 480px; }
 
   /* ── Data table: compact ── */
   .data-table thead th { font-size: 10px; padding: 7px 10px; }
@@ -451,9 +447,9 @@ img { max-width: 100%; }
   .topbar { padding: 0 10px; }
   .topbar-avatar { width: 30px; height: 30px; font-size: 11px; }
 
-  /* Tables always scrollable */
-  .table { min-width: 480px; }
-  .table-sm { min-width: 360px; }
+  /* Tables scrollable via wrapper — only data-table gets a min-width */
+  .data-table { min-width: 480px; }
+  .table-sm   { min-width: 360px; }
 
   /* Full-width modals */
   .modal-dialog { margin: 0; max-width: 100%; }
@@ -822,35 +818,45 @@ html, body { overflow-x: hidden; }
   overflow-x: hidden;
 }
 
-/* ── All tables scroll horizontally instead of overflowing ────── */
-.sec-card .table:not(.no-scroll),
-.sec-card .data-table:not(.no-scroll) {
+/* ── Responsive table scrolling — two-tier approach ─────────────── */
+/* Tier 1: bare .data-table/.table in sec-cards → self-scrolling block  */
+/* (handles tables that don't have a .table-responsive wrapper)          */
+.sec-card .data-table:not(.no-scroll),
+.sec-card .table:not(.no-scroll) {
   display: block;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  white-space: nowrap;
-}
-/* But reset for very wide tables that need sticky first-col */
-.data-table-sticky { white-space: normal; }
-.data-table-sticky th,
-.data-table-sticky td { white-space: nowrap; }
-
-/* ── Restore table column visibility — use scrolling instead ─── */
-/* Remove the nth-child(n+6) column-hiding rule by resetting it */
-@media (max-width: 767px) {
-  .data-table th,
-  .data-table td { display: table-cell !important; }
-  /* Ensure the parent scrolls rather than hiding data */
-  .tbl-scroll,
-  .table-responsive { overflow-x: auto !important; }
+  max-width: 100%;
 }
 
-/* ── Tables: give a minimum width so they scroll cleanly ─────── */
-.data-table { min-width: 480px; }
-.data-table.table-wide { min-width: 720px; }
-@media (max-width: 767px) {
-  .data-table.table-compact { min-width: 360px; }
+/* Tier 2: tables INSIDE .table-responsive/.tbl-scroll → let the wrapper  */
+/* scroll; table stays as display:table so width:100% fills the wrapper.  */
+/* Tier-2 specificity (4 classes) beats Tier-1 (3 classes) — no !important */
+.sec-card .table-responsive .data-table:not(.no-scroll),
+.sec-card .table-responsive .table:not(.no-scroll),
+.sec-card .tbl-scroll .data-table:not(.no-scroll),
+.sec-card .tbl-scroll .table:not(.no-scroll) {
+  display: table;
+  overflow-x: visible;
+  width: 100%;
 }
+
+/* Header cells: never wrap — keeps column labels on one line while scrolling */
+.data-table thead th,
+.table thead th { white-space: nowrap; }
+
+/* All table cells visible — use scrolling not column hiding */
+.data-table th,
+.data-table td { display: table-cell !important; }
+
+/* Responsive wrappers always allow horizontal scroll */
+.table-responsive,
+.tbl-scroll { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+
+/* ── Table sizing — fills card on desktop, scrolls on mobile ─────── */
+.data-table { width: 100%; min-width: 480px; }
+.data-table.table-wide    { min-width: 720px; }
+.data-table.table-compact { min-width: 360px; }
 
 /* ── Sidebar overlay: fade transition (not display:none flash) ── */
 #sidebarOverlay {
@@ -990,3 +996,76 @@ img { max-width: 100%; height: auto; }
   .sb-link.active { border-left-color: Highlight; }
   .btn           { border: 1px solid ButtonText; }
 }
+
+/* ================================================================
+   GLOBAL LAYOUT & RESPONSIVE IMPROVEMENTS (PATCH)
+   ================================================================ */
+
+/* ── Nav-tabs: horizontal scroll on small screens (no wrapping) ── */
+.nav-tabs {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;      /* IE/Edge */
+  border-bottom-color: transparent; /* avoid double border on scroll */
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tabs .nav-link { white-space: nowrap; flex-shrink: 0; }
+
+/* ── Page-content: never clip horizontal overflow of its children ── */
+/* (children with table-responsive or overflow-x:auto manage their own scroll) */
+.page-content, .content { overflow-x: visible !important; }
+
+/* ── sec-card overflow: keep hidden for radius clipping but allow    ──
+   children with their own overflow context (table-responsive, etc.) ── */
+/* The .sec-card { overflow: hidden } is fine — Bootstrap table-responsive
+   creates a new block-formatting context so it is not clipped by the parent. */
+
+/* ── Remove redundant inline overflow:hidden on specific cards ────── */
+/* (patched per-file below; no global override needed)                 */
+
+/* ── Finance chart container: unconstrained height ───────────────── */
+.chart-container { position: relative; }
+.chart-container canvas { max-width: 100%; }
+
+/* ── Dropdown menus: never clipped by sec-card overflow:hidden ───── */
+/* Bootstrap dropdowns use position:absolute — they escape overflow:hidden  */
+/* only when a positioned ancestor is the scroll container. This is fine    */
+/* in practice; the main-area has overflow-x:visible so dropdowns show.     */
+
+/* ── Filter rows: never break layout on narrow screens ───────────── */
+.filter-row .form-select,
+.filter-row .form-control { min-width: 0; max-width: 100%; }
+
+/* ── Buttons in sec-card-header: always wrap on very small screens ── */
+@media (max-width: 400px) {
+  .sec-card-header,
+  .sec-head { flex-direction: column; align-items: flex-start !important; }
+  .sec-card-header .btn,
+  .sec-head .btn { align-self: flex-start; }
+}
+
+/* ── Bootstrap .col-md-* cols stack properly below 576px ─────────── */
+@media (max-width: 575px) {
+  .row > [class^="col-md-"]:not(.col-6):not(.col-4):not(.col-3) { width: 100%; }
+  .row > .col-md-6:not(.col-6) { width: 100%; }
+}
+
+/* ── Topbar: date hidden below 480px, badge hidden below 600px ────── */
+@media (max-width: 480px) {
+  .topbar-date { display: none; }
+}
+@media (max-width: 600px) {
+  .topbar-badge { display: none; }
+}
+
+/* ── sec-card body: no negative-margin child tables bleeding out ──── */
+.sec-card > .table-responsive { margin: 0; }
+
+/* ── Form-select/form-control inside flex: don't shrink below 80px ── */
+.d-flex .form-select,
+.d-flex .form-control { min-width: 80px; }
+
+/* ── fba-sb (ILC academic result section body): scrollable ─────────── */
+.fba-sb { overflow-x: auto; -webkit-overflow-scrolling: touch; }

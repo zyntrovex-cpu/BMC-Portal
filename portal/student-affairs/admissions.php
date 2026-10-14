@@ -222,18 +222,18 @@ function renderSAAssessmentView(array $ad, array $req,
 
     // Q1
     $h .= '<div class="mb-3"><div class="fw-bold mb-1" style="font-size:.74rem;color:#0f2456;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px">Q1 — Diagnosed Conditions</div>';
-    $h .= '<table class="table table-sm table-bordered mb-0" style="font-size:.78rem"><thead class="table-light"><tr><th>Condition</th><th class="text-center" style="width:60px">Answer</th><th class="text-center" style="width:80px">Docs</th></tr></thead><tbody>';
+    $h .= '<div class="table-responsive"><table class="table table-sm table-bordered mb-0" style="font-size:.78rem"><thead class="table-light"><tr><th>Condition</th><th class="text-center" style="width:60px">Answer</th><th class="text-center" style="width:80px">Docs</th></tr></thead><tbody>';
     foreach ($q1Items as $k => $lbl) {
         $v   = $ad['q1'][$k] ?? [];
         $yes = ($v['ans'] ?? 'no') === 'yes';
         $h  .= '<tr><td>'.$e($lbl).(!empty($v['specify']) ? ' <em class="text-muted">('.$e($v['specify']).')</em>' : '').'</td>';
         $h  .= '<td class="text-center">'.saYesNo($yes).'</td><td class="text-center">'.saDocsIcon(!empty($v['docs'])).'</td></tr>';
     }
-    $h .= '</tbody></table></div>';
+    $h .= '</tbody></table></div></div>';
 
     // Q2
     $h .= '<div class="mb-3"><div class="fw-bold mb-1" style="font-size:.74rem;color:#0f2456;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px">Q2 — Current Circumstances / Experiences</div>';
-    $h .= '<table class="table table-sm table-bordered mb-0" style="font-size:.78rem"><thead class="table-light"><tr><th>Circumstance</th><th class="text-center" style="width:60px">Answer</th><th>Details</th></tr></thead><tbody>';
+    $h .= '<div class="table-responsive"><table class="table table-sm table-bordered mb-0" style="font-size:.78rem"><thead class="table-light"><tr><th>Circumstance</th><th class="text-center" style="width:60px">Answer</th><th>Details</th></tr></thead><tbody>';
     foreach ($q2Items as $k => $meta) {
         $v   = $ad['q2'][$k] ?? [];
         $yes = ($v['ans'] ?? 'no') === 'yes';
@@ -241,11 +241,11 @@ function renderSAAssessmentView(array $ad, array $req,
         $h .= '<tr><td>'.$e($meta['label']).'</td><td class="text-center">'.saYesNo($yes).'</td>';
         $h .= '<td>'.($spec ? $e($spec) : '<span class="text-muted">—</span>').'</td></tr>';
     }
-    $h .= '</tbody></table></div>';
+    $h .= '</tbody></table></div></div>';
 
     // Q3
     $h .= '<div class="mb-3"><div class="fw-bold mb-1" style="font-size:.74rem;color:#0f2456;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px">Q3 — Professional Assessment &amp; Support History</div>';
-    $h .= '<table class="table table-sm table-bordered mb-0" style="font-size:.78rem"><thead class="table-light"><tr><th>Assessment / Support</th><th class="text-center" style="width:60px">Answer</th><th>Details</th></tr></thead><tbody>';
+    $h .= '<div class="table-responsive"><table class="table table-sm table-bordered mb-0" style="font-size:.78rem"><thead class="table-light"><tr><th>Assessment / Support</th><th class="text-center" style="width:60px">Answer</th><th>Details</th></tr></thead><tbody>';
     foreach ($q3Items as $k => $meta) {
         $v   = $ad['q3'][$k] ?? [];
         $yes = ($v['ans'] ?? 'no') === 'yes';
@@ -253,16 +253,16 @@ function renderSAAssessmentView(array $ad, array $req,
         $h .= '<tr><td>'.$e($meta['label']).'</td><td class="text-center">'.saYesNo($yes).'</td>';
         $h .= '<td>'.($spec ? $e($spec) : '<span class="text-muted">—</span>').'</td></tr>';
     }
-    $h .= '</tbody></table></div>';
+    $h .= '</tbody></table></div></div>';
 
     // Q4
     $h .= '<div class="mb-1"><div class="fw-bold mb-1" style="font-size:.74rem;color:#0f2456;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px">Q4 — High Academic Ability / Gifted</div>';
-    $h .= '<table class="table table-sm table-bordered mb-0" style="font-size:.78rem"><thead class="table-light"><tr><th>Indicator</th><th class="text-center" style="width:60px">Answer</th></tr></thead><tbody>';
+    $h .= '<div class="table-responsive"><table class="table table-sm table-bordered mb-0" style="font-size:.78rem"><thead class="table-light"><tr><th>Indicator</th><th class="text-center" style="width:60px">Answer</th></tr></thead><tbody>';
     foreach ($q4Labels as $k => $lbl) {
         $yes = (($ad['q4'][$k]['ans'] ?? 'no') === 'yes');
         $h .= '<tr><td>'.$e($lbl).'</td><td class="text-center">'.saYesNo($yes).'</td></tr>';
     }
-    $h .= '</tbody></table></div>';
+    $h .= '</tbody></table></div></div>';
 
     return $h;
 }

@@ -103,7 +103,7 @@ $links = getVpMontessoriLinks();
             <form method="POST" class="d-inline">
               <input type="hidden" name="action" value="set_category">
               <input type="hidden" name="student_id" value="<?= $s['student_id'] ?>">
-              <select name="category" class="form-select form-select-sm d-inline-block" style="width:110px"
+              <select name="category" class="form-select form-select-sm d-inline-block" style="min-width:90px;max-width:130px"
                       onchange="this.form.submit()">
                 <option value="" <?= !$s['student_category']?'selected':'' ?>>Unset</option>
                 <option value="civilian" <?= $s['student_category']==='civilian'?'selected':'' ?>>Civilian</option>

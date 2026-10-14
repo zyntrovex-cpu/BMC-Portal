@@ -208,7 +208,7 @@ $links = getAdminLinks();
     <!-- System info -->
     <div class="sec-card mt-3">
       <div class="sec-card-header"><i class="fas fa-info-circle me-2"></i>System Info</div>
-      <div style="padding:14px">
+      <div class="table-responsive" style="padding:0">
         <table class="table table-sm mb-0" style="font-size:.84rem">
           <tr><th style="color:#6b7280">PHP Version</th><td><?= PHP_VERSION ?></td></tr>
           <tr><th style="color:#6b7280">Total Users</th><td><?= $stats['total_users'] ?></td></tr>

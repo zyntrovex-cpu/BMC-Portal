@@ -151,8 +151,8 @@ $links = getStudentLinks();
   <div class="sec-head">
     <h5><i class="fas fa-chart-line me-2" style="color:#1d4ed8"></i>Monthly Attendance Trend</h5>
   </div>
-  <div class="p-3" style="min-height:260px;height:auto">
-    <canvas id="attChart"></canvas>
+  <div class="p-3">
+    <canvas id="attChart" style="max-height:260px"></canvas>
   </div>
 </div>
 <?php endif; ?>

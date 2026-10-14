@@ -255,7 +255,7 @@ $links = getIlcLinks();
         </p>
       </div>
       <?php else: ?>
-      <div style="overflow-x:auto">
+      <div class="table-responsive">
         <table class="table table-hover table-sm mb-0" style="font-size:.83rem">
           <thead style="background:#f1f5f9">
             <tr>
