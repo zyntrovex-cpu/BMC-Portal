@@ -436,7 +436,7 @@ $activeKey = 'classes';
   </div>
 </div>
 
-<div class="row g-3">
+<div class="row g-3 align-items-start">
   <!-- Left: add form + class list -->
   <div class="col-lg-5">
 
