@@ -56,6 +56,18 @@ function prMigrateFormData(array $fd): array {
     return $fd;
 }
 
+// Strip indicator values from subjects — used to save/load the form structure template
+function prStripValues(array $subjects): array {
+    foreach ($subjects as &$subj) {
+        foreach ($subj['areas'] as &$area) {
+            foreach ($area['indicators'] as &$ind) {
+                $ind['value'] = '';
+            }
+        }
+    }
+    return $subjects;
+}
+
 function prCountFilled(array $rfd): array {
     if (isset($rfd['subjects'])) {
         $total = $filled = 0;
@@ -79,12 +91,12 @@ try {
     if ($role === 'montessori_teacher') {
         // Montessori teacher: students in their assigned Montessori classes (subject-based or class teacher)
         $st = $db->prepare(
-            'SELECT DISTINCT st.id, u.name AS student_name, st.roll_no, c.name AS class_name
+            'SELECT DISTINCT st.id, u.name AS student_name, st.roll_no, c.name AS class_name, st.class_id
              FROM class_subjects cs JOIN classes c ON cs.class_id=c.id
              JOIN students st ON st.class_id=cs.class_id JOIN users u ON st.user_id=u.id
              WHERE cs.teacher_id=? AND c.is_montessori=1
              UNION
-             SELECT DISTINCT st.id, u.name AS student_name, st.roll_no, c.name AS class_name
+             SELECT DISTINCT st.id, u.name AS student_name, st.roll_no, c.name AS class_name, st.class_id
              FROM class_teacher_assignments cta JOIN classes c ON cta.class_id=c.id
              JOIN students st ON st.class_id=c.id JOIN users u ON st.user_id=u.id
              WHERE cta.teacher_id=? AND c.is_montessori=1
@@ -95,7 +107,7 @@ try {
         // Main-wing teacher: only students in their eligible assigned classes
         // Eligible: Montessori OR non-ILC Class 1-3 (grade <= 3)
         $st = $db->prepare(
-            'SELECT DISTINCT st.id, u.name AS student_name, st.roll_no, c.name AS class_name
+            'SELECT DISTINCT st.id, u.name AS student_name, st.roll_no, c.name AS class_name, st.class_id
              FROM class_subjects cs
              JOIN classes c ON cs.class_id = c.id
              JOIN students st ON st.class_id = cs.class_id
@@ -109,7 +121,7 @@ try {
     } elseif ($role === 'wing_head' || $role === 'vp_montessori') {
         // Montessori Wing Head / VP Montessori: all Montessori students only
         $st = $db->prepare(
-            'SELECT st.id, u.name AS student_name, st.roll_no, c.name AS class_name
+            'SELECT st.id, u.name AS student_name, st.roll_no, c.name AS class_name, st.class_id
              FROM students st
              JOIN users u ON st.user_id=u.id
              JOIN classes c ON c.id=st.class_id
@@ -120,7 +132,7 @@ try {
     } else {
         // VP Main (oversees Main + Montessori): Montessori students + Class 1-3 (grade <= 3)
         $st = $db->prepare(
-            'SELECT st.id, u.name AS student_name, st.roll_no, c.name AS class_name
+            'SELECT st.id, u.name AS student_name, st.roll_no, c.name AS class_name, st.class_id
              FROM students st
              JOIN users u ON st.user_id=u.id
              JOIN classes c ON c.id=st.class_id
@@ -170,6 +182,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
             logActivity($user['id'],'pr_create',"Created Progress Report for student #$studentId");
             setFlash('success','Progress Report saved.');
         }
+
+        // Auto-save form structure as template for this class (stripped of student-specific values)
+        if (!empty($subjects)) {
+            try {
+                $stuClsSt = $db->prepare('SELECT class_id FROM students WHERE id=? LIMIT 1');
+                $stuClsSt->execute([$studentId]);
+                $tmplClassId = (int)($stuClsSt->fetchColumn() ?? 0);
+                if ($tmplClassId) {
+                    $tmplSubjects = prStripValues($subjects);
+                    $tmplJson = json_encode($tmplSubjects, JSON_UNESCAPED_UNICODE);
+                    $db->prepare(
+                        'INSERT INTO progress_report_templates (class_id, subjects, updated_by) VALUES (?,?,?)
+                         ON DUPLICATE KEY UPDATE subjects=VALUES(subjects), updated_by=VALUES(updated_by), updated_at=NOW()'
+                    )->execute([$tmplClassId, $tmplJson, $user['id']]);
+                }
+            } catch (Exception $e) {}
+        }
     }
 
     if ($action === 'delete') {
@@ -197,11 +226,30 @@ if ($studentId && $tableExists) {
 $curStudent = null;
 foreach ($students as $s) { if ((int)$s['id']===$studentId) { $curStudent=$s; break; } }
 
-$fd = []; $initialSubjectsJson = 'null';
+$fd = []; $initialSubjectsJson = 'null'; $usedTemplate = false;
 if ($editResult && !empty($editResult['form_data'])) {
     $fd = json_decode($editResult['form_data'], true) ?? [];
     $fd = prMigrateFormData($fd);
     $initialSubjectsJson = json_encode($fd['subjects'] ?? [], JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT);
+} elseif ($studentId && $curStudent && !$editResult) {
+    // New report: try to load template for this class
+    $tmplClassIdLoad = (int)($curStudent['class_id'] ?? 0);
+    if ($tmplClassIdLoad) {
+        try {
+            $tmplStLoad = $db->prepare('SELECT subjects FROM progress_report_templates WHERE class_id=? LIMIT 1');
+            $tmplStLoad->execute([$tmplClassIdLoad]);
+            $tmplRowLoad = $tmplStLoad->fetch();
+            if ($tmplRowLoad) {
+                $tmplSubjectsLoad = json_decode($tmplRowLoad['subjects'], true);
+                if (is_array($tmplSubjectsLoad) && !empty($tmplSubjectsLoad)) {
+                    // Ensure all values are stripped before sending to client
+                    $tmplSubjectsLoad = prStripValues($tmplSubjectsLoad);
+                    $initialSubjectsJson = json_encode($tmplSubjectsLoad, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT);
+                    $usedTemplate = true;
+                }
+            }
+        } catch (Exception $e) {}
+    }
 }
 $fdBasic     = $fd['basic']     ?? ['term'=>'Final Term','session'=>'','attendance'=>'','date_of_issue'=>''];
 $fdRem       = $fd['remarks']   ?? '';
@@ -396,6 +444,14 @@ pageHead('Progress Report', $role);
               <span class="badge me-1" style="background:#065f46;font-size:.7rem">ED</span> Expected Development &nbsp;|&nbsp;
               <span class="badge me-1" style="background:#92400e;font-size:.7rem">EMD</span> Emerging Development
             </div>
+
+            <?php if ($usedTemplate): ?>
+            <div class="mb-2 px-2 py-1 rounded d-flex align-items-center gap-2"
+                 style="background:#ecfdf5;border:1px solid #6ee7b7;font-size:.76rem;color:#065f46">
+              <i class="fas fa-magic" style="font-size:.8rem"></i>
+              <span><strong>Template loaded.</strong> Form structure is pre-filled from the previous report in this class. Simply select performance indicators for this student.</span>
+            </div>
+            <?php endif; ?>
 
             <!-- Dynamic subjects -->
             <div id="pr-subjects-wrap"></div>

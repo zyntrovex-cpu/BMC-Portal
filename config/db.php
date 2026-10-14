@@ -843,6 +843,37 @@ function getDB(): PDO {
         try {
             $pdo->exec("ALTER TABLE attendance_edit_requests MODIFY COLUMN subject_id INT NULL DEFAULT NULL");
         } catch (Exception $e) {}
+
+        // Group 30: progress_report_templates — reusable form structure per class
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS progress_report_templates (
+                id          INT       PRIMARY KEY AUTO_INCREMENT,
+                class_id    INT       NOT NULL,
+                subjects    TEXT      NOT NULL,
+                updated_by  INT       NULL DEFAULT NULL,
+                updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_prt (class_id),
+                FOREIGN KEY (class_id)  REFERENCES classes(id) ON DELETE CASCADE,
+                FOREIGN KEY (updated_by) REFERENCES users(id)  ON DELETE SET NULL
+            ) ENGINE=InnoDB");
+        } catch (Exception $e) {}
+
+        // Group 31: montessori_assessment_templates — reusable criteria per class+subject
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS montessori_assessment_templates (
+                id          INT       PRIMARY KEY AUTO_INCREMENT,
+                class_id    INT       NOT NULL,
+                subject_id  INT       NOT NULL,
+                criteria    TEXT      NOT NULL,
+                updated_by  INT       NULL DEFAULT NULL,
+                updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_mat (class_id, subject_id),
+                FOREIGN KEY (class_id)   REFERENCES classes(id)  ON DELETE CASCADE,
+                FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
+                FOREIGN KEY (updated_by) REFERENCES users(id)    ON DELETE SET NULL
+            ) ENGINE=InnoDB");
+        } catch (Exception $e) {}
     }
     return $pdo;
 }

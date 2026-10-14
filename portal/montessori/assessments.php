@@ -120,6 +120,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $remark?:null
         ]);
 
+        // Auto-save criteria as template for this class+subject
+        try {
+            $db->prepare(
+                'INSERT INTO montessori_assessment_templates (class_id, subject_id, criteria, updated_by)
+                 VALUES (?,?,?,?)
+                 ON DUPLICATE KEY UPDATE criteria=VALUES(criteria), updated_by=VALUES(updated_by), updated_at=NOW()'
+            )->execute([$classId, $subjectId, json_encode($criteria), $teacher ? $teacher['id'] : null]);
+        } catch (Exception $e) {}
+
         logActivity($user['id'],'montessori_assessment_save',
             "Formative assessment: class #$classId, student #$studentId, subject #$subjectId, $date");
         setFlash('success','Assessment saved successfully.');
@@ -174,6 +183,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             in_array($overall,['AD','ED','EMD'],true)?$overall:null,
             $remark?:null
         ]);
+
+        // Auto-update criteria template for this class+subject
+        try {
+            $db->prepare(
+                'INSERT INTO montessori_assessment_templates (class_id, subject_id, criteria, updated_by)
+                 VALUES (?,?,?,?)
+                 ON DUPLICATE KEY UPDATE criteria=VALUES(criteria), updated_by=VALUES(updated_by), updated_at=NOW()'
+            )->execute([$classId, $subjectId, json_encode($criteria), $teacher ? $teacher['id'] : null]);
+        } catch (Exception $e) {}
 
         logActivity($user['id'],'montessori_assessment_update',
             "Updated assessment #$assessmentId for student #$studentId, subject #$subjectId");
@@ -330,7 +348,27 @@ if ($selStudentId && $selSubjectId) {
         }
     } catch (Exception $e) {}
 }
-if (empty($criteria) && $selSubject) $criteria = monteDefaultCriteria($selSubject['name']);
+if (empty($criteria) && $selSubject) {
+    // Try template first; fall back to subject-keyword defaults
+    $criteriaFromTemplate = false;
+    if ($selClassId && $selSubjectId && !$editId) {
+        try {
+            $matSt = $db->prepare('SELECT criteria FROM montessori_assessment_templates WHERE class_id=? AND subject_id=? LIMIT 1');
+            $matSt->execute([$selClassId, $selSubjectId]);
+            $matRow = $matSt->fetch();
+            if ($matRow) {
+                $tmplCrit = json_decode($matRow['criteria'], true);
+                if (is_array($tmplCrit) && !empty($tmplCrit)) {
+                    $criteria = $tmplCrit;
+                    $criteriaFromTemplate = true;
+                }
+            }
+        } catch (Exception $e) {}
+    }
+    if (!$criteriaFromTemplate) $criteria = monteDefaultCriteria($selSubject['name']);
+} else {
+    $criteriaFromTemplate = false;
+}
 
 // Subject status: has any assessment been done for this student+subject (any date)
 $subjectStatusMap = [];
@@ -771,6 +809,13 @@ $links = match($user['role']) {
                    value="<?= h($topicVal) ?>"
                    <?= $teacher?'':'readonly' ?>>
           </div>
+
+          <?php if (!empty($criteriaFromTemplate)): ?>
+          <div class="alert alert-success py-2 px-3 mb-3" style="font-size:.8rem">
+            <i class="fas fa-magic me-1"></i>
+            <strong>Template loaded.</strong> Criteria are pre-filled from the last assessment for this class &amp; subject. Edit as needed — saving will update the template.
+          </div>
+          <?php endif; ?>
 
           <!-- Column headers -->
           <div class="d-flex align-items-center gap-2 mb-1" style="padding:0 10px">
