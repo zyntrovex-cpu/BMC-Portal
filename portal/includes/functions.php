@@ -289,10 +289,11 @@ function getRolePermissions(string $role): array {
             'diary'               => ['label' => 'Daily Diary',                 'icon' => 'fa-book-open'],
         ],
         'vp_montessori' => [
-            'wh_students'         => ['label' => 'Students',                    'icon' => 'fa-user-graduate'],
-            'wh_classes'          => ['label' => 'Classes',                     'icon' => 'fa-chalkboard'],
-            'wh_timetable'        => ['label' => 'Timetable',                   'icon' => 'fa-table'],
-            'diary'               => ['label' => 'Daily Diary',                 'icon' => 'fa-book-open'],
+            'wh_students'           => ['label' => 'Students',                          'icon' => 'fa-user-graduate'],
+            'wh_classes'            => ['label' => 'Classes',                           'icon' => 'fa-chalkboard'],
+            'wh_timetable'          => ['label' => 'Timetable',                         'icon' => 'fa-table'],
+            'diary'                 => ['label' => 'Daily Diary',                       'icon' => 'fa-book-open'],
+            'monte_result_approvals'=> ['label' => 'Formative Assessment Approvals',   'icon' => 'fa-clipboard-check'],
         ],
         'secondary_wing_head' => [
             'marks'               => ['label' => 'Assessments & Marks',         'icon' => 'fa-pen-alt'],
@@ -874,6 +875,21 @@ function getPrimaryWingHeadLinks(): array {
     ]));
 }
 
+function _monteApprovalsLabel(): string {
+    try {
+        $st = getDB()->prepare(
+            "SELECT COUNT(DISTINCT CONCAT(mda.class_id,'-',mda.subject_id,'-',mda.teacher_id))
+             FROM montessori_daily_assessments mda
+             JOIN classes c ON c.id=mda.class_id
+             WHERE c.is_montessori=1 AND mda.publish_status='pending_review'"
+        );
+        $st->execute();
+        $n = (int)$st->fetchColumn();
+        if ($n > 0) return 'FA Approvals <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem">'.$n.'</span>';
+    } catch (Exception $e) {}
+    return 'FA Approvals';
+}
+
 // ── VP Montessori Campus sidebar links ────────────────────────────
 function getVpMontessoriLinks(): array {
     $isTeaching = hasTeacherAssignments();
@@ -887,6 +903,7 @@ function getVpMontessoriLinks(): array {
         ['href'=>'/portal/vp-montessori/notices.php',             'icon'=>'<i class="fas fa-bell"></i>',                        'label'=>'Notices',              'key'=>'notices'],
         ['href'=>'/portal/vp-montessori/teachers.php',            'icon'=>'<i class="fas fa-chalkboard-teacher"></i>',          'label'=>'Montessori Teachers',  'key'=>'teachers'],
         ['href'=>'/portal/vp-montessori/class-assignments.php', 'icon'=>'<i class="fas fa-users-cog"></i>',                   'label'=>'Class Assignments',    'key'=>'class-assignments'],
+        hasPermission('monte_result_approvals') ? ['href'=>'/portal/vp-montessori/result-approvals.php', 'icon'=>'<i class="fas fa-clipboard-check"></i>', 'label'=>_monteApprovalsLabel(), 'key'=>'result-approvals'] : null,
         hasPermission('diary')       ? ['href'=>'/portal/teacher/diary.php',           'icon'=>'<i class="fas fa-book-open"></i>',                'label'=>'Daily Diary',          'key'=>'diary']       : null,
         hasPermission('wh_students')     ? ['href'=>'/portal/vp-montessori/students.php',  'icon'=>'<i class="fas fa-user-graduate"></i>',   'label'=>'Students',      'key'=>'students']   : null,
         hasPermission('wh_classes')      ? ['href'=>'/portal/admin/classes.php',           'icon'=>'<i class="fas fa-chalkboard"></i>',      'label'=>'Classes & Subjects', 'key'=>'classes'] : null,
@@ -990,7 +1007,7 @@ function getRecentNotifications(int $userId, int $limit = 6): array {
 function getApproversForWing(string $wing): array {
     if ($wing === 'montessori') {
         try {
-            $st = getDB()->prepare("SELECT id FROM users WHERE role = 'wing_head' AND status='active'");
+            $st = getDB()->prepare("SELECT id FROM users WHERE role = 'vp_montessori' AND status='active'");
             $st->execute();
             return array_column($st->fetchAll(), 'id');
         } catch (Exception $e) { return []; }

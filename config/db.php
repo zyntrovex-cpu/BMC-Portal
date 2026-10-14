@@ -875,6 +875,30 @@ function getDB(): PDO {
             ) ENGINE=InnoDB");
         } catch (Exception $e) {}
 
+        // Group 33: Approval workflow for Montessori Formative Assessment
+        try {
+            $mdaCols33 = array_flip($pdo->query("SHOW COLUMNS FROM montessori_daily_assessments")->fetchAll(PDO::FETCH_COLUMN));
+            if (!isset($mdaCols33['publish_status']))
+                $pdo->exec("ALTER TABLE montessori_daily_assessments
+                            ADD COLUMN publish_status ENUM('draft','pending_review','changes_requested','approved','published')
+                            NOT NULL DEFAULT 'published'
+                            COMMENT 'Formative assessment approval state'");
+            if (!isset($mdaCols33['submitted_at']))
+                $pdo->exec("ALTER TABLE montessori_daily_assessments ADD COLUMN submitted_at DATETIME NULL DEFAULT NULL");
+            if (!isset($mdaCols33['review_note']))
+                $pdo->exec("ALTER TABLE montessori_daily_assessments ADD COLUMN review_note TEXT NULL DEFAULT NULL");
+            if (!isset($mdaCols33['reviewed_by']))
+                $pdo->exec("ALTER TABLE montessori_daily_assessments ADD COLUMN reviewed_by INT NULL DEFAULT NULL");
+            if (!isset($mdaCols33['published_by']))
+                $pdo->exec("ALTER TABLE montessori_daily_assessments ADD COLUMN published_by INT NULL DEFAULT NULL");
+            if (!isset($mdaCols33['published_at']))
+                $pdo->exec("ALTER TABLE montessori_daily_assessments ADD COLUMN published_at DATETIME NULL DEFAULT NULL");
+            // Seed monte_result_approvals permission for existing vp_montessori users
+            $pdo->exec("INSERT IGNORE INTO user_permissions (user_id, permission, granted)
+                SELECT u.id, 'monte_result_approvals', 1
+                FROM users u WHERE u.role='vp_montessori' AND u.status='active'");
+        } catch (Exception $e) {}
+
         // Group 32: Deduplicate Botany and Zoology — merge all FK references to canonical record
         try {
             foreach ([['Botany', 'BOT'], ['Zoology', 'ZOO']] as [$subName, $canonCode]) {

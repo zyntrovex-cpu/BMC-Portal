@@ -93,12 +93,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/portal/montessori/assessments.php?class_id='.$classId.'&student_id='.$studentId.'&date='.urlencode($date));
         }
 
-        // Insert new assessment record
+        // Insert new assessment record (draft — requires VP approval before students can see it)
         $db->prepare(
             'INSERT INTO montessori_daily_assessments
-             (class_id,student_id,subject_id,topic,assessment_date,criteria,teacher_id)
-             VALUES (?,?,?,?,?,?,?)'
-        )->execute([$classId,$studentId,$subjectId,$topic?:null,$date,json_encode($criteria),$teacher?$teacher['id']:1]);
+             (class_id,student_id,subject_id,topic,assessment_date,criteria,teacher_id,publish_status)
+             VALUES (?,?,?,?,?,?,?,?)'
+        )->execute([$classId,$studentId,$subjectId,$topic?:null,$date,json_encode($criteria),$teacher?$teacher['id']:1,'draft']);
         $assessmentId = (int)$db->lastInsertId();
 
         // Insert entry for this assessment
@@ -159,6 +159,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirect('/portal/montessori/assessments.php?class_id='.$classId.'&student_id='.$studentId.'&subject_id='.$subjectId);
             }
         }
+        // Block editing if already submitted or published
+        try {
+            $sChk = $db->prepare("SELECT COALESCE(publish_status,'published') AS ps FROM montessori_daily_assessments WHERE id=?");
+            $sChk->execute([$assessmentId]);
+            $sRow = $sChk->fetch();
+            if ($sRow && !in_array($sRow['ps'], ['draft','changes_requested'])) {
+                setFlash('danger','Cannot edit — this assessment has been submitted for VP review. Ask VP to return it for correction.');
+                redirect('/portal/montessori/assessments.php?class_id='.$classId.'&student_id='.$studentId.'&subject_id='.$subjectId);
+            }
+        } catch (Exception $e) {}
 
         $db->prepare(
             'UPDATE montessori_daily_assessments
@@ -205,17 +215,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $studentId = (int)($_POST['student_id']    ?? 0);
         $subjectId = (int)($_POST['subject_id']    ?? 0);
         if ($teacher) {
-            $chk = $db->prepare('SELECT id FROM montessori_daily_assessments WHERE id=? AND teacher_id=?');
+            $chk = $db->prepare("SELECT id, COALESCE(publish_status,'published') AS publish_status FROM montessori_daily_assessments WHERE id=? AND teacher_id=?");
             $chk->execute([$aId,$teacher['id']]);
-            if ($chk->fetch()) {
-                $db->prepare('DELETE FROM montessori_daily_assessments WHERE id=?')->execute([$aId]);
-                logActivity($user['id'],'montessori_assessment_delete',"Deleted assessment #$aId");
-                setFlash('success','Assessment deleted.');
+            $delRow = $chk->fetch();
+            if ($delRow) {
+                if (!in_array($delRow['publish_status'], ['draft','changes_requested'])) {
+                    setFlash('danger','Cannot delete — this assessment has been submitted for VP review.');
+                } else {
+                    $db->prepare('DELETE FROM montessori_daily_assessments WHERE id=?')->execute([$aId]);
+                    logActivity($user['id'],'montessori_assessment_delete',"Deleted assessment #$aId");
+                    setFlash('success','Assessment deleted.');
+                }
             } else {
                 setFlash('danger','Not authorized to delete this assessment.');
             }
         }
         redirect('/portal/montessori/assessments.php?class_id='.$classId.'&student_id='.$studentId.($subjectId?'&subject_id='.$subjectId:''));
+    }
+
+    if ($action === 'submit_class_subject') {
+        $classId   = (int)($_POST['class_id']   ?? 0);
+        $subjectId = (int)($_POST['subject_id'] ?? 0);
+        if (!$classId || !$subjectId || !$teacher) {
+            setFlash('danger', 'Missing required fields for submission.');
+            redirect('/portal/montessori/assessments.php');
+        }
+        $stCount = $db->prepare(
+            "SELECT COUNT(*) FROM montessori_daily_assessments
+             WHERE class_id=? AND subject_id=? AND teacher_id=? AND COALESCE(publish_status,'published') IN ('draft','changes_requested')"
+        );
+        $stCount->execute([$classId,$subjectId,$teacher['id']]);
+        $submitCount = (int)$stCount->fetchColumn();
+        if ($submitCount === 0) {
+            setFlash('warning', 'No draft assessments to submit for this class and subject.');
+        } else {
+            $db->prepare(
+                "UPDATE montessori_daily_assessments
+                 SET publish_status='pending_review', submitted_at=NOW(), review_note=NULL
+                 WHERE class_id=? AND subject_id=? AND teacher_id=? AND COALESCE(publish_status,'published') IN ('draft','changes_requested')"
+            )->execute([$classId,$subjectId,$teacher['id']]);
+            try {
+                foreach (getApproversForWing('montessori') as $vpUid) {
+                    createNotification((int)$vpUid, 'monte_result_submitted',
+                        h($user['name']) . " submitted $submitCount Formative Assessment(s) for VP review.",
+                        0, 'montessori_assessment');
+                }
+            } catch (Exception $e) {}
+            logActivity($user['id'],'monte_assessment_submit',"Submitted $submitCount FA(s) for class #$classId, subject #$subjectId");
+            setFlash('success', "$submitCount assessment(s) submitted to VP Montessori for review.");
+        }
+        redirect('/portal/montessori/assessments.php?class_id='.$classId.'&subject_id='.$subjectId);
     }
 }
 
@@ -348,6 +397,31 @@ if ($selStudentId && $selSubjectId) {
         }
     } catch (Exception $e) {}
 }
+
+// Load approval status counts for the selected class+subject (teacher's own records)
+$statusCounts = [];
+$reviewNote   = null;
+if ($selClassId && $selSubjectId && $teacher) {
+    try {
+        $scSt = $db->prepare(
+            "SELECT COALESCE(publish_status,'published') AS ps, COUNT(*) AS cnt
+             FROM montessori_daily_assessments
+             WHERE class_id=? AND subject_id=? AND teacher_id=?
+             GROUP BY ps"
+        );
+        $scSt->execute([$selClassId,$selSubjectId,$teacher['id']]);
+        foreach ($scSt->fetchAll() as $r) $statusCounts[$r['ps']] = (int)$r['cnt'];
+        // Most recent review_note for changes_requested records
+        $rnSt = $db->prepare(
+            "SELECT review_note FROM montessori_daily_assessments
+             WHERE class_id=? AND subject_id=? AND teacher_id=? AND publish_status='changes_requested'
+             AND review_note IS NOT NULL ORDER BY updated_at DESC LIMIT 1"
+        );
+        $rnSt->execute([$selClassId,$selSubjectId,$teacher['id']]);
+        $reviewNote = $rnSt->fetchColumn() ?: null;
+    } catch (Exception $e) {}
+}
+
 if (empty($criteria) && $selSubject) {
     // Try template first; fall back to subject-keyword defaults
     $criteriaFromTemplate = false;
@@ -659,6 +733,63 @@ $links = match($user['role']) {
       $formDate   = $editId ? h($selDate) : date('Y-m-d');
     ?>
 
+    <?php if ($teacher && ($statusCounts || !empty($assessmentList))): ?>
+    <!-- Approval Status Bar ─────────────────────────────────── -->
+    <?php
+      $sDraft    = $statusCounts['draft']             ?? 0;
+      $sPending  = $statusCounts['pending_review']    ?? 0;
+      $sChanges  = $statusCounts['changes_requested'] ?? 0;
+      $sApproved = $statusCounts['approved']          ?? 0;
+      $sPublished= $statusCounts['published']         ?? 0;
+      $canSubmit = ($sDraft + $sChanges) > 0;
+    ?>
+    <div class="sec-card mb-3" style="border:1px solid #e2e8f0">
+      <div style="padding:12px 16px">
+        <?php if ($reviewNote): ?>
+        <div class="mb-2 p-2 rounded" style="background:#fef2f2;border:1px solid #fecaca;font-size:.8rem;color:#991b1b">
+          <i class="fas fa-comment-alt me-1"></i>
+          <strong>VP Feedback:</strong> <?= h($reviewNote) ?>
+        </div>
+        <?php endif; ?>
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span style="font-size:.78rem;font-weight:600;color:#374151">
+              <i class="fas fa-layer-group me-1 text-secondary"></i>Class totals for <?= h($selSubject['name']) ?>:
+            </span>
+            <?php if ($sDraft):    ?><span class="badge bg-secondary"><?= $sDraft ?> Draft</span><?php endif; ?>
+            <?php if ($sChanges):  ?><span class="badge bg-danger"><?= $sChanges ?> Changes Requested</span><?php endif; ?>
+            <?php if ($sPending):  ?><span class="badge bg-warning text-dark"><?= $sPending ?> Pending VP Review</span><?php endif; ?>
+            <?php if ($sApproved): ?><span class="badge bg-success"><?= $sApproved ?> Approved</span><?php endif; ?>
+            <?php if ($sPublished):?><span class="badge bg-primary"><?= $sPublished ?> Published</span><?php endif; ?>
+          </div>
+          <?php if ($canSubmit): ?>
+          <form method="POST" class="d-inline"
+                onsubmit="return confirm('Submit <?= ($sDraft + $sChanges) ?> assessment(s) for VP Montessori review?\n\nStudents will NOT see results until the VP approves and publishes them.')">
+            <input type="hidden" name="action"     value="submit_class_subject">
+            <input type="hidden" name="class_id"   value="<?= $selClassId ?>">
+            <input type="hidden" name="subject_id" value="<?= $selSubjectId ?>">
+            <button class="btn btn-sm btn-warning" style="font-size:.8rem">
+              <i class="fas fa-paper-plane me-1"></i>Submit <?= ($sDraft + $sChanges) ?> for VP Review
+            </button>
+          </form>
+          <?php elseif ($sPending): ?>
+          <span style="font-size:.79rem;color:#b45309;background:#fef3c7;padding:4px 12px;border-radius:20px">
+            <i class="fas fa-clock me-1"></i>Awaiting VP Approval
+          </span>
+          <?php elseif ($sApproved): ?>
+          <span style="font-size:.79rem;color:#166534;background:#dcfce7;padding:4px 12px;border-radius:20px">
+            <i class="fas fa-check me-1"></i>Approved — Awaiting Publication
+          </span>
+          <?php elseif ($sPublished && !$sDraft && !$sChanges && !$sPending && !$sApproved): ?>
+          <span style="font-size:.79rem;color:#1d4ed8;background:#dbeafe;padding:4px 12px;border-radius:20px">
+            <i class="fas fa-check-double me-1"></i>All Published
+          </span>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Assessment Header ─────────────────────────────────────── -->
     <div class="sec-card mb-3" style="overflow:hidden">
       <div style="background:linear-gradient(90deg,<?= $meta['ic'] ?>,<?= $meta['ic'] ?>cc);color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -731,7 +862,24 @@ $links = match($user['role']) {
               <?php if ($aRec['topic']): ?>
               <span style="font-size:.77rem;color:var(--t2)"><?=h($aRec['topic'])?></span>
               <?php endif; ?>
+              <?php
+                $aPs = $aRec['publish_status'] ?? 'published';
+                $aPsBadge = match($aPs) {
+                    'draft'             => ['bg'=>'#f3f4f6','c'=>'#6b7280','label'=>'Draft'],
+                    'pending_review'    => ['bg'=>'#fef3c7','c'=>'#b45309','label'=>'Pending VP'],
+                    'changes_requested' => ['bg'=>'#fee2e2','c'=>'#991b1b','label'=>'Changes Req.'],
+                    'approved'          => ['bg'=>'#dcfce7','c'=>'#15803d','label'=>'Approved'],
+                    'published'         => ['bg'=>'#dbeafe','c'=>'#1d4ed8','label'=>'Published'],
+                    default             => ['bg'=>'#f3f4f6','c'=>'#6b7280','label'=>$aPs],
+                };
+              ?>
+              <span style="background:<?=$aPsBadge['bg']?>;color:<?=$aPsBadge['c']?>;font-size:.67rem;font-weight:600;padding:1px 8px;border-radius:10px"><?=$aPsBadge['label']?></span>
             </div>
+            <?php if ($aPs === 'changes_requested' && !empty($aRec['review_note'])): ?>
+            <div style="font-size:.75rem;color:#991b1b;background:#fff1f2;border:1px solid #fecdd3;border-radius:6px;padding:4px 10px;margin-top:4px">
+              <i class="fas fa-exclamation-circle me-1"></i><strong>VP Note:</strong> <?=h($aRec['review_note'])?>
+            </div>
+            <?php endif; ?>
             <?php if (!empty($aRatings)): ?>
             <div class="d-flex flex-wrap gap-1 mt-1">
               <?php foreach ($aRatings as $crit => $val): if (!$val) continue;
@@ -746,7 +894,7 @@ $links = match($user['role']) {
             <?php endif; ?>
           </div>
           <div class="d-flex gap-1 flex-shrink-0">
-            <?php if ($teacher): ?>
+            <?php if ($teacher && in_array($aPs, ['draft','changes_requested'])): ?>
             <a href="?class_id=<?=$selClassId?>&student_id=<?=$selStudentId?>&subject_id=<?=$selSubjectId?>&edit_id=<?=$aRec['id']?>"
                class="btn btn-xs btn-outline-primary" style="font-size:.74rem;padding:3px 9px" title="Edit">
               <i class="fas fa-edit me-1"></i>Edit
@@ -762,6 +910,8 @@ $links = match($user['role']) {
                 <i class="fas fa-trash-alt"></i>
               </button>
             </form>
+            <?php elseif ($teacher && $aPs !== 'draft' && $aPs !== 'changes_requested'): ?>
+            <span style="font-size:.7rem;color:#94a3b8;white-space:nowrap"><i class="fas fa-lock me-1"></i>Locked</span>
             <?php endif; ?>
           </div>
         </div>

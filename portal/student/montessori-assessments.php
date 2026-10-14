@@ -39,12 +39,12 @@ $offset        = ($page - 1) * $perPage;
 $subjList = [];
 try {
     $slSt = $db->prepare(
-        'SELECT DISTINCT s.id,s.name
+        "SELECT DISTINCT s.id,s.name
          FROM montessori_daily_assessment_entries e
          JOIN montessori_daily_assessments mda ON mda.id=e.assessment_id
          JOIN subjects s ON mda.subject_id=s.id
-         WHERE e.student_id=?
-         ORDER BY s.name'
+         WHERE e.student_id=? AND COALESCE(mda.publish_status,'published')='published'
+         ORDER BY s.name"
     );
     $slSt->execute([$studentId]);
     $subjList = $slSt->fetchAll();
@@ -62,7 +62,7 @@ try {
         "SELECT COUNT(*)
          FROM montessori_daily_assessment_entries e
          JOIN montessori_daily_assessments mda ON mda.id=e.assessment_id
-         WHERE e.student_id=? $subjCond"
+         WHERE e.student_id=? AND COALESCE(mda.publish_status,'published')='published' $subjCond"
     );
     $cntSt->execute($params);
     $total = (int)$cntSt->fetchColumn();
@@ -76,7 +76,7 @@ try {
          FROM montessori_daily_assessment_entries e
          JOIN montessori_daily_assessments mda ON mda.id=e.assessment_id
          JOIN subjects s ON mda.subject_id=s.id
-         WHERE e.student_id=? $subjCond
+         WHERE e.student_id=? AND COALESCE(mda.publish_status,'published')='published' $subjCond
          ORDER BY mda.assessment_date DESC, s.name
          LIMIT ? OFFSET ?"
     );
