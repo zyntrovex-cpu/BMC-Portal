@@ -874,6 +874,41 @@ function getDB(): PDO {
                 FOREIGN KEY (updated_by) REFERENCES users(id)    ON DELETE SET NULL
             ) ENGINE=InnoDB");
         } catch (Exception $e) {}
+
+        // Group 32: Deduplicate Botany and Zoology — merge all FK references to canonical record
+        try {
+            foreach ([['Botany', 'BOT'], ['Zoology', 'ZOO']] as [$subName, $canonCode]) {
+                $rows = $pdo->prepare("SELECT id, code FROM subjects WHERE name = ? ORDER BY id ASC");
+                $rows->execute([$subName]);
+                $rows = $rows->fetchAll(PDO::FETCH_ASSOC);
+                if (count($rows) <= 1) continue;
+                // Prefer the row whose code matches the canonical code, else take lowest id
+                $keep = null;
+                foreach ($rows as $r) { if ($r['code'] === $canonCode) { $keep = $r; break; } }
+                if (!$keep) $keep = $rows[0];
+                $canonId = (int)$keep['id'];
+                foreach ($rows as $r) {
+                    if ((int)$r['id'] === $canonId) continue;
+                    $dupId = (int)$r['id'];
+                    // Merge class_subjects — only for classes not already linked to canonical
+                    $pdo->exec("UPDATE class_subjects SET subject_id=$canonId
+                                WHERE subject_id=$dupId
+                                  AND class_id NOT IN (SELECT class_id FROM (SELECT class_id FROM class_subjects WHERE subject_id=$canonId) _t)");
+                    $pdo->exec("DELETE FROM class_subjects WHERE subject_id=$dupId");
+                    // Merge assessments
+                    $pdo->exec("UPDATE assessments SET subject_id=$canonId WHERE subject_id=$dupId");
+                    // Merge montessori_assessment_templates
+                    $pdo->exec("DELETE FROM montessori_assessment_templates
+                                WHERE subject_id=$dupId
+                                  AND class_id IN (SELECT class_id FROM (SELECT class_id FROM montessori_assessment_templates WHERE subject_id=$canonId) _t2)");
+                    $pdo->exec("UPDATE montessori_assessment_templates SET subject_id=$canonId WHERE subject_id=$dupId");
+                    // Merge montessori_daily_assessments if table exists
+                    try { $pdo->exec("UPDATE montessori_daily_assessments SET subject_id=$canonId WHERE subject_id=$dupId"); } catch (Exception $e3) {}
+                    // Remove duplicate subject
+                    $pdo->exec("DELETE FROM subjects WHERE id=$dupId");
+                }
+            }
+        } catch (Exception $e) {}
     }
     return $pdo;
 }

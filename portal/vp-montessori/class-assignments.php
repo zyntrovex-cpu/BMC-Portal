@@ -459,7 +459,8 @@ $links = getVpMontessoriLinks();
           <select name="teacher_id" class="form-select form-select-sm" style="min-width:200px">
             <option value="">— No teacher —</option>
             <?php foreach ($teachers as $t): ?>
-            <option value="<?= $t['teacher_id'] ?>">
+            <option value="<?= $t['teacher_id'] ?>"
+                    <?= ($classTeacher && $classTeacher['teacher_id'] == $t['teacher_id']) ? 'selected' : '' ?>>
               <?= h($t['name']) ?><?= $t['emp_id'] ? ' ('.$t['emp_id'].')' : '' ?>
             </option>
             <?php endforeach; ?>

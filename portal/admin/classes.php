@@ -344,9 +344,10 @@ if ($viewClassId) {
     }
     // $viewClass will be null if a VP tries to access a class outside their wing
     // (because $classes is already filtered to $vpWing when $isVp is true)
-    $isNonSubjectClass = $viewClass && in_array($viewClass['wing'] ?? 'main', ['montessori', 'ilc']);
+    $isNonSubjectClass  = $viewClass && ($viewClass['wing'] ?? 'main') === 'ilc';
+    $isMontessoriClass  = $viewClass && ($viewClass['wing'] ?? 'main') === 'montessori';
 
-    if ($isNonSubjectClass) {
+    if ($isNonSubjectClass || $isMontessoriClass) {
         try {
             $ctSt = $db->prepare(
                 'SELECT cta.teacher_id, u.name AS teacher_name
@@ -358,7 +359,8 @@ if ($viewClassId) {
             $ctSt->execute([$viewClassId]);
             $classTeacher = $ctSt->fetch() ?: null;
         } catch (PDOException $e) {}
-    } else {
+    }
+    if (!$isNonSubjectClass) {
         try {
             $cssSt = $db->prepare(
                 'SELECT cs.id, s.name AS subject_name, s.code, u.name AS teacher_name
@@ -578,18 +580,17 @@ $activeKey = 'classes';
     <div class="sec-card mb-3">
       <div class="sec-card-header d-flex align-items-center gap-2">
         <i class="fas fa-chalkboard-teacher me-1"></i>
-        <?php if ($isNonSubjectClass): ?>Class Teacher —<?php else: ?>Subjects &amp; Teachers —<?php endif; ?>
+        <?php if ($isNonSubjectClass): ?>Class Teacher —<?php elseif ($isMontessoriClass): ?>Class Teacher &amp; Subjects —<?php else: ?>Subjects &amp; Teachers —<?php endif; ?>
         <strong><?= h($viewClass['name']) ?></strong>
         <?= wingBadgeClass($viewClass['wing']) ?>
       </div>
       <div style="padding:14px">
 
       <?php if ($isNonSubjectClass): ?>
-        <!-- Montessori / ILC: assign a single class teacher (no subject) -->
+        <!-- ILC: assign a single class teacher (no subject) -->
         <div class="alert alert-info py-2 px-3 mb-3" style="font-size:.83rem">
           <i class="fas fa-info-circle me-1"></i>
-          This is a <strong><?= ucfirst($viewClass['wing']) ?></strong> class.
-          Assign one Class Teacher — no subject selection required.
+          This is an <strong>ILC</strong> class. Assign one Class Teacher — no subject selection required.
         </div>
         <form method="POST" class="d-flex gap-2 flex-wrap align-items-end mb-3">
           <input type="hidden" name="action"   value="assign_class_teacher">
@@ -635,7 +636,60 @@ $activeKey = 'classes';
         <?php endif; ?>
 
       <?php else: ?>
-        <!-- Main Campus: assign subjects + optional teacher -->
+        <?php if ($isMontessoriClass): ?>
+        <!-- Montessori: class teacher block -->
+        <div class="mb-4">
+          <h6 style="font-size:.82rem;font-weight:700;color:#92400e;margin-bottom:10px">
+            <i class="fas fa-user-tie me-1"></i>Class Teacher
+          </h6>
+          <form method="POST" class="d-flex gap-2 flex-wrap align-items-end mb-3">
+            <input type="hidden" name="action"   value="assign_class_teacher">
+            <input type="hidden" name="class_id" value="<?= $viewClassId ?>">
+            <div>
+              <label class="form-label fw-semibold" style="font-size:.82rem">Class Teacher <span class="text-danger">*</span></label>
+              <select name="teacher_id" class="form-select form-select-sm" required style="min-width:200px">
+                <option value="">— Select teacher —</option>
+                <?php
+                $staffRoleLabels = ['vp_main'=>'VP Main','ilc_vp'=>'ILC VP','wing_head'=>'Coord.','vp_montessori'=>'VP Mont.','examination_head'=>'Exam Head'];
+                foreach ($teachers as $t):
+                  $roleTag = isset($staffRoleLabels[$t['role']]) ? ' [' . $staffRoleLabels[$t['role']] . ']' : '';
+                  $sel = ($classTeacher && $classTeacher['teacher_id'] == $t['id']) ? 'selected' : '';
+                ?>
+                <option value="<?= $t['id'] ?>" <?= $sel ?>><?= h($t['name'] . $roleTag) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-sm btn-success">
+              <i class="fas fa-user-check me-1"></i><?= $classTeacher ? 'Change' : 'Assign' ?>
+            </button>
+          </form>
+          <?php if ($classTeacher): ?>
+          <div class="d-flex align-items-center gap-3 p-3 rounded" style="background:#f0fdf4;border:1px solid #bbf7d0;max-width:400px">
+            <i class="fas fa-user-tie text-success fa-lg"></i>
+            <div class="flex-grow-1">
+              <div class="fw-semibold"><?= h($classTeacher['teacher_name']) ?></div>
+              <div style="font-size:.78rem;color:#6b7280">Class Teacher</div>
+            </div>
+            <form method="POST" class="d-inline" onsubmit="return confirm('Remove class teacher?')">
+              <input type="hidden" name="action"   value="remove_class_teacher">
+              <input type="hidden" name="class_id" value="<?= $viewClassId ?>">
+              <button class="btn btn-xs btn-outline-danger" style="font-size:.73rem;padding:2px 8px">
+                <i class="fas fa-times me-1"></i>Remove
+              </button>
+            </form>
+          </div>
+          <?php else: ?>
+          <div class="text-center text-muted py-2" style="font-size:.84rem">
+            <i class="fas fa-user-slash fa-lg mb-1 d-block opacity-25"></i>No class teacher assigned yet.
+          </div>
+          <?php endif; ?>
+        </div>
+        <hr style="border-color:#fed7aa;margin:16px 0">
+        <h6 style="font-size:.82rem;font-weight:700;color:#92400e;margin-bottom:10px">
+          <i class="fas fa-book me-1"></i>Subject Assignments
+        </h6>
+        <?php endif; ?>
+        <!-- Main Campus / Montessori: assign subjects + optional teacher -->
         <form method="POST" class="d-flex gap-2 flex-wrap align-items-end mb-3">
           <input type="hidden" name="action"     value="assign_subject">
           <input type="hidden" name="class_id"   value="<?= $viewClassId ?>">

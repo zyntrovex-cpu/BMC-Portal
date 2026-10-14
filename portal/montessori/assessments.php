@@ -649,7 +649,7 @@ $links = match($user['role']) {
 
     <?php if ($selSubjectId && $selSubject):
       $meta       = monteSubjectMeta($selSubject['name']);
-      $showForm   = ($selMode === 'new' || $editId);
+      $showForm   = ($selMode === 'new' || $editId || empty($assessmentList));
       $aId        = $assessment ? $assessment['id'] : 0;
       $topicVal   = $assessment ? ($assessment['topic'] ?? '') : '';
       $ratings    = $entry ? ($entry['ratings_arr'] ?? []) : [];

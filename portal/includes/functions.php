@@ -230,7 +230,6 @@ function getRolePermissions(string $role): array {
             'complaints'  => ['label' => 'View Complaints',     'icon' => 'fa-comment-alt'],
         ],
         'montessori_teacher' => [
-            'marks'       => ['label' => 'Assessments & Marks', 'icon' => 'fa-pen-alt'],
             'attendance'  => ['label' => 'Mark Attendance',     'icon' => 'fa-calendar-check'],
             'notices'     => ['label' => 'Post Notices',        'icon' => 'fa-bell'],
             'warnings'    => ['label' => 'Issue Warnings',      'icon' => 'fa-exclamation-triangle'],
@@ -272,6 +271,7 @@ function getRolePermissions(string $role): array {
         ],
         'vp_main' => [
             'vp_teachers'         => ['label' => 'Teachers',                     'icon' => 'fa-chalkboard-teacher'],
+            'vp_teacher_perms'    => ['label' => 'Teacher Permissions',          'icon' => 'fa-user-shield'],
             'vp_students'         => ['label' => 'Students',                     'icon' => 'fa-user-graduate'],
             'vp_attendance'       => ['label' => 'Attendance',                   'icon' => 'fa-calendar-check'],
             'vp_att_requests'     => ['label' => 'Attendance Requests',          'icon' => 'fa-edit'],
@@ -640,7 +640,6 @@ function getMonteTeacherLinks(): array {
         ['href'=>'/portal/montessori/anecdotal-records.php','icon'=>'<i class="fas fa-sticky-note"></i>',           'label'=>'Anecdotal Records',    'key'=>'anecdotal-records'],
         hasPermission('attendance') ? ['href'=>'/portal/teacher/attendance.php',   'icon'=>'<i class="fas fa-calendar-check"></i>',          'label'=>'Attendance',       'key'=>'attendance'] : null,
         ['href'=>'/portal/teacher/timetable.php',          'icon'=>'<i class="fas fa-table"></i>',                   'label'=>'Timetable',        'key'=>'timetable'],
-        ['href'=>'/portal/teacher/exam-datesheet.php',     'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',  'key'=>'exam-datesheet'],
         hasPermission('diary')      ? ['href'=>'/portal/teacher/diary.php',        'icon'=>'<i class="fas fa-book-open"></i>',               'label'=>'Daily Diary',      'key'=>'diary']      : null,
         hasPermission('notices')    ? ['href'=>'/portal/teacher/notices.php',      'icon'=>'<i class="fas fa-bell"></i>',                    'label'=>'Notices',          'key'=>'notices']    : null,
         hasPermission('warnings')   ? ['href'=>'/portal/admin/warnings.php',       'icon'=>'<i class="fas fa-exclamation-triangle"></i>',    'label'=>'Student Warnings', 'key'=>'warnings']   : null,
@@ -778,7 +777,8 @@ function getVpLinks(): array {
     $isTeaching = hasTeacherAssignments();
     return array_values(array_filter([
         ['href'=>'/portal/vp/dashboard.php',  'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',            'key'=>'dashboard'],
-        hasPermission('vp_teachers')     ? ['href'=>'/portal/vp/teachers.php',               'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teachers',             'key'=>'teachers']     : null,
+        hasPermission('vp_teachers')      ? ['href'=>'/portal/vp/teachers.php',               'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'Teachers',             'key'=>'teachers']     : null,
+        hasPermission('vp_teacher_perms') ? ['href'=>'/portal/vp/teacher-permissions.php',    'icon'=>'<i class="fas fa-user-shield"></i>',        'label'=>'Teacher Permissions',  'key'=>'teacher-permissions'] : null,
         ['href'=>'/portal/admin/classes.php',            'icon'=>'<i class="fas fa-chalkboard"></i>',        'label'=>'Classes & Subjects',   'key'=>'classes'],
         hasPermission('vp_students')     ? ['href'=>'/portal/vp/students.php',               'icon'=>'<i class="fas fa-user-graduate"></i>',      'label'=>'Students',             'key'=>'students']     : null,
         hasPermission('vp_attendance')   ? ['href'=>'/portal/vp/attendance.php',             'icon'=>'<i class="fas fa-calendar-check"></i>',     'label'=>'Attendance',           'key'=>'attendance']   : null,
@@ -808,7 +808,6 @@ function getWingHeadLinks(): array {
         ['href'=>'/portal/progress-report/form.php',          'icon'=>'<i class="fas fa-file-alt"></i>',                    'label'=>'Progress Report',      'key'=>'progress-report'],
         ['href'=>'/portal/montessori/assessments.php',        'icon'=>'<i class="fas fa-clipboard-check"></i>',             'label'=>'Formative Assessment', 'key'=>'monte-assessments'],
         ['href'=>'/portal/montessori/anecdotal-records.php',  'icon'=>'<i class="fas fa-sticky-note"></i>',                 'label'=>'Anecdotal Records',    'key'=>'anecdotal-records'],
-        $isTeaching ? ['href'=>'/portal/teacher/marks.php', 'icon'=>'<i class="fas fa-pen-alt"></i>', 'label'=>'Assessments & Marks', 'key'=>'marks'] : null,
         hasPermission('attendance') ? ['href'=>'/portal/teacher/attendance.php',  'icon'=>'<i class="fas fa-calendar-check"></i>',          'label'=>'Attendance',           'key'=>'attendance']  : null,
         ['href'=>'/portal/teacher/timetable.php',             'icon'=>'<i class="fas fa-table"></i>',                   'label'=>'Timetable',            'key'=>'timetable'],
         ['href'=>'/portal/wing-head/exam-datesheet.php',      'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',      'key'=>'exam-datesheet'],
@@ -884,7 +883,6 @@ function getVpMontessoriLinks(): array {
         ['href'=>'/portal/progress-report/form.php',              'icon'=>'<i class="fas fa-file-alt"></i>',                    'label'=>'Progress Report',      'key'=>'progress-report'],
         ['href'=>'/portal/montessori/assessments.php',            'icon'=>'<i class="fas fa-clipboard-check"></i>',             'label'=>'Formative Assessment', 'key'=>'monte-assessments'],
         ['href'=>'/portal/montessori/anecdotal-records.php',      'icon'=>'<i class="fas fa-sticky-note"></i>',                 'label'=>'Anecdotal Records',    'key'=>'anecdotal-records'],
-        $isTeaching ? ['href'=>'/portal/teacher/marks.php', 'icon'=>'<i class="fas fa-pen-alt"></i>', 'label'=>'Assessments & Marks', 'key'=>'marks'] : null,
         ['href'=>'/portal/vp-montessori/exam-datesheet.php',      'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',      'key'=>'exam-datesheet'],
         ['href'=>'/portal/vp-montessori/notices.php',             'icon'=>'<i class="fas fa-bell"></i>',                        'label'=>'Notices',              'key'=>'notices'],
         ['href'=>'/portal/vp-montessori/teachers.php',            'icon'=>'<i class="fas fa-chalkboard-teacher"></i>',          'label'=>'Montessori Teachers',  'key'=>'teachers'],
