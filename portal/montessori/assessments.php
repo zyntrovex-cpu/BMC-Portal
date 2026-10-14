@@ -723,7 +723,6 @@ $links = match($user['role']) {
 
     <?php if ($selSubjectId && $selSubject):
       $meta       = monteSubjectMeta($selSubject['name']);
-      $showForm   = ($selMode === 'new' || $editId || empty($assessmentList));
       $aId        = $assessment ? $assessment['id'] : 0;
       $topicVal   = $assessment ? ($assessment['topic'] ?? '') : '';
       $ratings    = $entry ? ($entry['ratings_arr'] ?? []) : [];
@@ -805,7 +804,7 @@ $links = match($user['role']) {
             </div>
           </div>
         </div>
-        <?php if ($showForm): ?>
+        <?php if ($editId): ?>
         <a href="?class_id=<?= $selClassId ?>&student_id=<?= $selStudentId ?>&subject_id=<?= $selSubjectId ?>"
            style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:7px;padding:5px 13px;font-size:.76rem;font-weight:600;text-decoration:none;white-space:nowrap">
           <i class="fas fa-arrow-left me-1"></i>Back to Records
@@ -814,29 +813,17 @@ $links = match($user['role']) {
       </div>
     </div>
 
-    <?php if (!$showForm): ?>
+    <?php if (!empty($assessmentList) && !$editId): ?>
     <!-- Assessment Records List ────────────────────────────────── -->
     <div class="sec-card mb-3">
       <div class="sec-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
         <span><i class="fas fa-list me-2"></i>Assessment Records (<?= count($assessmentList) ?>)</span>
         <?php if ($teacher): ?>
-        <a href="?class_id=<?= $selClassId ?>&student_id=<?= $selStudentId ?>&subject_id=<?= $selSubjectId ?>&mode=new"
-           class="btn btn-sm btn-success" style="font-size:.8rem">
-          <i class="fas fa-plus me-1"></i>New Formative Assessment
+        <a href="#assessment-form" class="btn btn-sm btn-outline-success" style="font-size:.8rem">
+          <i class="fas fa-plus me-1"></i>Add New Assessment ↓
         </a>
         <?php endif; ?>
       </div>
-      <?php if (empty($assessmentList)): ?>
-      <div class="text-center py-5" style="color:var(--t2)">
-        <i class="fas fa-clipboard fa-2x mb-2 d-block" style="opacity:.25"></i>
-        <p class="mb-0 fw-semibold" style="font-size:.85rem">No assessments yet for this subject</p>
-        <?php if ($teacher): ?>
-        <p class="mb-0 text-muted" style="font-size:.78rem;margin-top:4px">
-          Click <strong>New Formative Assessment</strong> to create the first one.
-        </p>
-        <?php endif; ?>
-      </div>
-      <?php else: ?>
       <?php
         $overallColors = ['AD'=>['bg'=>'#dcfce7','c'=>'#166534'],'ED'=>['bg'=>'#fef9c3','c'=>'#854d0e'],'EMD'=>['bg'=>'#fee2e2','c'=>'#991b1b']];
         foreach ($assessmentList as $aRec):
@@ -917,11 +904,10 @@ $links = match($user['role']) {
         </div>
       </div>
       <?php endforeach; ?>
-      <?php endif; ?>
     </div>
+    <?php endif; ?>
 
-    <?php else: ?>
-    <!-- STEP 3: Assessment Form (New or Edit) ───────────────────── -->
+    <!-- Assessment Form (New or Edit) ───────────────────────────── -->
     <form method="POST" id="assessment-form">
       <input type="hidden" name="action" value="<?= $formAction ?>">
       <?php if ($editId): ?><input type="hidden" name="assessment_id" value="<?= $aId ?>"><?php endif; ?>
@@ -1043,7 +1029,6 @@ $links = match($user['role']) {
         </div>
       </div><!-- /.sec-card -->
     </form>
-    <?php endif; // $showForm ?>
 
     <?php else: ?>
     <!-- Subject not yet selected -->
