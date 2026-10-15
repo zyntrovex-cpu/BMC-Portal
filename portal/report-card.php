@@ -11,6 +11,7 @@
  */
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/result_ranking.php';
 
 $user = requireAuth('admin', 'vp_main', 'student_affairs', 'student', 'wing_head', 'examination_head');
 $db   = getDB();
@@ -185,6 +186,27 @@ foreach ($bySubject as $sid => $sub) {
 $grandPct = $grandWTotal > 0
     ? round($grandWSum / $grandWTotal, 1)
     : ($grandMax > 0 ? round($grandObtained / $grandMax * 100, 1) : 0);
+
+// ── Class position (Main Campus only, published results only) ─────────────────
+$classPosition = null;
+$classTotal    = null;
+if (!$montessoriLowGrade && $student['class_id'] && $role !== 'student') {
+    // For staff/admin: compute position based on published results
+    try {
+        $classPosition = getStudentPosition($db, $studentId, (int)$student['class_id']);
+        // Count class size
+        $csSt = $db->prepare("SELECT COUNT(*) FROM students WHERE class_id=? AND deleted_at IS NULL");
+        $csSt->execute([$student['class_id']]);
+        $classTotal = (int)$csSt->fetchColumn();
+    } catch (Exception $e) {}
+} elseif (!$montessoriLowGrade && $student['class_id'] && $role === 'student') {
+    try {
+        $classPosition = getStudentPosition($db, $studentId, (int)$student['class_id']);
+        $csSt = $db->prepare("SELECT COUNT(*) FROM students WHERE class_id=? AND deleted_at IS NULL");
+        $csSt->execute([$student['class_id']]);
+        $classTotal = (int)$csSt->fetchColumn();
+    } catch (Exception $e) {}
+}
 
 // ── Attendance ────────────────────────────────────────────
 $attendance = getStudentAttendanceSummary($studentId);
@@ -683,6 +705,14 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
           <span class="rc-fld-lbl">Academic Session</span>
           <span class="rc-fld-val"><?= h($sessionYear) ?></span>
         </div>
+        <?php if ($classPosition !== null): ?>
+        <div>
+          <span class="rc-fld-lbl">Class Position</span>
+          <span class="rc-fld-val" style="color:<?= $classPosition <= 3 ? '#b8860b' : 'var(--ink)' ?>;font-weight:700">
+            <?= positionLabel($classPosition) ?><?= $classTotal ? ' / ' . $classTotal : '' ?>
+          </span>
+        </div>
+        <?php endif; ?>
         <?php if (!empty($student['father_name'])): ?>
         <div>
           <span class="rc-fld-lbl">Father's Name</span>
@@ -756,10 +786,26 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
       <div class="rc-kpi-lbl">Attendance</div>
     </div>
     <div class="rc-kpi-cell">
+      <?php if ($classPosition !== null && $classPosition <= 3): ?>
+      <div class="rc-kpi-ico"><i class="fas fa-trophy" style="color:#b8860b"></i></div>
+      <div class="rc-kpi-val" style="color:#b8860b"><?= positionLabel($classPosition) ?></div>
+      <div class="rc-kpi-sub">
+        <?php if ($classPosition === 1): ?>Class Topper<?php
+        elseif ($classPosition === 2): ?>Second Position<?php
+        else: ?>Third Position<?php endif; ?>
+      </div>
+      <div class="rc-kpi-lbl">Class Position</div>
+      <?php elseif ($classPosition !== null): ?>
+      <div class="rc-kpi-ico"><i class="fas fa-ranking-star" style="color:var(--muted)"></i></div>
+      <div class="rc-kpi-val" style="color:var(--muted)"><?= positionLabel($classPosition) ?></div>
+      <div class="rc-kpi-sub"><?= $classTotal ? 'of ' . $classTotal . ' students' : 'in class' ?></div>
+      <div class="rc-kpi-lbl">Class Position</div>
+      <?php else: ?>
       <div class="rc-kpi-ico"><i class="fas fa-book-open" style="color:var(--muted)"></i></div>
       <div class="rc-kpi-val" style="color:var(--muted)"><?= count($subjects) ?></div>
       <div class="rc-kpi-sub">subjects enrolled</div>
       <div class="rc-kpi-lbl">Total Subjects</div>
+      <?php endif; ?>
     </div>
   </div>
   <?php else: ?>

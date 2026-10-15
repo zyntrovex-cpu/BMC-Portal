@@ -122,7 +122,7 @@ $statusMap = [
 $statusCond = $statusMap[$activeTab] ?? "a.publish_status='pending_review'";
 
 $st = $db->prepare(
-    "SELECT a.id, a.title, a.name AS a_name, a.type, a.max_marks, a.weight, a.date,
+    "SELECT a.id, a.class_id, a.title, a.name AS a_name, a.type, a.max_marks, a.weight, a.date,
             a.publish_status, a.submitted_at, a.review_note, a.published_at,
             c.name AS class_name, s.name AS subject_name,
             u.name AS teacher_name,
@@ -187,8 +187,16 @@ $links = getVpLinks();
       <?php if ($classFilter): ?>
       <a href="?tab=<?= h($activeTab) ?>" class="btn btn-sm btn-outline-secondary">Clear</a>
       <?php endif; ?>
-      <div class="ms-auto" style="font-size:.82rem;color:#6b7280">
-        <i class="fas fa-info-circle me-1"></i>Main Campus assessments only
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <?php if ($activeTab === 'published'): ?>
+        <a href="result-export.php<?= $classFilter ? '?class_id='.$classFilter : '' ?>"
+           class="btn btn-success btn-sm">
+          <i class="fas fa-file-excel me-1"></i>Download Excel<?= $classFilter ? ' (this class)' : '' ?>
+        </a>
+        <?php endif; ?>
+        <span style="font-size:.82rem;color:#6b7280">
+          <i class="fas fa-info-circle me-1"></i>Main Campus only
+        </span>
       </div>
     </form>
   </div>
@@ -327,6 +335,12 @@ $links = getVpLinks();
             <?php endif; ?>
 
             <?php if ($a['publish_status'] === 'published'): ?>
+            <!-- Download Excel for this class -->
+            <a href="result-export.php?class_id=<?= (int)$a['class_id'] ?>"
+               class="btn btn-xs btn-success" style="font-size:.75rem;padding:3px 9px"
+               title="Download full class results as Excel">
+              <i class="fas fa-file-excel me-1"></i>Excel
+            </a>
             <!-- Unpublish (emergency rollback) -->
             <form method="POST" class="d-inline">
               <input type="hidden" name="action" value="unpublish">
