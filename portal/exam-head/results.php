@@ -232,6 +232,22 @@ $links = getExamHeadLinks();
         <a href="?" class="btn btn-sm btn-outline-secondary ms-1">Reset</a>
         <?php endif; ?>
       </div>
+      <?php if ($classId): ?>
+      <div class="col-auto ms-auto d-flex gap-2 flex-wrap align-items-end">
+        <a href="result-print.php?class_id=<?= $classId ?>" target="_blank"
+           class="btn btn-sm btn-outline-primary" title="Print / Save as PDF">
+          <i class="fas fa-print me-1"></i>Print / PDF
+        </a>
+        <a href="result-export.php?class_id=<?= $classId ?>"
+           class="btn btn-sm btn-success" title="Download Excel workbook">
+          <i class="fas fa-file-excel me-1"></i>Excel
+        </a>
+        <a href="result-word.php?class_id=<?= $classId ?>"
+           class="btn btn-sm btn-info text-white" title="Download Word document">
+          <i class="fas fa-file-word me-1"></i>Word
+        </a>
+      </div>
+      <?php endif; ?>
     </form>
   </div>
 </div>

@@ -188,10 +188,22 @@ $links = getVpLinks();
       <a href="?tab=<?= h($activeTab) ?>" class="btn btn-sm btn-outline-secondary">Clear</a>
       <?php endif; ?>
       <div class="ms-auto d-flex align-items-center gap-2">
-        <?php if ($activeTab === 'published'): ?>
-        <a href="result-export.php<?= $classFilter ? '?class_id='.$classFilter : '' ?>"
+        <?php if ($activeTab === 'published' && $classFilter): ?>
+        <a href="result-print.php?class_id=<?= $classFilter ?>" target="_blank"
+           class="btn btn-outline-primary btn-sm">
+          <i class="fas fa-print me-1"></i>Print / PDF
+        </a>
+        <a href="result-export.php?class_id=<?= $classFilter ?>"
            class="btn btn-success btn-sm">
-          <i class="fas fa-file-excel me-1"></i>Download Excel<?= $classFilter ? ' (this class)' : '' ?>
+          <i class="fas fa-file-excel me-1"></i>Excel
+        </a>
+        <a href="result-word.php?class_id=<?= $classFilter ?>"
+           class="btn btn-info text-white btn-sm">
+          <i class="fas fa-file-word me-1"></i>Word
+        </a>
+        <?php elseif ($activeTab === 'published'): ?>
+        <a href="result-export.php" class="btn btn-success btn-sm">
+          <i class="fas fa-file-excel me-1"></i>Download Excel
         </a>
         <?php endif; ?>
         <span style="font-size:.82rem;color:#6b7280">
@@ -335,11 +347,20 @@ $links = getVpLinks();
             <?php endif; ?>
 
             <?php if ($a['publish_status'] === 'published'): ?>
-            <!-- Download Excel for this class -->
+            <a href="result-print.php?class_id=<?= (int)$a['class_id'] ?>" target="_blank"
+               class="btn btn-xs btn-outline-primary" style="font-size:.75rem;padding:3px 9px"
+               title="Print / Save as PDF">
+              <i class="fas fa-print"></i>
+            </a>
             <a href="result-export.php?class_id=<?= (int)$a['class_id'] ?>"
                class="btn btn-xs btn-success" style="font-size:.75rem;padding:3px 9px"
-               title="Download full class results as Excel">
+               title="Download Excel">
               <i class="fas fa-file-excel me-1"></i>Excel
+            </a>
+            <a href="result-word.php?class_id=<?= (int)$a['class_id'] ?>"
+               class="btn btn-xs btn-info text-white" style="font-size:.75rem;padding:3px 9px"
+               title="Download Word">
+              <i class="fas fa-file-word"></i>
             </a>
             <!-- Unpublish (emergency rollback) -->
             <form method="POST" class="d-inline">

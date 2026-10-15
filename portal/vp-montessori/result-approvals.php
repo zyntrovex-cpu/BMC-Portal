@@ -235,8 +235,16 @@ $links = getVpMontessoriLinks();
       <?php if ($classFilter): ?>
       <a href="?tab=<?= h($activeTab) ?>" class="btn btn-sm btn-outline-secondary">Clear</a>
       <?php endif; ?>
-      <div class="ms-auto" style="font-size:.82rem;color:#6b7280">
-        <i class="fas fa-info-circle me-1"></i>Montessori campus assessments only
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <?php if ($activeTab === 'published' && $classFilter): ?>
+        <a href="fa-export.php?class_id=<?= $classFilter ?>"
+           class="btn btn-success btn-sm">
+          <i class="fas fa-file-excel me-1"></i>Export FA Results
+        </a>
+        <?php endif; ?>
+        <span style="font-size:.82rem;color:#6b7280">
+          <i class="fas fa-info-circle me-1"></i>Montessori only
+        </span>
       </div>
     </form>
   </div>

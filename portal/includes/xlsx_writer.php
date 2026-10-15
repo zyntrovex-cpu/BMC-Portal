@@ -1,42 +1,48 @@
 <?php
 /**
- * Minimal XLSX writer — pure PHP, no Composer required.
- * Uses ZipArchive (ext-zip, standard in PHP 8) to assemble
- * the OOXML package.
+ * Lightweight multi-sheet XLSX writer — pure PHP, no Composer.
+ * Uses ZipArchive (ext-zip, standard PHP 8) to assemble OOXML.
+ *
+ * CRITICAL FIX (v2): _sheetXml() must be called BEFORE _sharedStringsXml()
+ * because string cells are indexed lazily while sheet XML is generated.
+ * Prior version called them in the wrong order → empty shared-strings table
+ * → all string cells blank in Excel (only numeric columns visible).
  *
  * Usage:
- *   $xls = new XlsxWriter('Sheet1');
- *   $xls->setColumnWidths([25, 20, 12, 12, 8, 8, 10]);
- *   $xls->addRow(['Name','Marks','Grade'], 'header');
- *   $xls->addRow(['Ali', 85, 'A'], 'data');
- *   $xls->addRow(['TOTAL', 85, ''], 'footer');
+ *   $xls = new XlsxWriter('Results');
+ *   $xls->setColumnWidths([25, 14, 10]);
+ *   $xls->freezeRows(2);
+ *   $xls->addRow(['Name', 'Marks'], 'header');
+ *   $xls->addRow(['Ali', 85], 'data');
+ *
+ *   // Add a second sheet
+ *   $xls->nextSheet('Summary');
+ *   $xls->setColumnWidths([30, 15]);
+ *   $xls->addRow(['Metric', 'Value'], 'header');
+ *   $xls->addRow(['Total Students', 50], 'data');
+ *
  *   $xls->download('results.xlsx');
  */
 class XlsxWriter
 {
-    private string $sheetName;
-    /** @var array<int,array{cells:array,style:string}> */
-    private array $rows = [];
-    private array $colWidths = [];
-    private int $freezeRow = 0;
-    private bool $autoFilter = false;
-    private int $filterRow  = 1;
-
-    // Built-in style indexes (keep in sync with _stylesXml)
+    // ── Named style constants ──────────────────────────────────────────────────
+    // These map to cellXfs index numbers in _stylesXml()
     const S_DEFAULT = 0;
-    const S_HEADER  = 1;
-    const S_SUBHDR  = 2;
-    const S_DATA    = 3;
-    const S_ALTROW  = 4;
-    const S_FOOTER  = 5;
-    const S_GOLD1   = 6;  // 1st place
-    const S_GOLD2   = 7;  // 2nd place
-    const S_GOLD3   = 8;  // 3rd place
-    const S_TITLE   = 9;
-    const S_BOLD    = 10;
-    const S_PCT     = 11; // data + number format "0.0%"
-    const S_NUM     = 12; // data + number format "0.00"
-    const S_HEADER2 = 13; // secondary header (darker blue)
+    const S_HEADER  = 1;   // dark navy, white bold, centered
+    const S_SUBHDR  = 2;   // medium blue, white bold, centered
+    const S_DATA    = 3;   // white bg
+    const S_ALTROW  = 4;   // light-blue tint alt row
+    const S_FOOTER  = 5;   // dark navy, white bold
+    const S_GOLD1   = 6;   // 1st place — gold bg, dark text
+    const S_GOLD2   = 7;   // 2nd place — silver-grey bg
+    const S_GOLD3   = 8;   // 3rd place — warm tint
+    const S_TITLE   = 9;   // large bold navy (title row)
+    const S_BOLD    = 10;  // bold black
+    const S_PCT     = 11;  // data + "0.0%" number format
+    const S_NUM     = 12;  // data + "0.00" number format
+    const S_HEADER2 = 13;  // secondary header (very dark navy)
+    const S_CENTER  = 14;  // data, centered
+    const S_WARN    = 15;  // amber/orange tint (missing marks)
 
     private static array $styleMap = [
         'header'  => self::S_HEADER,
@@ -52,46 +58,83 @@ class XlsxWriter
         'bold'    => self::S_BOLD,
         'pct'     => self::S_PCT,
         'num'     => self::S_NUM,
+        'center'  => self::S_CENTER,
+        'warn'    => self::S_WARN,
         ''        => self::S_DEFAULT,
     ];
 
-    public function __construct(string $sheetName = 'Sheet1')
+    // ── Per-sheet state ────────────────────────────────────────────────────────
+    /** @var array<int,array{name:string,rows:array,colWidths:array,freezeRow:int,autoFilter:bool,filterRow:int}> */
+    private array $sheets        = [];
+    private int   $currentIdx    = 0;
+    // Per-sheet shared-string tables (built during _sheetXml generation)
+    private array $_strings      = [];
+    private array $_strIndex     = [];
+
+    public function __construct(string $firstSheetName = 'Sheet1')
     {
-        $this->sheetName = $sheetName;
+        $this->_newSheet($firstSheetName);
     }
+
+    /** Create and switch to a new sheet. Returns $this for chaining. */
+    public function nextSheet(string $name): static
+    {
+        $this->_newSheet($name);
+        return $this;
+    }
+
+    private function _newSheet(string $name): void
+    {
+        $this->sheets[] = [
+            'name'       => $name,
+            'rows'       => [],
+            'colWidths'  => [],
+            'freezeRow'  => 0,
+            'autoFilter' => false,
+            'filterRow'  => 1,
+        ];
+        $this->currentIdx = count($this->sheets) - 1;
+    }
+
+    // ── Sheet configuration (applies to current sheet) ─────────────────────────
 
     public function setColumnWidths(array $widths): void
     {
-        $this->colWidths = $widths;
+        $this->sheets[$this->currentIdx]['colWidths'] = $widths;
     }
 
     public function freezeRows(int $rows): void
     {
-        $this->freezeRow = $rows;
+        $this->sheets[$this->currentIdx]['freezeRow'] = $rows;
     }
 
-    /** Enable auto-filter on the given 1-based header row */
     public function enableAutoFilter(int $headerRow = 1): void
     {
-        $this->autoFilter = true;
-        $this->filterRow  = $headerRow;
+        $this->sheets[$this->currentIdx]['autoFilter']  = true;
+        $this->sheets[$this->currentIdx]['filterRow']   = $headerRow;
     }
 
+    // ── Row building (applies to current sheet) ────────────────────────────────
+
     /**
-     * @param array $cells  Each cell: scalar value, or ['v'=>value,'s'=>styleName]
-     * @param string $rowStyle  applied to cells that don't have their own style
+     * @param array  $cells      Each entry: scalar, or ['v'=>value,'s'=>styleName]
+     * @param string $rowStyle   Default style for cells that don't override
      */
     public function addRow(array $cells, string $rowStyle = ''): void
     {
-        $this->rows[] = ['cells' => $cells, 'style' => $rowStyle];
+        $this->sheets[$this->currentIdx]['rows'][] = [
+            'cells' => $cells,
+            'style' => $rowStyle,
+        ];
     }
 
     public function addBlankRow(): void
     {
-        $this->rows[] = ['cells' => [], 'style' => ''];
+        $this->sheets[$this->currentIdx]['rows'][] = ['cells' => [], 'style' => ''];
     }
 
-    /** Send XLSX to browser as a file download */
+    // ── Output ─────────────────────────────────────────────────────────────────
+
     public function download(string $filename): void
     {
         $data = $this->build();
@@ -103,39 +146,56 @@ class XlsxWriter
         exit;
     }
 
-    /** Return raw XLSX binary */
     public function build(): string
     {
         $tmpFile = tempnam(sys_get_temp_dir(), 'xlsx_');
-        $zip = new ZipArchive();
+        $zip     = new ZipArchive();
         $zip->open($tmpFile, ZipArchive::OVERWRITE);
 
-        $zip->addFromString('[Content_Types].xml',       $this->_contentTypesXml());
-        $zip->addFromString('_rels/.rels',               $this->_relsXml());
-        $zip->addFromString('xl/workbook.xml',           $this->_workbookXml());
-        $zip->addFromString('xl/_rels/workbook.xml.rels',$this->_workbookRelsXml());
-        $zip->addFromString('xl/styles.xml',             $this->_stylesXml());
-        $zip->addFromString('xl/sharedStrings.xml',      $this->_sharedStringsXml());
-        $zip->addFromString('xl/worksheets/sheet1.xml',  $this->_sheetXml());
-        $zip->close();
+        $numSheets = count($this->sheets);
 
+        // ── Generate sheet XMLs FIRST so _strings is populated ──────────────
+        $sheetXmls = [];
+        foreach ($this->sheets as $idx => $sheet) {
+            $sheetXmls[$idx] = $this->_sheetXml($sheet);
+        }
+        // NOW serialize shared strings (strings table is fully built)
+        $zip->addFromString('xl/sharedStrings.xml', $this->_sharedStringsXml());
+
+        // ── Fixed files ───────────────────────────────────────────────────────
+        $zip->addFromString('[Content_Types].xml',        $this->_contentTypesXml($numSheets));
+        $zip->addFromString('_rels/.rels',                $this->_relsXml());
+        $zip->addFromString('xl/workbook.xml',            $this->_workbookXml());
+        $zip->addFromString('xl/_rels/workbook.xml.rels', $this->_workbookRelsXml($numSheets));
+        $zip->addFromString('xl/styles.xml',              $this->_stylesXml());
+
+        // ── Sheet files ───────────────────────────────────────────────────────
+        foreach ($sheetXmls as $idx => $xml) {
+            $zip->addFromString('xl/worksheets/sheet' . ($idx + 1) . '.xml', $xml);
+        }
+
+        $zip->close();
         $data = file_get_contents($tmpFile);
         unlink($tmpFile);
         return $data;
     }
 
-    // ── XML builders ─────────────────────────────────────────────────────────
+    // ── XML builders ──────────────────────────────────────────────────────────
 
-    private function _contentTypesXml(): string
+    private function _contentTypesXml(int $numSheets): string
     {
+        $overrides = '';
+        for ($i = 1; $i <= $numSheets; $i++) {
+            $overrides .= '  <Override PartName="/xl/worksheets/sheet' . $i . '.xml"'
+                . ' ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' . "\n";
+        }
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml"  ContentType="application/xml"/>
-  <Override PartName="/xl/workbook.xml"            ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
-  <Override PartName="/xl/worksheets/sheet1.xml"   ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
-  <Override PartName="/xl/styles.xml"              ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
-  <Override PartName="/xl/sharedStrings.xml"       ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>
+  <Override PartName="/xl/workbook.xml"          ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+' . $overrides . '  <Override PartName="/xl/styles.xml"          ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+  <Override PartName="/xl/sharedStrings.xml"     ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>
 </Types>';
     }
 
@@ -149,118 +209,122 @@ class XlsxWriter
 
     private function _workbookXml(): string
     {
-        $sn = $this->_esc($this->sheetName);
+        $sheets = '';
+        foreach ($this->sheets as $i => $sh) {
+            $n   = $i + 1;
+            $rid = 'rId' . $n;
+            $sheets .= '<sheet name="' . $this->_esc($sh['name']) . '" sheetId="' . $n . '" r:id="' . $rid . '"/>';
+        }
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
           xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-  <sheets>
-    <sheet name="' . $sn . '" sheetId="1" r:id="rId1"/>
-  </sheets>
+  <sheets>' . $sheets . '</sheets>
 </workbook>';
     }
 
-    private function _workbookRelsXml(): string
+    private function _workbookRelsXml(int $numSheets): string
     {
+        $rels = '';
+        for ($i = 1; $i <= $numSheets; $i++) {
+            $rels .= '  <Relationship Id="rId' . $i . '"'
+                . ' Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"'
+                . ' Target="worksheets/sheet' . $i . '.xml"/>' . "\n";
+        }
+        $stylesId  = $numSheets + 1;
+        $stringsId = $numSheets + 2;
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"        Target="worksheets/sheet1.xml"/>
-  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"           Target="styles.xml"/>
-  <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings"    Target="sharedStrings.xml"/>
-</Relationships>';
+' . $rels
+. '  <Relationship Id="rId' . $stylesId  . '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"        Target="styles.xml"/>' . "\n"
+. '  <Relationship Id="rId' . $stringsId . '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>' . "\n"
+. '</Relationships>';
     }
 
     private function _stylesXml(): string
     {
-        // numFmtId 164 = "0.0%", 165 = "0.00"
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
   <numFmts count="2">
     <numFmt numFmtId="164" formatCode="0.0&quot;%&quot;"/>
     <numFmt numFmtId="165" formatCode="0.00"/>
   </numFmts>
-  <fonts count="6">
-    <font><sz val="10"/><name val="Calibri"/></font>
-    <font><b/><sz val="10"/><name val="Calibri"/><color rgb="FFFFFFFF"/></font>
-    <font><b/><sz val="10"/><name val="Calibri"/><color rgb="FF1F3864"/></font>
-    <font><b/><sz val="11"/><name val="Calibri"/><color rgb="FF1F3864"/></font>
-    <font><b/><sz val="10"/><name val="Calibri"/><color rgb="FF7B3F00"/></font>
-    <font><b/><sz val="10"/><name val="Calibri"/></font>
+  <fonts count="7">
+    <font><sz val="10"/><name val="Calibri"/></font>                                       <!-- 0 default -->
+    <font><b/><sz val="10"/><name val="Calibri"/><color rgb="FFFFFFFF"/></font>            <!-- 1 white bold -->
+    <font><b/><sz val="10"/><name val="Calibri"/><color rgb="FF1F3864"/></font>            <!-- 2 navy bold -->
+    <font><b/><sz val="12"/><name val="Calibri"/><color rgb="FF1F3864"/></font>            <!-- 3 large navy bold (title) -->
+    <font><b/><sz val="10"/><name val="Calibri"/><color rgb="FF7B3F00"/></font>            <!-- 4 brown bold (gold1) -->
+    <font><b/><sz val="10"/><name val="Calibri"/></font>                                   <!-- 5 plain bold -->
+    <font><sz val="10"/><name val="Calibri"/><color rgb="FF92400E"/></font>                <!-- 6 amber (warn) -->
   </fonts>
-  <fills count="10">
-    <fill><patternFill patternType="none"/></fill>
-    <fill><patternFill patternType="gray125"/></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FF1F3864"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FF2E5FA3"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFFFFFFF"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFF0F4FF"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FF0F2456"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFFFF8DC"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFF5F5F5"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFFEF3C7"/></patternFill></fill>
+  <fills count="13">
+    <fill><patternFill patternType="none"/></fill>                <!-- 0 none -->
+    <fill><patternFill patternType="gray125"/></fill>             <!-- 1 gray125 (required) -->
+    <fill><patternFill patternType="solid"><fgColor rgb="FF1F3864"/></patternFill></fill>  <!-- 2 dark navy -->
+    <fill><patternFill patternType="solid"><fgColor rgb="FF2E5FA3"/></patternFill></fill>  <!-- 3 medium blue -->
+    <fill><patternFill patternType="solid"><fgColor rgb="FFFFFFFF"/></patternFill></fill>  <!-- 4 white -->
+    <fill><patternFill patternType="solid"><fgColor rgb="FFF0F4FF"/></patternFill></fill>  <!-- 5 light blue tint -->
+    <fill><patternFill patternType="solid"><fgColor rgb="FF0F2456"/></patternFill></fill>  <!-- 6 very dark navy (footer) -->
+    <fill><patternFill patternType="solid"><fgColor rgb="FFFFF3CD"/></patternFill></fill>  <!-- 7 gold1 bg -->
+    <fill><patternFill patternType="solid"><fgColor rgb="FFF5F5F5"/></patternFill></fill>  <!-- 8 silver grey (gold2) -->
+    <fill><patternFill patternType="solid"><fgColor rgb="FFFEF3C7"/></patternFill></fill>  <!-- 9 warm tint (gold3) -->
+    <fill><patternFill patternType="solid"><fgColor rgb="FFE8F0FE"/></patternFill></fill>  <!-- 10 very light blue (center) -->
+    <fill><patternFill patternType="solid"><fgColor rgb="FFFFF8DC"/></patternFill></fill>  <!-- 11 cornsilk (warn) -->
+    <fill><patternFill patternType="solid"><fgColor rgb="FF344B8A"/></patternFill></fill>  <!-- 12 header2 bg -->
   </fills>
   <borders count="2">
-    <border><left/><right/><top/><bottom/><diagonal/></border>
+    <border><left/><right/><top/><bottom/><diagonal/></border>   <!-- 0 no border -->
     <border>
-      <left   style="thin"><color rgb="FFD0D8E8"/></left>
-      <right  style="thin"><color rgb="FFD0D8E8"/></right>
-      <top    style="thin"><color rgb="FFD0D8E8"/></top>
-      <bottom style="thin"><color rgb="FFD0D8E8"/></bottom>
-    </border>
+      <left   style="thin"><color rgb="FFB8C4D9"/></left>
+      <right  style="thin"><color rgb="FFB8C4D9"/></right>
+      <top    style="thin"><color rgb="FFB8C4D9"/></top>
+      <bottom style="thin"><color rgb="FFB8C4D9"/></bottom>
+    </border>                                                     <!-- 1 thin grey -->
   </borders>
   <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-  <cellXfs count="14">
-    <!-- 0: default -->
-    <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0"><alignment wrapText="1"/></xf>
-    <!-- 1: header (dark navy bg, white bold) -->
-    <xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 2: subheader (medium blue) -->
-    <xf numFmtId="0" fontId="1" fillId="3" borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 3: data (white) -->
-    <xf numFmtId="0" fontId="0" fillId="4" borderId="1" xfId="0"><alignment wrapText="1" vertical="center"/></xf>
-    <!-- 4: alt row (light blue tint) -->
-    <xf numFmtId="0" fontId="0" fillId="5" borderId="1" xfId="0"><alignment wrapText="1" vertical="center"/></xf>
-    <!-- 5: footer (navy bg, white bold) -->
-    <xf numFmtId="0" fontId="1" fillId="6" borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 6: gold1 — 1st place (gold bg, brown bold) -->
-    <xf numFmtId="0" fontId="4" fillId="7" borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 7: gold2 — 2nd place (grey bg) -->
-    <xf numFmtId="0" fontId="2" fillId="8" borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 8: gold3 — 3rd place (warm tint bg) -->
-    <xf numFmtId="0" fontId="2" fillId="9" borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 9: title (large navy bold) -->
-    <xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 10: bold -->
-    <xf numFmtId="0" fontId="5" fillId="0" borderId="1" xfId="0"><alignment vertical="center"/></xf>
-    <!-- 11: pct (data + percent format) -->
-    <xf numFmtId="164" fontId="0" fillId="4" borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 12: num (data + decimal format) -->
-    <xf numFmtId="165" fontId="0" fillId="4" borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 13: header2 (darker navy) -->
-    <xf numFmtId="0" fontId="1" fillId="6" borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
+  <cellXfs count="16">
+    <!-- 0  default -->
+    <xf numFmtId="0"   fontId="0" fillId="0"  borderId="1" xfId="0"><alignment wrapText="1" vertical="center"/></xf>
+    <!-- 1  header: dark navy bg, white bold, centered -->
+    <xf numFmtId="0"   fontId="1" fillId="2"  borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 2  subheader: medium blue, white bold -->
+    <xf numFmtId="0"   fontId="1" fillId="3"  borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 3  data: white bg -->
+    <xf numFmtId="0"   fontId="0" fillId="4"  borderId="1" xfId="0"><alignment wrapText="1" vertical="center"/></xf>
+    <!-- 4  alt: light-blue tint -->
+    <xf numFmtId="0"   fontId="0" fillId="5"  borderId="1" xfId="0"><alignment wrapText="1" vertical="center"/></xf>
+    <!-- 5  footer: very dark navy, white bold -->
+    <xf numFmtId="0"   fontId="1" fillId="6"  borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 6  gold1: gold bg, brown bold, centered -->
+    <xf numFmtId="0"   fontId="4" fillId="7"  borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 7  gold2: grey bg, navy bold, centered -->
+    <xf numFmtId="0"   fontId="2" fillId="8"  borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 8  gold3: warm tint, navy bold -->
+    <xf numFmtId="0"   fontId="2" fillId="9"  borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 9  title: large navy bold, no border -->
+    <xf numFmtId="0"   fontId="3" fillId="0"  borderId="0" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 10 bold black -->
+    <xf numFmtId="0"   fontId="5" fillId="0"  borderId="1" xfId="0"><alignment vertical="center"/></xf>
+    <!-- 11 pct: data bg + custom % format -->
+    <xf numFmtId="164" fontId="0" fillId="4"  borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 12 num: data bg + 2dp format -->
+    <xf numFmtId="165" fontId="0" fillId="4"  borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 13 header2: very dark navy -->
+    <xf numFmtId="0"   fontId="1" fillId="12" borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 14 center: light-blue bg, centered -->
+    <xf numFmtId="0"   fontId="0" fillId="10" borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 15 warn: cornsilk bg, amber text -->
+    <xf numFmtId="0"   fontId="6" fillId="11" borderId="1" xfId="0"><alignment horizontal="center" vertical="center"/></xf>
   </cellXfs>
 </styleSheet>';
     }
 
-    // Collect all string values for the shared-strings table
-    private array $_strings    = [];
-    private array $_strIndex   = [];
-
-    private function _strIdx(string $s): int
-    {
-        if (!isset($this->_strIndex[$s])) {
-            $this->_strIndex[$s] = count($this->_strings);
-            $this->_strings[] = $s;
-        }
-        return $this->_strIndex[$s];
-    }
-
     private function _sharedStringsXml(): string
     {
-        // Must be called AFTER _sheetXml() populates _strings
         $count = count($this->_strings);
-        $xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-             . '<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
-             . ' count="' . $count . '" uniqueCount="' . $count . '">';
+        $xml   = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+               . '<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
+               . ' count="' . $count . '" uniqueCount="' . $count . '">';
         foreach ($this->_strings as $s) {
             $xml .= '<si><t xml:space="preserve">' . $this->_esc($s) . '</t></si>';
         }
@@ -268,32 +332,51 @@ class XlsxWriter
         return $xml;
     }
 
-    private function _sheetXml(): string
+    private function _strIdx(string $s): int
     {
-        $cols  = '';
-        foreach ($this->colWidths as $i => $w) {
-            $n = $i + 1;
+        if (!isset($this->_strIndex[$s])) {
+            $this->_strIndex[$s] = count($this->_strings);
+            $this->_strings[]    = $s;
+        }
+        return $this->_strIndex[$s];
+    }
+
+    private function _sheetXml(array $sheet): string
+    {
+        $colWidths   = $sheet['colWidths'];
+        $rows        = $sheet['rows'];
+        $freezeRow   = $sheet['freezeRow'];
+        $autoFilter  = $sheet['autoFilter'];
+        $filterRow   = $sheet['filterRow'];
+
+        // Column widths
+        $cols = '';
+        foreach ($colWidths as $i => $w) {
+            $n    = $i + 1;
             $cols .= '<col min="' . $n . '" max="' . $n . '" width="' . $w . '" customWidth="1"/>';
         }
 
+        // Rows
         $sheetData = '';
         $maxCols   = 1;
-        foreach ($this->rows as $rIdx => $row) {
-            $rNum = $rIdx + 1;
+        foreach ($rows as $rIdx => $row) {
+            $rNum  = $rIdx + 1;
             $cells = $row['cells'];
-            $rowStyle = $row['style'];
-            if (empty($cells)) { $sheetData .= '<row r="' . $rNum . '"/>'; continue; }
-            $maxCols = max($maxCols, count($cells));
+            $rSty  = $row['style'];
+            if (empty($cells)) {
+                $sheetData .= '<row r="' . $rNum . '"/>';
+                continue;
+            }
+            $maxCols   = max($maxCols, count($cells));
             $sheetData .= '<row r="' . $rNum . '">';
             foreach ($cells as $cIdx => $cell) {
                 $colLetter = $this->_col($cIdx);
                 $ref       = $colLetter . $rNum;
 
-                // Cell-level style overrides row style
-                $cellStyle  = $rowStyle;
-                $cellValue  = $cell;
+                $cellStyle = $rSty;
+                $cellValue = $cell;
                 if (is_array($cell)) {
-                    $cellStyle = $cell['s'] ?? $rowStyle;
+                    $cellStyle = $cell['s'] ?? $rSty;
                     $cellValue = $cell['v'] ?? '';
                 }
                 $sIdx = self::$styleMap[$cellStyle] ?? self::S_DEFAULT;
@@ -310,40 +393,41 @@ class XlsxWriter
             $sheetData .= '</row>';
         }
 
-        $lastCol  = $this->_col($maxCols - 1);
-        $lastRow  = count($this->rows);
-        $dim      = 'A1:' . $lastCol . $lastRow;
+        $lastCol = $this->_col($maxCols - 1);
+        $lastRow = count($rows);
+        $dim     = 'A1:' . $lastCol . $lastRow;
 
         $freeze = '';
-        if ($this->freezeRow > 0) {
-            $topLeft = 'A' . ($this->freezeRow + 1);
-            $freeze  = '<pane ySplit="' . $this->freezeRow . '" topLeftCell="' . $topLeft . '" activePane="bottomLeft" state="frozen"/>';
+        if ($freezeRow > 0) {
+            $topLeft = 'A' . ($freezeRow + 1);
+            $freeze  = '<pane ySplit="' . $freezeRow . '" topLeftCell="' . $topLeft . '" activePane="bottomLeft" state="frozen"/>';
         }
 
         $af = '';
-        if ($this->autoFilter) {
-            $af = '<autoFilter ref="A' . $this->filterRow . ':' . $lastCol . $this->filterRow . '"/>';
+        if ($autoFilter && $lastRow >= $filterRow) {
+            $af = '<autoFilter ref="A' . $filterRow . ':' . $lastCol . $filterRow . '"/>';
         }
 
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
   <dimension ref="' . $dim . '"/>
   <sheetViews><sheetView workbookViewId="0">' . $freeze . '</sheetView></sheetViews>
-  <sheetFormatPr defaultRowHeight="15"/>
+  <sheetFormatPr defaultRowHeight="16" customHeight="1"/>
   ' . ($cols ? '<cols>' . $cols . '</cols>' : '') . '
   <sheetData>' . $sheetData . '</sheetData>
   ' . $af . '
 </worksheet>';
     }
 
+    /** Convert 0-based column index to Excel letter(s): 0→A, 25→Z, 26→AA */
     private function _col(int $idx): string
     {
-        $col = '';
-        $idx++;
-        while ($idx > 0) {
-            $idx--;
-            $col = chr(65 + ($idx % 26)) . $col;
-            $idx = intdiv($idx, 26);
+        $col  = '';
+        $n    = $idx + 1;
+        while ($n > 0) {
+            $n--;
+            $col = chr(65 + ($n % 26)) . $col;
+            $n   = intdiv($n, 26);
         }
         return $col;
     }
