@@ -50,10 +50,6 @@ function pageHead(string $title, string $portal = ''): void {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="' . $base . '/portal/portal.css">
 <style>:root { --accent: ' . $accent . '; --accent-rgb: ' . implode(',', sscanf($accent, '#%02x%02x%02x')) . '; }</style>
-<script src="' . $base . '/portal/assets/js/portal-ajax.js" defer></script>
-</head>
-<body>
-<div id="portal-toast-container" style="position:fixed;top:16px;right:16px;z-index:99990;pointer-events:none;display:flex;flex-direction:column;gap:8px;max-width:400px;width:calc(100% - 32px)"></div>
 ';
 }
 

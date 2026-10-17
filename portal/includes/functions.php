@@ -27,10 +27,6 @@ function wingBadge(string $wing): string {
          . $label . '</span>';
 }
 
-function isAjax(): bool {
-    return ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest';
-}
-
 function redirect(string $url): never {
     // Prepend BASE_URL for site-relative paths so subdirectory installs work.
     // Skip if the URL already starts with BASE_URL to prevent double-prepend
@@ -39,17 +35,6 @@ function redirect(string $url): never {
         && !str_starts_with($url, BASE_URL . '/') && $url !== BASE_URL) {
         $url = BASE_URL . $url;
     }
-
-    // AJAX requests: return JSON so the JS layer handles the response.
-    // Consume any pending flash from session and embed it in the JSON.
-    if (isAjax()) {
-        $flash = $_SESSION['flash'] ?? null;
-        unset($_SESSION['flash']);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['ok' => true, 'url' => $url, 'flash' => $flash]);
-        exit;
-    }
-
     header('Location: ' . $url);
     exit;
 }
