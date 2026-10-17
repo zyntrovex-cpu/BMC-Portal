@@ -53,7 +53,7 @@ function pageHead(string $title, string $portal = ''): void {
 <script src="' . $base . '/portal/assets/js/portal-ajax.js" defer></script>
 </head>
 <body>
-<div id="portal-toast-container"></div>
+<div id="portal-toast-container" style="position:fixed;top:16px;right:16px;z-index:99990;pointer-events:none;display:flex;flex-direction:column;gap:8px;max-width:400px;width:calc(100% - 32px)"></div>
 ';
 }
 

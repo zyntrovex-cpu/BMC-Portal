@@ -142,8 +142,10 @@
         if (fresh && current) {
           current.innerHTML = fresh.innerHTML;
 
-          /* Re-run inline body scripts (page-specific event handlers) */
-          doc.querySelectorAll('body script:not([src])').forEach(function (os) {
+          /* Re-run scripts inside the fetched .page-content only.
+             Deliberately skips topbar/sidebar scripts (inside .portal-wrap)
+             to avoid duplicate event listeners on every content swap. */
+          fresh.querySelectorAll('script:not([src])').forEach(function (os) {
             try {
               var ns = document.createElement('script');
               ns.textContent = os.textContent;
@@ -151,6 +153,22 @@
               document.body.removeChild(ns);
             } catch (ignore) {}
           });
+          /* Also re-run scripts placed AFTER .portal-wrap (page-specific init) */
+          var pw = doc.querySelector('.portal-wrap');
+          if (pw) {
+            var sib = pw.nextSibling;
+            while (sib) {
+              if (sib.nodeType === 1 && sib.tagName === 'SCRIPT' && !sib.getAttribute('src')) {
+                try {
+                  var ns2 = document.createElement('script');
+                  ns2.textContent = sib.textContent;
+                  document.body.appendChild(ns2);
+                  document.body.removeChild(ns2);
+                } catch (ignore) {}
+              }
+              sib = sib.nextSibling;
+            }
+          }
 
           flushFlash();
         }
@@ -167,6 +185,9 @@
 
   /* ── AJAX form interceptor ────────────────────────────────────────────────── */
   document.addEventListener('submit', function (e) {
+    /* If another handler already intercepted this submit, don't double-handle */
+    if (e.defaultPrevented) return;
+
     var form = e.target;
 
     /* Only intercept POST forms */
