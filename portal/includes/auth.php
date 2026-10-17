@@ -53,8 +53,8 @@ function getFlash(): ?array {
 function flashHtml(): string {
     $f = getFlash();
     if (!$f) return '';
-    $cls = $f['type'] === 'success' ? 'alert-success' : ($f['type'] === 'danger' ? 'alert-danger' : 'alert-warning');
-    return '<div class="alert ' . $cls . ' alert-dismissible fade show" role="alert">'
-         . htmlspecialchars($f['msg'])
-         . '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+    // Invisible sentinel consumed by portal-ajax.js and converted to a toast.
+    $type = htmlspecialchars($f['type'] ?? 'info', ENT_QUOTES, 'UTF-8');
+    $msg  = htmlspecialchars($f['msg']  ?? '',      ENT_QUOTES, 'UTF-8');
+    return '<div data-portal-flash="' . $type . '" data-portal-msg="' . $msg . '" aria-hidden="true" style="display:none"></div>';
 }
