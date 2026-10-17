@@ -8,7 +8,7 @@ $user = requireAuth('vp_main');
 requirePermission('vp_teacher_perms');
 $db = getDB();
 
-// ── POST: save permissions for a teacher ─────────────────────────────────────
+// ── POST: save permissions + attendance class assignments for a teacher ─────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $teacherUserId = (int)($_POST['teacher_user_id'] ?? 0);
     if ($teacherUserId) {
@@ -28,6 +28,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($rolePerms as $perm => $def) {
                 $ins->execute([$teacherUserId, $perm, isset($submitted[$perm]) ? 1 : 0]);
             }
+
+            // Save attendance class permissions
+            try {
+                $tStAcp = $db->prepare('SELECT id FROM teachers WHERE user_id=?');
+                $tStAcp->execute([$teacherUserId]);
+                $tRowAcp = $tStAcp->fetch();
+                if ($tRowAcp) {
+                    $tIdAcp = (int)$tRowAcp['id'];
+                    $db->prepare('DELETE FROM attendance_class_permissions WHERE teacher_id=?')->execute([$tIdAcp]);
+                    if (!empty($submitted['attendance']) && !empty($_POST['acp_classes'])) {
+                        $acpIns = $db->prepare('INSERT IGNORE INTO attendance_class_permissions (teacher_id, class_id, granted_by) VALUES (?,?,?)');
+                        foreach ($_POST['acp_classes'] as $cid) {
+                            if ((int)$cid > 0) $acpIns->execute([$tIdAcp, (int)$cid, $user['id']]);
+                        }
+                    }
+                }
+            } catch (Exception $e) {}
+
             // Flush session permission cache if this teacher is currently logged in
             if (isset($_SESSION['_perms_uid']) && (int)$_SESSION['_perms_uid'] === $teacherUserId) {
                 unset($_SESSION['user_perms'], $_SESSION['_perms_uid']);
@@ -66,6 +84,8 @@ $selUid     = (int)($_GET['uid'] ?? 0);
 $selTeacher = null;
 $permsRow   = [];
 $rolePerms  = getRolePermissions('teacher');
+$acpClassIds  = [];
+$campusClasses = [];
 
 if ($selUid) {
     foreach ($teachers as $t) {
@@ -77,6 +97,27 @@ if ($selUid) {
         foreach ($pSt->fetchAll() as $r) {
             $permsRow[$r['permission']] = (bool)$r['granted'];
         }
+
+        // Load all Main Campus classes for ACP picker
+        try {
+            $campusClasses = $db->query(
+                "SELECT id, name, grade, section FROM classes
+                 WHERE COALESCE(wing,'main')='main' AND COALESCE(is_ilc,0)=0 AND COALESCE(is_montessori,0)=0
+                 ORDER BY grade, section, name"
+            )->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) { $campusClasses = []; }
+
+        // Load existing ACP for this teacher
+        try {
+            $tSt2 = $db->prepare('SELECT id FROM teachers WHERE user_id=?');
+            $tSt2->execute([$selUid]);
+            $tRow2 = $tSt2->fetch();
+            if ($tRow2) {
+                $acpSt = $db->prepare('SELECT class_id FROM attendance_class_permissions WHERE teacher_id=?');
+                $acpSt->execute([$tRow2['id']]);
+                $acpClassIds = array_column($acpSt->fetchAll(PDO::FETCH_ASSOC), 'class_id');
+            }
+        } catch (Exception $e) {}
     }
 }
 
@@ -174,16 +215,14 @@ $links = getVpLinks();
 
         <form method="POST">
           <input type="hidden" name="teacher_user_id" value="<?= $selTeacher['id'] ?>">
-          <div class="row g-3 mb-4">
+          <div class="row g-3 mb-3">
             <?php foreach ($rolePerms as $perm => $def): ?>
-            <?php
-              // Determine current granted state: if no DB row exists, default true (full access)
-              $granted = isset($permsRow[$perm]) ? $permsRow[$perm] : true;
-            ?>
+            <?php $granted = isset($permsRow[$perm]) ? $permsRow[$perm] : true; ?>
             <div class="col-sm-6">
               <div class="form-check p-3 rounded" style="border:1px solid <?= $granted ? '#bbf7d0' : '#e2e8f0' ?>;background:<?= $granted ? '#f0fdf4' : '#f8fafc' ?>">
                 <input class="form-check-input" type="checkbox" name="perms[<?= h($perm) ?>]"
-                       id="perm_<?= h($perm) ?>" <?= $granted ? 'checked' : '' ?>>
+                       id="perm_<?= h($perm) ?>" <?= $granted ? 'checked' : '' ?>
+                       <?= $perm === 'attendance' ? 'data-acp-toggle="acpSection"' : '' ?>>
                 <label class="form-check-label" for="perm_<?= h($perm) ?>" style="font-size:.85rem;cursor:pointer">
                   <i class="fas <?= h($def['icon']) ?> me-1 text-secondary"></i>
                   <strong><?= h($def['label']) ?></strong>
@@ -192,6 +231,36 @@ $links = getVpLinks();
             </div>
             <?php endforeach; ?>
           </div>
+
+          <!-- Attendance class assignment panel -->
+          <?php $attGranted = isset($permsRow['attendance']) ? $permsRow['attendance'] : true; ?>
+          <div id="acpSection" style="display:<?= $attGranted ? 'block' : 'none' ?>;margin-bottom:16px;border:1px solid #bbf7d0;border-radius:8px;padding:14px;background:#f0fdf4">
+            <div style="font-weight:600;font-size:.85rem;color:#166534;margin-bottom:8px">
+              <i class="fas fa-school me-1"></i>Attendance — Assigned Classes
+            </div>
+            <p style="font-size:.78rem;color:#555;margin-bottom:10px">
+              This teacher can only mark attendance for checked classes. Uncheck all to revoke class access.
+            </p>
+            <?php if ($campusClasses): ?>
+            <div class="row g-2">
+              <?php foreach ($campusClasses as $cls): ?>
+              <div class="col-sm-6 col-md-4">
+                <div class="form-check p-2 rounded" style="border:1px solid #d1fae5;background:#fff">
+                  <input class="form-check-input" type="checkbox" name="acp_classes[]"
+                         value="<?= $cls['id'] ?>" id="acp_<?= $cls['id'] ?>"
+                         <?= in_array((string)$cls['id'], array_map('strval', $acpClassIds)) ? 'checked' : '' ?>>
+                  <label class="form-check-label" for="acp_<?= $cls['id'] ?>" style="font-size:.82rem;cursor:pointer">
+                    <?= h($cls['name']) ?>
+                  </label>
+                </div>
+              </div>
+              <?php endforeach; ?>
+            </div>
+            <?php else: ?>
+            <p class="text-muted" style="font-size:.82rem;margin:0">No classes found for this campus.</p>
+            <?php endif; ?>
+          </div>
+
           <button type="submit" class="btn btn-primary btn-sm">
             <i class="fas fa-save me-1"></i>Save Permissions
           </button>
@@ -212,4 +281,13 @@ $links = getVpLinks();
 
 </div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function(){
+  var attChk = document.getElementById('perm_attendance');
+  var acp    = document.getElementById('acpSection');
+  if (attChk && acp) {
+    attChk.addEventListener('change', function(){ acp.style.display = this.checked ? '' : 'none'; });
+  }
+})();
+</script>
 </body></html>

@@ -262,6 +262,7 @@ function getRolePermissions(string $role): array {
             'ilc_timetable'       => ['label' => 'ILC Timetable',               'icon' => 'fa-table'],
             'ilc_viewas'          => ['label' => 'View As User',                'icon' => 'fa-eye'],
             'ilc_marks_approval'  => ['label' => 'Marks Permission Approvals',  'icon' => 'fa-clipboard-check'],
+            'ilc_teacher_perms'   => ['label' => 'Teacher Permissions',         'icon' => 'fa-user-shield'],
         ],
         'student_affairs' => [
             'sa_students'   => ['label' => 'Student Management',  'icon' => 'fa-user-graduate'],
@@ -293,7 +294,8 @@ function getRolePermissions(string $role): array {
             'wh_classes'            => ['label' => 'Classes',                           'icon' => 'fa-chalkboard'],
             'wh_timetable'          => ['label' => 'Timetable',                         'icon' => 'fa-table'],
             'diary'                 => ['label' => 'Daily Diary',                       'icon' => 'fa-book-open'],
-            'monte_result_approvals'=> ['label' => 'Formative Assessment Approvals',   'icon' => 'fa-clipboard-check'],
+            'monte_result_approvals'=> ['label' => 'Formative Assessment Approvals',    'icon' => 'fa-clipboard-check'],
+            'monte_teacher_perms'   => ['label' => 'Teacher Permissions',               'icon' => 'fa-user-shield'],
         ],
         'secondary_wing_head' => [
             'marks'               => ['label' => 'Assessments & Marks',         'icon' => 'fa-pen-alt'],
@@ -686,7 +688,8 @@ function getIlcLinks(): array {
     return array_values(array_filter([
         ['href'=>'/portal/ilc/dashboard.php',         'icon'=>'<i class="fas fa-home"></i>',               'label'=>'Dashboard',          'key'=>'dashboard'],
         hasPermission('ilc_students')     ? ['href'=>'/portal/ilc/students.php',           'icon'=>'<i class="fas fa-user-graduate"></i>',      'label'=>'ILC Students',       'key'=>'students']          : null,
-        hasPermission('ilc_teachers')     ? ['href'=>'/portal/ilc/teachers.php',           'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'ILC Teachers',       'key'=>'teachers']          : null,
+        hasPermission('ilc_teachers')     ? ['href'=>'/portal/ilc/teachers.php',                'icon'=>'<i class="fas fa-chalkboard-teacher"></i>', 'label'=>'ILC Teachers',       'key'=>'teachers']           : null,
+        hasPermission('ilc_teacher_perms')? ['href'=>'/portal/ilc/teacher-permissions.php',   'icon'=>'<i class="fas fa-user-shield"></i>',        'label'=>'Teacher Permissions', 'key'=>'teacher-permissions'] : null,
         ['href'=>'/portal/admin/classes.php',              'icon'=>'<i class="fas fa-chalkboard"></i>',              'label'=>'Classes & Subjects',   'key'=>'classes'],
         hasPermission('ilc_disabilities') ? ['href'=>'/portal/ilc/disabilities.php',       'icon'=>'<i class="fas fa-heartbeat"></i>',          'label'=>'Disability Records', 'key'=>'disabilities']      : null,
         hasPermission('ilc_admissions')   ? ['href'=>'/portal/ilc/admission-requests.php', 'icon'=>'<i class="fas fa-file-medical-alt"></i>',   'label'=>'Admission Requests', 'key'=>'admissions']        : null,
@@ -902,6 +905,7 @@ function getVpMontessoriLinks(): array {
         ['href'=>'/portal/vp-montessori/exam-datesheet.php',      'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',      'key'=>'exam-datesheet'],
         ['href'=>'/portal/vp-montessori/notices.php',             'icon'=>'<i class="fas fa-bell"></i>',                        'label'=>'Notices',              'key'=>'notices'],
         ['href'=>'/portal/vp-montessori/teachers.php',            'icon'=>'<i class="fas fa-chalkboard-teacher"></i>',          'label'=>'Montessori Teachers',  'key'=>'teachers'],
+        hasPermission('monte_teacher_perms') ? ['href'=>'/portal/vp-montessori/teacher-permissions.php', 'icon'=>'<i class="fas fa-user-shield"></i>', 'label'=>'Teacher Permissions', 'key'=>'teacher-permissions'] : null,
         ['href'=>'/portal/vp-montessori/class-assignments.php', 'icon'=>'<i class="fas fa-users-cog"></i>',                   'label'=>'Class Assignments',    'key'=>'class-assignments'],
         hasPermission('monte_result_approvals') ? ['href'=>'/portal/vp-montessori/result-approvals.php', 'icon'=>'<i class="fas fa-clipboard-check"></i>', 'label'=>_monteApprovalsLabel(), 'key'=>'result-approvals'] : null,
         hasPermission('diary')       ? ['href'=>'/portal/teacher/diary.php',           'icon'=>'<i class="fas fa-book-open"></i>',                'label'=>'Daily Diary',          'key'=>'diary']       : null,
