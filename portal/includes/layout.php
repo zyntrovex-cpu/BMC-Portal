@@ -39,6 +39,7 @@ function pageHead(string $title, string $portal = ''): void {
     ];
     $accent = $accents[$portal] ?? '#1c3054';
     $base = defined('BASE_URL') ? BASE_URL : '';
+    $cssVer = @filemtime(__DIR__ . '/../portal.css') ?: '1';
     echo '<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -48,7 +49,7 @@ function pageHead(string $title, string $portal = ''): void {
 <link rel="icon" type="image/png" href="' . $base . (in_array($portal, ['ilc_vp', 'ilc_teacher'], true) ? '/assets/ilc-logo.png' : '/assets/bmc-logo.png') . '">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="' . $base . '/portal/portal.css">
+<link rel="stylesheet" href="' . $base . '/portal/portal.css?v=' . $cssVer . '">
 <style>:root { --accent: ' . $accent . '; --accent-rgb: ' . implode(',', sscanf($accent, '#%02x%02x%02x')) . '; }</style>
 ';
 }
@@ -148,6 +149,7 @@ function sidebar(string $portal, string $active, array $links, array $user = [])
     <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:3px;box-shadow:0 2px 8px rgba(0,0,0,.3);">
       <img src="' . $base . (in_array($portal, ['ilc_vp', 'ilc_teacher'], true) ? '/assets/ilc-logo.png' : '/assets/bmc-logo.png') . '"
            alt="' . (in_array($portal, ['ilc_vp', 'ilc_teacher'], true) ? 'ILC' : 'BMC') . '"
+           width="32" height="32"
            style="width:100%;height:100%;object-fit:contain;">
     </div>
     <div>
@@ -372,7 +374,7 @@ function topbar(string $pageTitle, array $user, string $badge = ''): void {
     <i class="fas fa-bars"></i>
   </button>
 
-  <img src="' . $base . $logoFile . '" alt="' . $logoAlt . '" class="topbar-logo-mobile">
+  <img src="' . $base . $logoFile . '" alt="' . $logoAlt . '" class="topbar-logo-mobile" width="30" height="30" style="display:none">
 
   <div class="topbar-brand">
     <div class="topbar-brand-main">' . $brandName . '</div>
