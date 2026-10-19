@@ -86,7 +86,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     // Backend authorization: verify teacher is allowed to take attendance for this class
     $authorized = false;
     if (in_array($user['role'], $staffBypassRoles)) {
-        $authorized = true;
+        $wingScope = $roleWingScope[$user['role']] ?? null;
+        if ($wingScope !== null) {
+            try {
+                $wChk = $db->prepare('SELECT 1 FROM classes WHERE id=? AND wing=?');
+                $wChk->execute([$pClassId, $wingScope]);
+                $authorized = (bool)$wChk->fetch();
+            } catch (Exception $e) {}
+        } else {
+            $authorized = true;
+        }
     } elseif ($teacher['id'] > 0) {
         try {
             $authChk = $db->prepare('SELECT 1 FROM attendance_class_permissions WHERE teacher_id=? AND class_id=?');
@@ -126,14 +135,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     redirect("/portal/teacher/attendance.php?tab=take&class_id=$pClassId&date=" . urlencode($pDate));
 }
 
+// Map roles to the wing they supervise (null = all wings)
+$roleWingScope = [
+    'ilc_vp'        => 'ilc',
+    'vp_montessori' => 'montessori',
+];
+
 // Get classes assigned to this teacher via attendance_class_permissions
 $assignedClasses = [];
 try {
     if (in_array($user['role'], $staffBypassRoles)) {
-        // Staff VP/admin roles can mark attendance for any class without a permission record
-        $classesSt = $db->query(
-            'SELECT id, name, COALESCE(wing,\'main\') AS wing FROM classes ORDER BY name'
-        );
+        // Staff VP/admin roles get classes for their wing scope (or all if no scope defined)
+        $wingScope = $roleWingScope[$user['role']] ?? null;
+        if ($wingScope !== null) {
+            $classesSt = $db->prepare(
+                'SELECT id, name, COALESCE(wing,\'main\') AS wing FROM classes WHERE wing = ? ORDER BY name'
+            );
+            $classesSt->execute([$wingScope]);
+        } else {
+            $classesSt = $db->query(
+                'SELECT id, name, COALESCE(wing,\'main\') AS wing FROM classes ORDER BY name'
+            );
+        }
         $assignedClasses = $classesSt->fetchAll();
     } elseif ($teacher['id'] > 0) {
         $classesSt = $db->prepare(
