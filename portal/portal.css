@@ -139,6 +139,21 @@ img { max-width: 100%; }
 .page-content { padding: 22px 24px 40px; flex: 1; }
 .content      { padding: 22px 24px 40px; flex: 1; } /* legacy */
 
+/* ── Logo shown in topbar on mobile (hidden on desktop) ──────── */
+.topbar-logo-mobile {
+  display: none;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.95);
+  padding: 3px;
+  object-fit: contain;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+}
+@media (max-width: 991px) {
+  .topbar-logo-mobile { display: block; }
+}
+
 /* ── Mobile overlay ──────────────────────────────────────────── */
 #sidebarOverlay, .overlay {
   display: none; position: fixed; inset: 0;
@@ -409,14 +424,12 @@ img { max-width: 100%; }
   /* ── Activity log ── */
   .act-item { padding: 9px 12px; gap: 10px; }
 
-  /* ── Bootstrap column overrides for common page layouts ── */
-  /* Profile page 2-column → stack */
-  .col-md-2, .col-md-4, .col-md-3 { width: 100%; }
-  .col-md-8, .col-md-9 { width: 100%; }
-  .col-md-5, .col-md-6, .col-md-7 { width: 100%; }
+  /* Bootstrap's col-md-* classes already stack to 100% below 768px via the
+     .row > * base rule — no override needed here. Explicit overrides were
+     removed because they fought with col-6 when both classes were present
+     (e.g. col-6 col-md-4 was forced to 100% instead of staying at 50%). */
 
   /* Keep 2-col stats */
-  .col-md-6.col-lg-3 { width: 50%; }
   .col-6 { width: 50%; }
 
   /* ── Attendance pills: smaller ── */
@@ -812,10 +825,13 @@ body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
    ================================================================ */
 
 /* ── Prevent all horizontal overflow ─────────────────────────── */
+/* overflow-x: hidden is set ONLY on html/body to stop page-level horizontal
+   scroll. Intermediate containers (portal-wrap, main-area, page-content) must
+   NOT have overflow-x: hidden because it creates a new overflow context that
+   breaks position: sticky (topbar) on iOS Safari and Chrome for Android. */
 html, body { overflow-x: hidden; }
 .portal-wrap, .main-area, .main, .page-content, .content {
   max-width: 100%;
-  overflow-x: hidden;
 }
 
 /* ── Responsive table scrolling — two-tier approach ─────────────── */
@@ -1015,7 +1031,7 @@ img { max-width: 100%; height: auto; }
 
 /* ── Page-content: never clip horizontal overflow of its children ── */
 /* (children with table-responsive or overflow-x:auto manage their own scroll) */
-.page-content, .content { overflow-x: visible !important; }
+/* overflow-x: hidden no longer set on intermediate containers — no override needed. */
 
 /* ── sec-card overflow: keep hidden for radius clipping but allow    ──
    children with their own overflow context (table-responsive, etc.) ── */

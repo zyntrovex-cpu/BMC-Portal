@@ -355,20 +355,27 @@ function topbar(string $pageTitle, array $user, string $badge = ''): void {
     $portalLabel  = $portalLabels[$portal] ?? 'Portal';
     $initials     = _initials($user['name'] ?? '');
     $today        = date('D, d M Y');
+    $base         = defined('BASE_URL') ? BASE_URL : '';
+
+    // ILC portal uses its own logo; all others use the BMC logo
+    $isIlc      = in_array($portal, ['ilc_vp', 'ilc_teacher'], true);
+    $logoFile   = $isIlc ? '/assets/ilc-logo.png' : '/assets/bmc-logo.png';
+    $logoAlt    = $isIlc ? 'ILC' : 'BMC';
+    $brandName  = $isIlc ? 'ILC Portal' : 'BMC Portal';
 
     $badgeHtml = $badge
         ? '<span class="topbar-badge">' . htmlspecialchars($badge) . '</span>'
         : '';
 
-    // Build a short mobile bottom-nav from the first 4 main links
-    // (injected after page content by JS so it stays above fold)
     echo '<header class="topbar" id="topbar">
   <button class="topbar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Menu">
     <i class="fas fa-bars"></i>
   </button>
 
+  <img src="' . $base . $logoFile . '" alt="' . $logoAlt . '" class="topbar-logo-mobile">
+
   <div class="topbar-brand">
-    <div class="topbar-brand-main">BMC Portal</div>
+    <div class="topbar-brand-main">' . $brandName . '</div>
     <div class="topbar-brand-sub">' . $portalLabel . '</div>
   </div>
 
