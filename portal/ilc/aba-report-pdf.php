@@ -219,7 +219,7 @@ body {
 
   <!-- Header -->
   <div class="rpt-header">
-    <img src="/assets/ilc-logo.png" alt="ILC" onerror="this.style.display='none'">
+    <img src="<?= defined('BASE_URL') ? BASE_URL : '' ?>/assets/ilc-logo.png" alt="ILC" onerror="this.style.display='none'">
     <div class="rpt-header-text">
       <div class="rpt-header-sub">Bahria Model School &amp; College · Bin Qasim</div>
       <div class="rpt-header-title">ABA Therapy Program Report</div>

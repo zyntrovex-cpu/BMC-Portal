@@ -221,7 +221,7 @@ body { font-family:Arial, Helvetica, sans-serif; font-size:9.5pt; color:#1e293b;
       <div class="rpt-hdr-college">BAHRIA MODEL COLLEGE</div>
     </div>
     <div class="rpt-hdr-logos">
-      <img src="/assets/ilc-logo.png" alt="ILC" onerror="this.style.display='none'">
+      <img src="<?= defined('BASE_URL') ? BASE_URL : '' ?>/assets/ilc-logo.png" alt="ILC" onerror="this.style.display='none'">
     </div>
   </div>
 
