@@ -85,14 +85,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     // Backend authorization: verify teacher is allowed to take attendance for this class
     $authorized = false;
-    if ($teacher['id'] > 0) {
+    if (in_array($user['role'], $staffBypassRoles)) {
+        $authorized = true;
+    } elseif ($teacher['id'] > 0) {
         try {
             $authChk = $db->prepare('SELECT 1 FROM attendance_class_permissions WHERE teacher_id=? AND class_id=?');
             $authChk->execute([$teacher['id'], $pClassId]);
             $authorized = (bool)$authChk->fetch();
         } catch (Exception $e) {}
-    } elseif (in_array($user['role'], $staffBypassRoles)) {
-        $authorized = true;
     }
     if (!$authorized) {
         setFlash('danger', 'You are not authorized to take attendance for this class.');
@@ -129,7 +129,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // Get classes assigned to this teacher via attendance_class_permissions
 $assignedClasses = [];
 try {
-    if ($teacher['id'] > 0) {
+    if (in_array($user['role'], $staffBypassRoles)) {
+        // Staff VP/admin roles can mark attendance for any class without a permission record
+        $classesSt = $db->query(
+            'SELECT id, name, COALESCE(wing,\'main\') AS wing FROM classes ORDER BY name'
+        );
+        $assignedClasses = $classesSt->fetchAll();
+    } elseif ($teacher['id'] > 0) {
         $classesSt = $db->prepare(
             'SELECT c.id, c.name, COALESCE(c.wing,\'main\') AS wing
              FROM attendance_class_permissions acp
@@ -138,12 +144,6 @@ try {
              ORDER BY c.name'
         );
         $classesSt->execute([$teacher['id']]);
-        $assignedClasses = $classesSt->fetchAll();
-    } elseif (in_array($user['role'], $staffBypassRoles)) {
-        // Staff VP/admin roles can mark attendance for any class
-        $classesSt = $db->query(
-            'SELECT id, name, COALESCE(wing,\'main\') AS wing FROM classes ORDER BY name'
-        );
         $assignedClasses = $classesSt->fetchAll();
     }
 } catch (Exception $e) {}
