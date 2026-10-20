@@ -85,7 +85,7 @@ $links = getStudentLinks();
       <?php foreach ($assessments as $i => $a):
         $hasMark = $a['marks_obtained'] !== null;
         $pct     = ($hasMark && $a['max_marks'] > 0)
-                     ? round($a['marks_obtained'] / $a['max_marks'] * 100, 1) : null;
+                     ? round($a['marks_obtained'] / $a['max_marks'] * 100, 2) : null;
         $tc = $typeColors[$a['type']] ?? 'bg-secondary';
       ?>
       <tr>

@@ -420,7 +420,7 @@ body { font-family:'Segoe UI',Arial,Helvetica,sans-serif; background:#c8d3e4; co
           <?php endif; ?>
         <?php endforeach; ?>
         <td style="text-align:center;font-weight:600">
-          <?= $hasM ? round($stu['grand_obtained'],1).'/'.(int)$stu['grand_max'] : '<span class="missing">—</span>' ?>
+          <?= $hasM ? round($stu['grand_obtained'],2).'/'.round($stu['grand_max'],2) : '<span class="missing">—</span>' ?>
         </td>
         <td style="text-align:center;font-weight:700;color:<?= $hasM ? 'var(--navy)' : '#9ca3af' ?>">
           <?= $hasM ? $stu['grand_pct'].'%' : '—' ?>
@@ -452,8 +452,8 @@ body { font-family:'Segoe UI',Arial,Helvetica,sans-serif; background:#c8d3e4; co
                 if ($sub && $sub['max'] > 0) { $subObt += $sub['obtained']; $subMax += $sub['max']; }
             }
           ?>
-          <td style="text-align:center"><?= $subMax > 0 ? round($subObt,0) : '—' ?></td>
-          <td style="text-align:center"><?= $subMax > 0 ? round($subMax,0) : '—' ?></td>
+          <td style="text-align:center"><?= $subMax > 0 ? round($subObt,2) : '—' ?></td>
+          <td style="text-align:center"><?= $subMax > 0 ? round($subMax,2) : '—' ?></td>
           <?php endforeach; ?>
           <td colspan="4" style="text-align:center">Avg: <?= $avgPct ?>%</td>
         </tr>

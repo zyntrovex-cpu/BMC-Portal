@@ -175,12 +175,12 @@ tr:nth-child(even) td { background:#f8f9ff }
     <?php foreach ($subjectOrder as $sid => $sn):
       $sub = $stu['subjects'][$sid] ?? null;
       if ($sub && $sub['max'] > 0): ?>
-    <td style="text-align:center"><?= round($sub['obtained'],1) ?></td>
-    <td style="text-align:center;color:#64748b"><?= (int)$sub['max'] ?></td>
+    <td style="text-align:center"><?= round($sub['obtained'],2) ?></td>
+    <td style="text-align:center;color:#64748b"><?= round($sub['max'],2) ?></td>
     <?php else: ?><td colspan="2" style="text-align:center;color:#d97706">—</td><?php endif; ?>
     <?php endforeach; ?>
     <td style="text-align:center;font-weight:bold">
-      <?= $hasM ? round($stu['grand_obtained'],1).'/'.(int)$stu['grand_max'] : '—' ?>
+      <?= $hasM ? round($stu['grand_obtained'],2).'/'.round($stu['grand_max'],2) : '—' ?>
     </td>
     <td style="text-align:center;font-weight:bold;color:#1f3864">
       <?= $hasM ? $stu['grand_pct'].'%' : '—' ?>

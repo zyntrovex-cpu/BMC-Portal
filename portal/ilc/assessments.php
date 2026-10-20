@@ -191,12 +191,12 @@ $links = getIlcLinks();
         <div class="col-md-2">
           <label class="form-label fw-semibold" style="font-size:.82rem">Max Marks <span class="text-danger">*</span></label>
           <input type="number" name="max_marks" class="form-control form-control-sm"
-                 min="0.5" max="9999" step="0.5" required>
+                 min="0.01" max="9999" step="0.01" required>
         </div>
         <div class="col-md-2">
           <label class="form-label fw-semibold" style="font-size:.82rem">Weight %</label>
           <input type="number" name="weight" class="form-control form-control-sm"
-                 min="0" max="100" step="0.5" value="10">
+                 min="0" max="100" step="0.01" value="10">
         </div>
         <div class="col-md-3">
           <label class="form-label fw-semibold" style="font-size:.82rem">Date</label>
@@ -356,7 +356,7 @@ $links = getIlcLinks();
                      class="form-control form-control-sm marks-input"
                      data-max="<?= $maxM ?>"
                      value="<?= h($obt ?? '') ?>"
-                     min="0" max="<?= $maxM ?>" step="0.5"
+                     min="0" max="<?= $maxM ?>" step="0.01"
                      oninput="calcRow(this)">
             </td>
             <td class="pct-cell"><?= $pct !== null ? $pct.'%' : '—' ?></td>

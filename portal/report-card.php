@@ -257,7 +257,7 @@ foreach ($subjects as $sid => &$sub) {
         $chips[] =
             '<span class="asm'.($nil ? ' asm-nil' : '').'">' .
             '<span class="asm-n">'.h($a['assessment_name']).'</span>' .
-            '<span class="asm-s">'.$disp.'<span class="asm-d">/'.(int)$a['max_marks'].'</span></span>' .
+            '<span class="asm-s">'.$disp.'<span class="asm-d">/'.rtrim(rtrim(number_format((float)$a['max_marks'],2,'.',''),'0'),'.').'</span></span>' .
             '</span>';
     }
     $sub['chips'] = implode('', $chips);
@@ -766,7 +766,7 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
     <div class="rc-kpi-cell">
       <div class="rc-kpi-ico"><i class="fas fa-percent" style="color:var(--navy)"></i></div>
       <div class="rc-kpi-val" style="color:var(--navy)"><?= $grandPct ?>%</div>
-      <div class="rc-kpi-sub"><?= round($grandObtained,0) ?> / <?= round($grandMax,0) ?> marks</div>
+      <div class="rc-kpi-sub"><?= round($grandObtained,2) ?> / <?= round($grandMax,2) ?> marks</div>
       <div class="rc-kpi-lbl">Overall Percentage</div>
     </div>
     <div class="rc-kpi-cell">
@@ -887,8 +887,8 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
             </span>
             <?php endif; ?>
           </td>
-          <td class="rgt"><?= round($grandObtained,0) ?></td>
-          <td class="rgt"><?= round($grandMax,0) ?></td>
+          <td class="rgt"><?= round($grandObtained,2) ?></td>
+          <td class="rgt"><?= round($grandMax,2) ?></td>
           <td class="rgt"><?= $grandPct ?>%</td>
           <td class="ctr">
             <span class="rc-gr" style="background:<?= gradeBg($overallGrade) ?>;color:<?= gradeColor($overallGrade) ?>;padding:3px 10px;font-size:.78rem">

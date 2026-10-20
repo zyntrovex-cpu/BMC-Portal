@@ -72,7 +72,7 @@ if ($classId && $subjectId) {
             foreach ($assessments as $a) {
                 $obtained = $marksMap[$s['id']][$a['id']] ?? null;
                 $pct = ($obtained !== null && $a['max_marks'] > 0)
-                     ? round($obtained / $a['max_marks'] * 100, 1)
+                     ? round($obtained / $a['max_marks'] * 100, 2)
                      : null;
                 $row['marks'][$a['id']] = ['obtained' => $obtained, 'pct' => $pct];
                 if ($obtained !== null) {

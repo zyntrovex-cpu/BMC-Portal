@@ -161,8 +161,8 @@ function getClassResultData(PDO $db, int $classId, bool $publishedOnly = true): 
         foreach ($stu['subjects'] as $subj => &$sub) {
             if ($sub['max'] > 0) {
                 $sub['pct']   = $sub['w_total'] > 0
-                    ? round($sub['w_sum'] / $sub['w_total'], 1)
-                    : round($sub['obtained'] / $sub['max'] * 100, 1);
+                    ? round($sub['w_sum'] / $sub['w_total'], 2)
+                    : round($sub['obtained'] / $sub['max'] * 100, 2);
                 $sub['grade'] = rkGradeLetter($sub['pct'], $sub['has_marks']);
 
                 $grandObt  += $sub['obtained'];
@@ -176,8 +176,8 @@ function getClassResultData(PDO $db, int $classId, bool $publishedOnly = true): 
         unset($sub);
 
         $grandPct = $grandWTot > 0
-            ? round($grandWSum / $grandWTot, 1)
-            : ($grandMax > 0 ? round($grandObt / $grandMax * 100, 1) : 0.0);
+            ? round($grandWSum / $grandWTot, 2)
+            : ($grandMax > 0 ? round($grandObt / $grandMax * 100, 2) : 0.0);
 
         $stu['grand_obtained'] = round($grandObt, 2);
         $stu['grand_max']      = round($grandMax, 2);

@@ -421,11 +421,11 @@ $links = match($user['role']) {
         </div>
         <div class="col-md-2">
           <label class="form-label fw-semibold" style="font-size:.82rem">Max Marks</label>
-          <input type="number" name="max_marks" class="form-control form-control-sm" min="1" max="200" required>
+          <input type="number" name="max_marks" class="form-control form-control-sm" min="1" max="200" step="0.01" required>
         </div>
         <div class="col-md-2">
           <label class="form-label fw-semibold" style="font-size:.82rem">Weight %</label>
-          <input type="number" name="weight" class="form-control form-control-sm" min="0" max="100" value="10">
+          <input type="number" name="weight" class="form-control form-control-sm" min="0" max="100" step="0.01" value="10">
         </div>
         <div class="col-md-3">
           <label class="form-label fw-semibold" style="font-size:.82rem">Date</label>
@@ -713,7 +713,7 @@ $links = match($user['role']) {
             $obtained = $existing ? $existing['marks_obtained'] : '';
             $remarks  = $existing ? $existing['remarks'] : '';
             $pct      = ($obtained !== '' && $currentAssessment['max_marks'] > 0)
-                        ? round((float)$obtained / $currentAssessment['max_marks'] * 100, 1) : '';
+                        ? round((float)$obtained / $currentAssessment['max_marks'] * 100, 2) : '';
             $grade    = ($pct !== '') ? _gradeInfo((float)$pct) : null;
           ?>
           <tr>
@@ -725,7 +725,7 @@ $links = match($user['role']) {
                      class="form-control form-control-sm marks-input"
                      data-max="<?= $currentAssessment['max_marks'] ?>"
                      value="<?= h($obtained) ?>"
-                     min="0" max="<?= $currentAssessment['max_marks'] ?>" step="0.5"
+                     min="0" max="<?= $currentAssessment['max_marks'] ?>" step="0.01"
                      oninput="calcRow(this)">
             </td>
             <td class="pct-cell"><?= $pct !== '' ? $pct.'%' : '—' ?></td>

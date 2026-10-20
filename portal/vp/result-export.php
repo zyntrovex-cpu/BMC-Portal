@@ -192,8 +192,8 @@ foreach ($students as $idx => $stu) {
     foreach ($subjectOrder as $sid => $sn) {
         $sub = $stu['subjects'][$sid] ?? null;
         if ($sub && $sub['max'] > 0) {
-            $cells[] = ['v' => (int)round($sub['max']),      's' => 'center'];
-            $cells[] = ['v' => round($sub['obtained'], 1),   's' => 'center'];
+            $cells[] = ['v' => round($sub['max'], 2),        's' => 'center'];
+            $cells[] = ['v' => round($sub['obtained'], 2),   's' => 'center'];
             $cells[] = ['v' => $sub['grade'],                's' => 'center'];
         } else {
             $cells[] = ['v' => '—', 's' => 'warn'];
@@ -202,8 +202,8 @@ foreach ($students as $idx => $stu) {
         }
     }
 
-    $cells[] = ['v' => $hasMarks ? (int)round($stu['grand_max'])      : '—', 's' => 'center'];
-    $cells[] = ['v' => $hasMarks ? round($stu['grand_obtained'], 1)   : '—', 's' => 'center'];
+    $cells[] = ['v' => $hasMarks ? round($stu['grand_max'], 2)        : '—', 's' => 'center'];
+    $cells[] = ['v' => $hasMarks ? round($stu['grand_obtained'], 2)   : '—', 's' => 'center'];
     $cells[] = ['v' => $hasMarks ? $stu['grand_pct'] . '%'            : '—', 's' => 'center'];
     $cells[] = ['v' => $stu['overall_grade'],                                  's' => 'center'];
     $cells[] = ['v' => $passStatus,                                            's' => ($passStatus === 'Pass' ? 'center' : ($passStatus === 'Fail' ? 'warn' : 'center'))];
@@ -232,8 +232,8 @@ foreach ($students as $stu) {
         $stu['name'],
         $stu['gr_no'],
         $stu['roll_no'] ?? '',
-        round($stu['grand_obtained'], 1),
-        (int)round($stu['grand_max']),
+        round($stu['grand_obtained'], 2),
+        round($stu['grand_max'], 2),
         $stu['grand_pct'] . '%',
         $stu['overall_grade'],
     ], $sty);

@@ -86,13 +86,13 @@ if (isset($_GET['export']) && ctype_digit((string)($_GET['export'] ?? ''))) {
             $i = 1;
             $total = 0;
             foreach ($marks as $m) {
-                $pct = $info['max_marks'] > 0 ? round(($m['marks_obtained'] / $info['max_marks']) * 100, 1) : 0;
+                $pct = $info['max_marks'] > 0 ? round(($m['marks_obtained'] / $info['max_marks']) * 100, 2) : 0;
                 $total += (float)$m['marks_obtained'];
                 $xls->addRow([$i++, $m['student_name'], $m['roll_no'] ?? '', $m['marks_obtained'], $info['max_marks'], $pct], ($i % 2 === 0) ? XlsxWriter::S_ALTROW : XlsxWriter::S_DATA);
             }
             if (!empty($marks)) {
-                $avg    = round($total / count($marks), 1);
-                $avgPct = $info['max_marks'] > 0 ? round(($avg / $info['max_marks']) * 100, 1) : 0;
+                $avg    = round($total / count($marks), 2);
+                $avgPct = $info['max_marks'] > 0 ? round(($avg / $info['max_marks']) * 100, 2) : 0;
                 $xls->addRow(['', 'Class Average', '', $avg, $info['max_marks'], $avgPct], XlsxWriter::S_FOOTER);
             } else {
                 $xls->addRow(['', 'No marks entered yet.', '', '', '', ''], XlsxWriter::S_DATA);
@@ -581,7 +581,7 @@ $links = getVpLinks();
           }
           var rows='', total=0;
           (d.students||[]).forEach(function(s,i){
-            var pct=d.max_marks>0?((s.marks_obtained/d.max_marks)*100).toFixed(1)+'%':'—';
+            var pct=d.max_marks>0?((s.marks_obtained/d.max_marks)*100).toFixed(2)+'%':'—';
             total+=parseFloat(s.marks_obtained)||0;
             rows+='<tr><td class="text-muted ps-3" style="font-size:.78rem">'+(i+1)+'</td>'
               +'<td>'+esc(s.student_name)+'</td>'
@@ -590,8 +590,8 @@ $links = getVpLinks();
               +'<td class="text-center text-muted">'+d.max_marks+'</td>'
               +'<td class="text-center">'+pct+'</td></tr>';
           });
-          var n=d.students.length, avg=n?(total/n).toFixed(1):'—';
-          var avgPct=d.max_marks>0&&n?((total/n/d.max_marks)*100).toFixed(1)+'%':'—';
+          var n=d.students.length, avg=n?(total/n).toFixed(2):'—';
+          var avgPct=d.max_marks>0&&n?((total/n/d.max_marks)*100).toFixed(2)+'%':'—';
           var html='<div class="px-3 pt-3 pb-1 border-bottom" style="font-size:.82rem">'
             +'<strong>'+esc(d.class_name)+'</strong> &nbsp;·&nbsp; '+esc(d.subject_name)
             +' &nbsp;·&nbsp; Max: <strong>'+d.max_marks+'</strong>'
