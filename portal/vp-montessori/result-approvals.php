@@ -556,6 +556,21 @@ $links = getVpMontessoriLinks();
             <i class="fas fa-file-alt me-1"></i>Not Submitted
           </span>
           <?php endif; ?>
+
+          <!-- View + Excel (all tabs) -->
+          <button class="btn btn-sm btn-outline-info view-fa-btn"
+                  data-class-id="<?= $b['class_id'] ?>"
+                  data-subject-id="<?= $b['subject_id'] ?>"
+                  data-teacher-id="<?= $b['teacher_id'] ?>"
+                  data-title="<?= h($b['subject_name']) ?> — <?= h($b['class_name']) ?>"
+                  style="font-size:.75rem;padding:3px 9px" title="View FA records">
+            <i class="fas fa-eye me-1"></i>View
+          </button>
+          <a href="?export=1&class_id=<?= $b['class_id'] ?>&subject_id=<?= $b['subject_id'] ?>&teacher_id=<?= $b['teacher_id'] ?>&tab=<?= h($activeTab) ?><?= $classFilter ? '&class_filter='.$classFilter : '' ?>"
+             class="btn btn-sm btn-outline-success"
+             style="font-size:.75rem;padding:3px 9px" title="Download FA marks as Excel">
+            <i class="fas fa-file-excel"></i>
+          </a>
         </div>
       </div>
     </div>
@@ -576,6 +591,71 @@ document.getElementById('changesModal').addEventListener('show.bs.modal', functi
     document.getElementById('mc_teacher_id').value = btn.dataset.teacherId;
     document.getElementById('mc_desc').textContent = btn.dataset.desc;
     this.querySelector('textarea[name="review_note"]').value = '';
+});
+</script>
+
+<!-- View FA Modal -->
+<div class="modal fade" id="viewFaModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" style="font-size:.95rem" id="viewFaModalTitle">
+          <i class="fas fa-eye me-2"></i>FA Records
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="viewFaModalBody" style="font-size:.84rem">
+        <div class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.view-fa-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var cId  = this.dataset.classId;
+        var sId  = this.dataset.subjectId;
+        var tId  = this.dataset.teacherId;
+        var title = this.dataset.title;
+        document.getElementById('viewFaModalTitle').innerHTML =
+            '<i class="fas fa-eye me-2"></i>' + title;
+        document.getElementById('viewFaModalBody').innerHTML =
+            '<div class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+        var modal = new bootstrap.Modal(document.getElementById('viewFaModal'));
+        modal.show();
+        fetch('?ajax=marks&class_id=' + cId + '&subject_id=' + sId + '&teacher_id=' + tId)
+            .then(function(r){ return r.json(); })
+            .then(function(d) {
+                if (d.error || !d.rows || !d.rows.length) {
+                    document.getElementById('viewFaModalBody').innerHTML =
+                        '<div class="text-center text-muted py-4">No records found.</div>';
+                    return;
+                }
+                var html = '<div class="table-responsive"><table class="table table-sm table-bordered align-middle">' +
+                    '<thead class="table-light"><tr>' +
+                    '<th>#</th><th>Student</th><th>Roll No.</th>' +
+                    '<th>Date</th><th>Topic</th><th>Overall</th><th>Remarks</th>' +
+                    '</tr></thead><tbody>';
+                d.rows.forEach(function(r, i) {
+                    html += '<tr>' +
+                        '<td>' + (i+1) + '</td>' +
+                        '<td>' + (r.student_name||'') + '</td>' +
+                        '<td>' + (r.roll_no||'') + '</td>' +
+                        '<td>' + (r.date||'') + '</td>' +
+                        '<td>' + (r.topic||'') + '</td>' +
+                        '<td class="text-center fw-semibold">' + (r.overall||'') + '</td>' +
+                        '<td>' + (r.remarks||'') + '</td>' +
+                        '</tr>';
+                });
+                html += '</tbody></table></div>';
+                document.getElementById('viewFaModalBody').innerHTML = html;
+            })
+            .catch(function() {
+                document.getElementById('viewFaModalBody').innerHTML =
+                    '<div class="text-danger text-center py-4">Failed to load records.</div>';
+            });
+    });
 });
 </script>
 </body></html>
