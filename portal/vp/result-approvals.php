@@ -2,10 +2,107 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
+require_once __DIR__ . '/../includes/xlsx_writer.php';
 
 $user = requireAuth('vp_main');
 requirePermission('vp_publish_results');
 $db = getDB();
+
+// ── AJAX: marks preview ───────────────────────────────────────────────────────
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'marks') {
+    $aId = (int)($_GET['id'] ?? 0);
+    $out = ['error' => true];
+    if ($aId) {
+        try {
+            $aChk = $db->prepare(
+                "SELECT a.id, a.title, a.name AS a_name, a.max_marks,
+                        c.name AS class_name, s.name AS subject_name
+                 FROM assessments a
+                 JOIN classes c ON a.class_id=c.id
+                 JOIN subjects s ON a.subject_id=s.id
+                 WHERE a.id=? AND COALESCE(c.wing,'main')='main'"
+            );
+            $aChk->execute([$aId]);
+            $info = $aChk->fetch();
+            if ($info) {
+                $mSt = $db->prepare(
+                    "SELECT u.name AS student_name, st.roll_no, m.marks_obtained
+                     FROM marks m
+                     JOIN students st ON m.student_id=st.id
+                     JOIN users u ON st.user_id=u.id
+                     WHERE m.assessment_id=?
+                     ORDER BY st.roll_no, u.name"
+                );
+                $mSt->execute([$aId]);
+                $out = [
+                    'error'        => false,
+                    'title'        => $info['title'] ?: $info['a_name'],
+                    'class_name'   => $info['class_name'],
+                    'subject_name' => $info['subject_name'],
+                    'max_marks'    => (float)$info['max_marks'],
+                    'students'     => $mSt->fetchAll(PDO::FETCH_ASSOC),
+                ];
+            }
+        } catch (Exception $e) {}
+    }
+    header('Content-Type: application/json');
+    echo json_encode($out);
+    exit;
+}
+
+// ── Export: single assessment XLSX ────────────────────────────────────────────
+if (isset($_GET['export']) && ctype_digit((string)($_GET['export'] ?? ''))) {
+    $aId = (int)$_GET['export'];
+    try {
+        $aChk = $db->prepare(
+            "SELECT a.id, a.title, a.name AS a_name, a.max_marks, a.date,
+                    c.name AS class_name, s.name AS subject_name
+             FROM assessments a
+             JOIN classes c ON a.class_id=c.id
+             JOIN subjects s ON a.subject_id=s.id
+             WHERE a.id=? AND COALESCE(c.wing,'main')='main'"
+        );
+        $aChk->execute([$aId]);
+        $info = $aChk->fetch();
+        if ($info) {
+            $mSt = $db->prepare(
+                "SELECT u.name AS student_name, st.roll_no, m.marks_obtained
+                 FROM marks m
+                 JOIN students st ON m.student_id=st.id
+                 JOIN users u ON st.user_id=u.id
+                 WHERE m.assessment_id=?
+                 ORDER BY st.roll_no, u.name"
+            );
+            $mSt->execute([$aId]);
+            $marks = $mSt->fetchAll(PDO::FETCH_ASSOC);
+
+            $displayTitle = $info['title'] ?: $info['a_name'];
+            $xls = new XlsxWriter('Marks');
+            $xls->setColumnWidths([4, 30, 12, 14, 10, 12]);
+            $xls->freezeRows(3);
+            $xls->addRow(['Bahria Model College — ' . $info['class_name']], XlsxWriter::S_TITLE);
+            $xls->addRow([$displayTitle . '  |  ' . $info['subject_name'] . '  |  Max: ' . $info['max_marks'] . '  |  Date: ' . ($info['date'] ?: '—')], XlsxWriter::S_SUBHDR);
+            $xls->addRow(['#', 'Student Name', 'Roll No.', 'Marks Obtained', 'Max Marks', 'Percentage (%)'], XlsxWriter::S_HEADER);
+            $i = 1;
+            $total = 0;
+            foreach ($marks as $m) {
+                $pct = $info['max_marks'] > 0 ? round(($m['marks_obtained'] / $info['max_marks']) * 100, 1) : 0;
+                $total += (float)$m['marks_obtained'];
+                $xls->addRow([$i++, $m['student_name'], $m['roll_no'] ?? '', $m['marks_obtained'], $info['max_marks'], $pct], ($i % 2 === 0) ? XlsxWriter::S_ALTROW : XlsxWriter::S_DATA);
+            }
+            if (!empty($marks)) {
+                $avg    = round($total / count($marks), 1);
+                $avgPct = $info['max_marks'] > 0 ? round(($avg / $info['max_marks']) * 100, 1) : 0;
+                $xls->addRow(['', 'Class Average', '', $avg, $info['max_marks'], $avgPct], XlsxWriter::S_FOOTER);
+            } else {
+                $xls->addRow(['', 'No marks entered yet.', '', '', '', ''], XlsxWriter::S_DATA);
+            }
+            $safeName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $info['class_name'] . '_' . $displayTitle);
+            $xls->download($safeName . '.xlsx');
+        }
+    } catch (Exception $e) {}
+    redirect('/portal/vp/result-approvals.php');
+}
 
 // ── Helper: get teacher user_id for a given assessment ────────────────────────
 function _getAssessmentTeacher(PDO $db, int $aId): array {
@@ -374,6 +471,19 @@ $links = getVpLinks();
             </form>
             <?php endif; ?>
 
+            <!-- View Marks -->
+            <button class="btn btn-xs btn-outline-info view-marks-btn"
+                    data-id="<?= $a['id'] ?>"
+                    data-title="<?= h($displayTitle) ?> — <?= h($a['class_name']) ?> / <?= h($a['subject_name']) ?>"
+                    style="font-size:.75rem;padding:3px 9px" title="View student marks">
+              <i class="fas fa-eye me-1"></i>View
+            </button>
+            <a href="?export=<?= $a['id'] ?>&tab=<?= h($activeTab) ?><?= $classFilter ? '&class_id='.$classFilter : '' ?>"
+               class="btn btn-xs btn-outline-success"
+               style="font-size:.75rem;padding:3px 9px" title="Download marks as Excel">
+              <i class="fas fa-file-excel"></i>
+            </a>
+
           </td>
         </tr>
 
@@ -438,4 +548,76 @@ $links = getVpLinks();
 </div><!-- /main-area -->
 </div><!-- /portal-wrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- View Marks Modal -->
+<div class="modal fade" id="viewMarksModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-semibold" id="viewMarksTitle" style="font-size:.92rem"></h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0" id="viewMarksBody">
+        <div class="text-center py-5"><div class="spinner-border spinner-border-sm text-primary"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  document.querySelectorAll('.view-marks-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.getElementById('viewMarksTitle').textContent = btn.dataset.title;
+      document.getElementById('viewMarksBody').innerHTML =
+        '<div class="text-center py-5"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+      new bootstrap.Modal(document.getElementById('viewMarksModal')).show();
+      fetch('?ajax=marks&id='+btn.dataset.id)
+        .then(function(r){return r.json();})
+        .then(function(d){
+          if(d.error){
+            document.getElementById('viewMarksBody').innerHTML='<p class="text-center text-danger py-4">Failed to load marks.</p>';
+            return;
+          }
+          var rows='', total=0;
+          (d.students||[]).forEach(function(s,i){
+            var pct=d.max_marks>0?((s.marks_obtained/d.max_marks)*100).toFixed(1)+'%':'—';
+            total+=parseFloat(s.marks_obtained)||0;
+            rows+='<tr><td class="text-muted ps-3" style="font-size:.78rem">'+(i+1)+'</td>'
+              +'<td>'+esc(s.student_name)+'</td>'
+              +'<td class="text-muted" style="font-size:.82rem">'+(s.roll_no||'—')+'</td>'
+              +'<td class="text-center fw-semibold">'+s.marks_obtained+'</td>'
+              +'<td class="text-center text-muted">'+d.max_marks+'</td>'
+              +'<td class="text-center">'+pct+'</td></tr>';
+          });
+          var n=d.students.length, avg=n?(total/n).toFixed(1):'—';
+          var avgPct=d.max_marks>0&&n?((total/n/d.max_marks)*100).toFixed(1)+'%':'—';
+          var html='<div class="px-3 pt-3 pb-1 border-bottom" style="font-size:.82rem">'
+            +'<strong>'+esc(d.class_name)+'</strong> &nbsp;·&nbsp; '+esc(d.subject_name)
+            +' &nbsp;·&nbsp; Max: <strong>'+d.max_marks+'</strong>'
+            +' &nbsp;·&nbsp; Students with marks: <strong>'+n+'</strong></div>';
+          if(!n){
+            html+='<p class="text-center text-muted py-4">No marks entered yet.</p>';
+          } else {
+            html+='<div class="table-responsive"><table class="table table-sm table-hover mb-0" style="font-size:.83rem">'
+              +'<thead class="table-light"><tr><th class="ps-3" style="width:36px">#</th>'
+              +'<th>Student</th><th>Roll No.</th>'
+              +'<th class="text-center">Obtained</th><th class="text-center">Max</th><th class="text-center">%</th>'
+              +'</tr></thead><tbody>'+rows
+              +'</tbody><tfoot class="table-secondary fw-semibold">'
+              +'<tr><td colspan="3" class="text-end pe-3" style="font-size:.79rem">Class Average</td>'
+              +'<td class="text-center">'+avg+'</td>'
+              +'<td class="text-center">'+d.max_marks+'</td>'
+              +'<td class="text-center">'+avgPct+'</td>'
+              +'</tr></tfoot></table></div>';
+          }
+          document.getElementById('viewMarksBody').innerHTML=html;
+        })
+        .catch(function(){
+          document.getElementById('viewMarksBody').innerHTML='<p class="text-center text-danger py-4">Network error.</p>';
+        });
+    });
+  });
+})();
+</script>
 </body></html>

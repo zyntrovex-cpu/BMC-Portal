@@ -3,10 +3,134 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/layout.php';
 require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../includes/xlsx_writer.php';
 
 $user = requireAuth('vp_montessori');
 requirePermission('monte_result_approvals');
 $db = getDB();
+
+// ── AJAX: batch marks preview ─────────────────────────────────────────────────
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'marks') {
+    $cId = (int)($_GET['class_id']   ?? 0);
+    $sId = (int)($_GET['subject_id'] ?? 0);
+    $tId = (int)($_GET['teacher_id'] ?? 0);
+    $out = ['error' => true];
+    if ($cId && $sId && $tId) {
+        try {
+            $chk = $db->prepare(
+                "SELECT c.name AS class_name, s.name AS subject_name
+                 FROM classes c JOIN subjects s ON s.id=?
+                 WHERE c.id=? AND c.is_montessori=1"
+            );
+            $chk->execute([$sId, $cId]);
+            $info = $chk->fetch();
+            if ($info) {
+                $aSt = $db->prepare(
+                    "SELECT mda.id, mda.assessment_date, mda.topic
+                     FROM montessori_daily_assessments mda
+                     WHERE mda.class_id=? AND mda.subject_id=? AND mda.teacher_id=?
+                     ORDER BY mda.assessment_date"
+                );
+                $aSt->execute([$cId, $sId, $tId]);
+                $assessments = $aSt->fetchAll(PDO::FETCH_ASSOC);
+                $rows = [];
+                foreach ($assessments as $a) {
+                    $eSt = $db->prepare(
+                        "SELECT u.name AS student_name, st.roll_no, e.overall, e.remarks
+                         FROM montessori_daily_assessment_entries e
+                         JOIN students st ON e.student_id=st.id
+                         JOIN users u ON st.user_id=u.id
+                         WHERE e.assessment_id=?
+                         ORDER BY st.roll_no, u.name"
+                    );
+                    $eSt->execute([$a['id']]);
+                    foreach ($eSt->fetchAll(PDO::FETCH_ASSOC) as $e) {
+                        $rows[] = [
+                            'date'         => $a['assessment_date'],
+                            'topic'        => $a['topic'],
+                            'student_name' => $e['student_name'],
+                            'roll_no'      => $e['roll_no'],
+                            'overall'      => $e['overall'],
+                            'remarks'      => $e['remarks'],
+                        ];
+                    }
+                }
+                $out = [
+                    'error'        => false,
+                    'class_name'   => $info['class_name'],
+                    'subject_name' => $info['subject_name'],
+                    'rows'         => $rows,
+                ];
+            }
+        } catch (Exception $e) {}
+    }
+    header('Content-Type: application/json');
+    echo json_encode($out);
+    exit;
+}
+
+// ── Export: batch XLSX ────────────────────────────────────────────────────────
+if (isset($_GET['export']) && isset($_GET['class_id'])) {
+    $cId = (int)($_GET['class_id']   ?? 0);
+    $sId = (int)($_GET['subject_id'] ?? 0);
+    $tId = (int)($_GET['teacher_id'] ?? 0);
+    if ($cId && $sId && $tId) {
+        try {
+            $chk = $db->prepare(
+                "SELECT c.name AS class_name, s.name AS subject_name, u.name AS teacher_name
+                 FROM classes c
+                 JOIN subjects s ON s.id=?
+                 JOIN teachers t ON t.id=?
+                 JOIN users u ON u.id=t.user_id
+                 WHERE c.id=? AND c.is_montessori=1"
+            );
+            $chk->execute([$sId, $tId, $cId]);
+            $info = $chk->fetch();
+            if ($info) {
+                $aSt = $db->prepare(
+                    "SELECT mda.id, mda.assessment_date, mda.topic
+                     FROM montessori_daily_assessments mda
+                     WHERE mda.class_id=? AND mda.subject_id=? AND mda.teacher_id=?
+                     ORDER BY mda.assessment_date"
+                );
+                $aSt->execute([$cId, $sId, $tId]);
+                $assessments = $aSt->fetchAll(PDO::FETCH_ASSOC);
+                $xls = new XlsxWriter('FA Marks');
+                $xls->setColumnWidths([4, 28, 12, 14, 12, 12, 24]);
+                $xls->freezeRows(3);
+                $xls->addRow(['Bahria Model College — ' . $info['class_name']], XlsxWriter::S_TITLE);
+                $xls->addRow(['Formative Assessments  |  ' . $info['subject_name'] . '  |  Teacher: ' . $info['teacher_name']], XlsxWriter::S_SUBHDR);
+                $xls->addRow(['#', 'Student Name', 'Roll No.', 'Assessment Date', 'Topic', 'Overall', 'Remarks'], XlsxWriter::S_HEADER);
+                $i = 1;
+                foreach ($assessments as $a) {
+                    $eSt = $db->prepare(
+                        "SELECT u.name AS student_name, st.roll_no, e.overall, e.remarks
+                         FROM montessori_daily_assessment_entries e
+                         JOIN students st ON e.student_id=st.id
+                         JOIN users u ON st.user_id=u.id
+                         WHERE e.assessment_id=?
+                         ORDER BY st.roll_no, u.name"
+                    );
+                    $eSt->execute([$a['id']]);
+                    foreach ($eSt->fetchAll(PDO::FETCH_ASSOC) as $e) {
+                        $xls->addRow([
+                            $i++,
+                            $e['student_name'],
+                            $e['roll_no'] ?? '',
+                            $a['assessment_date'],
+                            $a['topic'] ?? '',
+                            $e['overall'] ?? '',
+                            $e['remarks'] ?? '',
+                        ], ($i % 2 === 0) ? XlsxWriter::S_ALTROW : XlsxWriter::S_DATA);
+                    }
+                }
+                $safeName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $info['class_name'] . '_' . $info['subject_name'] . '_FA');
+                $xls->download($safeName . '.xlsx');
+            }
+        } catch (Exception $e) {}
+    }
+    redirect('/portal/vp-montessori/result-approvals.php');
+}
 
 // ── POST handlers ─────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
