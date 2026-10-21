@@ -21,6 +21,9 @@ $st = $db->prepare(
 );
 $st->execute([$id]);
 $rec = $st->fetch();
+// r.* above includes vp_remarks when the column has been migrated.
+// Normalise to always have the key present so downstream code is simple.
+if (is_array($rec) && !array_key_exists('vp_remarks', $rec)) $rec['vp_remarks'] = null;
 
 if (!$rec) { http_response_code(404); echo '<p style="font-family:sans-serif;padding:40px">Report not found.</p>'; exit; }
 
@@ -80,6 +83,7 @@ function prMigrateFormData(array $fd): array {
 
 function pdfIndicator(string $v): string {
     if ($v === '') return '<span style="color:#94a3b8">—</span>';
+    if ($v === 'ABS') return "<span style='color:#991b1b;font-weight:600;font-size:7.5pt'>Absent</span>";
     $map = ['AD'=>'#1e3a5f','ED'=>'#065f46','EMD'=>'#92400e'];
     $c = $map[$v] ?? '#374151';
     return "<strong style='color:$c'>$v</strong>";
@@ -90,6 +94,9 @@ $fdBasic     = $fd['basic']     ?? [];
 $fdRem       = $fd['remarks']   ?? '';
 $fdNarrative = $fd['narrative'] ?? '';
 $subjects    = $fd['subjects']  ?? [];
+// vp_remarks is a dedicated column (migration: montessori_absent_vp_remarks.sql);
+// fall back silently if the column has not been migrated yet.
+$fdVpRem     = array_key_exists('vp_remarks', $rec) ? (string)($rec['vp_remarks'] ?? '') : '';
 
 $logoBase   = defined('BASE_URL') ? BASE_URL : '';
 $schoolName = getSetting('school_name', 'Bahria Model College, Bin Qasim');
@@ -188,6 +195,7 @@ table.pr-tbl th { font-weight:600; }
   <span><strong style="color:#1e3a5f">AD</strong> — Advanced Development (Ahead of expected level &amp; often independently)</span>
   <span><strong style="color:#065f46">ED</strong> — Expected Development (Consistently meets the expected level)</span>
   <span><strong style="color:#92400e">EMD</strong> — Emerging Development (Struggles to meet the expected level)</span>
+  <span><strong style="color:#991b1b">Absent</strong> — Student was absent for this assessment</span>
 </div>
 
 <?php foreach ($subjects as $subj):
@@ -226,11 +234,16 @@ table.pr-tbl th { font-weight:600; }
 <div class="remarks-box"><?= nl2br(h($fdNarrative)) ?></div>
 <?php endif; ?>
 
-<div class="sig-row">
-  <div class="sig-box"><div class="sig-line"></div><div class="sig-lbl">Class Teacher's Signature</div></div>
-  <div class="sig-box"><div class="sig-line"></div><div class="sig-lbl">Wing Head's Signature</div></div>
-  <div class="sig-box"><div class="sig-line"></div><div class="sig-lbl">Parent's Signature</div></div>
-  <div class="sig-box"><div class="sig-line"></div><div class="sig-lbl">Principal's Signature</div></div>
+<div class="remarks-title" style="margin-top:7px">Vice Principal's Remarks</div>
+<div class="remarks-box"><?= $fdVpRem !== '' ? nl2br(h($fdVpRem)) : '<span style="color:#94a3b8">—</span>' ?></div>
+
+<div class="remarks-title" style="margin-top:7px">Parent's Remarks</div>
+<div class="remarks-box" style="min-height:56px"></div>
+
+<div class="sig-row" style="margin-top:22px">
+  <div class="sig-box" style="min-width:30%"><div class="sig-line" style="width:70%"></div><div class="sig-lbl">Vice Principal's Signature &amp; Date</div></div>
+  <div class="sig-box" style="min-width:30%"><div class="sig-line" style="width:70%"></div><div class="sig-lbl">Teacher's Signature &amp; Date</div></div>
+  <div class="sig-box" style="min-width:30%"><div class="sig-line" style="width:70%"></div><div class="sig-lbl">Parent's Signature &amp; Date</div></div>
 </div>
 
 <script>window.addEventListener('load', function(){ window.print(); });</script>

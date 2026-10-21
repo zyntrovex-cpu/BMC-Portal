@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $clean = [];
         foreach ($criteria as $crit) {
             $v = $rawRatings[$crit] ?? '';
-            $clean[$crit] = in_array($v,['AD','ED','EMD'],true) ? $v : '';
+            $clean[$crit] = in_array($v,['AD','ED','EMD','ABS'],true) ? $v : '';
         }
         $db->prepare(
             'INSERT INTO montessori_daily_assessment_entries
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              VALUES (?,?,?,?,?)'
         )->execute([
             $assessmentId,$studentId,json_encode($clean),
-            in_array($overall,['AD','ED','EMD'],true)?$overall:null,
+            in_array($overall,['AD','ED','EMD','ABS'],true)?$overall:null,
             $remark?:null
         ]);
 
@@ -182,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $clean = [];
         foreach ($criteria as $crit) {
             $v = $rawRatings[$crit] ?? '';
-            $clean[$crit] = in_array($v,['AD','ED','EMD'],true) ? $v : '';
+            $clean[$crit] = in_array($v,['AD','ED','EMD','ABS'],true) ? $v : '';
         }
         $db->prepare(
             'INSERT INTO montessori_daily_assessment_entries (assessment_id,student_id,ratings,overall,remarks)
@@ -190,7 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              ON DUPLICATE KEY UPDATE ratings=VALUES(ratings),overall=VALUES(overall),remarks=VALUES(remarks)'
         )->execute([
             $assessmentId,$studentId,json_encode($clean),
-            in_array($overall,['AD','ED','EMD'],true)?$overall:null,
+            in_array($overall,['AD','ED','EMD','ABS'],true)?$overall:null,
             $remark?:null
         ]);
 
@@ -535,6 +535,7 @@ $links = match($user['role']) {
 .rtg-btn.sel-AD{background:#16a34a!important;color:#fff!important;border-color:#16a34a!important}
 .rtg-btn.sel-ED{background:#d97706!important;color:#fff!important;border-color:#d97706!important}
 .rtg-btn.sel-EMD{background:#dc2626!important;color:#fff!important;border-color:#dc2626!important}
+.rtg-btn.sel-ABS{background:#64748b!important;color:#fff!important;border-color:#64748b!important}
 
 /* ─── Legend Bar ────────────────────────────────────────────────── */
 .fa-legend-bar{background:#f8fafc;border-top:1px solid #e2e8f0;padding:10px 16px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:space-between}
@@ -827,7 +828,7 @@ $links = match($user['role']) {
         <?php endif; ?>
       </div>
       <?php
-        $overallColors = ['AD'=>['bg'=>'#dcfce7','c'=>'#166534'],'ED'=>['bg'=>'#fef9c3','c'=>'#854d0e'],'EMD'=>['bg'=>'#fee2e2','c'=>'#991b1b']];
+        $overallColors = ['AD'=>['bg'=>'#dcfce7','c'=>'#166534'],'ED'=>['bg'=>'#fef9c3','c'=>'#854d0e'],'EMD'=>['bg'=>'#fee2e2','c'=>'#991b1b'],'ABS'=>['bg'=>'#e2e8f0','c'=>'#334155']];
         foreach ($assessmentList as $aRec):
           $aEntry = null;
           try {
@@ -977,9 +978,9 @@ $links = match($user['role']) {
               </div>
               <div class="rtg-group" data-crit="<?= h($crit) ?>">
                 <input type="hidden" name="ratings[<?= h($crit) ?>]" value="<?= h($ratings[$crit]??'') ?>">
-                <?php foreach (['AD','ED','EMD'] as $rv): ?>
+                <?php foreach (['AD','ED','EMD','ABS'] as $rv): ?>
                 <button type="button" class="rtg-btn <?= ($ratings[$crit]??'')===$rv?'sel-'.$rv:'' ?>"
-                        data-val="<?= $rv ?>" <?= $teacher?'':'disabled' ?>><?= $rv ?></button>
+                        data-val="<?= $rv ?>" <?= $teacher?'':'disabled' ?>><?= $rv === 'ABS' ? 'Absent' : $rv ?></button>
                 <?php endforeach; ?>
               </div>
             </div>
@@ -992,9 +993,9 @@ $links = match($user['role']) {
               </div>
               <div class="rtg-group">
                 <input type="hidden" name="overall" value="<?= h($overall) ?>">
-                <?php foreach (['AD','ED','EMD'] as $rv): ?>
+                <?php foreach (['AD','ED','EMD','ABS'] as $rv): ?>
                 <button type="button" class="rtg-btn <?= $overall===$rv?'sel-'.$rv:'' ?>"
-                        data-val="<?= $rv ?>" <?= $teacher?'':'disabled' ?>><?= $rv ?></button>
+                        data-val="<?= $rv ?>" <?= $teacher?'':'disabled' ?>><?= $rv === 'ABS' ? 'Absent' : $rv ?></button>
                 <?php endforeach; ?>
               </div>
             </div>
@@ -1020,6 +1021,7 @@ $links = match($user['role']) {
             <span class="legend-chip ad"><span style="font-weight:800">AD</span> — Advanced Development</span>
             <span class="legend-chip ed"><span style="font-weight:800">ED</span> — Expected Development</span>
             <span class="legend-chip emd"><span style="font-weight:800">EMD</span> — Emerging Development</span>
+            <span class="legend-chip" style="background:#e2e8f0;color:#334155;border:1px solid #cbd5e1"><span style="font-weight:800">Absent</span> — Student not present</span>
           </div>
           <?php if ($teacher): ?>
           <button type="submit" class="btn btn-primary fa-save-btn">
@@ -1150,7 +1152,7 @@ document.addEventListener('click', function(e) {
   var val    = btn.dataset.val;
   var cur    = hidden ? hidden.value : '';
   grp.querySelectorAll('.rtg-btn').forEach(function(b) {
-    b.classList.remove('sel-AD','sel-ED','sel-EMD');
+    b.classList.remove('sel-AD','sel-ED','sel-EMD','sel-ABS');
   });
   if (cur === val) {
     if (hidden) hidden.value = '';
@@ -1183,6 +1185,7 @@ function addCrit() {
     '<button type="button" class="rtg-btn" data-val="AD">AD</button>' +
     '<button type="button" class="rtg-btn" data-val="ED">ED</button>' +
     '<button type="button" class="rtg-btn" data-val="EMD">EMD</button>' +
+    '<button type="button" class="rtg-btn" data-val="ABS">Absent</button>' +
     '</div>';
   list.insertBefore(row, overall);
 }

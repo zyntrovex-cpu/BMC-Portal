@@ -170,15 +170,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
         $json = json_encode($fd, JSON_UNESCAPED_UNICODE);
         $term = $basic['term']; $session = $basic['session'];
 
+        // VP remarks are a separate, VP-only field. Only accept the input from
+        // vp_main / vp_montessori to prevent teachers from writing on the VP's
+        // behalf; the dedicated column is set by the migration.
+        $acceptsVpRem = in_array($role, ['vp_main', 'vp_montessori'], true);
+        $vpRem        = $acceptsVpRem ? trim((string)($_POST['vp_remarks'] ?? '')) : null;
+        $hasVpRemCol  = false;
+        try { $db->query('SELECT vp_remarks FROM progress_reports LIMIT 0'); $hasVpRemCol = true; } catch (Exception $e) {}
+
         if ($action === 'update') {
             $id = (int)($_POST['result_id'] ?? 0);
-            $db->prepare('UPDATE progress_reports SET term=?,session=?,form_data=?,reported_by=?,updated_at=NOW() WHERE id=? AND student_id=?')
-               ->execute([$term,$session,$json,$user['id'],$id,$studentId]);
+            if ($acceptsVpRem && $hasVpRemCol) {
+                $db->prepare('UPDATE progress_reports SET term=?,session=?,form_data=?,vp_remarks=?,reported_by=?,updated_at=NOW() WHERE id=? AND student_id=?')
+                   ->execute([$term,$session,$json,($vpRem !== '' ? $vpRem : null),$user['id'],$id,$studentId]);
+            } else {
+                $db->prepare('UPDATE progress_reports SET term=?,session=?,form_data=?,reported_by=?,updated_at=NOW() WHERE id=? AND student_id=?')
+                   ->execute([$term,$session,$json,$user['id'],$id,$studentId]);
+            }
             logActivity($user['id'],'pr_update',"Updated Progress Report #$id");
             setFlash('success','Progress Report updated.');
         } else {
-            $db->prepare('INSERT INTO progress_reports (student_id,term,session,form_data,reported_by) VALUES (?,?,?,?,?)')
-               ->execute([$studentId,$term,$session,$json,$user['id']]);
+            if ($acceptsVpRem && $hasVpRemCol && $vpRem !== '') {
+                $db->prepare('INSERT INTO progress_reports (student_id,term,session,form_data,vp_remarks,reported_by) VALUES (?,?,?,?,?,?)')
+                   ->execute([$studentId,$term,$session,$json,$vpRem,$user['id']]);
+            } else {
+                $db->prepare('INSERT INTO progress_reports (student_id,term,session,form_data,reported_by) VALUES (?,?,?,?,?)')
+                   ->execute([$studentId,$term,$session,$json,$user['id']]);
+            }
             logActivity($user['id'],'pr_create',"Created Progress Report for student #$studentId");
             setFlash('success','Progress Report saved.');
         }
@@ -254,6 +272,11 @@ if ($editResult && !empty($editResult['form_data'])) {
 $fdBasic     = $fd['basic']     ?? ['term'=>'Final Term','session'=>'','attendance'=>'','date_of_issue'=>''];
 $fdRem       = $fd['remarks']   ?? '';
 $fdNarrative = $fd['narrative'] ?? '';
+// VP remarks live in a dedicated column (migration: montessori_absent_vp_remarks.sql).
+// Not every install has run the migration yet, so fall back silently.
+$fdVpRem = ($editResult && array_key_exists('vp_remarks', $editResult))
+    ? (string)($editResult['vp_remarks'] ?? '') : '';
+$isVpUser = in_array($role, ['vp_main', 'vp_montessori'], true);
 
 $links = match($role) {
     'montessori_teacher' => getMonteTeacherLinks(),
@@ -442,7 +465,8 @@ pageHead('Progress Report', $role);
               <span class="fw-bold me-1">KEY:</span>
               <span class="badge me-1" style="background:#1e3a5f;font-size:.7rem">AD</span> Advanced Development &nbsp;|&nbsp;
               <span class="badge me-1" style="background:#065f46;font-size:.7rem">ED</span> Expected Development &nbsp;|&nbsp;
-              <span class="badge me-1" style="background:#92400e;font-size:.7rem">EMD</span> Emerging Development
+              <span class="badge me-1" style="background:#92400e;font-size:.7rem">EMD</span> Emerging Development &nbsp;|&nbsp;
+              <span class="badge me-1" style="background:#991b1b;font-size:.7rem">Absent</span> Student was absent
             </div>
 
             <?php if ($usedTemplate): ?>
@@ -482,6 +506,24 @@ pageHead('Progress Report', $role);
               <div class="fba-sb">
                 <textarea name="narrative" class="form-control form-control-sm" rows="3"
                           placeholder="Additional narrative assessment (optional)…"><?= h($fdNarrative) ?></textarea>
+              </div>
+            </div>
+
+            <!-- Vice Principal Remarks -->
+            <div class="fba-sec mb-3">
+              <div class="fba-sh" style="background:#fdf4ff;color:#86198f;border-bottom:2px solid #e9d5ff">
+                <i class="fas fa-stamp me-2" style="opacity:.75"></i>Vice Principal's Remarks
+                <?php if (!$isVpUser): ?>
+                <span class="ms-2 badge bg-secondary" style="font-size:.62rem;vertical-align:middle">read-only · set by VP</span>
+                <?php endif; ?>
+              </div>
+              <div class="fba-sb">
+                <?php if ($isVpUser): ?>
+                <textarea name="vp_remarks" class="form-control form-control-sm" rows="3"
+                          placeholder="VP remarks shown on the printed Progress Report…"><?= h($fdVpRem) ?></textarea>
+                <?php else: ?>
+                <div class="form-control form-control-sm" style="min-height:60px;background:#fafafa;color:#334155;white-space:pre-wrap"><?= $fdVpRem !== '' ? h($fdVpRem) : '<span class="text-muted fst-italic">— not yet set by Vice Principal —</span>' ?></div>
+                <?php endif; ?>
               </div>
             </div>
 
@@ -649,7 +691,7 @@ function h2r(hex, a) {
 }
 
 function selOpts(val) {
-  return ['','AD','ED','EMD'].map(v=>`<option value="${v}"${val===v?' selected':''}>${v||'—'}</option>`).join('');
+  return ['','AD','ED','EMD','ABS'].map(v=>`<option value="${v}"${val===v?' selected':''}>${v==='ABS'?'Absent':(v||'—')}</option>`).join('');
 }
 
 function renderSubjects() {
