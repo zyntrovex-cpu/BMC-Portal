@@ -83,19 +83,58 @@ if ($montessoriLowGrade && $role === 'student') {
 // ── Fetch assessments + marks grouped by subject ──────────
 // Students only see published results; staff/admin see all
 $pubFilter = ($role === 'student') ? " AND COALESCE(a.publish_status, 'published') = 'published'" : '';
+
+// Optional assessment-type filter: ?type=First%20Term produces a report card
+// for only that assessment type. When empty, all types are included (legacy).
+$typeFilter = trim((string)($_GET['type'] ?? ''));
+$typeClause = '';
+$qParams    = [$studentId, $student['class_id']];
+if ($typeFilter !== '') {
+    $typeClause = ' AND a.type = ?';
+    $qParams[]  = $typeFilter;
+}
+
+// Build list of assessment types the student has marks in (for the type picker).
+try {
+    $tListSt = $db->prepare(
+        "SELECT DISTINCT a.type
+         FROM assessments a
+         LEFT JOIN marks m ON m.assessment_id = a.id AND m.student_id = ?
+         WHERE a.class_id = ?$pubFilter AND m.id IS NOT NULL
+         ORDER BY a.type"
+    );
+    $tListSt->execute([$studentId, $student['class_id']]);
+    $availableTypes = array_values(array_filter($tListSt->fetchAll(PDO::FETCH_COLUMN)));
+} catch (Exception $e) { $availableTypes = []; }
+
 $st = $db->prepare(
     "SELECT a.id AS assessment_id, a.name AS assessment_name, a.type,
-            a.max_marks, a.weight, a.date,
+            a.max_marks, a.weight, a.date, a.vp_remarks,
             sb.id AS subject_id, sb.name AS subject_name, sb.code AS subject_code,
             m.marks_obtained, m.remarks
      FROM assessments a
      JOIN subjects sb ON a.subject_id = sb.id
      LEFT JOIN marks m ON m.assessment_id = a.id AND m.student_id = ?
-     WHERE a.class_id = ?$pubFilter
+     WHERE a.class_id = ?$pubFilter$typeClause
      ORDER BY sb.name, a.date, a.id"
 );
-$st->execute([$studentId, $student['class_id']]);
-$rows = $st->fetchAll();
+try { $st->execute($qParams); $rows = $st->fetchAll(); }
+catch (Exception $e) {
+    // Fallback for installs where vp_remarks column has not been migrated yet
+    $st = $db->prepare(
+        "SELECT a.id AS assessment_id, a.name AS assessment_name, a.type,
+                a.max_marks, a.weight, a.date, NULL AS vp_remarks,
+                sb.id AS subject_id, sb.name AS subject_name, sb.code AS subject_code,
+                m.marks_obtained, m.remarks
+         FROM assessments a
+         JOIN subjects sb ON a.subject_id = sb.id
+         LEFT JOIN marks m ON m.assessment_id = a.id AND m.student_id = ?
+         WHERE a.class_id = ?$pubFilter$typeClause
+         ORDER BY sb.name, a.date, a.id"
+    );
+    $st->execute($qParams);
+    $rows = $st->fetchAll();
+}
 
 $bySubject = [];
 foreach ($rows as $r) {
@@ -620,9 +659,26 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
   <a href="<?= $base . $backUrl ?>"><i class="fas fa-arrow-left"></i> Back</a>
   <span class="ttl">Report Card — <?= h($student['name']) ?></span>
   <span class="tb-badge">RESTRICTED</span>
+  <?php if (!empty($availableTypes)): ?>
+  <form method="GET" style="display:inline-flex;align-items:center;gap:6px;margin-left:12px">
+    <?php if ($role !== 'student'): ?>
+    <input type="hidden" name="student_id" value="<?= $studentId ?>">
+    <?php endif; ?>
+    <label style="font-size:.78rem;font-weight:600;color:#374151">Assessment:</label>
+    <select name="type" onchange="this.form.submit()"
+            style="font-size:.8rem;padding:3px 8px;border:1px solid #d1d5db;border-radius:4px;background:#fff">
+      <option value="">— All Assessments (combined) —</option>
+      <?php foreach ($availableTypes as $t): ?>
+      <option value="<?= h($t) ?>" <?= $typeFilter === $t ? 'selected' : '' ?>><?= h($t) ?></option>
+      <?php endforeach; ?>
+    </select>
+  </form>
+  <?php endif; ?>
   <?php
-    $wordParams = $role !== 'student' ? 'student_id='.$studentId.'&export=word' : 'export=word';
-    $wordHref   = url('/portal/report-card.php?' . $wordParams);
+    $exportQS = ($role !== 'student' ? 'student_id='.$studentId.'&' : '')
+              . ($typeFilter !== '' ? 'type='.urlencode($typeFilter).'&' : '')
+              . 'export=word';
+    $wordHref = url('/portal/report-card.php?' . $exportQS);
   ?>
   <a href="<?= $wordHref ?>"><i class="fas fa-file-word"></i> Word</a>
   <button onclick="window.print()"><i class="fas fa-print"></i> Print / Save PDF</button>
@@ -666,11 +722,14 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
   <!-- ── Title band ─────────────────────────────────────── -->
   <div class="rc-title-band">
     <div class="rc-title-main">
-      <span class="dmd">&#9670;</span>Academic Report Card<span class="dmd">&#9670;</span>
+      <span class="dmd">&#9670;</span><?= $typeFilter !== '' ? h($typeFilter) . ' Report Card' : 'Academic Report Card' ?><span class="dmd">&#9670;</span>
     </div>
     <div class="rc-title-sub">
       Academic Session <?= h($sessionYear) ?>
       <span class="dmd">&#9670;</span><?= h($campusLabel) ?>
+      <?php if ($typeFilter === ''): ?>
+      <span class="dmd">&#9670;</span>Combined Results
+      <?php endif; ?>
     </div>
   </div>
 
@@ -901,69 +960,27 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
   </div>
   <?php endif; ?>
 
-  <!-- ── Attendance ─────────────────────────────────────── -->
-  <?php if (!empty($attendance)): ?>
+  <!-- ── Attendance (simplified: 3 figures only) ────────── -->
+  <?php if ($attTotal > 0): ?>
   <div class="rc-sec-alt">
     <i class="fas fa-calendar-check"></i>Attendance Summary
   </div>
-  <table class="rc-att">
-    <thead>
-      <tr>
-        <th>Subject</th>
-        <th class="rgt">Present</th>
-        <th class="rgt">Absent</th>
-        <th class="rgt">Leave</th>
-        <th class="rgt">Total</th>
-        <th style="width:140px">Attendance</th>
-      </tr>
-    </thead>
+  <table class="rc-att-simple" style="width:100%;border-collapse:collapse;margin-bottom:14px">
     <tbody>
-      <?php foreach ($attendance as $att):
-        $sp = $att['total'] > 0 ? round($att['present'] / $att['total'] * 100) : 0;
-        $bc = $sp >= 75 ? '#15803d' : ($sp >= 60 ? '#d97706' : '#dc2626');
-      ?>
       <tr>
-        <td>
-          <span style="font-weight:600"><?= h($att['subject']) ?></span>
-          <?php if (!empty($att['code'])): ?>
-          <span style="font-size:.62rem;color:var(--subtle);margin-left:4px">(<?= h($att['code']) ?>)</span>
-          <?php endif; ?>
+        <td style="width:33.33%;padding:14px 10px;text-align:center;border:1px solid #e5e7eb;background:#f8fafc">
+          <div style="font-size:.72rem;letter-spacing:.6px;text-transform:uppercase;color:#64748b;font-weight:600;margin-bottom:4px">Total Working Days</div>
+          <div style="font-size:1.3rem;font-weight:700;color:#1e293b"><?= $attTotal ?></div>
         </td>
-        <td class="rgt" style="color:#15803d;font-weight:600"><?= $att['present'] ?></td>
-        <td class="rgt" style="color:#dc2626;font-weight:600"><?= $att['absent'] ?></td>
-        <td class="rgt" style="color:#d97706;font-weight:600"><?= $att['leave'] ?></td>
-        <td class="rgt" style="font-weight:500"><?= $att['total'] ?></td>
-        <td>
-          <div class="rc-att-bar">
-            <div class="rc-att-track">
-              <div class="rc-att-fill" style="width:<?= $sp ?>%;background:<?= $bc ?>"></div>
-            </div>
-            <span class="rc-att-pct" style="color:<?= $bc ?>"><?= $sp ?>%</span>
-          </div>
+        <td style="width:33.33%;padding:14px 10px;text-align:center;border:1px solid #e5e7eb;background:#f8fafc">
+          <div style="font-size:.72rem;letter-spacing:.6px;text-transform:uppercase;color:#64748b;font-weight:600;margin-bottom:4px">Days Present</div>
+          <div style="font-size:1.3rem;font-weight:700;color:#15803d"><?= $attPresent ?></div>
+        </td>
+        <td style="width:33.33%;padding:14px 10px;text-align:center;border:1px solid #e5e7eb;background:#f8fafc">
+          <div style="font-size:.72rem;letter-spacing:.6px;text-transform:uppercase;color:#64748b;font-weight:600;margin-bottom:4px">Attendance %</div>
+          <div style="font-size:1.3rem;font-weight:700;color:<?= $attPct >= 75 ? '#15803d' : ($attPct >= 60 ? '#d97706' : '#dc2626') ?>"><?= $attPct ?>%</div>
         </td>
       </tr>
-      <?php endforeach; ?>
-      <?php if ($attTotal > 0):
-        $oc = $attPct >= 75 ? '#15803d' : ($attPct >= 60 ? '#d97706' : '#dc2626');
-        $absTotal   = array_sum(array_column($attendance, 'absent'));
-        $leaveTotal = array_sum(array_column($attendance, 'leave'));
-      ?>
-      <tr class="rc-att-tot">
-        <td>Overall Attendance</td>
-        <td class="rgt" style="color:#15803d"><?= $attPresent ?></td>
-        <td class="rgt" style="color:#dc2626"><?= $absTotal ?></td>
-        <td class="rgt" style="color:#d97706"><?= $leaveTotal ?></td>
-        <td class="rgt"><?= $attTotal ?></td>
-        <td>
-          <div class="rc-att-bar">
-            <div class="rc-att-track">
-              <div class="rc-att-fill" style="width:<?= $attPct ?>%;background:<?= $oc ?>"></div>
-            </div>
-            <span class="rc-att-pct" style="color:<?= $oc ?>"><?= $attPct ?>%</span>
-          </div>
-        </td>
-      </tr>
-      <?php endif; ?>
     </tbody>
   </table>
   <?php endif; ?>
@@ -983,49 +1000,90 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
   </div>
   <?php endif; ?>
 
-  <!-- ── Remarks ────────────────────────────────────────── -->
-  <div class="rc-rem">
-    <div class="rc-rem-cell">
-      <div class="rc-rem-lbl">
-        <i class="fas fa-comment-dots" style="opacity:.45"></i>Class Teacher Remarks
+  <!-- ── Teacher Remarks (populated from marks.remarks) ─── -->
+  <?php
+    // Collect per-subject teacher remarks from the loaded marks
+    $teacherRemarks = [];
+    foreach ($bySubject as $sid => $sub) {
+        foreach ($sub['assessments'] as $a) {
+            if (!empty($a['remarks'])) {
+                $teacherRemarks[] = [
+                    'subject' => $sub['name'],
+                    'label'   => trim(($a['assessment_name'] ?: $a['type']) . ($a['type'] && $a['assessment_name'] && $a['type'] !== $a['assessment_name'] ? ' ('.$a['type'].')' : '')),
+                    'remark'  => $a['remarks'],
+                ];
+            }
+        }
+    }
+    // Collect VP remarks (deduplicated by assessment id when the type filter is active)
+    $vpRemarksSeen = [];
+    $vpRemarks     = [];
+    foreach ($rows as $r) {
+        if (!empty($r['vp_remarks']) && !isset($vpRemarksSeen[$r['assessment_id']])) {
+            $vpRemarksSeen[$r['assessment_id']] = true;
+            $vpRemarks[] = [
+                'label'  => trim(($r['assessment_name'] ?: $r['type']) . ' — ' . $r['subject_name']),
+                'remark' => $r['vp_remarks'],
+            ];
+        }
+    }
+  ?>
+  <div class="rc-sec-alt" style="margin-top:14px">
+    <i class="fas fa-comment-dots"></i>Teacher Remarks
+  </div>
+  <div style="padding:10px 14px;background:#fcfcfd;border:1px solid #e5e7eb;border-radius:6px;margin-bottom:10px">
+    <?php if (!empty($teacherRemarks)): ?>
+      <?php foreach ($teacherRemarks as $tr): ?>
+      <div style="padding:6px 0;border-bottom:1px dashed #e5e7eb;font-size:.82rem">
+        <span style="font-weight:600;color:#1e293b"><?= h($tr['subject']) ?></span>
+        <?php if (!empty($tr['label'])): ?><span style="color:#64748b;font-size:.76rem">· <?= h($tr['label']) ?></span><?php endif; ?>
+        <div style="color:#334155;margin-top:2px"><?= h($tr['remark']) ?></div>
       </div>
+      <?php endforeach; ?>
+    <?php else: ?>
+      <div style="font-size:.82rem;color:#9ca3af;font-style:italic">No remarks recorded by subject teachers.</div>
+      <div class="rc-rem-line" style="margin-top:8px"></div>
       <div class="rc-rem-line"></div>
-      <div class="rc-rem-line"></div>
-    </div>
-    <div class="rc-rem-cell">
-      <div class="rc-rem-lbl">
-        <i class="fas fa-stamp" style="opacity:.45"></i>Principal Remarks
-      </div>
-      <div class="rc-rem-line"></div>
-      <div class="rc-rem-line"></div>
-    </div>
+    <?php endif; ?>
   </div>
 
-  <!-- ── Signatures ─────────────────────────────────────── -->
+  <!-- ── Vice Principal Remarks ─────────────────────────── -->
+  <div class="rc-sec-alt">
+    <i class="fas fa-stamp"></i>Vice Principal Remarks
+  </div>
+  <div style="padding:10px 14px;background:#fcfcfd;border:1px solid #e5e7eb;border-radius:6px;margin-bottom:14px;min-height:60px">
+    <?php if (!empty($vpRemarks)): ?>
+      <?php foreach ($vpRemarks as $vr): ?>
+      <div style="padding:6px 0;border-bottom:1px dashed #e5e7eb;font-size:.82rem">
+        <div style="font-weight:600;color:#1e293b;font-size:.78rem"><?= h($vr['label']) ?></div>
+        <div style="color:#334155;margin-top:2px"><?= h($vr['remark']) ?></div>
+      </div>
+      <?php endforeach; ?>
+    <?php else: ?>
+      <div style="font-size:.82rem;color:#9ca3af;font-style:italic">No remarks recorded by the Vice Principal.</div>
+      <div class="rc-rem-line" style="margin-top:8px"></div>
+      <div class="rc-rem-line"></div>
+    <?php endif; ?>
+  </div>
+
+  <!-- ── Signatures (VP · Class Teacher · Parent) ───────── -->
   <div class="rc-sigs">
     <div class="rc-sig">
-      <div class="rc-sig-space"></div>
+      <div class="rc-sig-space" style="min-height:60px"></div>
+      <div class="rc-sig-line">
+        <div class="rc-sig-title">Vice Principal</div>
+        <div class="rc-sig-sub">Signature &amp; Date</div>
+      </div>
+    </div>
+    <div class="rc-sig">
+      <div class="rc-sig-space" style="min-height:60px"></div>
       <div class="rc-sig-line">
         <div class="rc-sig-title">Class Teacher</div>
         <div class="rc-sig-sub">Signature &amp; Date</div>
       </div>
     </div>
     <div class="rc-sig">
-      <div class="rc-sig-space"></div>
-      <div class="rc-sig-line">
-        <div class="rc-sig-title">Head of Department</div>
-        <div class="rc-sig-sub">Signature &amp; Date</div>
-      </div>
-    </div>
-    <div class="rc-sig">
-      <div class="rc-sig-space"></div>
-      <div class="rc-sig-line">
-        <div class="rc-sig-title"><?= h($principalName) ?></div>
-        <div class="rc-sig-sub">Principal / Vice Principal</div>
-      </div>
-    </div>
-    <div class="rc-sig">
-      <div class="rc-sig-space"></div>
+      <div class="rc-sig-space" style="min-height:60px"></div>
       <div class="rc-sig-line">
         <div class="rc-sig-title">Parent / Guardian</div>
         <div class="rc-sig-sub">Signature &amp; Date</div>

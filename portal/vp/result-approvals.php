@@ -194,6 +194,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             )->execute([$aId]);
             logActivity($user['id'], 'result_unpublish', "Unpublished assessment #$aId: $title");
             setFlash('warning', "Results unpublished for \"" . h($title) . "\" — moved back to Draft.");
+
+        } elseif ($action === 'save_vp_remarks') {
+            $vpRem = trim((string)($_POST['vp_remarks'] ?? ''));
+            try {
+                $db->prepare("UPDATE assessments SET vp_remarks=? WHERE id=?")
+                   ->execute([$vpRem !== '' ? $vpRem : null, $aId]);
+                logActivity($user['id'], 'vp_remarks_save', "Saved VP remarks for assessment #$aId");
+                setFlash('success', $vpRem !== ''
+                    ? "VP remarks saved for \"" . h($title) . "\" — will appear on the report card."
+                    : "VP remarks cleared for \"" . h($title) . "\".");
+            } catch (Exception $e) {
+                setFlash('danger', 'Could not save remarks: ' . $e->getMessage() . ' (Run migrations/report_card_vp_remarks.sql)');
+            }
         }
     }
     $cfPost = (int)($_POST['class_filter'] ?? 0);
@@ -218,9 +231,17 @@ $statusMap = [
 ];
 $statusCond = $statusMap[$activeTab] ?? "a.publish_status='pending_review'";
 
+// Does the vp_remarks column exist? (migration guard)
+$hasVpRemarks = false;
+try {
+    $db->query("SELECT vp_remarks FROM assessments LIMIT 0");
+    $hasVpRemarks = true;
+} catch (Exception $e) {}
+$vpRemCol = $hasVpRemarks ? 'a.vp_remarks' : 'NULL AS vp_remarks';
+
 $st = $db->prepare(
     "SELECT a.id, a.class_id, a.title, a.name AS a_name, a.type, a.max_marks, a.weight, a.date,
-            a.publish_status, a.submitted_at, a.review_note, a.published_at,
+            a.publish_status, a.submitted_at, a.review_note, a.published_at, $vpRemCol,
             c.name AS class_name, s.name AS subject_name,
             u.name AS teacher_name,
             pub.name AS published_by_name,
@@ -483,9 +504,52 @@ $links = getVpLinks();
                style="font-size:.75rem;padding:3px 9px" title="Download marks as Excel">
               <i class="fas fa-file-excel"></i>
             </a>
+            <!-- VP Remarks -->
+            <button class="btn btn-xs <?= !empty($a['vp_remarks']) ? 'btn-primary' : 'btn-outline-primary' ?>"
+                    style="font-size:.75rem;padding:3px 9px"
+                    title="<?= !empty($a['vp_remarks']) ? 'Edit VP remarks (set)' : 'Add VP remarks for report card' ?>"
+                    data-bs-toggle="modal" data-bs-target="#vpRemModal<?= $a['id'] ?>">
+              <i class="fas fa-stamp"></i>
+            </button>
 
           </td>
         </tr>
+
+        <!-- VP Remarks Modal -->
+        <div class="modal fade" id="vpRemModal<?= $a['id'] ?>" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form method="POST">
+                <input type="hidden" name="action" value="save_vp_remarks">
+                <input type="hidden" name="assessment_id" value="<?= $a['id'] ?>">
+                <input type="hidden" name="tab" value="<?= h($activeTab) ?>">
+                <div class="modal-header">
+                  <h5 class="modal-title" style="font-size:.95rem">
+                    <i class="fas fa-stamp me-2"></i>Vice Principal Remarks
+                  </h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <p style="font-size:.85rem;color:#374151">
+                    <strong><?= h($displayTitle) ?></strong> — <?= h($a['class_name']) ?> / <?= h($a['subject_name']) ?>
+                    <span class="text-muted" style="font-size:.78rem">· type: <?= h($a['type']) ?></span>
+                  </p>
+                  <label class="form-label fw-semibold" style="font-size:.84rem">Remarks (will appear on student report cards for this assessment type)</label>
+                  <textarea name="vp_remarks" class="form-control form-control-sm" rows="4"
+                            placeholder="e.g. Overall improvement observed. Keep up the good work."
+                            style="font-size:.84rem"><?= h($a['vp_remarks'] ?? '') ?></textarea>
+                  <div class="form-text" style="font-size:.75rem">Leave empty and save to clear.</div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fas fa-save me-1"></i>Save Remarks
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
 
         <!-- Request Changes Modal -->
         <div class="modal fade" id="changeModal<?= $a['id'] ?>" tabindex="-1">
