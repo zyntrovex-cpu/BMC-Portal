@@ -105,6 +105,7 @@ function smRatingBadge(string $v): string {
     if ($v === 'AD')  return '<span class="sm-badge ad">AD <small>Advanced</small></span>';
     if ($v === 'ED')  return '<span class="sm-badge ed">ED <small>Expected</small></span>';
     if ($v === 'EMD') return '<span class="sm-badge emd">EMD <small>Emerging</small></span>';
+    if ($v === 'ABS') return '<span class="sm-badge abs">Absent</span>';
     return '<span class="sm-badge none">—</span>';
 }
 
@@ -117,6 +118,7 @@ $links = getStudentLinks($user, $student);
 .sm-badge.ad{background:#dcfce7;color:#166534}
 .sm-badge.ed{background:#fef9c3;color:#854d0e}
 .sm-badge.emd{background:#fee2e2;color:#991b1b}
+.sm-badge.abs{background:#e2e8f0;color:#334155}
 .sm-badge.none{background:#f3f4f6;color:#9ca3af}
 
 .entry-card{border-radius:12px;border:1px solid #e2e8f0;background:#fff;margin-bottom:14px;overflow:hidden;transition:.15s}
@@ -174,6 +176,7 @@ $links = getStudentLinks($user, $student);
   <span class="sm-badge ad">AD <small>Advanced Development</small></span>
   <span class="sm-badge ed">ED <small>Expected Development</small></span>
   <span class="sm-badge emd">EMD <small>Emerging Development</small></span>
+  <span class="sm-badge abs">Absent <small>Student was absent for this assessment</small></span>
 </div>
 
 <?php if ($total === 0): ?>

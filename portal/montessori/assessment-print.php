@@ -64,9 +64,9 @@ $eSt = $db->prepare(
 $eSt->execute([$assessmentId]);
 $entries = $eSt->fetchAll();
 
-$ratingLabel = ['AD' => 'AD — As Desired', 'ED' => 'ED — Emerging Desired', 'EMD' => 'EMD — Expected More Desired'];
-$ratingColors = ['AD' => '#16a34a', 'ED' => '#d97706', 'EMD' => '#dc2626'];
-$ratingBg    = ['AD' => '#dcfce7', 'ED' => '#fef3c7', 'EMD' => '#fee2e2'];
+$ratingLabel = ['AD' => 'AD — As Desired', 'ED' => 'ED — Emerging Desired', 'EMD' => 'EMD — Expected More Desired', 'ABS' => 'Absent — Student was absent for this assessment'];
+$ratingColors = ['AD' => '#16a34a', 'ED' => '#d97706', 'EMD' => '#dc2626', 'ABS' => '#334155'];
+$ratingBg    = ['AD' => '#dcfce7', 'ED' => '#fef3c7', 'EMD' => '#fee2e2', 'ABS' => '#e2e8f0'];
 
 $schoolName  = getSetting('school_name', 'Bahria Model College, Bin Qasim');
 $printDate   = date('d M Y');
@@ -111,6 +111,7 @@ tbody td.center{text-align:center}
 .rating-AD  {background:#dcfce7;color:#15803d;border:1px solid #86efac}
 .rating-ED  {background:#fef3c7;color:#b45309;border:1px solid #fcd34d}
 .rating-EMD {background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5}
+.rating-ABS {background:#e2e8f0;color:#334155;border:1px solid #cbd5e1}
 .overall-chip{display:inline-block;border-radius:20px;padding:2px 10px;font-size:8.5pt;font-weight:700}
 .remarks-text{font-size:8.5pt;color:#374151;max-width:160px}
 /* Legend */
@@ -267,6 +268,7 @@ tbody td.center{text-align:center}
     <div class="legend-item"><span class="legend-dot" style="background:#dcfce7;color:#15803d;border:1px solid #86efac">AD</span> As Desired</div>
     <div class="legend-item"><span class="legend-dot" style="background:#fef3c7;color:#b45309;border:1px solid #fcd34d">ED</span> Emerging Desired</div>
     <div class="legend-item"><span class="legend-dot" style="background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5">EMD</span> Expected More Desired</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#e2e8f0;color:#334155;border:1px solid #cbd5e1;width:40px">Abs</span> Absent — Student was absent for this assessment</div>
   </div>
 
   <div class="report-footer">

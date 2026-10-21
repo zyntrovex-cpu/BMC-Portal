@@ -176,9 +176,11 @@ foreach ($students as $idx => $stu) {
             'AD'  => 'gold1',
             'ED'  => 'gold3',
             'EMD' => 'warn',
+            'ABS' => 'data',
             default => $rowSty,
         };
-        $cells[] = ['v' => $overall, 's' => $sty];
+        $displayOverall = $overall === 'ABS' ? 'Absent' : $overall;
+        $cells[] = ['v' => $displayOverall, 's' => $sty];
         $cells[] = ['v' => $remarks, 's' => $rowSty];
     }
     $xls->addRow($cells, $rowSty);
@@ -190,10 +192,11 @@ $xls->setColumnWidths([20, 40]);
 $xls->addRow([['v' => 'Formative Assessment Rating Legend', 's' => 'title']], 'title');
 $xls->addBlankRow();
 $xls->addRow(['Rating', 'Meaning'], 'header');
-$xls->addRow(['AD',  'Advanced Development — student exceeds expected level'],   'gold1');
-$xls->addRow(['ED',  'Expected Development — student meets expected level'],      'gold3');
-$xls->addRow(['EMD', 'Emerging Development — student is developing towards level'], 'warn');
-$xls->addRow(['—',   'Not assessed / No entry recorded'],                          'data');
+$xls->addRow(['AD',     'Advanced Development — student exceeds expected level'],   'gold1');
+$xls->addRow(['ED',     'Expected Development — student meets expected level'],      'gold3');
+$xls->addRow(['EMD',    'Emerging Development — student is developing towards level'], 'warn');
+$xls->addRow(['Absent', 'Student was absent — not present for this assessment'],      'data');
+$xls->addRow(['—',      'Not assessed / No entry recorded'],                          'data');
 
 $filename = 'FA_Results_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $className) . '_' . date('Y-m-d') . '.xlsx';
 logActivity($user['id'], 'fa_excel_export', "Exported FA results: Montessori class $className (ID:$classId)");

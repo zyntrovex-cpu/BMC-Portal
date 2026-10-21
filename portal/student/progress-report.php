@@ -57,10 +57,11 @@ function prMigrateFormData(array $fd): array {
 
 function prBadge(string $v): string {
     if ($v === '') return '<span style="color:#94a3b8;font-size:.78rem">—</span>';
-    $map = ['AD'=>['#1e3a5f','#dbeafe'],'ED'=>['#065f46','#d1fae5'],'EMD'=>['#92400e','#fef3c7']];
+    $map   = ['AD'=>['#1e3a5f','#dbeafe'],'ED'=>['#065f46','#d1fae5'],'EMD'=>['#92400e','#fef3c7'],'ABS'=>['#334155','#e2e8f0']];
     [$fg, $bg] = $map[$v] ?? ['#374151','#f3f4f6'];
+    $label = $v === 'ABS' ? 'Absent' : $v;
     return "<span style='background:$bg;color:$fg;border-radius:4px;padding:2px 9px;font-weight:700;"
-         . "font-size:.78rem;display:inline-block;min-width:42px;text-align:center'>$v</span>";
+         . "font-size:.78rem;display:inline-block;min-width:42px;text-align:center'>$label</span>";
 }
 
 pageHead('Progress Report', 'student');
@@ -134,7 +135,7 @@ $links = getStudentLinks();
     <!-- Key legend -->
     <div class="d-flex flex-wrap gap-2 align-items-center p-2 pb-0" style="font-size:.74rem">
       <span class="text-muted fw-semibold">Key:</span>
-      <?php foreach (['AD'=>['#1e3a5f','#dbeafe','Advanced Development'],'ED'=>['#065f46','#d1fae5','Expected Development'],'EMD'=>['#92400e','#fef3c7','Emerging Development']] as $code=>[$fg,$bg,$desc]): ?>
+      <?php foreach (['AD'=>['#1e3a5f','#dbeafe','Advanced Development'],'ED'=>['#065f46','#d1fae5','Expected Development'],'EMD'=>['#92400e','#fef3c7','Emerging Development'],'Absent'=>['#334155','#e2e8f0','Student was absent for this assessment']] as $code=>[$fg,$bg,$desc]): ?>
       <span style="background:<?=$bg?>;color:<?=$fg?>;padding:1px 7px;border-radius:4px;font-weight:700">
         <?=$code?> <span style="font-weight:400;opacity:.8">— <?=$desc?></span>
       </span>
