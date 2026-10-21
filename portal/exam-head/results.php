@@ -71,22 +71,13 @@ if ($rcSearch !== '') {
     $rcStudents = $st->fetchAll();
 }
 
-// ── Grade helper ──────────────────────────────────────────────────────────────
+// ── Grade helper — delegates to the central rubric in config/config.php ─────
 function ehGrade(float $pct): string {
-    if ($pct >= 95) return 'A++';
-    if ($pct >= 90) return 'A+';
-    if ($pct >= 85) return 'A';
-    if ($pct >= 80) return 'B++';
-    if ($pct >= 75) return 'B+';
-    if ($pct >= 70) return 'B';
-    if ($pct >= 60) return 'C';
-    if ($pct >= 50) return 'D';
-    if ($pct >= 40) return 'E';
-    return 'U';
+    return getGrade($pct)['label'];
 }
 function ehGradeBadge(float $pct): string {
     if ($pct >= 70) return 'bg-success';
-    if ($pct >= 40) return 'bg-warning text-dark';
+    if ($pct >= 50) return 'bg-warning text-dark';
     return 'bg-danger';
 }
 

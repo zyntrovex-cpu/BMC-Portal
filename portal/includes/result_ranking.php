@@ -14,21 +14,13 @@
 require_once __DIR__ . '/../../config/config.php';
 
 /**
- * Grade letter from percentage — same IBCC scale as config.php / report-card.php.
+ * Grade letter from percentage — delegates to the central rubric in config.php
+ * so every surface in the portal uses the same thresholds.
  */
 function rkGradeLetter(float $pct, bool $hasMarks): string
 {
     if (!$hasMarks) return 'N/A';
-    if ($pct >= 95) return 'A++';
-    if ($pct >= 90) return 'A+';
-    if ($pct >= 85) return 'A';
-    if ($pct >= 80) return 'B++';
-    if ($pct >= 75) return 'B+';
-    if ($pct >= 70) return 'B';
-    if ($pct >= 60) return 'C';
-    if ($pct >= 50) return 'D';
-    if ($pct >= 40) return 'E';
-    return 'U';
+    return getGrade($pct)['label'];
 }
 
 /**

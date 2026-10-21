@@ -145,44 +145,15 @@ foreach ($rows as $r) {
 }
 
 // ── Grade helpers — IBCC Pakistan scale ──────────────────────────
+// All four helpers delegate to the central rubric in config/config.php so the
+// report card uses the same grades, colors and labels as every other surface.
 function getGradeLetter(float $pct, bool $hasMarks): string {
     if (!$hasMarks) return 'N/A';
-    if ($pct >= 95) return 'A++';
-    if ($pct >= 90) return 'A+';
-    if ($pct >= 85) return 'A';
-    if ($pct >= 80) return 'B++';
-    if ($pct >= 75) return 'B+';
-    if ($pct >= 70) return 'B';
-    if ($pct >= 60) return 'C';
-    if ($pct >= 50) return 'D';
-    if ($pct >= 40) return 'E';
-    return 'U';
+    return gradeLetterFor($pct);
 }
-function gradeColor(string $g): string {
-    return match($g) {
-        'A++' => '#14532d', 'A+' => '#166534', 'A'  => '#15803d',
-        'B++' => '#1e40af', 'B+' => '#1d4ed8', 'B'  => '#0369a1',
-        'C'   => '#92400e', 'D'  => '#7c2d12', 'E'  => '#9a3412', 'U' => '#991b1b',
-        default => '#374151',
-    };
-}
-function gradeBg(string $g): string {
-    return match($g) {
-        'A++' => '#dcfce7', 'A+' => '#d1fae5', 'A'  => '#bbf7d0',
-        'B++' => '#dbeafe', 'B+' => '#bfdbfe', 'B'  => '#e0f2fe',
-        'C'   => '#fef3c7', 'D'  => '#ffedd5', 'E'  => '#fee2e2', 'U' => '#fecaca',
-        default => '#f3f4f6',
-    };
-}
-function gradeText(string $g): string {
-    return match($g) {
-        'A++' => 'Outstanding',    'A+' => 'Excellent',    'A'  => 'Very Good',
-        'B++' => 'Good',           'B+' => 'Above Average','B'  => 'Average',
-        'C'   => 'Satisfactory',   'D'  => 'Pass',         'E'  => 'Below Average',
-        'U'   => 'Ungraded',
-        default => '',
-    };
-}
+function gradeColor(string $g): string { return gradeColorFor($g); }
+function gradeBg(string $g): string    { return gradeBgFor($g); }
+function gradeText(string $g): string  { return gradePerformanceFor($g); }
 
 // ── Compute per-subject stats & overall ───────────────────
 $subjects      = [];
@@ -991,7 +962,7 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
   <?php if (!$montessoriLowGrade): ?>
   <div class="rc-gscale">
     <strong>Grade Scale:</strong>
-    <?php foreach (['A++'=>['95–100%','Outstanding'],'A+'=>['90–94%','Excellent'],'A'=>['85–89%','Very Good'],'B++'=>['80–84%','Good'],'B+'=>['75–79%','Above Avg'],'B'=>['70–74%','Average'],'C'=>['60–69%','Satisfactory'],'D'=>['50–59%','Pass'],'E'=>['40–49%','Below Avg'],'U'=>['< 40%','Ungraded']] as $gr => [$rng,$desc]): ?>
+    <?php foreach (gradingRubric() as [$gr, $rng, $desc, $_]): ?>
     <span class="rc-gs-item">
       <span class="rc-gr" style="background:<?= gradeBg($gr) ?>;color:<?= gradeColor($gr) ?>;padding:1px 7px;font-size:.63rem"><?= $gr ?></span>
       <span class="rc-gs-rng"><?= $rng ?> &mdash; <?= $desc ?></span>

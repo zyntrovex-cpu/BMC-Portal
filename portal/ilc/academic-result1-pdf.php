@@ -69,9 +69,8 @@ $SECS = [
 function pdfGrade(string $g): string {
     if ($g === '') return '<span style="color:#94a3b8">—</span>';
     $map = [
-        'A++'=>'#14532d','A+'=>'#166534','A'=>'#15803d',
-        'B++'=>'#1e40af','B+'=>'#1d4ed8','B'=>'#0369a1',
-        'C'=>'#92400e','D'=>'#7c2d12','E'=>'#9a3412','U'=>'#991b1b',
+        'A+'=>'#166534','A'=>'#15803d','B'=>'#1d4ed8',
+        'C'=>'#92400e','D'=>'#7c2d12','F'=>'#991b1b',
         'N.A.'=>'#64748b',
     ];
     $c = $map[$g] ?? '#374151';
@@ -158,11 +157,12 @@ table.sec-table th { background:#f1f5f9; font-weight:600; }
 <!-- Grade key -->
 <div class="grade-key">
   <strong>Grade Key:</strong>
-  <span><strong style="color:#166534">A+</strong> Outstanding</span>
-  <span><strong style="color:#15803d">A</strong> Excellent</span>
-  <span><strong style="color:#1e40af">B</strong> Good</span>
-  <span><strong style="color:#92400e">C</strong> Satisfactory</span>
-  <span><strong style="color:#991b1b">D</strong> Needs Improvement</span>
+  <span><strong style="color:#166534">A+</strong> Exceptional (90–100%)</span>
+  <span><strong style="color:#15803d">A</strong> Excellent (80–89%)</span>
+  <span><strong style="color:#1d4ed8">B</strong> Very Good (70–79%)</span>
+  <span><strong style="color:#92400e">C</strong> Good (60–69%)</span>
+  <span><strong style="color:#7c2d12">D</strong> Developing (50–59%)</span>
+  <span><strong style="color:#991b1b">F</strong> Requires Further Development (&lt;50%)</span>
   <span><strong style="color:#64748b">N.A.</strong> Not Assessed</span>
 </div>
 

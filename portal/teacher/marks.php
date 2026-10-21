@@ -26,18 +26,9 @@ if (!$teacher) { setFlash('danger','Teacher record not found.'); redirect('/port
 $tab          = $_GET['tab'] ?? 'assessments';
 $assessmentId = (int)($_GET['assessment_id'] ?? 0);
 
-// ── Grade helper — IBCC scale ──────────────────────────────────────────────
+// ── Grade helper — delegates to central rubric in config/config.php ────────
 function _gradeInfo(float $pct): array {
-    if ($pct >= 95) return ['label'=>'A++','class'=>'grade-aplusplus'];
-    if ($pct >= 90) return ['label'=>'A+', 'class'=>'grade-aplus'];
-    if ($pct >= 85) return ['label'=>'A',  'class'=>'grade-a'];
-    if ($pct >= 80) return ['label'=>'B++','class'=>'grade-bplusplus'];
-    if ($pct >= 75) return ['label'=>'B+', 'class'=>'grade-bplus'];
-    if ($pct >= 70) return ['label'=>'B',  'class'=>'grade-b'];
-    if ($pct >= 60) return ['label'=>'C',  'class'=>'grade-c'];
-    if ($pct >= 50) return ['label'=>'D',  'class'=>'grade-d'];
-    if ($pct >= 40) return ['label'=>'E',  'class'=>'grade-e'];
-    return ['label'=>'U','class'=>'grade-u'];
+    return getGrade($pct);
 }
 
 // ── Determine teacher wing ─────────────────────────────────────────────────
@@ -786,16 +777,12 @@ function calcRow(input) {
     gradeCell.innerHTML = '<span class="grade ' + g.cls + '">' + g.label + '</span>';
 }
 function getGrade(pct) {
-    if (pct >= 95) return {label:'A++', cls:'grade-aplusplus'};
-    if (pct >= 90) return {label:'A+',  cls:'grade-aplus'};
-    if (pct >= 85) return {label:'A',   cls:'grade-a'};
-    if (pct >= 80) return {label:'B++', cls:'grade-bplusplus'};
-    if (pct >= 75) return {label:'B+',  cls:'grade-bplus'};
-    if (pct >= 70) return {label:'B',   cls:'grade-b'};
-    if (pct >= 60) return {label:'C',   cls:'grade-c'};
-    if (pct >= 50) return {label:'D',   cls:'grade-d'};
-    if (pct >= 40) return {label:'E',   cls:'grade-e'};
-    return {label:'U', cls:'grade-u'};
+    if (pct >= 90) return {label:'A+', cls:'grade-aplus'};
+    if (pct >= 80) return {label:'A',  cls:'grade-a'};
+    if (pct >= 70) return {label:'B',  cls:'grade-b'};
+    if (pct >= 60) return {label:'C',  cls:'grade-c'};
+    if (pct >= 50) return {label:'D',  cls:'grade-d'};
+    return {label:'F', cls:'grade-f'};
 }
 </script>
 </body></html>

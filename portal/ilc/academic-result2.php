@@ -16,7 +16,7 @@ $EXTRA_ROWS     = 4;   // blank rows for additional subjects
 $TOTAL_ROWS     = count($FIXED_SUBJECTS) + $EXTRA_ROWS;
 
 $TERMS = ['First Term','Mid Term','Final Term','Annual Exam'];
-$GRADES = ['A++','A+','A','B++','B+','B','C','D','E','U','N.A.'];
+$GRADES = ['A+','A','B','C','D','F','N.A.'];
 
 $SKILLS_PAIRS = [
     ['motor_skills','Motor skills',                'eye_hand','Eye & hand coordination'],
@@ -35,18 +35,9 @@ $ASSESSMENT_LEVELS = [
     'not_yet'   => 'Not yet',
 ];
 
-// Grade from percentage — IBCC scale
+// Grade from percentage — delegates to the central rubric in config/config.php
 function ar2Grade(float $pct): string {
-    if ($pct >= 95) return 'A++';
-    if ($pct >= 90) return 'A+';
-    if ($pct >= 85) return 'A';
-    if ($pct >= 80) return 'B++';
-    if ($pct >= 75) return 'B+';
-    if ($pct >= 70) return 'B';
-    if ($pct >= 60) return 'C';
-    if ($pct >= 50) return 'D';
-    if ($pct >= 40) return 'E';
-    return 'U';
+    return getGrade($pct)['label'];
 }
 
 function ar2GrSel(string $nm, string $val, array $grades): string {
@@ -739,23 +730,18 @@ const AR2_GRADES      = <?= json_encode($GRADES) ?>;
 const AR2_LEVEL_GRADES= ['A+','A','B','C','D'];
 
 const GRADE_COLORS = {
-  'A++':['#14532d','#dcfce7'],'A+':['#166534','#d1fae5'],'A':['#15803d','#bbf7d0'],
-  'B++':['#1e40af','#dbeafe'],'B+':['#1d4ed8','#bfdbfe'],'B':['#0369a1','#e0f2fe'],
-  'C':['#92400e','#fef3c7'],'D':['#7c2d12','#ffedd5'],'E':['#9a3412','#fee2e2'],'U':['#991b1b','#fecaca'],
+  'A+':['#166534','#d1fae5'],'A':['#15803d','#bbf7d0'],'B':['#1d4ed8','#bfdbfe'],
+  'C':['#92400e','#fef3c7'],'D':['#7c2d12','#ffedd5'],'F':['#991b1b','#fecaca'],
   'N.A.':['#64748b','#f1f5f9']
 };
 
 function gradeFromPct(pct) {
-  if (pct >= 95) return 'A++';
   if (pct >= 90) return 'A+';
-  if (pct >= 85) return 'A';
-  if (pct >= 80) return 'B++';
-  if (pct >= 75) return 'B+';
+  if (pct >= 80) return 'A';
   if (pct >= 70) return 'B';
   if (pct >= 60) return 'C';
   if (pct >= 50) return 'D';
-  if (pct >= 40) return 'E';
-  return 'U';
+  return 'F';
 }
 
 function setBadge(cell, grade) {
