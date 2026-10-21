@@ -46,10 +46,9 @@ $ASSESSMENT_LEVELS = [
 function ar2Badge(string $g): string {
     if ($g === '') return '<span style="color:#94a3b8;font-size:.78rem">—</span>';
     $map = [
-        'A++'=>['#14532d','#dcfce7'],'A+'=>['#166534','#d1fae5'],'A'=>['#15803d','#bbf7d0'],
-        'B++'=>['#1e40af','#dbeafe'],'B+'=>['#1d4ed8','#bfdbfe'],'B'=>['#0369a1','#e0f2fe'],
-        'C'=>['#92400e','#fef3c7'],'D'=>['#7c2d12','#ffedd5'],
-        'E'=>['#9a3412','#fee2e2'],'U'=>['#991b1b','#fecaca'],'N.A.'=>['#6b7280','#f3f4f6'],
+        'A+'=>['#166534','#d1fae5'],'A'=>['#15803d','#bbf7d0'],'B'=>['#1d4ed8','#bfdbfe'],
+        'C'=>['#92400e','#fef3c7'],'D'=>['#7c2d12','#ffedd5'],'F'=>['#991b1b','#fecaca'],
+        'N.A.'=>['#6b7280','#f3f4f6'],
     ];
     [$fg,$bg] = $map[$g] ?? ['#374151','#f9fafb'];
     return "<span style='background:$bg;color:$fg;border-radius:4px;padding:2px 8px;font-weight:700;font-size:.78rem;display:inline-block;min-width:36px;text-align:center'>$g</span>";
@@ -133,15 +132,13 @@ $links = getStudentLinks();
       <span class="text-muted fw-semibold">Grade Key:</span>
       <?php
       $gl = [
-        'A++'=>['#14532d','#dcfce7'],'A+'=>['#166634','#d1fae5'],'A'=>['#15803d','#bbf7d0'],
-        'B++'=>['#1e40af','#dbeafe'],'B+'=>['#1d4ed8','#bfdbfe'],'B'=>['#0369a1','#e0f2fe'],
-        'C'=>['#92400e','#fef3c7'],'D'=>['#7c2d12','#ffedd5'],
-        'E'=>['#9a3412','#fee2e2'],'U'=>['#991b1b','#fecaca'],'N.A.'=>['#6b7280','#f3f4f6'],
+        'A+'=>['#166534','#d1fae5'],'A'=>['#15803d','#bbf7d0'],'B'=>['#1d4ed8','#bfdbfe'],
+        'C'=>['#92400e','#fef3c7'],'D'=>['#7c2d12','#ffedd5'],'F'=>['#991b1b','#fecaca'],
+        'N.A.'=>['#6b7280','#f3f4f6'],
       ];
       $gn = [
-        'A++'=>'Outstanding','A+'=>'Excellent','A'=>'Very Good',
-        'B++'=>'Good','B+'=>'Above Average','B'=>'Average',
-        'C'=>'Satisfactory','D'=>'Pass','E'=>'Below Average','U'=>'Ungraded','N.A.'=>'Not Assessed',
+        'A+'=>'Exceptional','A'=>'Excellent','B'=>'Very Good',
+        'C'=>'Good','D'=>'Developing','F'=>'Requires Further Development','N.A.'=>'Not Assessed',
       ];
       foreach ($gl as $g=>[$fg,$bg]):
       ?>

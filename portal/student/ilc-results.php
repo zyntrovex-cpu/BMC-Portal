@@ -161,11 +161,10 @@ $links = getStudentLinks();
     $scale = [
         ['label'=>'A+','range'=>'90–100%','cls'=>'grade-aplus'],
         ['label'=>'A', 'range'=>'80–89%', 'cls'=>'grade-a'],
-        ['label'=>'B+','range'=>'70–79%', 'cls'=>'grade-bplus'],
-        ['label'=>'B', 'range'=>'60–69%', 'cls'=>'grade-b'],
-        ['label'=>'C', 'range'=>'50–59%', 'cls'=>'grade-c'],
-        ['label'=>'D', 'range'=>'40–49%', 'cls'=>'grade-d'],
-        ['label'=>'F', 'range'=>'< 40%',  'cls'=>'grade-f'],
+        ['label'=>'B', 'range'=>'70–79%', 'cls'=>'grade-b'],
+        ['label'=>'C', 'range'=>'60–69%', 'cls'=>'grade-c'],
+        ['label'=>'D', 'range'=>'50–59%', 'cls'=>'grade-d'],
+        ['label'=>'F', 'range'=>'< 50%',  'cls'=>'grade-f'],
     ];
     foreach ($scale as $gs): ?>
     <span style="display:inline-flex;align-items:center;gap:6px;background:#f8fafc;

@@ -297,14 +297,21 @@ include __DIR__ . '/includes/header.php';
 
       <!-- Grading -->
       <div data-aos="fade-up">
-        <h4 style="font-weight:800;color:var(--primary);margin-bottom:20px">BIEK Grading Scale</h4>
+        <h4 style="font-weight:800;color:var(--primary);margin-bottom:20px">Academic Grading Chart</h4>
         <div class="table-responsive">
           <table class="table table-hover" style="font-size:.87rem">
             <thead style="background:var(--primary);color:#fff">
-              <tr><th>Grade</th><th>Marks Range</th><th>GPA</th><th>Classification</th></tr>
+              <tr><th>Grade</th><th>Percentage</th><th>Performance</th><th>Academic Description</th></tr>
             </thead>
             <tbody>
-              <?php foreach ([['A+','90–100','4.0','Distinction'],['A','80–89','3.5–3.9','Excellent'],['B+','70–79','3.0–3.4','Very Good'],['B','60–69','2.5–2.9','Good'],['C','50–59','2.0–2.4','Satisfactory'],['D','40–49','1.5–1.9','Pass'],['F','Below 40','0','Fail']] as $g): ?>
+              <?php foreach ([
+                ['A+','90–100%','Exceptional','Demonstrates outstanding academic excellence, mastery of concepts and consistently exceptional performance.'],
+                ['A', '80–89%', 'Excellent',  'Demonstrates excellent understanding of concepts, strong subject knowledge and a high standard of achievement.'],
+                ['B', '70–79%', 'Very Good',  'Demonstrates very good understanding of the subject and consistently commendable academic progress.'],
+                ['C', '60–69%', 'Good',       'Demonstrates a satisfactory understanding of key concepts, with scope for further improvement.'],
+                ['D', '50–59%', 'Developing', 'Demonstrates basic subject understanding and would benefit from additional practice and focused guidance.'],
+                ['F', 'Below 50%','Requires Further Development','Further support and targeted learning are recommended to strengthen understanding and achieve the expected learning outcomes.'],
+              ] as $g): ?>
               <tr><td><?= $g[0] ?></td><td><?= $g[1] ?></td><td><?= $g[2] ?></td><td><?= $g[3] ?></td></tr>
               <?php endforeach; ?>
             </tbody>

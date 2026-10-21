@@ -64,22 +64,8 @@ $avgPct    = count($withMarks) > 0
     ? round(array_sum(array_column($withMarks, 'grand_pct')) / count($withMarks), 1)
     : 0.0;
 
-function printGradeBg(string $g): string {
-    return match($g) {
-        'A++','A+' => '#dcfce7', 'A' => '#bbf7d0',
-        'B++','B+' => '#dbeafe', 'B' => '#e0f2fe',
-        'C' => '#fef9c3', 'D' => '#ffedd5', 'E','U' => '#fee2e2',
-        default => '#f3f4f6',
-    };
-}
-function printGradeColor(string $g): string {
-    return match($g) {
-        'A++','A+','A' => '#14532d',
-        'B++','B+','B' => '#1e3a8a',
-        'C' => '#713f12', 'D' => '#7c2d12', 'E','U' => '#7f1d1d',
-        default => '#374151',
-    };
-}
+function printGradeBg(string $g): string    { return gradeBgFor($g); }
+function printGradeColor(string $g): string { return gradeColorFor($g); }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -464,7 +450,7 @@ body { font-family:'Segoe UI',Arial,Helvetica,sans-serif; background:#c8d3e4; co
   <!-- Grade scale -->
   <div class="gscale">
     <strong>Grade Scale:</strong>
-    <?php foreach (['A++'=>'95–100%','A+'=>'90–94%','A'=>'85–89%','B++'=>'80–84%','B+'=>'75–79%','B'=>'70–74%','C'=>'60–69%','D'=>'50–59%','E'=>'40–49%','U'=>'< 40%'] as $g => $r): ?>
+    <?php foreach (['A+'=>'90–100%','A'=>'80–89%','B'=>'70–79%','C'=>'60–69%','D'=>'50–59%','F'=>'< 50%'] as $g => $r): ?>
     <span class="gs-item">
       <span class="gr-badge" style="background:<?= printGradeBg($g) ?>;color:<?= printGradeColor($g) ?>;padding:1px 6px;font-size:.6rem"><?= $g ?></span>
       <span class="gs-rng"><?= $r ?></span>

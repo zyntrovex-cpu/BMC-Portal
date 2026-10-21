@@ -61,13 +61,7 @@ header('Content-Type: application/msword');
 header('Content-Disposition: attachment; filename="' . addslashes($fname) . '"');
 header('Cache-Control: no-cache, no-store, must-revalidate');
 
-function wGrBg(string $g): string {
-    return match($g) {
-        'A++','A+','A' => '#dcfce7', 'B++','B+','B' => '#dbeafe',
-        'C' => '#fef9c3', 'D' => '#ffedd5', 'E','U' => '#fee2e2',
-        default => '#f3f4f6',
-    };
-}
+function wGrBg(string $g): string { return gradeBgFor($g); }
 ?>
 <!DOCTYPE html>
 <html>
@@ -204,7 +198,7 @@ tr:nth-child(even) td { background:#f8f9ff }
 <!-- Grade scale -->
 <p style="font-size:8pt;color:#374151;margin-top:8pt">
   <strong>Grade Scale:</strong>
-  A++ (95–100%) | A+ (90–94%) | A (85–89%) | B++ (80–84%) | B+ (75–79%) | B (70–74%) | C (60–69%) | D (50–59%) | E (40–49%) | U (&lt;40%)
+  A+ (90–100%) | A (80–89%) | B (70–79%) | C (60–69%) | D (50–59%) | F (&lt;50%)
 </p>
 
 <div class="footer">

@@ -269,7 +269,7 @@ $xls->addBlankRow();
 $xls->addRow([['v' => 'GRADE DISTRIBUTION', 's' => 'footer']], 'footer');
 $gradeDist = [];
 foreach ($withMarks as $stu) { $gradeDist[$stu['overall_grade']] = ($gradeDist[$stu['overall_grade']] ?? 0) + 1; }
-foreach (['A++','A+','A','B++','B+','B','C','D','E','U'] as $g) {
+foreach (['A+','A','B','C','D','F'] as $g) {
     if (isset($gradeDist[$g])) {
         $xls->addRow(['Grade ' . $g, $gradeDist[$g] . ' student(s)'], (array_search($g, array_keys($gradeDist)) % 2 === 0 ? 'data' : 'alt'));
     }
