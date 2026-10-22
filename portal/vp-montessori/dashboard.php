@@ -7,11 +7,27 @@ require_once __DIR__ . '/../../config/config.php';
 $user = requireAuth('vp_montessori');
 $db   = getDB();
 
-// Stats
-$teacherCount = $studentCount = $reportCount = $assessCount = 0;
+// Stats — Montessori role hierarchy:
+//   wing_head          = Montessori Coordinator (reports to VP Montessori)
+//   montessori_teacher = Montessori Teacher (reports to a Coordinator)
+// Both are listed here with a union that is immune to teachers-row drift —
+// a user is in-scope if their role matches OR their teachers.wing is set
+// to montessori, matching the backfill migration.
+$teacherCount = $coordCount = $studentCount = $reportCount = $assessCount = 0;
 try {
     $teacherCount = (int)$db->query(
-        'SELECT COUNT(*) FROM users WHERE role="montessori_teacher" AND status="active"'
+        "SELECT COUNT(DISTINCT u.id)
+           FROM users u
+           LEFT JOIN teachers t ON t.user_id = u.id
+          WHERE COALESCE(u.status,'active') = 'active'
+            AND (u.role = 'montessori_teacher'
+                 OR (u.role = 'teacher' AND t.wing = 'montessori'))"
+    )->fetchColumn();
+} catch (Exception $e) {}
+try {
+    $coordCount = (int)$db->query(
+        "SELECT COUNT(*) FROM users
+          WHERE role = 'wing_head' AND COALESCE(status,'active') = 'active'"
     )->fetchColumn();
 } catch (Exception $e) {}
 try {
@@ -34,16 +50,32 @@ try {
     )->fetchColumn();
 } catch (Exception $e) {}
 
-// Montessori teachers list (recent)
+// Montessori teachers list (recent) — union of role + wing so no eligible
+// teacher is dropped if the role mapping is stale.
 $monteTeachers = [];
 try {
     $monteTeachers = $db->query(
-        'SELECT u.id, u.name, u.user_id AS uid, u.status,
+        "SELECT DISTINCT u.id, u.name, u.user_id AS uid, u.status,
                 t.emp_id, t.designation, t.subject_name
-         FROM users u
-         LEFT JOIN teachers t ON t.user_id=u.id
-         WHERE u.role="montessori_teacher" AND u.status="active"
-         ORDER BY u.name LIMIT 6'
+           FROM users u
+           LEFT JOIN teachers t ON t.user_id = u.id
+          WHERE COALESCE(u.status,'active') = 'active'
+            AND (u.role = 'montessori_teacher'
+                 OR (u.role = 'teacher' AND t.wing = 'montessori'))
+          ORDER BY u.name LIMIT 6"
+    )->fetchAll();
+} catch (Exception $e) {}
+
+// Montessori Coordinators list (recent) — wing_head is the Coordinator role.
+$monteCoords = [];
+try {
+    $monteCoords = $db->query(
+        "SELECT u.id, u.name, u.user_id AS uid, u.status,
+                t.emp_id, t.designation, t.subject_name
+           FROM users u
+           LEFT JOIN teachers t ON t.user_id = u.id
+          WHERE u.role = 'wing_head' AND COALESCE(u.status,'active') = 'active'
+          ORDER BY u.name LIMIT 6"
     )->fetchAll();
 } catch (Exception $e) {}
 
@@ -92,28 +124,35 @@ $links = getVpMontessoriLinks();
 
 <!-- Stat Cards -->
 <div class="row g-3 mb-4">
-  <div class="col-6 col-md-3">
+  <div class="col-6 col-md-3 col-lg">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fef3c7;color:#92400e"><i class="fas fa-user-tie"></i></div>
+      <div class="stat-val"><?= $coordCount ?></div>
+      <div class="stat-lbl">Coordinators</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 col-lg">
     <div class="stat-card">
       <div class="stat-icon" style="background:#dcfce7;color:#059669"><i class="fas fa-chalkboard-teacher"></i></div>
       <div class="stat-val"><?= $teacherCount ?></div>
       <div class="stat-lbl">Montessori Teachers</div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
+  <div class="col-6 col-md-3 col-lg">
     <div class="stat-card">
       <div class="stat-icon" style="background:#dbeafe;color:#1d4ed8"><i class="fas fa-child"></i></div>
       <div class="stat-val"><?= $studentCount ?></div>
       <div class="stat-lbl">Montessori Students</div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
+  <div class="col-6 col-md-3 col-lg">
     <div class="stat-card">
       <div class="stat-icon" style="background:#f3e8ff;color:#7c3aed"><i class="fas fa-file-alt"></i></div>
       <div class="stat-val"><?= $reportCount ?></div>
       <div class="stat-lbl">Progress Reports</div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
+  <div class="col-6 col-md-3 col-lg">
     <div class="stat-card">
       <div class="stat-icon" style="background:#fef9c3;color:#d97706"><i class="fas fa-clipboard-check"></i></div>
       <div class="stat-val"><?= $assessCount ?></div>
@@ -144,6 +183,42 @@ $links = getVpMontessoriLinks();
 </div>
 
 <div class="row g-3 mb-4">
+  <!-- Montessori Coordinators -->
+  <div class="col-lg-6">
+    <div class="sec-card h-100">
+      <div class="sec-head">
+        <h5><i class="fas fa-user-tie me-2" style="color:#92400e"></i>Montessori Coordinators</h5>
+        <a href="<?= url('/portal/vp-montessori/coordinators.php') ?>" class="btn btn-xs btn-outline-secondary">View All</a>
+      </div>
+      <div class="sec-body p-0">
+        <?php if (empty($monteCoords)): ?>
+          <div class="p-3 text-muted" style="font-size:13px">No active coordinators found.</div>
+        <?php else: ?>
+          <div class="table-responsive"><table class="data-table">
+            <thead><tr><th>Name</th><th>ID</th><th>Designation</th><th></th></tr></thead>
+            <tbody>
+              <?php foreach ($monteCoords as $c): ?>
+              <tr>
+                <td class="fw-semibold"><?= h($c['name']) ?></td>
+                <td class="text-muted" style="font-size:12px"><?= h($c['uid']) ?></td>
+                <td style="font-size:12px;color:var(--t2)"><?= h($c['designation'] ?: 'Coordinator') ?></td>
+                <td>
+                  <form method="POST" action="<?= url('/portal/vp-montessori/view-as.php') ?>" class="d-inline">
+                    <input type="hidden" name="target_id" value="<?= $c['id'] ?>">
+                    <button class="btn btn-xs btn-outline-primary" style="font-size:.72rem;padding:2px 7px">
+                      <i class="fas fa-eye me-1"></i>View Portal
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table></div>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+
   <!-- Montessori Teachers -->
   <div class="col-lg-6">
     <div class="sec-card h-100">

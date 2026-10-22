@@ -192,14 +192,26 @@ if ($classId) {
     if (!$viewClass) $classId = 0; // invalid / wrong wing
 }
 
-// Montessori teachers
+// Montessori teachers — list every active Montessori staff member
+// (teachers + coordinators) by role OR wing. Previously used an INNER JOIN
+// on `teachers`, which silently dropped any `montessori_teacher` user whose
+// `teachers` row hadn't been backfilled yet; the backfill in
+// migrations/montessori_staff_visibility.sql closes that gap but we also
+// relax the query so it is immune to future drift.
 $teachers = [];
 try {
     $teachers = $db->query(
-        'SELECT t.id AS teacher_id, u.name, u.id AS user_id, t.emp_id, u.role
-         FROM teachers t JOIN users u ON u.id = t.user_id
-         WHERE t.wing = "montessori" AND u.status = "active"
-         ORDER BY u.name'
+        "SELECT DISTINCT t.id AS teacher_id, u.name, u.id AS user_id,
+                t.emp_id, u.role
+           FROM users u
+           LEFT JOIN teachers t ON t.user_id = u.id
+          WHERE COALESCE(u.status,'active') = 'active'
+            AND (
+                 u.role IN ('montessori_teacher', 'wing_head')
+                 OR (u.role = 'teacher' AND t.wing = 'montessori')
+            )
+            AND t.id IS NOT NULL     -- can only assign to users with a teachers row
+          ORDER BY u.name"
     )->fetchAll();
 } catch (Exception $e) { $teachers = []; }
 

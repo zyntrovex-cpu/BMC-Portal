@@ -939,6 +939,7 @@ function getVpMontessoriLinks(): array {
         ['href'=>'/portal/montessori/anecdotal-records.php',      'icon'=>'<i class="fas fa-sticky-note"></i>',                 'label'=>'Anecdotal Records',    'key'=>'anecdotal-records'],
         ['href'=>'/portal/vp-montessori/exam-datesheet.php',      'icon'=>'<i class="fas fa-calendar-day"></i>',                'label'=>'Exam Date Sheet',      'key'=>'exam-datesheet'],
         ['href'=>'/portal/vp-montessori/notices.php',             'icon'=>'<i class="fas fa-bell"></i>',                        'label'=>'Notices',              'key'=>'notices'],
+        ['href'=>'/portal/vp-montessori/coordinators.php',        'icon'=>'<i class="fas fa-user-tie"></i>',                    'label'=>'Montessori Coordinators', 'key'=>'coordinators'],
         ['href'=>'/portal/vp-montessori/teachers.php',            'icon'=>'<i class="fas fa-chalkboard-teacher"></i>',          'label'=>'Montessori Teachers',  'key'=>'teachers'],
         hasPermission('monte_teacher_perms') ? ['href'=>'/portal/vp-montessori/teacher-permissions.php', 'icon'=>'<i class="fas fa-user-shield"></i>', 'label'=>'Teacher Permissions', 'key'=>'teacher-permissions'] : null,
         ['href'=>'/portal/vp-montessori/class-assignments.php', 'icon'=>'<i class="fas fa-users-cog"></i>',                   'label'=>'Class Assignments',    'key'=>'class-assignments'],

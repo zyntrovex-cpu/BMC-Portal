@@ -9,13 +9,19 @@ $db   = getDB();
 
 $search = trim($_GET['q'] ?? '');
 
-$sql = 'SELECT u.id, u.user_id AS uid, u.name, u.email, u.status,
+// Pull every Montessori teacher regardless of whether they still have a
+// legacy role='teacher' + teachers.wing='montessori' setup or have been
+// migrated to role='montessori_teacher'. Avoids silently dropping staff
+// whose role mapping is stale.
+$sql = "SELECT DISTINCT u.id, u.user_id AS uid, u.name, u.email, u.status,
                t.id AS tid, t.emp_id, t.designation, t.phone, t.join_date,
                sub.name AS subject_name
-        FROM users u
-        LEFT JOIN teachers t ON t.user_id = u.id
-        LEFT JOIN subjects sub ON sub.id = t.subject_id
-        WHERE u.role = "montessori_teacher"';
+          FROM users u
+          LEFT JOIN teachers t ON t.user_id = u.id
+          LEFT JOIN subjects sub ON sub.id = t.subject_id
+         WHERE COALESCE(u.status,'active') = 'active'
+           AND (u.role = 'montessori_teacher'
+                OR (u.role = 'teacher' AND t.wing = 'montessori'))";
 $params = [];
 if ($search) {
     $sql    .= ' AND (u.name LIKE ? OR t.emp_id LIKE ? OR u.user_id LIKE ?)';
