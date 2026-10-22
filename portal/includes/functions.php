@@ -161,6 +161,39 @@ function getStudentAttendanceSummary(int $studentId): array {
     return $st->fetchAll();
 }
 
+/**
+ * Class-wise attendance totals for a student (one row per subject is NOT what
+ * this returns — attendance is recorded against the class, so subject_id is
+ * NULL on every row). Returns:
+ *   ['total' => int working days, 'present' => int, 'absent' => int,
+ *    'leave' => int, 'percent' => float %] (percent is 0 when total is 0).
+ *
+ * Used by report-card.php to display Total Working Days, Days Present and
+ * Attendance %. Guards against the subject_id IS NULL vs sb.id join bug
+ * that previously hid every class-level attendance record from the report
+ * card.
+ */
+function getStudentClassAttendance(int $studentId): array {
+    try {
+        $st = getDB()->prepare(
+            'SELECT COALESCE(COUNT(*), 0)                 AS total,
+                    COALESCE(SUM(status="P"), 0)         AS present,
+                    COALESCE(SUM(status="A"), 0)         AS absent,
+                    COALESCE(SUM(status="L"), 0)         AS `leave`
+             FROM attendance
+             WHERE student_id = ? AND subject_id IS NULL'
+        );
+        $st->execute([$studentId]);
+        $row = $st->fetch() ?: [];
+    } catch (Exception $e) { $row = []; }
+    $total   = (int)($row['total']   ?? 0);
+    $present = (int)($row['present'] ?? 0);
+    $absent  = (int)($row['absent']  ?? 0);
+    $leave   = (int)($row['leave']   ?? 0);
+    $percent = $total > 0 ? round($present / $total * 100, 1) : 0.0;
+    return compact('total', 'present', 'absent', 'leave', 'percent');
+}
+
 function getClassTimetable(int $classId): array {
     $st = getDB()->prepare(
         'SELECT tt.day, tt.period, tt.room, tt.subject_id, tt.teacher_id,

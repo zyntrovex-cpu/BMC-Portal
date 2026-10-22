@@ -293,11 +293,13 @@ if (!$montessoriLowGrade && $student['class_id'] && $role !== 'student') {
     } catch (Exception $e) {}
 }
 
-// ── Attendance ────────────────────────────────────────────
-$attendance = getStudentAttendanceSummary($studentId);
-$attTotal   = array_sum(array_column($attendance, 'total'));
-$attPresent = array_sum(array_column($attendance, 'present'));
-$attPct     = $attTotal > 0 ? round($attPresent / $attTotal * 100, 1) : 0;
+// ── Attendance (class-wise) ───────────────────────────────
+// Attendance is recorded against the class (subject_id IS NULL on every row);
+// getStudentClassAttendance returns pre-aggregated totals.
+$attSummary = getStudentClassAttendance($studentId);
+$attTotal   = (int)   $attSummary['total'];
+$attPresent = (int)   $attSummary['present'];
+$attPct     = (float) $attSummary['percent'];
 
 // ── Profile photo ─────────────────────────────────────────
 $photoUrl = null;
@@ -1054,13 +1056,18 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
   </div>
   <?php endif; ?>
 
-  <!-- ── Teacher & Vice Principal Remarks (populated from DB; editable in ?edit=1 mode) ─── -->
+  <!-- ── Bottom sections: VP · Teacher · Parent ───────────────────────────
+       Three equal columns at the bottom of the report card.
+       - Vice Principal: name/title + signature space only, no remarks field.
+       - Teacher: aggregated teacher remarks + signature space; editable in
+         ?edit=1 mode by authorized teachers/admin via save_teacher_remark.
+       - Parent: blank remarks box + signature space; no portal entry.
+       Class Teacher remarks are NOT displayed anywhere else — only here. ─ -->
   <?php
-    // Build per-assessment entries so we can key edit forms by assessment_id.
-    // Teacher: one entry per (subject, assessment) that either has a remark OR
-    // we are in edit mode (so empty cells become writable fields).
+    // Collect all per-assessment teacher remarks for display inside the Teacher
+    // section. Edit mode exposes every (subject, assessment) pair so teachers
+    // can add remarks where none exist yet.
     $teacherRemarkEntries = [];      // [assessment_id => ['subject','label','remark']]
-    $vpRemarkEntries      = [];      // [assessment_id => ['label','remark']]
     foreach ($bySubject as $sid => $sub) {
         foreach ($sub['assessments'] as $a) {
             $aid = (int)$a['assessment_id'];
@@ -1075,31 +1082,23 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
                     ];
                 }
             }
-            if ($editMode || !empty($a['vp_remarks'])) {
-                if (!isset($vpRemarkEntries[$aid])) {
-                    $vpRemarkEntries[$aid] = [
-                        'label'  => trim(($a['assessment_name'] ?: $a['type']) . ' — ' . $sub['name']),
-                        'remark' => $a['vp_remarks'] ?? '',
-                    ];
-                }
-            }
         }
     }
     $editQS = ($role !== 'student' ? 'student_id='.$studentId.'&' : '')
             . ($typeFilter !== '' ? 'type='.urlencode($typeFilter).'&' : '');
+    // Vice Principal name — pulled from settings if available, otherwise blank
+    // (requirement: keep name fields blank where names are not available).
+    $vpName = trim((string)getSetting('principal_name', ''));
   ?>
 
-  <?php if (!$isWordExport && ($canEditTeacherRemarks || $canEditVpRemarks)): ?>
+  <?php if (!$isWordExport && $canEditTeacherRemarks): ?>
   <div class="no-print" style="padding:8px 14px;margin-bottom:8px;background:#fef9c3;border:1px solid #fde68a;border-radius:6px;font-size:.82rem;display:flex;gap:12px;align-items:center;justify-content:space-between">
     <div>
       <i class="fas fa-pencil-alt me-1" style="color:#854d0e"></i>
       <?php if ($editMode): ?>
-        <strong>Edit mode:</strong> remark fields below are editable. Click Save on each to persist.
+        <strong>Edit mode:</strong> teacher-remark fields in the bottom Teacher section are editable. Click Save on each to persist.
       <?php else: ?>
-        <strong>Need to edit remarks?</strong> Switch to edit mode to update
-        <?php if ($canEditTeacherRemarks && $canEditVpRemarks): ?>teacher and Vice Principal remarks<?php
-              elseif ($canEditTeacherRemarks): ?>your teacher remarks<?php
-              else: ?>Vice Principal remarks<?php endif; ?>.
+        <strong>Need to edit teacher remarks?</strong> Switch to edit mode to add or update your remarks in the Teacher section below.
       <?php endif; ?>
     </div>
     <div>
@@ -1112,86 +1111,86 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
   </div>
   <?php endif; ?>
 
-  <div class="rc-sec-alt" style="margin-top:14px">
-    <i class="fas fa-comment-dots"></i>Teacher Remarks
-  </div>
-  <div style="padding:10px 14px;background:#fcfcfd;border:1px solid #e5e7eb;border-radius:6px;margin-bottom:10px">
-    <?php if (!empty($teacherRemarkEntries)): ?>
-      <?php foreach ($teacherRemarkEntries as $aid => $tr): ?>
-      <div style="padding:8px 0;border-bottom:1px dashed #e5e7eb;font-size:.82rem">
-        <div><span style="font-weight:600;color:#1e293b"><?= h($tr['subject']) ?></span>
-          <?php if (!empty($tr['label'])): ?><span style="color:#64748b;font-size:.76rem">· <?= h($tr['label']) ?></span><?php endif; ?>
-        </div>
-        <?php if ($editMode && $canEditTeacherRemarks): ?>
-        <form method="POST" class="no-print d-flex gap-2 align-items-start mt-1">
-          <input type="hidden" name="action" value="save_teacher_remark">
-          <input type="hidden" name="assessment_id" value="<?= (int)$aid ?>">
-          <textarea name="remark" rows="2" maxlength="255" class="form-control form-control-sm" style="flex:1;font-size:.82rem"
-                    placeholder="Teacher remark for this assessment…"><?= h($tr['remark']) ?></textarea>
-          <button type="submit" class="btn btn-sm btn-primary" style="font-size:.75rem;white-space:nowrap"><i class="fas fa-save"></i> Save</button>
-        </form>
-        <?php else: ?>
-        <div style="color:#334155;margin-top:2px"><?= $tr['remark'] !== '' ? h($tr['remark']) : '<span class="text-muted fst-italic">— no remark —</span>' ?></div>
-        <?php endif; ?>
-      </div>
-      <?php endforeach; ?>
-    <?php else: ?>
-      <div style="font-size:.82rem;color:#9ca3af;font-style:italic">No remarks recorded by subject teachers.</div>
-      <div class="rc-rem-line no-print" style="margin-top:8px"></div>
-      <div class="rc-rem-line no-print"></div>
-    <?php endif; ?>
-  </div>
+  <style>
+    .rc-bottom-sec { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:16px; }
+    @media (max-width: 720px) { .rc-bottom-sec { grid-template-columns:1fr; } }
+    .rc-bsec { border:1px solid #d1d5db; border-radius:6px; background:#fff; display:flex; flex-direction:column; min-height:170px; }
+    .rc-bsec-h { background:#f3f4f6; border-bottom:1px solid #d1d5db; padding:6px 10px; font-size:.74rem;
+                 font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:#1e293b;
+                 border-radius:6px 6px 0 0; }
+    .rc-bsec-b { padding:8px 10px; flex:1; font-size:.82rem; color:#334155; }
+    .rc-bsec-sig { border-top:1px dashed #cbd5e1; padding:6px 10px; font-size:.72rem;
+                   color:#475569; display:flex; flex-direction:column; align-items:center;
+                   justify-content:flex-end; min-height:70px; }
+    .rc-bsec-line { width:85%; border-bottom:1px solid #374151; margin-bottom:4px; min-height:22px; }
+    .rc-bsec-nm { font-weight:600; color:#1e293b; }
+    .rc-bsec-sub { font-size:.68rem; color:#64748b; margin-top:1px; }
+    .rc-bsec-empty { color:#9ca3af; font-style:italic; font-size:.78rem; }
+    .rc-bsec-row { padding:4px 0; border-bottom:1px dashed #e5e7eb; }
+    .rc-bsec-row:last-child { border-bottom:none; }
+    .rc-bsec-row-sub { font-weight:600; color:#1e293b; font-size:.78rem; }
+    .rc-bsec-row-lbl { color:#64748b; font-size:.72rem; }
+    .rc-bsec-row-txt { color:#334155; margin-top:1px; font-size:.80rem; }
+  </style>
 
-  <!-- ── Vice Principal Remarks ─────────────────────────── -->
-  <div class="rc-sec-alt">
-    <i class="fas fa-stamp"></i>Vice Principal Remarks
-  </div>
-  <div style="padding:10px 14px;background:#fcfcfd;border:1px solid #e5e7eb;border-radius:6px;margin-bottom:14px;min-height:60px">
-    <?php if (!empty($vpRemarkEntries)): ?>
-      <?php foreach ($vpRemarkEntries as $aid => $vr): ?>
-      <div style="padding:8px 0;border-bottom:1px dashed #e5e7eb;font-size:.82rem">
-        <div style="font-weight:600;color:#1e293b;font-size:.78rem"><?= h($vr['label']) ?></div>
-        <?php if ($editMode && $canEditVpRemarks): ?>
-        <form method="POST" class="no-print d-flex gap-2 align-items-start mt-1">
-          <input type="hidden" name="action" value="save_vp_remark">
-          <input type="hidden" name="assessment_id" value="<?= (int)$aid ?>">
-          <textarea name="remark" rows="2" class="form-control form-control-sm" style="flex:1;font-size:.82rem"
-                    placeholder="Vice Principal remark for this assessment…"><?= h($vr['remark']) ?></textarea>
-          <button type="submit" class="btn btn-sm btn-primary" style="font-size:.75rem;white-space:nowrap"><i class="fas fa-save"></i> Save</button>
-        </form>
-        <?php else: ?>
-        <div style="color:#334155;margin-top:2px"><?= $vr['remark'] !== '' ? h($vr['remark']) : '<span class="text-muted fst-italic">— no remark —</span>' ?></div>
-        <?php endif; ?>
-      </div>
-      <?php endforeach; ?>
-    <?php else: ?>
-      <div style="font-size:.82rem;color:#9ca3af;font-style:italic">No remarks recorded by the Vice Principal.</div>
-      <div class="rc-rem-line no-print" style="margin-top:8px"></div>
-      <div class="rc-rem-line no-print"></div>
-    <?php endif; ?>
-  </div>
-
-  <!-- ── Signatures (VP · Class Teacher · Parent) ───────── -->
-  <div class="rc-sigs">
-    <div class="rc-sig">
-      <div class="rc-sig-space" style="min-height:60px"></div>
-      <div class="rc-sig-line">
-        <div class="rc-sig-title">Vice Principal</div>
-        <div class="rc-sig-sub">Signature &amp; Date</div>
+  <div class="rc-bottom-sec">
+    <!-- Vice Principal: name/title + signature only (NO remarks field) -->
+    <div class="rc-bsec">
+      <div class="rc-bsec-h"><i class="fas fa-stamp me-1" style="opacity:.6"></i>Vice Principal</div>
+      <div class="rc-bsec-b"></div>
+      <div class="rc-bsec-sig">
+        <div class="rc-bsec-line"></div>
+        <div class="rc-bsec-nm"><?= $vpName !== '' ? h($vpName) : '&nbsp;' ?></div>
+        <div class="rc-bsec-sub">Vice Principal · Signature &amp; Date</div>
       </div>
     </div>
-    <div class="rc-sig">
-      <div class="rc-sig-space" style="min-height:60px"></div>
-      <div class="rc-sig-line">
-        <div class="rc-sig-title">Class Teacher</div>
-        <div class="rc-sig-sub">Signature &amp; Date</div>
+
+    <!-- Teacher: remarks (editable) + signature -->
+    <div class="rc-bsec">
+      <div class="rc-bsec-h"><i class="fas fa-comment-dots me-1" style="opacity:.6"></i>Teacher Remarks</div>
+      <div class="rc-bsec-b">
+        <?php if (!empty($teacherRemarkEntries)): ?>
+          <?php foreach ($teacherRemarkEntries as $aid => $tr): ?>
+          <div class="rc-bsec-row">
+            <div><span class="rc-bsec-row-sub"><?= h($tr['subject']) ?></span>
+              <?php if (!empty($tr['label'])): ?><span class="rc-bsec-row-lbl"> · <?= h($tr['label']) ?></span><?php endif; ?>
+            </div>
+            <?php if ($editMode && $canEditTeacherRemarks): ?>
+            <form method="POST" class="no-print d-flex gap-1 align-items-start mt-1">
+              <input type="hidden" name="action" value="save_teacher_remark">
+              <input type="hidden" name="assessment_id" value="<?= (int)$aid ?>">
+              <textarea name="remark" rows="2" maxlength="255" class="form-control form-control-sm" style="flex:1;font-size:.78rem"
+                        placeholder="Teacher remark…"><?= h($tr['remark']) ?></textarea>
+              <button type="submit" class="btn btn-sm btn-primary" style="font-size:.72rem;white-space:nowrap"><i class="fas fa-save"></i></button>
+            </form>
+            <?php else: ?>
+            <div class="rc-bsec-row-txt"><?= $tr['remark'] !== '' ? h($tr['remark']) : '<span class="rc-bsec-empty">— no remark —</span>' ?></div>
+            <?php endif; ?>
+          </div>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <div class="rc-bsec-empty">No remarks recorded by subject teachers.</div>
+        <?php endif; ?>
+      </div>
+      <div class="rc-bsec-sig">
+        <div class="rc-bsec-line"></div>
+        <div class="rc-bsec-nm">&nbsp;</div>
+        <div class="rc-bsec-sub">Teacher · Signature &amp; Date</div>
       </div>
     </div>
-    <div class="rc-sig">
-      <div class="rc-sig-space" style="min-height:60px"></div>
-      <div class="rc-sig-line">
-        <div class="rc-sig-title">Parent / Guardian</div>
-        <div class="rc-sig-sub">Signature &amp; Date</div>
+
+    <!-- Parent: blank remarks space + signature (no portal entry) -->
+    <div class="rc-bsec">
+      <div class="rc-bsec-h"><i class="fas fa-user-friends me-1" style="opacity:.6"></i>Parent Remarks</div>
+      <div class="rc-bsec-b">
+        <div class="rc-rem-line" style="margin-top:6px"></div>
+        <div class="rc-rem-line" style="margin-top:14px"></div>
+        <div class="rc-rem-line" style="margin-top:14px"></div>
+      </div>
+      <div class="rc-bsec-sig">
+        <div class="rc-bsec-line"></div>
+        <div class="rc-bsec-nm">&nbsp;</div>
+        <div class="rc-bsec-sub">Parent / Guardian · Signature &amp; Date</div>
       </div>
     </div>
   </div>
