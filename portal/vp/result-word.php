@@ -51,7 +51,7 @@ $logoSrc  = file_exists($logoPath)
     : '';
 
 $withMarks = array_filter($students, fn($s) => $s['grand_max'] > 0);
-$passCount = count(array_filter($withMarks, fn($s) => $s['grand_pct'] >= 50));
+$passCount = count(array_filter($withMarks, fn($s) => !empty($s['overall_pass'])));
 $avgPct    = count($withMarks) > 0
     ? round(array_sum(array_column($withMarks, 'grand_pct')) / count($withMarks), 1)
     : 0.0;
@@ -186,8 +186,8 @@ tr:nth-child(even) td { background:#f8f9ff }
     </td>
     <td style="text-align:center">
       <?php if ($hasM): ?>
-      <?php if ($stu['grand_pct'] >= 50): ?><span class="pass-badge">Pass</span>
-      <?php else: ?><span class="fail-badge">Fail</span><?php endif; ?>
+      <?php if (!empty($stu['overall_pass'])): ?><span class="pass-badge">Pass</span>
+      <?php else: ?><span class="fail-badge" title="<?= h($stu['pass_status'] ?? 'Fail') ?>">Fail</span><?php endif; ?>
       <?php else: ?>—<?php endif; ?>
     </td>
   </tr>

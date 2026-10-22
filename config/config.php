@@ -117,3 +117,72 @@ function gradePerformanceFor(string $letter): string {
         default => '',
     };
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// Pass/fail & ranking policy — single source of truth
+//
+// School rule (effective 2026-10):
+//   * Subject-wise pass: a student must score at least 45% in EVERY subject.
+//     (This mirrors "45 marks" on the standard 100-mark subject; the check
+//     is done on subject percentage so it scales regardless of max_marks.)
+//   * Aggregate pass: the overall weighted / arithmetic percentage must be
+//     at least 50%.
+//   * Rankings (1st, 2nd, 3rd…) are issued only to students who clear
+//     BOTH thresholds — subject-wise AND aggregate.
+//
+// Every pass/fail check and every merit calculation in the portal must
+// delegate to the helpers below. Do NOT inline alternative thresholds.
+// ──────────────────────────────────────────────────────────────────────────
+if (!defined('SUBJECT_PASS_PCT'))   define('SUBJECT_PASS_PCT',   45.0);
+if (!defined('AGGREGATE_PASS_PCT')) define('AGGREGATE_PASS_PCT', 50.0);
+
+function isSubjectPassing(float $subjectPct): bool {
+    return $subjectPct >= SUBJECT_PASS_PCT;
+}
+
+function isAggregatePassing(float $grandPct): bool {
+    return $grandPct >= AGGREGATE_PASS_PCT;
+}
+
+/**
+ * Does a student pass OVERALL? True iff every attempted subject clears
+ * SUBJECT_PASS_PCT AND the aggregate clears AGGREGATE_PASS_PCT.
+ *
+ * $subjects — iterable of subject rows; each must expose a numeric 'pct'
+ *             key for the subject percentage and a numeric 'max' key.
+ *             Subjects with max == 0 (not attempted) are ignored.
+ * $grandPct — overall aggregate percentage (weighted or straight — the
+ *             caller decides, we just check the threshold).
+ * $hadMarks — must be true if any subject carried marks; false means the
+ *             student has no results and the function returns false.
+ */
+function studentOverallPasses(iterable $subjects, float $grandPct, bool $hadMarks): bool {
+    if (!$hadMarks) return false;
+    foreach ($subjects as $sub) {
+        $max = (float)($sub['max'] ?? 0);
+        if ($max <= 0) continue;
+        $pct = (float)($sub['pct'] ?? 0);
+        if (!isSubjectPassing($pct)) return false;
+    }
+    return isAggregatePassing($grandPct);
+}
+
+/**
+ * The reason a student failed — used for status badges / cells.
+ * Returns 'Pass' | 'Fail: Subject' | 'Fail: Aggregate' | 'Fail' | '—' (no marks).
+ */
+function studentPassStatusLabel(iterable $subjects, float $grandPct, bool $hadMarks): string {
+    if (!$hadMarks) return '—';
+    $failedSubject = false;
+    foreach ($subjects as $sub) {
+        $max = (float)($sub['max'] ?? 0);
+        if ($max <= 0) continue;
+        $pct = (float)($sub['pct'] ?? 0);
+        if (!isSubjectPassing($pct)) { $failedSubject = true; break; }
+    }
+    $failedAggregate = !isAggregatePassing($grandPct);
+    if ($failedSubject && $failedAggregate) return 'Fail';
+    if ($failedSubject)   return 'Fail: Subject';
+    if ($failedAggregate) return 'Fail: Aggregate';
+    return 'Pass';
+}

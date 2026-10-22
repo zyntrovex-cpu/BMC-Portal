@@ -272,6 +272,25 @@ $grandPct = $grandWTotal > 0
     ? round($grandWSum / $grandWTotal, 1)
     : ($grandMax > 0 ? round($grandObtained / $grandMax * 100, 1) : 0);
 
+// ── Pass/fail per school rule: every subject ≥ 45% AND aggregate ≥ 50% ───
+// $subjects here is keyed by subject_id with keys like 'overall_pct' and
+// 'total_max'; map to the shape studentOverallPasses expects.
+$passSubjects = [];
+foreach ($subjects as $sid => $sub) {
+    $passSubjects[] = [
+        'max'  => (float)$sub['total_max'],
+        'pct'  => (float)$sub['overall_pct'],
+        'name' => $sub['name'] ?? ('Subject #'.$sid),
+    ];
+}
+$hadMarks        = $grandMax > 0;
+$studentPasses   = studentOverallPasses($passSubjects, (float)$grandPct, $hadMarks);
+$passStatusLabel = studentPassStatusLabel($passSubjects, (float)$grandPct, $hadMarks);
+$failedSubjects  = [];
+foreach ($passSubjects as $ps) {
+    if ($ps['max'] > 0 && !isSubjectPassing((float)$ps['pct'])) $failedSubjects[] = $ps['name'];
+}
+
 // ── Class position (Main Campus only, published results only) ─────────────────
 $classPosition = null;
 $classTotal    = null;
@@ -515,10 +534,12 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
 
 /* ── KPI row ────────────────────────────────────────────── */
 .rc-kpi {
-  display: grid; grid-template-columns: repeat(4,1fr);
+  display: grid; grid-template-columns: repeat(5,1fr);
   border-bottom: 2px solid var(--border);
   position: relative; z-index: 1;
 }
+@media (max-width: 760px) { .rc-kpi { grid-template-columns: repeat(2,1fr); } }
+@media print            { .rc-kpi { grid-template-columns: repeat(5,1fr); } }
 .rc-kpi-cell {
   text-align: center; padding: 12px 8px;
   border-right: 1px solid var(--border);
@@ -904,7 +925,39 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
       <div class="rc-kpi-lbl">Attendance</div>
     </div>
     <div class="rc-kpi-cell">
-      <?php if ($classPosition !== null && $classPosition <= 3): ?>
+      <?php
+        // Pass/Fail tile — always shown when marks exist. If the student
+        // failed any subject, surface the reason so parents understand why
+        // no merit position is awarded.
+        $passColor = $studentPasses ? '#15803d' : '#991b1b';
+        $passBg    = $studentPasses ? '#dcfce7' : '#fee2e2';
+      ?>
+      <div class="rc-kpi-ico"><i class="fas fa-<?= $studentPasses ? 'check-circle' : 'times-circle' ?>" style="color:<?= $passColor ?>"></i></div>
+      <div class="rc-kpi-val" style="padding:2px 0">
+        <span class="rc-gr" style="background:<?= $passBg ?>;color:<?= $passColor ?>;font-size:1.2rem;padding:4px 16px">
+          <?= $studentPasses ? 'Pass' : 'Fail' ?>
+        </span>
+      </div>
+      <div class="rc-kpi-sub">
+        <?php if ($studentPasses): ?>
+          Promoted to Next Class
+        <?php elseif (!empty($failedSubjects)): ?>
+          Below 45% in: <?= h(implode(', ', array_slice($failedSubjects, 0, 2))) . (count($failedSubjects) > 2 ? ' …' : '') ?>
+        <?php elseif ($grandPct < AGGREGATE_PASS_PCT): ?>
+          Aggregate below <?= (int)AGGREGATE_PASS_PCT ?>%
+        <?php else: ?>
+          &nbsp;
+        <?php endif; ?>
+      </div>
+      <div class="rc-kpi-lbl">Result</div>
+    </div>
+    <div class="rc-kpi-cell">
+      <?php if (!$studentPasses && $classPosition === null): ?>
+      <div class="rc-kpi-ico"><i class="fas fa-ban" style="color:var(--muted)"></i></div>
+      <div class="rc-kpi-val" style="color:var(--muted);font-size:1rem">—</div>
+      <div class="rc-kpi-sub">Not eligible for merit position</div>
+      <div class="rc-kpi-lbl">Class Position</div>
+      <?php elseif ($classPosition !== null && $classPosition <= 3): ?>
       <div class="rc-kpi-ico"><i class="fas fa-trophy" style="color:#b8860b"></i></div>
       <div class="rc-kpi-val" style="color:#b8860b"><?= positionLabel($classPosition) ?></div>
       <div class="rc-kpi-sub">

@@ -59,7 +59,7 @@ $logoSrc      = file_exists($logoPath)
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
 $withMarks = array_filter($students, fn($s) => $s['grand_max'] > 0);
-$passCount = count(array_filter($withMarks, fn($s) => $s['grand_pct'] >= 50));
+$passCount = count(array_filter($withMarks, fn($s) => !empty($s['overall_pass'])));
 $avgPct    = count($withMarks) > 0
     ? round(array_sum(array_column($withMarks, 'grand_pct')) / count($withMarks), 1)
     : 0.0;
@@ -418,7 +418,7 @@ body { font-family:'Segoe UI',Arial,Helvetica,sans-serif; background:#c8d3e4; co
         </td>
         <td style="text-align:center">
           <?php if ($hasM): ?>
-          <?php if ($stu['grand_pct'] >= 50): ?>
+          <?php if (!empty($stu['overall_pass'])): ?>
           <span class="pass-badge">Pass</span>
           <?php else: ?>
           <span class="fail-badge">Fail</span>

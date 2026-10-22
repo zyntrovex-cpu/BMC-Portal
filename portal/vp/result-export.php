@@ -114,8 +114,9 @@ $className   = $classRow['name'];
 
 // ── Derived stats ─────────────────────────────────────────────────────────────
 $withMarks = array_values(array_filter($students, fn($s) => $s['grand_max'] > 0));
-$passCount = count(array_filter($withMarks, fn($s) => $s['grand_pct'] >= 50));
-$failCount = count(array_filter($withMarks, fn($s) => $s['grand_pct'] < 50));
+// Pass/fail uses the central rule: all subjects ≥ 45% AND aggregate ≥ 50%.
+$passCount = count(array_filter($withMarks, fn($s) => !empty($s['overall_pass'])));
+$failCount = count($withMarks) - $passCount;
 $avgPct    = count($withMarks) > 0
     ? round(array_sum(array_column($withMarks, 'grand_pct')) / count($withMarks), 1)
     : 0.0;
@@ -180,7 +181,7 @@ foreach ($students as $idx => $stu) {
 
     $posLabel   = $pos !== null ? positionLabel($pos) : '—';
     $hasMarks   = $stu['grand_max'] > 0;
-    $passStatus = !$hasMarks ? '—' : ($stu['grand_pct'] >= 50 ? 'Pass' : 'Fail');
+    $passStatus = $stu['pass_status'] ?? (!$hasMarks ? '—' : (($stu['overall_pass'] ?? false) ? 'Pass' : 'Fail'));
 
     $cells   = [];
     $cells[] = ['v' => $idx + 1,         's' => 'center'];
@@ -206,7 +207,7 @@ foreach ($students as $idx => $stu) {
     $cells[] = ['v' => $hasMarks ? round($stu['grand_obtained'], 2)   : '—', 's' => 'center'];
     $cells[] = ['v' => $hasMarks ? $stu['grand_pct'] . '%'            : '—', 's' => 'center'];
     $cells[] = ['v' => $stu['overall_grade'],                                  's' => 'center'];
-    $cells[] = ['v' => $passStatus,                                            's' => ($passStatus === 'Pass' ? 'center' : ($passStatus === 'Fail' ? 'warn' : 'center'))];
+    $cells[] = ['v' => $passStatus,                                            's' => ($passStatus === 'Pass' ? 'center' : (str_starts_with($passStatus, 'Fail') ? 'warn' : 'center'))];
 
     $xls->addRow($cells, $rowSty);
 }
@@ -223,10 +224,16 @@ $xls->addRow([['v' => $className . '  |  ' . $termInfo,   's' => '']], '');
 $xls->addBlankRow();
 $xls->addRow(['Rank', 'Student Name', 'GR No.', 'Roll No.', 'Total Obt', 'Total Max', 'Percentage', 'Grade'], 'header2');
 
-foreach ($students as $stu) {
-    if ($stu['grand_max'] == 0) continue;
+// Position Holders sheet lists ONLY eligible (overall_pass = true) students.
+// Students who failed any subject or whose aggregate is below the threshold
+// are excluded from the merit list regardless of their raw percentage.
+$meritRanked = array_values(array_filter($students, fn($s) => !empty($s['overall_pass'])));
+if (empty($meritRanked)) {
+    $xls->addRow([['v' => 'No students qualified for a merit position for this class.', 's' => '']], '');
+}
+foreach ($meritRanked as $idx => $stu) {
     $pos  = $stu['position'];
-    $sty  = match ($pos) { 1 => 'gold1', 2 => 'gold2', 3 => 'gold3', default => (($stu === reset($students) || array_search($stu, $students) % 2 === 0) ? 'data' : 'alt') };
+    $sty  = match ($pos) { 1 => 'gold1', 2 => 'gold2', 3 => 'gold3', default => ($idx % 2 === 0 ? 'data' : 'alt') };
     $xls->addRow([
         $pos !== null ? positionLabel($pos) : '—',
         $stu['name'],

@@ -253,7 +253,9 @@ $passCount      = 0;
 $totalPct       = 0;
 foreach ($results as $r) {
     $p = $r['total_possible'] > 0 ? ($r['total_obtained'] / $r['total_possible'] * 100) : 0;
-    if ($p >= 40) $passCount++;
+    // Aggregate-only pass check here (per-subject stats are not loaded on this
+     // summary page); subject-level enforcement happens on the full report card.
+    if (isAggregatePassing($p)) $passCount++;
     $totalPct += $p;
 }
 $avgPct = $totalStudents > 0 ? round($totalPct / $totalStudents, 1) : 0;
@@ -278,7 +280,7 @@ $passRate = $totalStudents > 0 ? round($passCount / $totalStudents * 100, 0) : 0
       </div>
       <div class="stat-body">
         <div class="stat-num" style="font-size:1.4rem"><?= $passCount ?></div>
-        <div class="stat-label">Passed (Grade E+, ≥40%)</div>
+        <div class="stat-label">Passed (Aggregate ≥<?= (int)AGGREGATE_PASS_PCT ?>%)</div>
       </div>
     </div>
   </div>
