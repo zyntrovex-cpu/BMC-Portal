@@ -13,10 +13,17 @@ require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/result_ranking.php';
 
-$user = requireAuth('admin', 'vp_main', 'student_affairs', 'student', 'wing_head', 'examination_head');
+$user = requireAuth(
+    'admin', 'vp_main', 'vp_montessori', 'ilc_vp',
+    'teacher', 'montessori_teacher', 'ilc_teacher',
+    'student_affairs', 'student', 'wing_head', 'examination_head',
+    'primary_wing_head', 'secondary_wing_head', 'higher_secondary_wing_head'
+);
 $db   = getDB();
 $role = $user['role'];
 
+// Role-specific permission guards — teachers/VPs have portal-wide access already,
+// so they do not need an extra permission check to view a report card.
 if ($role === 'vp_main')              requirePermission('vp_results');
 elseif ($role === 'student_affairs')  requirePermission('sa_students');
 elseif ($role === 'wing_head')        requirePermission('wh_students');
@@ -70,6 +77,74 @@ if ($role === 'examination_head') {
         redirect('/portal/exam-head/results.php');
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────
+// REMARKS EDIT CAPABILITIES
+// Teachers edit marks.remarks for assessments they own; VPs edit
+// assessments.vp_remarks; admin (Principal) can edit either but has no
+// dedicated "principal remarks" field — author identities stay separate.
+// ─────────────────────────────────────────────────────────────────────
+$canEditTeacherRemarks = in_array($role, ['teacher', 'montessori_teacher', 'ilc_teacher', 'admin'], true);
+$canEditVpRemarks      = in_array($role, ['vp_main', 'vp_montessori', 'ilc_vp', 'examination_head', 'admin'], true);
+$isPrincipal           = ($role === 'admin');   // Principal browses all & edits either, but has no own-remarks field
+
+// ─────────────────────────────────────────────────────────────────────
+// POST handler for inline remark edits (teacher / VP)
+// ─────────────────────────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
+    $aid    = (int)($_POST['assessment_id'] ?? 0);
+    $remark = trim((string)($_POST['remark'] ?? ''));
+    $redir  = $_SERVER['REQUEST_URI'];
+
+    if ($action === 'save_teacher_remark' && $aid && $canEditTeacherRemarks) {
+        // Verify the assessment belongs to this teacher (admin bypass)
+        $ok = $isPrincipal;
+        if (!$ok) {
+            $teacherRow = getTeacherByUserId($user['id']);
+            if ($teacherRow) {
+                $chk = $db->prepare('SELECT 1 FROM assessments WHERE id=? AND teacher_id=?');
+                $chk->execute([$aid, $teacherRow['id']]);
+                $ok = (bool)$chk->fetch();
+            }
+        }
+        if ($ok) {
+            try {
+                // Upsert into marks.remarks: update row if it exists, else insert remark-only row
+                $up = $db->prepare('UPDATE marks SET remarks=? WHERE assessment_id=? AND student_id=?');
+                $up->execute([$remark !== '' ? $remark : null, $aid, $studentId]);
+                if ($up->rowCount() === 0) {
+                    $db->prepare('INSERT INTO marks (assessment_id, student_id, marks_obtained, remarks) VALUES (?,?,NULL,?)')
+                       ->execute([$aid, $studentId, $remark !== '' ? $remark : null]);
+                }
+                logActivity($user['id'], 'rc_teacher_remark', "Report-card teacher remark: student #$studentId assessment #$aid");
+                setFlash('success', 'Teacher remark saved.');
+            } catch (Exception $e) {
+                setFlash('danger', 'Could not save teacher remark: ' . $e->getMessage());
+            }
+        } else {
+            setFlash('danger', 'You are not authorised to edit remarks on this assessment.');
+        }
+        redirect($redir);
+    }
+
+    if ($action === 'save_vp_remark' && $aid && $canEditVpRemarks) {
+        try {
+            $up = $db->prepare('UPDATE assessments SET vp_remarks=? WHERE id=?');
+            $up->execute([$remark !== '' ? $remark : null, $aid]);
+            logActivity($user['id'], 'rc_vp_remark', "Report-card VP remark: student #$studentId assessment #$aid");
+            setFlash('success', 'Vice Principal remark saved.');
+        } catch (Exception $e) {
+            setFlash('danger', 'Could not save remark (run migrations/report_card_vp_remarks.sql): ' . $e->getMessage());
+        }
+        redirect($redir);
+    }
+
+    // Unknown action or lacking permission — silently redirect
+    redirect($redir);
+}
+
+$editMode = isset($_GET['edit']) && $_GET['edit'] === '1' && ($canEditTeacherRemarks || $canEditVpRemarks);
 
 // ── Class-based routing rules ─────────────────────────────
 $classGrade = (int)($student['class_grade'] ?? 99);
@@ -654,6 +729,14 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
   <a href="<?= $wordHref ?>"><i class="fas fa-file-word"></i> Word</a>
   <button onclick="window.print()"><i class="fas fa-print"></i> Print / Save PDF</button>
 </div>
+<?php
+  $flashMsg = flashHtml();
+  if ($flashMsg !== ''):
+?>
+<div class="no-print" style="max-width:960px;margin:12px auto 0;padding:0 16px">
+  <?= $flashMsg ?>
+</div>
+<?php endif; ?>
 <?php endif; ?>
 
 <div class="rc-page">
@@ -971,50 +1054,91 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
   </div>
   <?php endif; ?>
 
-  <!-- ── Teacher Remarks (populated from marks.remarks) ─── -->
+  <!-- ── Teacher & Vice Principal Remarks (populated from DB; editable in ?edit=1 mode) ─── -->
   <?php
-    // Collect per-subject teacher remarks from the loaded marks
-    $teacherRemarks = [];
+    // Build per-assessment entries so we can key edit forms by assessment_id.
+    // Teacher: one entry per (subject, assessment) that either has a remark OR
+    // we are in edit mode (so empty cells become writable fields).
+    $teacherRemarkEntries = [];      // [assessment_id => ['subject','label','remark']]
+    $vpRemarkEntries      = [];      // [assessment_id => ['label','remark']]
     foreach ($bySubject as $sid => $sub) {
         foreach ($sub['assessments'] as $a) {
-            if (!empty($a['remarks'])) {
-                $teacherRemarks[] = [
-                    'subject' => $sub['name'],
-                    'label'   => trim(($a['assessment_name'] ?: $a['type']) . ($a['type'] && $a['assessment_name'] && $a['type'] !== $a['assessment_name'] ? ' ('.$a['type'].')' : '')),
-                    'remark'  => $a['remarks'],
-                ];
+            $aid = (int)$a['assessment_id'];
+            if ($aid === 0) continue;
+            $label = trim(($a['assessment_name'] ?: $a['type']) . ($a['type'] && $a['assessment_name'] && $a['type'] !== $a['assessment_name'] ? ' ('.$a['type'].')' : ''));
+            if ($editMode || !empty($a['remarks'])) {
+                if (!isset($teacherRemarkEntries[$aid])) {
+                    $teacherRemarkEntries[$aid] = [
+                        'subject' => $sub['name'],
+                        'label'   => $label,
+                        'remark'  => $a['remarks'] ?? '',
+                    ];
+                }
+            }
+            if ($editMode || !empty($a['vp_remarks'])) {
+                if (!isset($vpRemarkEntries[$aid])) {
+                    $vpRemarkEntries[$aid] = [
+                        'label'  => trim(($a['assessment_name'] ?: $a['type']) . ' — ' . $sub['name']),
+                        'remark' => $a['vp_remarks'] ?? '',
+                    ];
+                }
             }
         }
     }
-    // Collect VP remarks (deduplicated by assessment id when the type filter is active)
-    $vpRemarksSeen = [];
-    $vpRemarks     = [];
-    foreach ($rows as $r) {
-        if (!empty($r['vp_remarks']) && !isset($vpRemarksSeen[$r['assessment_id']])) {
-            $vpRemarksSeen[$r['assessment_id']] = true;
-            $vpRemarks[] = [
-                'label'  => trim(($r['assessment_name'] ?: $r['type']) . ' — ' . $r['subject_name']),
-                'remark' => $r['vp_remarks'],
-            ];
-        }
-    }
+    $editQS = ($role !== 'student' ? 'student_id='.$studentId.'&' : '')
+            . ($typeFilter !== '' ? 'type='.urlencode($typeFilter).'&' : '');
   ?>
+
+  <?php if (!$isWordExport && ($canEditTeacherRemarks || $canEditVpRemarks)): ?>
+  <div class="no-print" style="padding:8px 14px;margin-bottom:8px;background:#fef9c3;border:1px solid #fde68a;border-radius:6px;font-size:.82rem;display:flex;gap:12px;align-items:center;justify-content:space-between">
+    <div>
+      <i class="fas fa-pencil-alt me-1" style="color:#854d0e"></i>
+      <?php if ($editMode): ?>
+        <strong>Edit mode:</strong> remark fields below are editable. Click Save on each to persist.
+      <?php else: ?>
+        <strong>Need to edit remarks?</strong> Switch to edit mode to update
+        <?php if ($canEditTeacherRemarks && $canEditVpRemarks): ?>teacher and Vice Principal remarks<?php
+              elseif ($canEditTeacherRemarks): ?>your teacher remarks<?php
+              else: ?>Vice Principal remarks<?php endif; ?>.
+      <?php endif; ?>
+    </div>
+    <div>
+      <?php if ($editMode): ?>
+      <a href="?<?= $editQS ?>" class="btn btn-sm btn-outline-secondary"><i class="fas fa-times me-1"></i>Done</a>
+      <?php else: ?>
+      <a href="?<?= $editQS ?>edit=1" class="btn btn-sm btn-warning"><i class="fas fa-pencil-alt me-1"></i>Edit Remarks</a>
+      <?php endif; ?>
+    </div>
+  </div>
+  <?php endif; ?>
+
   <div class="rc-sec-alt" style="margin-top:14px">
     <i class="fas fa-comment-dots"></i>Teacher Remarks
   </div>
   <div style="padding:10px 14px;background:#fcfcfd;border:1px solid #e5e7eb;border-radius:6px;margin-bottom:10px">
-    <?php if (!empty($teacherRemarks)): ?>
-      <?php foreach ($teacherRemarks as $tr): ?>
-      <div style="padding:6px 0;border-bottom:1px dashed #e5e7eb;font-size:.82rem">
-        <span style="font-weight:600;color:#1e293b"><?= h($tr['subject']) ?></span>
-        <?php if (!empty($tr['label'])): ?><span style="color:#64748b;font-size:.76rem">· <?= h($tr['label']) ?></span><?php endif; ?>
-        <div style="color:#334155;margin-top:2px"><?= h($tr['remark']) ?></div>
+    <?php if (!empty($teacherRemarkEntries)): ?>
+      <?php foreach ($teacherRemarkEntries as $aid => $tr): ?>
+      <div style="padding:8px 0;border-bottom:1px dashed #e5e7eb;font-size:.82rem">
+        <div><span style="font-weight:600;color:#1e293b"><?= h($tr['subject']) ?></span>
+          <?php if (!empty($tr['label'])): ?><span style="color:#64748b;font-size:.76rem">· <?= h($tr['label']) ?></span><?php endif; ?>
+        </div>
+        <?php if ($editMode && $canEditTeacherRemarks): ?>
+        <form method="POST" class="no-print d-flex gap-2 align-items-start mt-1">
+          <input type="hidden" name="action" value="save_teacher_remark">
+          <input type="hidden" name="assessment_id" value="<?= (int)$aid ?>">
+          <textarea name="remark" rows="2" maxlength="255" class="form-control form-control-sm" style="flex:1;font-size:.82rem"
+                    placeholder="Teacher remark for this assessment…"><?= h($tr['remark']) ?></textarea>
+          <button type="submit" class="btn btn-sm btn-primary" style="font-size:.75rem;white-space:nowrap"><i class="fas fa-save"></i> Save</button>
+        </form>
+        <?php else: ?>
+        <div style="color:#334155;margin-top:2px"><?= $tr['remark'] !== '' ? h($tr['remark']) : '<span class="text-muted fst-italic">— no remark —</span>' ?></div>
+        <?php endif; ?>
       </div>
       <?php endforeach; ?>
     <?php else: ?>
       <div style="font-size:.82rem;color:#9ca3af;font-style:italic">No remarks recorded by subject teachers.</div>
-      <div class="rc-rem-line" style="margin-top:8px"></div>
-      <div class="rc-rem-line"></div>
+      <div class="rc-rem-line no-print" style="margin-top:8px"></div>
+      <div class="rc-rem-line no-print"></div>
     <?php endif; ?>
   </div>
 
@@ -1023,17 +1147,27 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
     <i class="fas fa-stamp"></i>Vice Principal Remarks
   </div>
   <div style="padding:10px 14px;background:#fcfcfd;border:1px solid #e5e7eb;border-radius:6px;margin-bottom:14px;min-height:60px">
-    <?php if (!empty($vpRemarks)): ?>
-      <?php foreach ($vpRemarks as $vr): ?>
-      <div style="padding:6px 0;border-bottom:1px dashed #e5e7eb;font-size:.82rem">
+    <?php if (!empty($vpRemarkEntries)): ?>
+      <?php foreach ($vpRemarkEntries as $aid => $vr): ?>
+      <div style="padding:8px 0;border-bottom:1px dashed #e5e7eb;font-size:.82rem">
         <div style="font-weight:600;color:#1e293b;font-size:.78rem"><?= h($vr['label']) ?></div>
-        <div style="color:#334155;margin-top:2px"><?= h($vr['remark']) ?></div>
+        <?php if ($editMode && $canEditVpRemarks): ?>
+        <form method="POST" class="no-print d-flex gap-2 align-items-start mt-1">
+          <input type="hidden" name="action" value="save_vp_remark">
+          <input type="hidden" name="assessment_id" value="<?= (int)$aid ?>">
+          <textarea name="remark" rows="2" class="form-control form-control-sm" style="flex:1;font-size:.82rem"
+                    placeholder="Vice Principal remark for this assessment…"><?= h($vr['remark']) ?></textarea>
+          <button type="submit" class="btn btn-sm btn-primary" style="font-size:.75rem;white-space:nowrap"><i class="fas fa-save"></i> Save</button>
+        </form>
+        <?php else: ?>
+        <div style="color:#334155;margin-top:2px"><?= $vr['remark'] !== '' ? h($vr['remark']) : '<span class="text-muted fst-italic">— no remark —</span>' ?></div>
+        <?php endif; ?>
       </div>
       <?php endforeach; ?>
     <?php else: ?>
       <div style="font-size:.82rem;color:#9ca3af;font-style:italic">No remarks recorded by the Vice Principal.</div>
-      <div class="rc-rem-line" style="margin-top:8px"></div>
-      <div class="rc-rem-line"></div>
+      <div class="rc-rem-line no-print" style="margin-top:8px"></div>
+      <div class="rc-rem-line no-print"></div>
     <?php endif; ?>
   </div>
 
