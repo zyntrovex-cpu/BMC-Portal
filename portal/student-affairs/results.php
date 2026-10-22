@@ -59,8 +59,8 @@ if ($classId && $subjectId) {
         }
 
         foreach ($students as $s) {
-            $totalWeight   = 0;
-            $totalWeighted = 0;
+            // Straight aggregate (matches ranking rule in result_ranking.php).
+            $sumObt = 0.0; $sumMax = 0.0;
             $row = ['student' => $s, 'marks' => [], 'overall_pct' => null];
             foreach ($assessments as $a) {
                 $obtained = $marksMap[$s['id']][$a['id']] ?? null;
@@ -69,12 +69,12 @@ if ($classId && $subjectId) {
                      : null;
                 $row['marks'][$a['id']] = ['obtained' => $obtained, 'pct' => $pct];
                 if ($obtained !== null) {
-                    $totalWeighted += $pct * $a['weight'];
-                    $totalWeight   += $a['weight'];
+                    $sumObt += (float)$obtained;
+                    $sumMax += (float)$a['max_marks'];
                 }
             }
-            if ($totalWeight > 0) {
-                $row['overall_pct'] = round($totalWeighted / $totalWeight, 1);
+            if ($sumMax > 0) {
+                $row['overall_pct'] = round($sumObt / $sumMax * 100, 2);
             }
             $studentResults[] = $row;
         }

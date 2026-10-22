@@ -22,9 +22,7 @@ if ($tableExists) {
     $assessments = $st->fetchAll();
 }
 
-// ── Calculation (same logic as main campus results.php) ───────────
-$totalWeight  = 0;
-$weightedSum  = 0;
+// ── Calculation (straight aggregate — matches ranking rule) ──────
 $totalObt     = 0;
 $totalMax     = 0;
 $countScored  = 0;
@@ -33,21 +31,14 @@ $countPending = 0;
 foreach ($assessments as $a) {
     if ($a['marks_obtained'] !== null) {
         $countScored++;
-        $totalObt += $a['marks_obtained'];
-        $totalMax += $a['max_marks'];
-        if ($a['weight'] > 0) {
-            $pct          = $a['max_marks'] > 0 ? ($a['marks_obtained'] / $a['max_marks'] * 100) : 0;
-            $weightedSum += $pct * $a['weight'];
-            $totalWeight += $a['weight'];
-        }
+        $totalObt += (float)$a['marks_obtained'];
+        $totalMax += (float)$a['max_marks'];
     } else {
         $countPending++;
     }
 }
 
-$overallPct = $totalWeight > 0
-    ? round($weightedSum / $totalWeight, 1)
-    : ($totalMax > 0 ? round($totalObt / $totalMax * 100, 1) : 0);
+$overallPct = $totalMax > 0 ? round($totalObt / $totalMax * 100, 2) : 0;
 
 $hasMarks = $totalMax > 0;
 

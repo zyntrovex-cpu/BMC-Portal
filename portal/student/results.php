@@ -84,27 +84,18 @@ $links = getStudentLinks();
   </div>
 </div>
 <?php else: foreach ($bySubject as $subjectId => $sub):
-  $assessments  = $sub['assessments'];
-  // Weighted overall
-  $totalWeight  = 0;
-  $weightedSum  = 0;
+  $assessments   = $sub['assessments'];
+  // Straight aggregate matches ranking rule (see result_ranking.php).
   $totalObtained = 0;
   $totalMax      = 0;
   foreach ($assessments as $a) {
       if ($a['marks_obtained'] !== null) {
-          $totalObtained += $a['marks_obtained'];
-          $totalMax      += $a['max_marks'];
-          if ($a['weight'] > 0) {
-              $pct           = $a['max_marks'] > 0 ? ($a['marks_obtained'] / $a['max_marks'] * 100) : 0;
-              $weightedSum  += $pct * $a['weight'];
-              $totalWeight  += $a['weight'];
-          }
+          $totalObtained += (float)$a['marks_obtained'];
+          $totalMax      += (float)$a['max_marks'];
       }
   }
-  $overallPct = $totalWeight > 0
-      ? round($weightedSum / $totalWeight, 1)
-      : ($totalMax > 0 ? round($totalObtained / $totalMax * 100, 1) : 0);
-  $hasMarks = $totalMax > 0;
+  $overallPct = $totalMax > 0 ? round($totalObtained / $totalMax * 100, 2) : 0;
+  $hasMarks   = $totalMax > 0;
 ?>
 <div class="sec-card">
   <div class="sec-head">

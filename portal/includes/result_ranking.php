@@ -148,36 +148,35 @@ function getClassResultData(PDO $db, int $classId, bool $publishedOnly = true): 
         }
     }
 
-    // Finalize per-subject stats + grand totals + pass/fail eligibility
+    // Finalize per-subject stats + grand totals + pass/fail eligibility.
+    //
+    // IMPORTANT — straight aggregate, not weighted.
+    // The ranking rule (requirement #1) is explicitly:
+    //     Overall % = (Total Marks Obtained / Total Max Marks) × 100
+    // Weighted averages were producing inconsistent rankings — a student
+    // with high weighted % could have a lower straight %, causing their
+    // report-card percentage to disagree with the merit position.
+    // We still carry w_sum/w_total through the shape in case other callers
+    // need them, but neither grand_pct NOR sub.pct uses the weighted path
+    // for pass/fail or ranking purposes.
     foreach ($students as &$stu) {
         $grandObt   = 0.0;
         $grandMax   = 0.0;
-        $grandWSum  = 0.0;
-        $grandWTot  = 0.0;
 
         foreach ($stu['subjects'] as $subj => &$sub) {
             if ($sub['max'] > 0) {
-                $sub['pct']   = $sub['w_total'] > 0
-                    ? round($sub['w_sum'] / $sub['w_total'], 2)
-                    : round($sub['obtained'] / $sub['max'] * 100, 2);
-                $sub['grade'] = rkGradeLetter($sub['pct'], $sub['has_marks']);
+                $sub['pct']    = round($sub['obtained'] / $sub['max'] * 100, 2);
+                $sub['grade']  = rkGradeLetter($sub['pct'], $sub['has_marks']);
                 $sub['passed'] = isSubjectPassing((float)$sub['pct']);
-
                 $grandObt  += $sub['obtained'];
                 $grandMax  += $sub['max'];
-                if ($sub['w_total'] > 0) {
-                    $grandWSum += $sub['w_sum'];
-                    $grandWTot += $sub['w_total'];
-                }
             } else {
                 $sub['passed'] = false;
             }
         }
         unset($sub);
 
-        $grandPct = $grandWTot > 0
-            ? round($grandWSum / $grandWTot, 2)
-            : ($grandMax > 0 ? round($grandObt / $grandMax * 100, 2) : 0.0);
+        $grandPct = $grandMax > 0 ? round($grandObt / $grandMax * 100, 2) : 0.0;
 
         $hadMarks = $grandMax > 0;
         $stu['grand_obtained'] = round($grandObt, 2);

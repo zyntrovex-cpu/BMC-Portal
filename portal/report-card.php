@@ -282,25 +282,19 @@ function gradeText(string $g): string  { return gradePerformanceFor($g); }
 $subjects      = [];
 $grandObtained = 0;
 $grandMax      = 0;
-$grandWSum     = 0;
-$grandWTotal   = 0;
 
+// Straight aggregate (not weighted) — matches the ranking rule in
+// result_ranking.php so the % shown on the report card and the % used
+// to assign merit positions can never disagree.
 foreach ($bySubject as $sid => $sub) {
-    $totalObtained = 0; $totalMax = 0; $weightedSum = 0; $totalWeight = 0;
+    $totalObtained = 0; $totalMax = 0;
     foreach ($sub['assessments'] as $a) {
         if ($a['marks_obtained'] !== null) {
             $totalObtained += (float)$a['marks_obtained'];
             $totalMax      += (float)$a['max_marks'];
-            if ($a['weight'] > 0) {
-                $pct          = $a['max_marks'] > 0 ? ($a['marks_obtained'] / $a['max_marks'] * 100) : 0;
-                $weightedSum += $pct * $a['weight'];
-                $totalWeight += $a['weight'];
-            }
         }
     }
-    $overallPct = $totalWeight > 0
-        ? round($weightedSum / $totalWeight, 1)
-        : ($totalMax > 0 ? round($totalObtained / $totalMax * 100, 1) : 0);
+    $overallPct = $totalMax > 0 ? round($totalObtained / $totalMax * 100, 2) : 0;
 
     $subjects[$sid] = array_merge($sub, [
         'total_obtained' => round($totalObtained, 2),
@@ -312,13 +306,10 @@ foreach ($bySubject as $sid => $sub) {
     if ($totalMax > 0) {
         $grandObtained += $totalObtained;
         $grandMax      += $totalMax;
-        if ($totalWeight > 0) { $grandWSum += $weightedSum; $grandWTotal += $totalWeight; }
     }
 }
 
-$grandPct = $grandWTotal > 0
-    ? round($grandWSum / $grandWTotal, 1)
-    : ($grandMax > 0 ? round($grandObtained / $grandMax * 100, 1) : 0);
+$grandPct = $grandMax > 0 ? round($grandObtained / $grandMax * 100, 2) : 0;
 
 // ── Pass/fail per school rule: every subject ≥ 45% AND aggregate ≥ 50% ───
 // $subjects here is keyed by subject_id with keys like 'overall_pct' and
@@ -1100,11 +1091,9 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
         <tr>
           <td colspan="3" style="letter-spacing:.05em">
             OVERALL RESULT
-            <?php if ($grandWTotal > 0): ?>
             <span style="font-size:.61rem;opacity:.6;font-weight:400;margin-left:8px">
-              &#9654; weighted average across all assessments
+              &#9654; Total Obtained ÷ Total Max × 100
             </span>
-            <?php endif; ?>
           </td>
           <td class="rgt"><?= round($grandObtained,2) ?></td>
           <td class="rgt"><?= round($grandMax,2) ?></td>
