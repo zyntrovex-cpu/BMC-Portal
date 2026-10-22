@@ -159,31 +159,79 @@ if ($montessoriLowGrade && $role === 'student') {
 // Students only see published results; staff/admin see all
 $pubFilter = ($role === 'student') ? " AND COALESCE(a.publish_status, 'published') = 'published'" : '';
 
-// Optional assessment-type filter: ?type=First%20Term produces a report card
-// for only that assessment type. When empty, all types are included (legacy).
+// Optional assessment filter: ?type=<canonical name> produces a report card
+// for only the assessment identity whose normalized name matches. When
+// empty, all assessments are included (legacy behaviour).
+//
+// The dropdown uses canonical identity (name_key) rather than raw a.type:
+// "First Midterm", "1st Midterm" and "FIRST MIDTERM" all normalize to the
+// same key and show as a single dropdown entry. Selecting that entry pulls
+// every assessment row with that key — so marks entered by every subject
+// teacher under any spelling variant are included in one report card.
 $typeFilter = trim((string)($_GET['type'] ?? ''));
+$selectedKey = $typeFilter !== '' ? normalizeAssessmentName($typeFilter) : '';
+
+// Does the DB have the name_key column yet? If not, fall back to the
+// legacy type-based filter so the page still works pre-migration.
+$hasNameKeyCol = false;
+try { $db->query('SELECT name_key FROM assessments LIMIT 0'); $hasNameKeyCol = true; } catch (Exception $e) {}
+
 $typeClause = '';
 $qParams    = [$studentId, $student['class_id']];
 if ($typeFilter !== '') {
-    $typeClause = ' AND a.type = ?';
-    $qParams[]  = $typeFilter;
+    if ($hasNameKeyCol && $selectedKey !== '') {
+        // Group by canonical identity.
+        $typeClause = ' AND (a.name_key = ? OR a.type = ?)';
+        $qParams[]  = $selectedKey;
+        $qParams[]  = $typeFilter;
+    } else {
+        $typeClause = ' AND a.type = ?';
+        $qParams[]  = $typeFilter;
+    }
 }
 
-// Build list of assessment types the student has marks in (for the type picker).
+// Build the dropdown: one entry per canonical assessment identity. We
+// prefer the longest observed title as the human-readable label so
+// "First Midterm Assessment" is shown rather than the shorter "mid".
 try {
-    $tListSt = $db->prepare(
-        "SELECT DISTINCT a.type
-         FROM assessments a
-         LEFT JOIN marks m ON m.assessment_id = a.id AND m.student_id = ?
-         WHERE a.class_id = ?$pubFilter AND m.id IS NOT NULL
-         ORDER BY a.type"
-    );
-    $tListSt->execute([$studentId, $student['class_id']]);
-    $availableTypes = array_values(array_filter($tListSt->fetchAll(PDO::FETCH_COLUMN)));
+    if ($hasNameKeyCol) {
+        $tListSt = $db->prepare(
+            "SELECT COALESCE(NULLIF(a.name_key,''), a.type) AS canon_key,
+                    MAX(CHAR_LENGTH(COALESCE(NULLIF(a.title,''), a.name))) AS longest_len,
+                    SUBSTRING_INDEX(
+                        GROUP_CONCAT(COALESCE(NULLIF(a.title,''), a.name)
+                            ORDER BY CHAR_LENGTH(COALESCE(NULLIF(a.title,''), a.name)) DESC
+                            SEPARATOR '\\n'),
+                        '\\n', 1
+                    ) AS display_name
+             FROM assessments a
+             LEFT JOIN marks m ON m.assessment_id = a.id AND m.student_id = ?
+             WHERE a.class_id = ?$pubFilter AND m.id IS NOT NULL
+             GROUP BY canon_key
+             ORDER BY display_name"
+        );
+        $tListSt->execute([$studentId, $student['class_id']]);
+        $availableTypes = [];
+        foreach ($tListSt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $label = trim((string)($r['display_name'] ?? '')) ?: canonicalAssessmentLabel((string)$r['canon_key']);
+            if ($label !== '') $availableTypes[] = $label;
+        }
+    } else {
+        $tListSt = $db->prepare(
+            "SELECT DISTINCT a.type
+             FROM assessments a
+             LEFT JOIN marks m ON m.assessment_id = a.id AND m.student_id = ?
+             WHERE a.class_id = ?$pubFilter AND m.id IS NOT NULL
+             ORDER BY a.type"
+        );
+        $tListSt->execute([$studentId, $student['class_id']]);
+        $availableTypes = array_values(array_filter($tListSt->fetchAll(PDO::FETCH_COLUMN)));
+    }
 } catch (Exception $e) { $availableTypes = []; }
 
+$nameKeyCol = $hasNameKeyCol ? 'a.name_key' : 'NULL AS name_key';
 $st = $db->prepare(
-    "SELECT a.id AS assessment_id, a.name AS assessment_name, a.type,
+    "SELECT a.id AS assessment_id, a.name AS assessment_name, a.type, $nameKeyCol,
             a.max_marks, a.weight, a.date, a.vp_remarks,
             sb.id AS subject_id, sb.name AS subject_name, sb.code AS subject_code,
             m.marks_obtained, m.remarks
@@ -197,7 +245,7 @@ try { $st->execute($qParams); $rows = $st->fetchAll(); }
 catch (Exception $e) {
     // Fallback for installs where vp_remarks column has not been migrated yet
     $st = $db->prepare(
-        "SELECT a.id AS assessment_id, a.name AS assessment_name, a.type,
+        "SELECT a.id AS assessment_id, a.name AS assessment_name, a.type, $nameKeyCol,
                 a.max_marks, a.weight, a.date, NULL AS vp_remarks,
                 sb.id AS subject_id, sb.name AS subject_name, sb.code AS subject_code,
                 m.marks_obtained, m.remarks

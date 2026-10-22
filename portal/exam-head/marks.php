@@ -31,11 +31,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $weight    = (float)($_POST['weight'] ?? 10);
         $date      = $_POST['date'] ?? date('Y-m-d');
         if ($classId && $subjectId && $title && $maxMarks) {
-            $db->prepare(
-                'INSERT INTO assessments (class_id, subject_id, teacher_id, title, name, type, max_marks, weight, date)
-                 VALUES (?,?,?,?,?,?,?,?,?)'
-            )->execute([$classId, $subjectId, $teacher['id'], $title, $title, $type, $maxMarks, $weight, $date]);
-            logActivity($user['id'], 'assessment_create', "Exam Head created: $title");
+            $nameKey = normalizeAssessmentName($title);
+            try {
+                $db->prepare(
+                    'INSERT INTO assessments (class_id, subject_id, teacher_id, title, name, type, max_marks, weight, date, name_key)
+                     VALUES (?,?,?,?,?,?,?,?,?,?)'
+                )->execute([$classId, $subjectId, $teacher['id'], $title, $title, $type, $maxMarks, $weight, $date, $nameKey !== '' ? $nameKey : null]);
+            } catch (Exception $e) {
+                // name_key column may not exist yet — fall back to the legacy INSERT.
+                $db->prepare(
+                    'INSERT INTO assessments (class_id, subject_id, teacher_id, title, name, type, max_marks, weight, date)
+                     VALUES (?,?,?,?,?,?,?,?,?)'
+                )->execute([$classId, $subjectId, $teacher['id'], $title, $title, $type, $maxMarks, $weight, $date]);
+            }
+            logActivity($user['id'], 'assessment_create', "Exam Head created: $title (key=$nameKey)");
             setFlash('success', 'Assessment created.');
         } else {
             setFlash('danger', 'All required fields must be filled.');

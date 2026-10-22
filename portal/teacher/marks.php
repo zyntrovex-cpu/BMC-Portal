@@ -58,19 +58,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Main campus: create as draft (requires VP approval before students can see)
             // ILC/Montessori: bypass workflow, publish immediately
             $publishStatus = ($teacherWing === 'main') ? 'draft' : 'published';
+            // Centralised assessment-identity key so this assessment is grouped
+            // with any other teacher's assessment that refers to the same exam
+            // (e.g. "First Midterm" ≡ "1st Midterm" ≡ "FIRST MIDTERM").
+            $nameKey = normalizeAssessmentName($title);
             try {
                 $db->prepare(
-                    'INSERT INTO assessments (class_id, subject_id, teacher_id, title, name, type, max_marks, weight, date, publish_status)
-                     VALUES (?,?,?,?,?,?,?,?,?,?)'
-                )->execute([$classId, $subjectId, $teacher['id'], $title, $title, $type, $maxMarks, $weight, $date, $publishStatus]);
+                    'INSERT INTO assessments (class_id, subject_id, teacher_id, title, name, type, max_marks, weight, date, publish_status, name_key)
+                     VALUES (?,?,?,?,?,?,?,?,?,?,?)'
+                )->execute([$classId, $subjectId, $teacher['id'], $title, $title, $type, $maxMarks, $weight, $date, $publishStatus, $nameKey !== '' ? $nameKey : null]);
             } catch (Exception $e) {
-                // publish_status column may not exist yet — fall back to plain INSERT
-                $db->prepare(
-                    'INSERT INTO assessments (class_id, subject_id, teacher_id, title, name, type, max_marks, weight, date)
-                     VALUES (?,?,?,?,?,?,?,?,?)'
-                )->execute([$classId, $subjectId, $teacher['id'], $title, $title, $type, $maxMarks, $weight, $date]);
+                // name_key or publish_status column may not exist yet — try progressive fallbacks
+                try {
+                    $db->prepare(
+                        'INSERT INTO assessments (class_id, subject_id, teacher_id, title, name, type, max_marks, weight, date, publish_status)
+                         VALUES (?,?,?,?,?,?,?,?,?,?)'
+                    )->execute([$classId, $subjectId, $teacher['id'], $title, $title, $type, $maxMarks, $weight, $date, $publishStatus]);
+                } catch (Exception $e2) {
+                    $db->prepare(
+                        'INSERT INTO assessments (class_id, subject_id, teacher_id, title, name, type, max_marks, weight, date)
+                         VALUES (?,?,?,?,?,?,?,?,?)'
+                    )->execute([$classId, $subjectId, $teacher['id'], $title, $title, $type, $maxMarks, $weight, $date]);
+                }
             }
-            logActivity($user['id'], 'assessment_create', "Created: $title");
+            logActivity($user['id'], 'assessment_create', "Created: $title (key=$nameKey)");
             if ($teacherWing === 'main') {
                 setFlash('success', 'Assessment created (Draft). Request marks entry permission, enter marks, then submit for VP review to publish.');
             } else {
@@ -347,6 +358,47 @@ if (empty($assignedSubjects) && !empty($teacher['subject_id'])) {
     $assignedSubjects = [['id'=>$teacher['subject_id'], 'name'=>$teacher['subject_name'] ?? '']];
 }
 
+// Load existing canonical assessment names for the teacher's assigned
+// classes. The create form uses this as a <datalist> so teachers can
+// pick an existing name (e.g. "First Midterm") instead of inventing a
+// new variant ("1st Midterm") — fewer duplicates to consolidate later.
+$existingAssessmentNames = [];
+try {
+    $classIds = array_values(array_filter(array_column($assignedClasses, 'id')));
+    if (!empty($classIds)) {
+        $place = implode(',', array_fill(0, count($classIds), '?'));
+        $hasNameKey = false;
+        try { $db->query('SELECT name_key FROM assessments LIMIT 0'); $hasNameKey = true; } catch (Exception $e) {}
+        if ($hasNameKey) {
+            // One row per canonical identity, longest title wins the display label.
+            $ast = $db->prepare(
+                "SELECT SUBSTRING_INDEX(
+                            GROUP_CONCAT(COALESCE(NULLIF(title,''), name)
+                                ORDER BY CHAR_LENGTH(COALESCE(NULLIF(title,''), name)) DESC
+                                SEPARATOR '\\n'),
+                            '\\n', 1
+                        ) AS label
+                 FROM assessments
+                 WHERE class_id IN ($place) AND name_key IS NOT NULL AND name_key <> ''
+                 GROUP BY name_key
+                 ORDER BY label"
+            );
+        } else {
+            $ast = $db->prepare(
+                "SELECT DISTINCT COALESCE(NULLIF(title,''), name) AS label
+                   FROM assessments
+                  WHERE class_id IN ($place)
+                  ORDER BY label"
+            );
+        }
+        $ast->execute($classIds);
+        $existingAssessmentNames = array_values(array_filter(
+            $ast->fetchAll(PDO::FETCH_COLUMN),
+            fn($v) => $v !== null && $v !== ''
+        ));
+    }
+} catch (Exception $e) { $existingAssessmentNames = []; }
+
 pageHead('Marks', $user['role']);
 $links = match($user['role']) {
     'montessori_teacher'           => getMonteTeacherLinks(),
@@ -403,8 +455,23 @@ $links = match($user['role']) {
           </select>
         </div>
         <div class="col-md-4">
-          <label class="form-label fw-semibold" style="font-size:.82rem">Title</label>
-          <input type="text" name="title" class="form-control form-control-sm" placeholder="e.g. Quiz 1" required>
+          <label class="form-label fw-semibold" style="font-size:.82rem">
+            Title
+            <?php if (!empty($existingAssessmentNames)): ?>
+            <span class="text-muted" style="font-size:.7rem;font-weight:400">
+              — start typing to reuse an existing name
+            </span>
+            <?php endif; ?>
+          </label>
+          <input type="text" name="title" class="form-control form-control-sm"
+                 placeholder="e.g. First Midterm" list="rc-assess-names" autocomplete="off" required>
+          <?php if (!empty($existingAssessmentNames)): ?>
+          <datalist id="rc-assess-names">
+            <?php foreach ($existingAssessmentNames as $nm): ?>
+            <option value="<?= h($nm) ?>">
+            <?php endforeach; ?>
+          </datalist>
+          <?php endif; ?>
         </div>
         <div class="col-md-2">
           <label class="form-label fw-semibold" style="font-size:.82rem">Assessment Type</label>

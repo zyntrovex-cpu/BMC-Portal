@@ -186,3 +186,89 @@ function studentPassStatusLabel(iterable $subjects, float $grandPct, bool $hadMa
     if ($failedAggregate) return 'Fail: Aggregate';
     return 'Pass';
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// Assessment-name normalization — the single source of truth for deciding
+// whether two assessment titles refer to the SAME examination.
+//
+// Two assessments share an identity iff normalizeAssessmentName() returns
+// the same string for both. The report card dropdown, the "possible
+// duplicate" check at creation time, and the admin consolidation UI all
+// use this function — do not inline alternative matching rules anywhere.
+//
+// Normalization pipeline:
+//   1. Lowercase, trim, collapse whitespace, strip punctuation.
+//   2. Expand ordinals  (1st → first, 2nd → second, 3rd → third …).
+//   3. Expand common abbreviations (mid → midterm, hw → homework …).
+//   4. Drop generic trailing words that carry no meaning
+//      ("assessment", "exam", "paper", "test") so
+//      "First Midterm Assessment" matches "First Midterm".
+//   5. Collapse whitespace again and return the canonical key.
+//
+// Returns '' when the input is empty / only noise — callers should treat
+// an empty key as "no identity" and never group under it.
+// ──────────────────────────────────────────────────────────────────────────
+function normalizeAssessmentName(?string $name): string {
+    if ($name === null) return '';
+    $s = mb_strtolower(trim($name));
+    if ($s === '') return '';
+
+    // Replace punctuation with spaces (keeps word boundaries).
+    $s = preg_replace('/[^\p{L}\p{N}\s]+/u', ' ', $s) ?? $s;
+
+    // Expand ordinal digits: 1st → first, 2nd → second, 3rd → third,
+    // 4th-10th spelled out. 11th+ left as digits — rare in assessment names.
+    static $ords = [
+        '1st'  => 'first',  '2nd'  => 'second', '3rd'  => 'third',
+        '4th'  => 'fourth', '5th'  => 'fifth',  '6th'  => 'sixth',
+        '7th'  => 'seventh','8th'  => 'eighth', '9th'  => 'ninth',
+        '10th' => 'tenth',
+    ];
+    $s = preg_replace_callback('/\b(\d+)(st|nd|rd|th)\b/', function ($m) use ($ords) {
+        $full = $m[0];
+        return $ords[$full] ?? $full;
+    }, $s);
+
+    // Expand single-token abbreviations to their canonical forms.
+    static $abbr = [
+        'mid'    => 'midterm',
+        'midterm'=> 'midterm',
+        'final'  => 'final',
+        'ann'    => 'annual',
+        'annual' => 'annual',
+        'qz'     => 'quiz',
+        'quizz'  => 'quiz',
+        'hw'     => 'homework',
+        'cw'     => 'classwork',
+        'ut'     => 'unittest',
+        'wk'     => 'weekly',
+        'mnth'   => 'monthly',
+        'mon'    => 'monthly',
+        'practcl'=> 'practical',
+    ];
+    $parts = preg_split('/\s+/', $s, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $parts = array_map(fn($t) => $abbr[$t] ?? $t, $parts);
+
+    // Drop generic trailing noise words so "First Midterm Assessment"
+    // ≡ "First Midterm" ≡ "First Midterm Exam".
+    static $noise = ['assessment','exam','examination','paper','test','evaluation'];
+    while (!empty($parts) && in_array(end($parts), $noise, true)) {
+        array_pop($parts);
+    }
+    // Also drop leading noise ("Exam First Term" → "first term")
+    while (!empty($parts) && in_array($parts[0], $noise, true)) {
+        array_shift($parts);
+    }
+
+    return implode(' ', $parts);
+}
+
+/**
+ * Human-friendly canonical display name for an assessment identity.
+ * Uses the stored name of the longest / earliest assessment in the group
+ * when callers have one; falls back to a title-cased form of the key.
+ */
+function canonicalAssessmentLabel(string $nameKey): string {
+    if ($nameKey === '') return 'Untitled';
+    return ucwords($nameKey);
+}
