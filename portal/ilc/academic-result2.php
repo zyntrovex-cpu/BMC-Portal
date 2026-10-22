@@ -413,12 +413,12 @@ $links = getIlcLinks();
                                value="<?= h($sr['subject']) ?>" placeholder="Subject name">
                       </td>
                       <td style="padding:3px 6px">
-                        <input type="number" name="subj_max[]" step="0.01" min="0"
+                        <input type="number" name="subj_max[]" step="any" min="0"
                                class="form-control form-control-sm border-0 p-0 subj-max text-center"
                                value="<?= h($sr['max_marks']) ?>" oninput="calcRow(this)">
                       </td>
                       <td style="padding:3px 6px">
-                        <input type="number" name="subj_obt[]" step="0.01" min="0"
+                        <input type="number" name="subj_obt[]" step="any" min="0"
                                class="form-control form-control-sm border-0 p-0 subj-obt text-center"
                                value="<?= h($sr['obtained']) ?>" oninput="calcRow(this)">
                       </td>
@@ -801,9 +801,9 @@ function newSubjRowHtml() {
   return '<tr class="subj-row">'
     +'<td style="padding:3px 6px"><input type="text" name="subj_name[]"'
     +' class="form-control form-control-sm border-0 p-0 subj-name" placeholder="Subject name"></td>'
-    +'<td style="padding:3px 6px"><input type="number" name="subj_max[]" step="0.01" min="0"'
+    +'<td style="padding:3px 6px"><input type="number" name="subj_max[]" step="any" min="0"'
     +' class="form-control form-control-sm border-0 p-0 subj-max text-center" oninput="calcRow(this)"></td>'
-    +'<td style="padding:3px 6px"><input type="number" name="subj_obt[]" step="0.01" min="0"'
+    +'<td style="padding:3px 6px"><input type="number" name="subj_obt[]" step="any" min="0"'
     +' class="form-control form-control-sm border-0 p-0 subj-obt text-center" oninput="calcRow(this)"></td>'
     +'<td class="text-center align-middle subj-pct-cell" style="font-weight:600;color:#0f172a">—</td>'
     +'<td class="text-center align-middle subj-grade-cell"><span class="ar2-grade-badge">—</span></td>'

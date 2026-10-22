@@ -337,8 +337,11 @@ foreach ($subjects as $sid => &$sub) {
     $chips = [];
     foreach ($sub['assessments'] as $a) {
         $val = $a['marks_obtained'] !== null ? (float)$a['marks_obtained'] : null;
+        // Show the exact stored value — strip trailing zeros but keep decimals
+        // when the mark actually has them. Prevents a 39.97-stored value from
+        // being masked as "40.0" via 1-dp rounding.
         $disp = $val !== null
-            ? ($val == floor($val) ? (int)$val : number_format($val, 1))
+            ? rtrim(rtrim(number_format($val, 2, '.', ''), '0'), '.')
             : '—';
         $nil = $val === null;
         $chips[] =
@@ -1086,9 +1089,6 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
     }
     $editQS = ($role !== 'student' ? 'student_id='.$studentId.'&' : '')
             . ($typeFilter !== '' ? 'type='.urlencode($typeFilter).'&' : '');
-    // Vice Principal name — pulled from settings if available, otherwise blank
-    // (requirement: keep name fields blank where names are not available).
-    $vpName = trim((string)getSetting('principal_name', ''));
   ?>
 
   <?php if (!$isWordExport && $canEditTeacherRemarks): ?>
@@ -1134,14 +1134,13 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
   </style>
 
   <div class="rc-bottom-sec">
-    <!-- Vice Principal: name/title + signature only (NO remarks field) -->
+    <!-- Vice Principal: signature only — label only, no name, no sub-text -->
     <div class="rc-bsec">
       <div class="rc-bsec-h"><i class="fas fa-stamp me-1" style="opacity:.6"></i>Vice Principal</div>
       <div class="rc-bsec-b"></div>
       <div class="rc-bsec-sig">
         <div class="rc-bsec-line"></div>
-        <div class="rc-bsec-nm"><?= $vpName !== '' ? h($vpName) : '&nbsp;' ?></div>
-        <div class="rc-bsec-sub">Vice Principal · Signature &amp; Date</div>
+        <div class="rc-bsec-nm">Vice Principal</div>
       </div>
     </div>
 
@@ -1174,8 +1173,7 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
       </div>
       <div class="rc-bsec-sig">
         <div class="rc-bsec-line"></div>
-        <div class="rc-bsec-nm">&nbsp;</div>
-        <div class="rc-bsec-sub">Teacher · Signature &amp; Date</div>
+        <div class="rc-bsec-nm">Teacher</div>
       </div>
     </div>
 
@@ -1189,8 +1187,7 @@ body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; background: #c8d3e
       </div>
       <div class="rc-bsec-sig">
         <div class="rc-bsec-line"></div>
-        <div class="rc-bsec-nm">&nbsp;</div>
-        <div class="rc-bsec-sub">Parent / Guardian · Signature &amp; Date</div>
+        <div class="rc-bsec-nm">Parents</div>
       </div>
     </div>
   </div>

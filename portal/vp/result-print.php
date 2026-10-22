@@ -399,7 +399,7 @@ body { font-family:'Segoe UI',Arial,Helvetica,sans-serif; background:#c8d3e4; co
         <?php foreach ($subjectOrder as $sid => $sn):
           $sub = $stu['subjects'][$sid] ?? null;
           if ($sub && $sub['max'] > 0): ?>
-        <td style="text-align:center"><?= round($sub['obtained'],1) ?></td>
+        <td style="text-align:center"><?= rtrim(rtrim(number_format((float)$sub['obtained'], 2, '.', ''), '0'), '.') ?></td>
         <td style="text-align:center;color:#94a3b8"><?= (int)$sub['max'] ?></td>
           <?php else: ?>
         <td colspan="2" style="text-align:center"><span class="missing">—</span></td>

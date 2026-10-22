@@ -184,11 +184,11 @@ $links = getExamHeadLinks();
         </div>
         <div class="col-md-2">
           <label class="form-label fw-semibold" style="font-size:.82rem">Max Marks</label>
-          <input type="number" name="max_marks" class="form-control form-control-sm" min="1" max="1000" step="0.01" required>
+          <input type="number" name="max_marks" class="form-control form-control-sm" min="1" max="1000" step="any" required>
         </div>
         <div class="col-md-2">
           <label class="form-label fw-semibold" style="font-size:.82rem">Weight %</label>
-          <input type="number" name="weight" class="form-control form-control-sm" min="0" max="100" step="0.01" value="10">
+          <input type="number" name="weight" class="form-control form-control-sm" min="0" max="100" step="any" value="10">
         </div>
         <div class="col-md-3">
           <label class="form-label fw-semibold" style="font-size:.82rem">Date</label>
@@ -324,7 +324,7 @@ $links = getExamHeadLinks();
                      class="form-control form-control-sm marks-input"
                      data-max="<?= $currentAssessment['max_marks'] ?>"
                      value="<?= h($obtained) ?>"
-                     min="0" max="<?= $currentAssessment['max_marks'] ?>" step="0.01"
+                     min="0" max="<?= $currentAssessment['max_marks'] ?>" step="any"
                      oninput="calcRow(this)">
             </td>
             <td class="pct-cell"><?= $pct !== '' ? $pct.'%' : '—' ?></td>

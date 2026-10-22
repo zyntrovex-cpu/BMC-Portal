@@ -348,7 +348,7 @@ $passRate = $totalStudents > 0 ? round($passCount / $totalStudents * 100, 0) : 0
           <td><?= h($r['roll_no'] ?: '—') ?></td>
           <td class="text-center"><?= (int)$r['assessments'] ?></td>
           <td class="text-end"><?= $r['total_possible'] > 0 ? number_format((float)$r['total_possible'], 0) : '—' ?></td>
-          <td class="text-end"><?= $r['total_possible'] > 0 ? number_format((float)$r['total_obtained'], 1) : '—' ?></td>
+          <td class="text-end"><?= $r['total_possible'] > 0 ? rtrim(rtrim(number_format((float)$r['total_obtained'], 2, '.', ''), '0'), '.') : '—' ?></td>
           <td class="text-center">
             <?php if ($r['total_possible'] > 0): ?>
             <span class="badge <?= $badge ?>"><?= $pct ?>%</span>
