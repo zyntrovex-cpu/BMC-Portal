@@ -85,12 +85,26 @@ if ($filterCls > 0) {
     $params[] = $filterCls;
 }
 
-// Non-admin/wing_head teachers only see warnings for students in their own classes
+// Scope by role:
+//   admin / wing_head                 → every warning in the system
+//   vp_main / vp_montessori / ilc_vp  → every warning in their own wing
+//   everyone else (teachers)          → warnings for students in their classes
 if (!in_array($user['role'], ['admin', 'wing_head'], true)) {
-    $teacher = getTeacherByUserId($user['id']);
-    if ($teacher) {
-        $where[]  = 's.class_id IN (SELECT DISTINCT class_id FROM class_subjects WHERE teacher_id = ?)';
-        $params[] = (int)$teacher['id'];
+    $wingForVp = match ($user['role']) {
+        'vp_main'        => 'main',
+        'vp_montessori'  => 'montessori',
+        'ilc_vp'         => 'ilc',
+        default          => null,
+    };
+    if ($wingForVp !== null) {
+        $where[]  = "COALESCE(c.wing,'main') = ?";
+        $params[] = $wingForVp;
+    } else {
+        $teacher = getTeacherByUserId($user['id']);
+        if ($teacher) {
+            $where[]  = 's.class_id IN (SELECT DISTINCT class_id FROM class_subjects WHERE teacher_id = ?)';
+            $params[] = (int)$teacher['id'];
+        }
     }
 }
 

@@ -11,8 +11,14 @@ require_once __DIR__ . '/../includes/auth.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-// Any authenticated staff role may call this
-$allowedRoles = ['admin','teacher','montessori_teacher','ilc_teacher','vp_main','wing_head','student_affairs'];
+// Any authenticated staff role that can issue warnings may call this.
+// vp_montessori / ilc_vp were previously missing, so their warnings UI
+// could not populate the student picker and the dropdown appeared empty.
+$allowedRoles = [
+    'admin', 'teacher', 'montessori_teacher', 'ilc_teacher',
+    'vp_main', 'vp_montessori', 'ilc_vp',
+    'wing_head', 'student_affairs',
+];
 $sess = $_SESSION['user'] ?? [];
 if (empty($sess['role']) || !in_array($sess['role'], $allowedRoles, true)) {
     http_response_code(403);
@@ -34,13 +40,28 @@ $like = '%' . $q . '%';
 
 // Build active-student filter (graceful for missing columns)
 $extraWhere = '';
+$params     = [$like, $like, $like];
 try { $db->query('SELECT deleted_at FROM students LIMIT 0');   $extraWhere .= ' AND s.deleted_at IS NULL';   } catch (Exception $e) {}
 try { $db->query('SELECT graduated_at FROM students LIMIT 0'); $extraWhere .= ' AND s.graduated_at IS NULL'; } catch (Exception $e) {}
+
+// Wing-scope: VPs can only warn students in their own wing.
+// Main Campus / ILC / Montessori stay isolated.
+$wingScope = match ($sess['role']) {
+    'vp_main'        => 'main',
+    'vp_montessori'  => 'montessori',
+    'ilc_vp'         => 'ilc',
+    default          => null,
+};
+if ($wingScope !== null) {
+    $extraWhere .= " AND COALESCE(c.wing,'main') = ?";
+    $params[]    = $wingScope;
+}
 
 try {
     $st = $db->prepare(
         "SELECT s.id, s.roll_no, u.name, u.user_id AS login_id,
-                c.name AS class_name, h.name AS house_name, h.color AS house_color
+                c.name AS class_name, COALESCE(c.wing,'main') AS wing,
+                h.name AS house_name, h.color AS house_color
          FROM students s
          JOIN users u    ON s.user_id  = u.id
          LEFT JOIN classes c ON s.class_id = c.id
@@ -51,7 +72,7 @@ try {
          ORDER BY u.name
          LIMIT 20"
     );
-    $st->execute([$like, $like, $like]);
+    $st->execute($params);
     echo json_encode($st->fetchAll(PDO::FETCH_ASSOC));
 } catch (Exception $e) {
     http_response_code(500);

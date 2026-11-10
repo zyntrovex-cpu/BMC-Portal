@@ -22,11 +22,17 @@ if ($tableExists && $student['class_id']) {
     $params = [$student['class_id']];
     if ($filterDate) { $where .= ' AND dd.date = ?'; $params[] = $filterDate; }
 
+    // LEFT JOIN on teachers/users — a diary entry posted by a supervisor,
+    // VP or wing_head may have teacher_id=0 or reference a teachers row
+    // that was later removed. The old INNER JOIN silently dropped every
+    // such entry, which is why Montessori students couldn't see diary
+    // posts from their class teacher (whose teacher_id was 0 at the time
+    // of posting). We still display the teacher name when available.
     $st = $db->prepare(
-        "SELECT dd.*, u.name AS teacher_name
+        "SELECT dd.*, COALESCE(u.name, 'Class Teacher') AS teacher_name
          FROM daily_diary dd
-         JOIN teachers t ON t.id = dd.teacher_id
-         JOIN users u    ON u.id = t.user_id
+         LEFT JOIN teachers t ON t.id = dd.teacher_id
+         LEFT JOIN users u    ON u.id = t.user_id
          WHERE $where
          ORDER BY dd.date DESC, dd.created_at DESC
          LIMIT 60"

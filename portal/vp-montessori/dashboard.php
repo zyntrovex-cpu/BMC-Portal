@@ -116,7 +116,7 @@ $links = getVpMontessoriLinks();
     <div>
       <h4 class="mb-1 text-white fw-bold">Welcome, <?= h($user['name']) ?>!</h4>
       <div class="text-white opacity-75" style="font-size:13px;">
-        Coordinator &mdash; Montessori Wing &nbsp;|&nbsp; Session <?= SESSION_YEAR ?>
+        Vice Principal &mdash; Montessori Wing &nbsp;|&nbsp; Session <?= SESSION_YEAR ?>
       </div>
     </div>
   </div>
