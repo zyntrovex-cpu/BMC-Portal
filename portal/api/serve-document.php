@@ -66,7 +66,7 @@ if ($type === 'timetable') {
     }
 } elseif ($type === 'datesheet') {
     $st = $db->prepare(
-        "SELECT stored_filename, original_filename, status
+        "SELECT stored_filename, original_filename, status, wing
          FROM exam_date_sheets WHERE id=?"
     );
     $st->execute([$id]);
@@ -76,6 +76,40 @@ if ($type === 'timetable') {
         if ($user['role'] === 'student' && $row['status'] !== 'published') {
             http_response_code(403);
             exit('Document not available.');
+        }
+        // Wing isolation — a Main Campus datesheet must not be downloadable
+        // from Montessori/ILC sidebars via direct link, and vice versa.
+        // Admins bypass; 'all' sheets are cross-wing visible.
+        if ($user['role'] !== 'admin' && ($row['wing'] ?? 'all') !== 'all') {
+            $docWing  = $row['wing'];
+            $userWing = 'main';
+            $role     = $user['role'];
+            if (in_array($role, ['montessori_teacher', 'wing_head', 'vp_montessori'], true)) {
+                $userWing = 'montessori';
+            } elseif (in_array($role, ['ilc_teacher', 'ilc_vp'], true)) {
+                $userWing = 'ilc';
+            } elseif ($role === 'teacher') {
+                try {
+                    $t = getTeacherByUserId($user['id']);
+                    if ($t && !empty($t['is_ilc'])) $userWing = 'ilc';
+                    elseif ($t && ($t['wing'] ?? 'main') === 'montessori') $userWing = 'montessori';
+                } catch (Exception $e) {}
+            } elseif ($role === 'student') {
+                try {
+                    $s = getStudentByUserId($user['id']);
+                    if ($s && !empty($s['class_id'])) {
+                        $cr = $db->prepare('SELECT COALESCE(is_ilc,0) AS is_ilc, COALESCE(is_montessori,0) AS is_montessori FROM classes WHERE id=?');
+                        $cr->execute([(int)$s['class_id']]);
+                        $clsRow = $cr->fetch();
+                        if ($clsRow) $userWing = $clsRow['is_ilc'] ? 'ilc' : ($clsRow['is_montessori'] ? 'montessori' : 'main');
+                    }
+                } catch (Exception $e) {}
+            }
+            // examination_head, vp_main, student_affairs, finance default to 'main'
+            if ($userWing !== $docWing) {
+                http_response_code(403);
+                exit('Access denied: this date sheet is not available for your campus.');
+            }
         }
         $storedFilename   = $row['stored_filename'];
         $originalFilename = $row['original_filename'];

@@ -178,27 +178,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tableExists) {
         $hasVpRemCol  = false;
         try { $db->query('SELECT vp_remarks FROM progress_reports LIMIT 0'); $hasVpRemCol = true; } catch (Exception $e) {}
 
+        // Clicking Save/Submit always promotes the report to 'submitted' so the
+        // autosave draft lifecycle ends here. The autosave endpoint writes
+        // status='draft'; this path writes status='submitted'.
+        $hasStatusCol = false;
+        try { $db->query('SELECT status FROM progress_reports LIMIT 0'); $hasStatusCol = true; } catch (Exception $e) {}
+        $statusCol = $hasStatusCol ? ', status=\'submitted\'' : '';
+
         if ($action === 'update') {
             $id = (int)($_POST['result_id'] ?? 0);
             if ($acceptsVpRem && $hasVpRemCol) {
-                $db->prepare('UPDATE progress_reports SET term=?,session=?,form_data=?,vp_remarks=?,reported_by=?,updated_at=NOW() WHERE id=? AND student_id=?')
+                $db->prepare("UPDATE progress_reports SET term=?,session=?,form_data=?,vp_remarks=?,reported_by=?$statusCol,updated_at=NOW() WHERE id=? AND student_id=?")
                    ->execute([$term,$session,$json,($vpRem !== '' ? $vpRem : null),$user['id'],$id,$studentId]);
             } else {
-                $db->prepare('UPDATE progress_reports SET term=?,session=?,form_data=?,reported_by=?,updated_at=NOW() WHERE id=? AND student_id=?')
+                $db->prepare("UPDATE progress_reports SET term=?,session=?,form_data=?,reported_by=?$statusCol,updated_at=NOW() WHERE id=? AND student_id=?")
                    ->execute([$term,$session,$json,$user['id'],$id,$studentId]);
             }
-            logActivity($user['id'],'pr_update',"Updated Progress Report #$id");
-            setFlash('success','Progress Report updated.');
+            logActivity($user['id'],'pr_update',"Submitted Progress Report #$id");
+            setFlash('success','Progress Report submitted.');
         } else {
-            if ($acceptsVpRem && $hasVpRemCol && $vpRem !== '') {
-                $db->prepare('INSERT INTO progress_reports (student_id,term,session,form_data,vp_remarks,reported_by) VALUES (?,?,?,?,?,?)')
-                   ->execute([$studentId,$term,$session,$json,$vpRem,$user['id']]);
-            } else {
-                $db->prepare('INSERT INTO progress_reports (student_id,term,session,form_data,reported_by) VALUES (?,?,?,?,?)')
-                   ->execute([$studentId,$term,$session,$json,$user['id']]);
+            // On a fresh Submit, hunt down any autosaved draft for this
+            // (student, term, session, author) and promote THAT row instead of
+            // creating a duplicate. This is the main defence against drift
+            // between the draft and the final submission.
+            $promotedId = 0;
+            if ($hasStatusCol) {
+                try {
+                    $f = $db->prepare("SELECT id FROM progress_reports
+                                        WHERE student_id=? AND term=? AND COALESCE(session,'')=?
+                                          AND reported_by=? AND status='draft'
+                                        ORDER BY id DESC LIMIT 1");
+                    $f->execute([$studentId, $term, $session, $user['id']]);
+                    $promotedId = (int)($f->fetchColumn() ?: 0);
+                } catch (Exception $e) {}
             }
-            logActivity($user['id'],'pr_create',"Created Progress Report for student #$studentId");
-            setFlash('success','Progress Report saved.');
+            if ($promotedId > 0) {
+                if ($acceptsVpRem && $hasVpRemCol) {
+                    $db->prepare("UPDATE progress_reports SET term=?,session=?,form_data=?,vp_remarks=?,reported_by=?,status='submitted',updated_at=NOW() WHERE id=?")
+                       ->execute([$term,$session,$json,($vpRem !== '' ? $vpRem : null),$user['id'],$promotedId]);
+                } else {
+                    $db->prepare("UPDATE progress_reports SET term=?,session=?,form_data=?,reported_by=?,status='submitted',updated_at=NOW() WHERE id=?")
+                       ->execute([$term,$session,$json,$user['id'],$promotedId]);
+                }
+                logActivity($user['id'],'pr_submit',"Submitted Progress Report #$promotedId (promoted from draft)");
+                setFlash('success','Progress Report submitted.');
+            } else {
+                $insertCols = $hasStatusCol ? ',status' : '';
+                $insertVals = $hasStatusCol ? ",'submitted'" : '';
+                if ($acceptsVpRem && $hasVpRemCol && $vpRem !== '') {
+                    $db->prepare("INSERT INTO progress_reports (student_id,term,session,form_data,vp_remarks,reported_by$insertCols) VALUES (?,?,?,?,?,?$insertVals)")
+                       ->execute([$studentId,$term,$session,$json,$vpRem,$user['id']]);
+                } else {
+                    $db->prepare("INSERT INTO progress_reports (student_id,term,session,form_data,reported_by$insertCols) VALUES (?,?,?,?,?$insertVals)")
+                       ->execute([$studentId,$term,$session,$json,$user['id']]);
+                }
+                logActivity($user['id'],'pr_create',"Submitted Progress Report for student #$studentId");
+                setFlash('success','Progress Report submitted.');
+            }
         }
 
         // Auto-save form structure as template for this class (stripped of student-specific values)
@@ -239,6 +275,16 @@ if ($studentId && $tableExists) {
     $st->execute([$studentId]);
     $results = $st->fetchAll();
     if ($editId) foreach ($results as $r) { if ($r['id'] == $editId) { $editResult = $r; break; } }
+    // Autosave resume: if no explicit ?edit= was given and this teacher has a
+    // DRAFT in flight for this student, open it instead of starting fresh.
+    if (!$editResult) {
+        foreach ($results as $r) {
+            if (($r['status'] ?? 'submitted') === 'draft' && (int)$r['reported_by'] === (int)$user['id']) {
+                $editResult = $r;
+                break;
+            }
+        }
+    }
 }
 
 $curStudent = null;
@@ -527,15 +573,165 @@ pageHead('Progress Report', $role);
               </div>
             </div>
 
-            <div class="d-flex gap-2 pt-1">
-              <button type="submit" class="btn btn-sm" style="background:#3730a3;color:#fff">
-                <i class="fas fa-save me-1"></i><?= $editResult?'Update Report':'Save Report' ?>
+            <div class="d-flex gap-2 pt-1 align-items-center flex-wrap">
+              <button type="submit" id="prSubmitBtn" class="btn btn-sm" style="background:#3730a3;color:#fff">
+                <i class="fas fa-paper-plane me-1"></i>Submit Report
               </button>
               <?php if ($editResult): ?>
               <a href="?student_id=<?= $studentId ?>" class="btn btn-outline-secondary btn-sm">Cancel</a>
               <?php endif; ?>
+              <!-- Autosave status — updated by the autosave JS below -->
+              <div id="prAutosaveStatus" class="ms-auto" style="font-size:.8rem;color:#64748b;display:flex;align-items:center;gap:6px">
+                <i class="fas fa-cloud" style="opacity:.6"></i>
+                <span data-role="label">All changes saved</span>
+              </div>
+            </div>
+            <div class="small text-muted mt-2" style="font-size:.74rem">
+              <i class="fas fa-info-circle me-1"></i>
+              Your draft is auto-saved while you work. If you log out or close
+              the browser, your progress is kept — it will not be submitted
+              until you click <strong>Submit Report</strong>.
             </div>
           </form>
+
+<script>
+/* Progress Report autosave
+ * -------------------------
+ * Fires at most every 8 seconds while the form has pending edits, and once
+ * on 'blur' of any field so leaving the page triggers one last save. The
+ * endpoint upserts a single draft row per (student, term, session, author),
+ * so repeated fires do not create duplicate drafts.
+ */
+(function(){
+    var form = document.getElementById('prForm');
+    if (!form) return;
+    var statusEl = document.getElementById('prAutosaveStatus');
+    var labelEl  = statusEl ? statusEl.querySelector('[data-role="label"]') : null;
+    var iconEl   = statusEl ? statusEl.querySelector('i') : null;
+
+    var pending    = false;
+    var inflight   = false;
+    var lastSentAt = 0;
+    var MIN_GAP_MS = 8000;      // throttle — autosave at most every 8s
+    var DEBOUNCE_MS = 1500;     // wait for 1.5s of idle before firing
+
+    function setStatus(mode, msg) {
+        if (!statusEl) return;
+        var colors = {
+            saving:   '#b45309',
+            saved:    '#15803d',
+            error:    '#b91c1c',
+            idle:     '#64748b',
+        };
+        var icons = {
+            saving:   'fas fa-sync fa-spin',
+            saved:    'fas fa-check-circle',
+            error:    'fas fa-exclamation-triangle',
+            idle:     'fas fa-cloud',
+        };
+        statusEl.style.color = colors[mode] || colors.idle;
+        if (iconEl)  iconEl.className  = icons[mode] || icons.idle;
+        if (labelEl) labelEl.textContent = msg;
+    }
+
+    function getResultId() {
+        var hidden = form.querySelector('input[name="result_id"]');
+        return hidden ? parseInt(hidden.value, 10) || 0 : 0;
+    }
+
+    function serialize() {
+        // Make sure form_json is current. form.php's own render/update code
+        // already updates this hidden input on structural changes (added
+        // subjects etc). We also trigger it explicitly here if a global
+        // helper is defined.
+        if (typeof window.prSerializeSubjects === 'function') {
+            try { window.prSerializeSubjects(); } catch (e) {}
+        }
+        var fd = new FormData(form);
+        var subjectsRaw = fd.get('form_json');
+        return {
+            student_id:            parseInt(fd.get('student_id') || '0', 10),
+            result_id:             getResultId(),
+            basic_term:            fd.get('basic_term'),
+            basic_session:         fd.get('basic_session'),
+            basic_attendance:      fd.get('basic_attendance'),
+            basic_date_of_issue:   fd.get('basic_date_of_issue'),
+            subjects:              subjectsRaw,
+            remarks:               fd.get('remarks'),
+            narrative:             fd.get('narrative'),
+        };
+    }
+
+    function doSave() {
+        if (inflight) { pending = true; return; }
+        if (!getResultId() && !form.querySelector('[name="basic_term"]')) return;
+        inflight = true;
+        pending  = false;
+        lastSentAt = Date.now();
+        setStatus('saving', 'Saving…');
+        var body = serialize();
+        fetch(<?= json_encode(url('/portal/api/progress_report_autosave.php')) ?>, {
+            method:  'POST',
+            headers: {'Content-Type':'application/json'},
+            body:    JSON.stringify(body),
+            credentials: 'same-origin',
+        })
+        .then(function(r){ return r.json().catch(function(){ return {ok:false}; }); })
+        .then(function(d){
+            inflight = false;
+            if (d && d.ok) {
+                // If this was the first draft save, remember the id so later
+                // autosaves update the same row.
+                if (d.id && !getResultId()) {
+                    var h = document.createElement('input');
+                    h.type = 'hidden'; h.name = 'result_id'; h.value = d.id;
+                    form.appendChild(h);
+                }
+                var t = new Date();
+                var hh = String(t.getHours()).padStart(2,'0');
+                var mm = String(t.getMinutes()).padStart(2,'0');
+                setStatus('saved', 'All changes saved · ' + hh + ':' + mm);
+            } else {
+                setStatus('error', 'Save failed — will retry');
+            }
+            if (pending) setTimeout(doSave, 300);
+        })
+        .catch(function(){
+            inflight = false;
+            setStatus('error', 'Offline — will retry');
+            if (pending) setTimeout(doSave, 2000);
+        });
+    }
+
+    var debounceTimer = null;
+    function scheduleSave() {
+        setStatus('idle', 'Unsaved changes…');
+        if (debounceTimer) clearTimeout(debounceTimer);
+        var gap = Math.max(DEBOUNCE_MS, MIN_GAP_MS - (Date.now() - lastSentAt));
+        debounceTimer = setTimeout(doSave, gap);
+    }
+
+    // Trigger autosave on any user input / change inside the form.
+    form.addEventListener('input',  scheduleSave);
+    form.addEventListener('change', scheduleSave);
+
+    // Last-chance save when the teacher leaves the page.
+    window.addEventListener('beforeunload', function(){
+        if (!pending && !debounceTimer) return;
+        try {
+            if (typeof window.prSerializeSubjects === 'function') window.prSerializeSubjects();
+            var payload = JSON.stringify(serialize());
+            navigator.sendBeacon(
+                <?= json_encode(url('/portal/api/progress_report_autosave.php')) ?>,
+                new Blob([payload], {type:'application/json'})
+            );
+        } catch (e) {}
+    });
+
+    // Initial status: saved (nothing new to save yet).
+    setStatus('saved', 'All changes saved');
+})();
+</script>
         </div>
       </div>
     </div>

@@ -85,12 +85,14 @@ function getClassSubjects(int $classId): array {
 }
 
 function getClassStudents(int $classId): array {
+    // Alphabetical by name (portal-wide A→Z policy); roll_no is secondary
+    // so students with the same name still sort consistently.
     $st = getDB()->prepare(
         'SELECT s.*, u.name, u.status, u.user_id AS roll_no_login
          FROM students s
          JOIN users u ON s.user_id = u.id
          WHERE s.class_id = ? AND s.deleted_at IS NULL
-         ORDER BY s.roll_no'
+         ORDER BY u.name, s.roll_no'
     );
     $st->execute([$classId]);
     return $st->fetchAll();
